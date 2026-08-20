@@ -1,0 +1,110 @@
+{
+  "asset": {
+    "code": "USTRY",
+    "type": "credit_alphanum12",
+    "issuer": "GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE"
+  },
+  "quote": {
+    "code": "XLM",
+    "type": "native",
+    "issuer": null
+  },
+  "ledgerSeq": 60912345,
+  "ledgerClosedAt": "2026-05-19T11:02:44Z",
+  "computedAt": "2026-08-19T02:40:11Z",
+  "methodologyVersion": "1.0.2-draft",
+  "dataSource": "hubble",
+  "midPrice": "0.0104200",
+  "priceSource": "book",
+  "spreadPct": "3.4100000",
+  "depth": [
+    {
+      "delta": 0.02,
+      "buySide": "41.2200000",
+      "sellSide": "38.9100000",
+      "fromSdex": "41.2200000",
+      "fromAmm": "0.0000000"
+    },
+    {
+      "delta": 0.05,
+      "buySide": "104.8800000",
+      "sellSide": "96.4400000",
+      "fromSdex": "104.8800000",
+      "fromAmm": "0.0000000"
+    },
+    {
+      "delta": 0.1,
+      "buySide": "211.0400000",
+      "sellSide": "190.2200000",
+      "fromSdex": "211.0400000",
+      "fromAmm": "0.0000000"
+    }
+  ],
+  "manipulationCost": [
+    {
+      "delta": 0.5,
+      "targetPrice": "0.0156300",
+      "cost": "892.4100000",
+      "reachable": true
+    },
+    {
+      "delta": 1,
+      "targetPrice": "0.0208400",
+      "cost": "1544.8800000",
+      "reachable": true
+    },
+    {
+      "delta": 10,
+      "targetPrice": "0.1146200",
+      "cost": "2210.4400000",
+      "reachable": false
+    },
+    {
+      "delta": 100,
+      "targetPrice": "1.0524200",
+      "cost": "2210.4400000",
+      "reachable": false
+    }
+  ],
+  "maxReachablePrice": "0.0891000",
+  "costToMaxReachablePrice": "2183.6500000",
+  "oracleResistance": {
+    "criticalDelta": 0.5,
+    "manipulationCost": "892.4100000",
+    "reachable": true,
+    "genuineVolume": "0.0000000",
+    "windowSeconds": 300,
+    "ratio": null
+  },
+  "maxSafeCollateral": "95.1100000",
+  "holderTop1Pct": "79.4400000",
+  "holderTop10Pct": "96.8800000",
+  "holderHhi": "0.6412000",
+  "volumeToSupply": {
+    "d1": "0.0000000",
+    "d7": "0.0002000",
+    "d30": "0.0011000"
+  },
+  "lastGenuineTrade": {
+    "ledgerSeq": 60874120,
+    "at": "2026-05-16T08:33:02Z"
+  },
+  "tradesExcludedPct": "64.2000000",
+  "flags": [
+    "MANIPULATION_CHEAP",
+    "MANIPULATION_RATIO_LOW",
+    "THIN_DEPTH_5PCT",
+    "NO_GENUINE_TRADE_7D",
+    "HOLDER_CONCENTRATION_EXTREME",
+    "HOLDER_CONCENTRATION_HIGH",
+    "WASH_TRADE_SUSPECTED"
+  ],
+  "unevaluatedFlags": [],
+  "band": "CRITICAL",
+  "bandConfidence": "full",
+  "warnings": [
+    "There was no AMM liquidity for this pair at that ledger.",
+    "The delta 10 and 100 rungs were not reached. Every ask is exhausted at a price of 0.0891000. The cost of 2210.4400000 on both of those rungs is the cost of exhausting the book, not the cost of reaching the target price.",
+    "There was no genuine trade within the 300 second oracle window, so the oracle resistance ratio cannot be computed."
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "asset": {
+    "code": "USDC",
+    "type": "credit_alphanum4",
+    "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+  },
+  "quote": {
+    "code": "XLM",
+    "type": "native",
+    "issuer": null
+  },
+  "ledgerSeq": 61234567,
+  "ledgerClosedAt": "2026-08-19T04:12:31Z",
+  "computedAt": "2026-08-19T04:15:02Z",
+  "methodologyVersion": "1.0.2-draft",
+  "dataSource": "horizon",
+  "midPrice": "2.8419300",
+  "priceSource": "book",
+  "spreadPct": "0.0844000",
+  "depth": [
+    {
+      "delta": 0.02,
+      "buySide": "184220.4183100",
+      "sellSide": "176905.2210400",
+      "fromSdex": "142880.9910200",
+      "fromAmm": "41339.4272900"
+    },
+    {
+      "delta": 0.05,
+      "buySide": "441038.9920700",
+      "sellSide": "428771.0044300",
+      "fromSdex": "337920.1180600",
+      "fromAmm": "103118.8740100"
+    },
+    {
+      "delta": 0.1,
+      "buySide": "852119.7714000",
+      "sellSide": "839004.5512800",
+      "fromSdex": "648221.9014000",
+      "fromAmm": "203897.8700000"
+    }
+  ],
+  "manipulationCost": [
+    {
+      "delta": 0.5,
+      "targetPrice": "4.2628950",
+      "cost": "3910442.1180000",
+      "reachable": true
+    },
+    {
+      "delta": 1,
+      "targetPrice": "5.6838600",
+      "cost": "8422018.7710000",
+      "reachable": true
+    },
+    {
+      "delta": 10,
+      "targetPrice": "31.2612300",
+      "cost": "48210559.4400000",
+      "reachable": true
+    },
+    {
+      "delta": 100,
+      "targetPrice": "287.0349300",
+      "cost": "61044180.2200000",
+      "reachable": false
+    }
+  ],
+  "maxReachablePrice": "41.8842000",
+  "costToMaxReachablePrice": "60893877.4400000",
+  "oracleResistance": {
+    "criticalDelta": 0.5,
+    "manipulationCost": "3910442.1180000",
+    "reachable": true,
+    "genuineVolume": "184402.9100000",
+    "windowSeconds": 300,
+    "ratio": "21.2060000"
+  },
+  "maxSafeCollateral": "419502.2756400",
+  "holderTop1Pct": "11.4200000",
+  "holderTop10Pct": "38.9100000",
+  "holderHhi": "0.0412000",
+  "volumeToSupply": {
+    "d1": "0.0184000",
+    "d7": "0.1102000",
+    "d30": "0.4471000"
+  },
+  "lastGenuineTrade": {
+    "ledgerSeq": 61234559,
+    "at": "2026-08-19T04:11:47Z"
+  },
+  "tradesExcludedPct": "2.1000000",
+  "flags": [],
+  "unevaluatedFlags": [],
+  "band": "LOW",
+  "bandConfidence": "full",
+  "warnings": [
+    "The delta 100 rung was not reached. Every ask is exhausted at a price of 41.8842000, below the target price of 287.0349300."
+  ]
+}

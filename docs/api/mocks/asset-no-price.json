@@ -1,0 +1,73 @@
+{
+  "asset": {
+    "code": "USTRY",
+    "type": "credit_alphanum12",
+    "issuer": "GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE"
+  },
+  "quote": {
+    "code": "XLM",
+    "type": "native",
+    "issuer": null
+  },
+  "ledgerSeq": 61234567,
+  "ledgerClosedAt": "2026-08-19T04:12:31Z",
+  "computedAt": "2026-08-19T04:15:06Z",
+  "methodologyVersion": "1.0.2-draft",
+  "dataSource": "horizon",
+  "midPrice": null,
+  "priceSource": "none",
+  "spreadPct": null,
+  "depth": [
+    {
+      "delta": 0.02,
+      "buySide": "0.0000000",
+      "sellSide": "0.0000000",
+      "fromSdex": "0.0000000",
+      "fromAmm": "0.0000000"
+    },
+    {
+      "delta": 0.05,
+      "buySide": "0.0000000",
+      "sellSide": "0.0000000",
+      "fromSdex": "0.0000000",
+      "fromAmm": "0.0000000"
+    },
+    {
+      "delta": 0.1,
+      "buySide": "0.0000000",
+      "sellSide": "0.0000000",
+      "fromSdex": "0.0000000",
+      "fromAmm": "0.0000000"
+    }
+  ],
+  "manipulationCost": [],
+  "maxReachablePrice": null,
+  "costToMaxReachablePrice": null,
+  "oracleResistance": null,
+  "maxSafeCollateral": null,
+  "holderTop1Pct": "88.2100000",
+  "holderTop10Pct": "99.1400000",
+  "holderHhi": "0.7821000",
+  "volumeToSupply": {
+    "d1": "0.0000000",
+    "d7": "0.0000000",
+    "d30": "0.0000000"
+  },
+  "lastGenuineTrade": null,
+  "tradesExcludedPct": null,
+  "flags": [
+    "NO_EXECUTABLE_PRICE",
+    "ZERO_DEPTH_2PCT",
+    "NO_GENUINE_TRADE_30D",
+    "NO_GENUINE_TRADE_7D",
+    "HOLDER_CONCENTRATION_EXTREME",
+    "HOLDER_CONCENTRATION_HIGH"
+  ],
+  "unevaluatedFlags": [],
+  "band": "CRITICAL",
+  "bandConfidence": "full",
+  "warnings": [
+    "There is neither an orderbook nor a pool for this pair.",
+    "An asset with no executable price cannot be assessed as collateral by any method. This is a finding, not a computation failure."
+  ]
+}

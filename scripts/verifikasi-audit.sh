@@ -73,7 +73,17 @@ check_rejects_trades_implied(){
   return 0
 }
 contract_lacks()   { ! grep -qE "^ +$1:" docs/api/keel-openapi.yaml; }
-ikhtisar_missing() { [ ! -f docs/methodology/00-ikhtisar.md ]; }
+# documentUrl pointing at a file that is not in the repository. Resolved from the
+# URL itself rather than hardcoding 00-ikhtisar.md, so fixing the URL retires the
+# finding and pointing it at some other missing file does not.
+documenturl_dangling() {
+  local url path
+  url=$(grep -oE 'documentUrl: https://[^ ]+' docs/api/keel-openapi.yaml | head -1 | sed 's/documentUrl: //')
+  [ -n "$url" ] || return 1
+  path=${url#*/blob/main/}
+  [ "$path" != "$url" ] || return 1
+  [ ! -f "$path" ]
+}
 spike_one_page()   { [ "$(grep -c ledger_close_time docs/evidences/spike_results_1.txt)" = 200 ]; }
 
 learning_pointed_but_missing(){ grep -q "docs/learning" README.md && [ ! -d docs/learning ]; }
@@ -145,7 +155,7 @@ check P1-27 "although the fixture and the contract already corrected it to false
   grep -qF 'The delta 1.0 entry previously' docs/api/keel-openapi.yaml
 check P1-28 "documentUrl points at the ciganytry org, not Keel-Official" \
   grep -q "github.com/ciganytry/keel" docs/api/keel-openapi.yaml
-check P1-29 "and points at 00-ikhtisar.md, which does not exist" ikhtisar_missing
+check P1-29 "and documentUrl points at a file that is not in the repository" documenturl_dangling
 check P1-30 "assetBrokenBook uses ledgerClosedAt 2026-02-21T23:39:00Z" \
   grep -q "2026-02-21T23:39:00Z" docs/api/keel-openapi.yaml
 check P1-31 "although the fixture and the evidence state 2026-02-22T00:10:21Z" \
@@ -166,6 +176,67 @@ check P2-7 "The methodology file structure decision is still open in the methodo
   grep -qF "The decision that has to be made" docs/methodology/README.md
 check P2-8 "The fixture writes 'All four' for a list holding six flags" \
   grep -qF "All four must be reported" testdata/fixtures/ustry_pre_exploit.md
+
+section "DEC-003 freeze conditions"
+# The checklist in DEC-003 section 7 is a summary of these checks, not a
+# substitute for them. A tick typed by hand is a claim; a passing check is
+# evidence. Each line prints MET or OPEN.
+syarat() {
+  local nama="$1"; shift
+  if "$@" >/dev/null 2>&1; then
+    printf "%s       MET   %s%s\n" "$green" "$nama" "$off"
+  else
+    printf "%s       OPEN  %s%s\n" "$red" "$nama" "$off"
+  fi
+}
+
+fixture_filled(){
+  [ -f testdata/fixtures/ustry_pre_exploit.md ] &&
+    ! grep -qE 'TODO|TBD|\?\?\?' testdata/fixtures/ustry_pre_exploit.md
+}
+# Matched as YAML VALUES, anchored to end of line. The first version of this
+# check matched the prose in the assetBrokenBook description that says the
+# placeholders are gone, so it reported OPEN precisely because the work was done.
+# A check that reads prose instead of data is worse than no check.
+contract_no_placeholders(){
+  ! grep -qE '^[[:space:]]+([a-zA-Z]+: TODO-FIXTURE|reachable: null)[[:space:]]*$' docs/api/keel-openapi.yaml
+}
+spread_scale_agreed(){
+  grep -qF "spreadExtremePct: '20.0'" docs/api/keel-openapi.yaml &&
+    grep -qF 'ending in `Pct`, a reported quantity' docs/methodology/README.md
+}
+# Every question in DEC-003 section 6 must carry an Answered line that is not
+# "not yet". Counting rather than eyeballing, because a question quietly dropped
+# from the list would otherwise look like a question answered.
+questions_answered(){
+  local total unanswered
+  total=$(grep -c '^   \*\*Answered:\*\*' docs/decisions/DEC-003-api-contract-v1-1.md || true)
+  unanswered=$(grep -c '^   \*\*Answered:\*\* not yet' docs/decisions/DEC-003-api-contract-v1-1.md || true)
+  [ "$total" -gt 0 ] && [ "$unanswered" -eq 0 ]
+}
+contract_validates(){
+  command -v npx >/dev/null 2>&1 || return 1
+  npx --yes @redocly/cli@1.34.2 lint docs/api/keel-openapi.yaml 2>&1 | grep -q 'is valid'
+}
+mocks_fresh(){
+  local tmp
+  tmp=$(mktemp -d) || return 1
+  bash scripts/generate-api-mocks.sh "$tmp" >/dev/null 2>&1 || { rm -rf "$tmp"; return 1; }
+  # README.md is hand written and not generated, so it is excluded rather than
+  # counted as drift.
+  diff -r -q -x README.md docs/api/mocks "$tmp" >/dev/null 2>&1
+  local rc=$?
+  rm -rf "$tmp"
+  return $rc
+}
+
+syarat "1. golden fixture filled in by hand, no placeholders left" fixture_filled
+syarat "2. no TODO-FIXTURE or reachable: null left in the contract" contract_no_placeholders
+syarat "3. spreadPct scale agreed as percent, in contract and methodology" spread_scale_agreed
+syarat "4. every question in DEC-003 section 6 carries a real Answered line" questions_answered
+echo "       ---- beyond the four, what makes the contract usable at all ----"
+syarat "the contract is structurally valid OpenAPI 3.1" contract_validates
+syarat "docs/api/mocks matches the contract, so the frontend is not served stale data" mocks_fresh
 
 section "Repository visibility, see DEC-004"
 # This section needs the network and gh. It is skipped when either is missing,

@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance ci record scan serve
+.PHONY: up down psql migrate build test vet fmt arch conformance ci api-mocks api-mocks-check record scan serve
 
 # ---------------------------------------------------------------- Local
 
@@ -47,6 +47,23 @@ arch:
 # a plain `make test`.
 conformance:
 	go test -tags conformance ./internal/conformance/ -count=1 -v
+
+# api-mocks writes every example response in the contract out as standalone JSON
+# for the frontend. api-mocks-check proves those files still match the contract; a
+# non-empty diff means the contract moved and the mocks did not.
+api-mocks:
+	bash scripts/generate-api-mocks.sh
+
+api-mocks-check:
+	@tmp=$$(mktemp -d); \
+	bash scripts/generate-api-mocks.sh "$$tmp" >/dev/null; \
+	if diff -r -q -x README.md docs/api/mocks "$$tmp" >/dev/null 2>&1; then \
+		echo "api-mocks-check: mocks match the contract"; \
+	else \
+		echo "api-mocks-check: mocks are STALE. Run make api-mocks"; \
+		diff -r -x README.md docs/api/mocks "$$tmp" || true; \
+		exit 1; \
+	fi
 
 ci: vet arch test
 

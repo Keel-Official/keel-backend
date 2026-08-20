@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -53,6 +53,13 @@ info:
     email: radenistri@gmail.com
   license:
     name: MIT
+    identifier: MIT
+
+# No authentication, stated explicitly rather than by omission. An empty security
+# array is the OpenAPI way of saying "no scheme is required"; leaving the field out
+# entirely is ambiguous, and a client generator cannot tell it apart from an
+# oversight.
+security: []
 
 servers:
   - url: https://api.keel.example/v1
@@ -85,8 +92,10 @@ paths:
                 latestScanAt: '2026-08-19T04:15:00Z'
                 latestScanLedgerSeq: 61234567
                 assetsMonitored: 53
-                methodologyVersion: 1.0.1
+                methodologyVersion: 1.0.2-draft
                 historicalAvailable: true
+        '429':
+          $ref: '#/components/responses/RateLimited'
 
   /methodology:
     get:
@@ -106,8 +115,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Methodology'
               example:
-                version: 1.0.1
-                documentUrl: https://github.com/ciganytry/keel/blob/main/docs/methodology/00-ikhtisar.md
+                version: 1.0.2-draft
+                documentUrl: https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/keel-methodology-core.md
                 calibrated: false
                 calibrationNote: >-
                   The thresholds were chosen based on the magnitude of the Blend
@@ -128,6 +137,8 @@ paths:
                   spreadExtremePct: '20.0'
                   oracleWindowSeconds: 300
                   ammFeeBp: 30
+        '429':
+          $ref: '#/components/responses/RateLimited'
 
   /assets:
     get:
@@ -261,6 +272,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '503':
           $ref: '#/components/responses/HistoricalUnavailable'
 
@@ -433,6 +446,17 @@ components:
       description: The worst flag level that fired. Not the result of a weighting.
       enum: [LOW, MEDIUM, HIGH, CRITICAL]
 
+    BandConfidence:
+      type: string
+      description: |
+        Whether the band rests on a complete check.
+
+        `full` every flag at the CRITICAL and HIGH levels could be evaluated.
+        `partial` at least one flag at those levels could not be evaluated at all,
+        so the band is a floor rather than a verdict. It can only be worse than
+        reported, never better.
+      enum: [full, partial]
+
     DepthPoint:
       type: object
       required: [delta, buySide, sellSide, fromSdex, fromAmm]
@@ -589,8 +613,11 @@ components:
         - depth
         - manipulationCost
         - maxReachablePrice
+        - costToMaxReachablePrice
         - flags
+        - unevaluatedFlags
         - band
+        - bandConfidence
         - warnings
       properties:
         asset: { $ref: '#/components/schemas/Asset' }
@@ -650,6 +677,25 @@ components:
             when there is no executable price.
           items: { $ref: '#/components/schemas/ManipulationCost' }
           maxItems: 4
+        costToMaxReachablePrice:
+          oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
+          description: |
+            What reaching `maxReachablePrice` costs, meaning the sum of every ask
+            notional strictly below it.
+
+            Read this together with `maxReachablePrice` and not on its own. The
+            pair is what catches an attack that lands between two rungs of the
+            manipulation ladder, and on the USTRY fixture it is the only thing
+            that caught the real one: the highest reachable price was 106.7372828
+            and reaching it cost zero.
+
+            Note the shape of the definition. Because the sum is over asks
+            strictly below the maximum, a book whose only ask IS the maximum
+            yields zero here by construction, for any asset. A zero is therefore
+            a statement about the shape of the book, not a discovery about the
+            asset, and a display should say how many ask levels exist beside it.
+
+            Null in the same two situations as `maxReachablePrice`.
         maxReachablePrice:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
@@ -693,8 +739,28 @@ components:
             high value indicates suspected wash trading.
         flags:
           type: array
+          description: The flags that are `triggered`.
+          items: { $ref: '#/components/schemas/Flag' }
+        unevaluatedFlags:
+          type: array
+          description: |
+            The flags that could NOT be checked, because the data they need is
+            absent from this response's inputs.
+
+            `unevaluated` is not a synonym for `clear`. A flag missing from both
+            `flags` and `unevaluatedFlags` was checked and found not to apply. A
+            flag listed here was never checked at all, and an asset with no
+            trustline data must not be displayed as though its holder distribution
+            had been examined and found safe.
           items: { $ref: '#/components/schemas/Flag' }
         band: { $ref: '#/components/schemas/Band' }
+        bandConfidence:
+          allOf: [$ref: '#/components/schemas/BandConfidence']
+          description: |
+            Whether the band rests on a complete check. **The dashboard is
+            required to display this.** A `LOW` band with `partial` confidence is a
+            far weaker statement than `LOW` with `full`, and hiding the difference
+            makes an unchecked asset look safe.
         warnings:
           type: array
           items:
@@ -705,7 +771,7 @@ components:
 
     AssetSummary:
       type: object
-      required: [asset, quote, band, flags, ledgerSeq]
+      required: [asset, quote, band, bandConfidence, flags, ledgerSeq]
       properties:
         asset: { $ref: '#/components/schemas/Asset' }
         quote: { $ref: '#/components/schemas/Asset' }
@@ -719,6 +785,13 @@ components:
         maxSafeCollateral:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
         band: { $ref: '#/components/schemas/Band' }
+        bandConfidence:
+          allOf: [$ref: '#/components/schemas/BandConfidence']
+          description: |
+            Present on the list row as well as on the detail response, because the
+            list is where a band is read fastest and with the least context. A row
+            showing `LOW` with no confidence marker is exactly the misleading
+            display the methodology forbids.
         flags:
           type: array
           items: { $ref: '#/components/schemas/Flag' }
@@ -981,7 +1054,7 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:02Z'
-        methodologyVersion: 1.0.1
+        methodologyVersion: 1.0.2-draft
         dataSource: horizon
         midPrice: '2.8419300'
         priceSource: book
@@ -1020,6 +1093,7 @@ components:
             cost: '61044180.2200000'
             reachable: false
         maxReachablePrice: '41.8842000'
+        costToMaxReachablePrice: '60893877.4400000'
         oracleResistance:
           criticalDelta: 0.5
           manipulationCost: '3910442.1180000'
@@ -1040,7 +1114,9 @@ components:
           at: '2026-08-19T04:11:47Z'
         tradesExcludedPct: '2.1000000'
         flags: []
+        unevaluatedFlags: []
         band: LOW
+        bandConfidence: full
         warnings:
           - >-
             The delta 100 rung was not reached. Every ask is exhausted at a price
@@ -1052,7 +1128,7 @@ components:
         asset:
           code: RWAX
           type: credit_alphanum4
-          issuer: GBXYZ7QK4L2M9N3P5R8T6V1W4Y7Z2A5C8E1G4J7L0N3Q6S9U2W5Y8B1D4F7H
+          issuer: GDAHBQY3L2VLORCYFFNJ4ON64RZDSMVPB32MPA6MZGY42YZD246H2FJ5
         quote:
           code: XLM
           type: native
@@ -1060,7 +1136,7 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:04Z'
-        methodologyVersion: 1.0.1
+        methodologyVersion: 1.0.2-draft
         dataSource: horizon
         midPrice: '0.4410000'
         priceSource: pool
@@ -1099,6 +1175,7 @@ components:
             cost: '1010288.4400000'
             reachable: true
         maxReachablePrice: null
+        costToMaxReachablePrice: null
         oracleResistance:
           criticalDelta: 0.5
           manipulationCost: '24418.0900000'
@@ -1123,7 +1200,9 @@ components:
           - HOLDER_CONCENTRATION_EXTREME
           - NO_GENUINE_TRADE_7D
           - HOLDER_CONCENTRATION_HIGH
+        unevaluatedFlags: []
         band: HIGH
+        bandConfidence: full
         warnings:
           - There is no SDEX orderbook. The reference price is taken from the pool spot price.
           - The liquidity comes from a single AMM pool.
@@ -1141,7 +1220,7 @@ components:
         asset:
           code: USTRY
           type: credit_alphanum12
-          issuer: GCQZ4L8T7N2R5V9X1B4E7H0K3M6P9S2U5W8Z1C4F7J0L3N6Q9T2V5Y8A1D4G
+          issuer: GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE
         quote:
           code: XLM
           type: native
@@ -1149,7 +1228,7 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:06Z'
-        methodologyVersion: 1.0.1
+        methodologyVersion: 1.0.2-draft
         dataSource: horizon
         midPrice: null
         priceSource: none
@@ -1172,6 +1251,7 @@ components:
             fromAmm: '0.0000000'
         manipulationCost: []
         maxReachablePrice: null
+        costToMaxReachablePrice: null
         oracleResistance: null
         maxSafeCollateral: null
         holderTop1Pct: '88.2100000'
@@ -1190,7 +1270,9 @@ components:
           - NO_GENUINE_TRADE_7D
           - HOLDER_CONCENTRATION_EXTREME
           - HOLDER_CONCENTRATION_HIGH
+        unevaluatedFlags: []
         band: CRITICAL
+        bandConfidence: full
         warnings:
           - There is neither an orderbook nor a pool for this pair.
           - >-
@@ -1203,7 +1285,7 @@ components:
         asset:
           code: USTRY
           type: credit_alphanum12
-          issuer: GCQZ4L8T7N2R5V9X1B4E7H0K3M6P9S2U5W8Z1C4F7J0L3N6Q9T2V5Y8A1D4G
+          issuer: GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE
         quote:
           code: XLM
           type: native
@@ -1211,7 +1293,7 @@ components:
         ledgerSeq: 60912345
         ledgerClosedAt: '2026-05-19T11:02:44Z'
         computedAt: '2026-08-19T02:40:11Z'
-        methodologyVersion: 1.0.1
+        methodologyVersion: 1.0.2-draft
         dataSource: hubble
         midPrice: '0.0104200'
         priceSource: book
@@ -1250,6 +1332,7 @@ components:
             cost: '2210.4400000'
             reachable: false
         maxReachablePrice: '0.0891000'
+        costToMaxReachablePrice: '2183.6500000'
         oracleResistance:
           criticalDelta: 0.5
           manipulationCost: '892.4100000'
@@ -1277,7 +1360,9 @@ components:
           - HOLDER_CONCENTRATION_EXTREME
           - HOLDER_CONCENTRATION_HIGH
           - WASH_TRADE_SUSPECTED
+        unevaluatedFlags: []
         band: CRITICAL
+        bandConfidence: full
         warnings:
           - There was no AMM liquidity for this pair at that ledger.
           - >-
@@ -1342,7 +1427,7 @@ components:
           type: credit_alphanum4
           issuer: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
         ledgerSeq: 61340263
-        ledgerClosedAt: '2026-02-21T23:39:00Z'
+        ledgerClosedAt: '2026-02-22T00:10:21Z'
         computedAt: '2026-08-19T04:15:08Z'
         methodologyVersion: 1.0.2-draft
         dataSource: trades-implied
@@ -1383,6 +1468,7 @@ components:
             cost: '130.0627093'
             reachable: false
         maxReachablePrice: '106.7372828'
+        costToMaxReachablePrice: '0.0000000'
         oracleResistance: null
         maxSafeCollateral: '0.0000000'
         holderTop1Pct: null
@@ -1396,7 +1482,15 @@ components:
           - MANIPULATION_CHEAP
           - SPREAD_EXTREME
           - THIN_DEPTH_5PCT
+        unevaluatedFlags:
+          - MANIPULATION_RATIO_LOW
+          - NO_GENUINE_TRADE_30D
+          - NO_GENUINE_TRADE_7D
+          - WASH_TRADE_SUSPECTED
+          - HOLDER_CONCENTRATION_EXTREME
+          - HOLDER_CONCENTRATION_HIGH
         band: CRITICAL
+        bandConfidence: partial
         warnings:
           - >-
             A spread of 196.0777141 percent exceeds the spreadExtremePct threshold.
@@ -1424,14 +1518,13 @@ components:
             liquidation delta is zero, so the first term of C_max is zero and the
             minimum is zero with it.
           - >-
-            Six flags cannot be assessed from this snapshot because they require
-            supply data, trade history, or trustline distribution:
-            MANIPULATION_RATIO_LOW, NO_GENUINE_TRADE_30D, NO_GENUINE_TRADE_7D,
-            WASH_TRADE_SUSPECTED, HOLDER_CONCENTRATION_EXTREME, and
-            HOLDER_CONCENTRATION_HIGH. This version of the contract has no
-            unevaluatedFlags or bandConfidence field to state that, so all six
-            appear only in this warning for now. See the open decision note in
-            DEC-003.
+            Six flags could not be assessed from this snapshot because they require
+            supply data, trade history, or trustline distribution. They are listed
+            in unevaluatedFlags, and bandConfidence is partial as a result. The band
+            still reads CRITICAL because two CRITICAL flags are already triggered,
+            so the missing data does not change the conclusion here. That is a
+            coincidence of this case and not a guarantee: partial means the band is
+            a floor, and it can only be worse than reported.
           - >-
             oracleResistance is null because genuine trade volume within the oracle
             window cannot be computed from an orderbook snapshot alone. Null means
@@ -1439,11 +1532,16 @@ components:
 
     AssetListMixed:
       summary: An asset list with a mix of bands
+      description: |
+        Every row here carries `bandConfidence: full`. The `partial` case is real
+        and occurs on this endpoint too; the `assetBrokenBook` detail example shows
+        it. A dedicated list example holding a partial row is still missing, which
+        is recorded as an open item in DEC-003 section 6.
       value:
         total: 53
         limit: 3
         offset: 0
-        methodologyVersion: 1.0.1
+        methodologyVersion: 1.0.2-draft
         items:
           - asset:
               code: USDC
@@ -1455,18 +1553,20 @@ components:
             depth5PctBuySide: '441038.9920700'
             maxSafeCollateral: '419502.2756400'
             band: LOW
+            bandConfidence: full
             flags: []
             ledgerSeq: 61234567
           - asset:
               code: RWAX
               type: credit_alphanum4
-              issuer: GBXYZ7QK4L2M9N3P5R8T6V1W4Y7Z2A5C8E1G4J7L0N3Q6S9U2W5Y8B1D4F7H
+              issuer: GDAHBQY3L2VLORCYFFNJ4ON64RZDSMVPB32MPA6MZGY42YZD246H2FJ5
             quote: { code: XLM, type: native, issuer: null }
             midPrice: '0.4410000'
             priceSource: pool
             depth5PctBuySide: '2710.9910000'
             maxSafeCollateral: '2677.9400000'
             band: HIGH
+            bandConfidence: full
             flags:
               - THIN_DEPTH_5PCT
               - HOLDER_CONCENTRATION_EXTREME
@@ -1476,13 +1576,14 @@ components:
           - asset:
               code: USTRY
               type: credit_alphanum12
-              issuer: GCQZ4L8T7N2R5V9X1B4E7H0K3M6P9S2U5W8Z1C4F7J0L3N6Q9T2V5Y8A1D4G
+              issuer: GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE
             quote: { code: XLM, type: native, issuer: null }
             midPrice: null
             priceSource: none
             depth5PctBuySide: '0.0000000'
             maxSafeCollateral: null
             band: CRITICAL
+            bandConfidence: full
             flags:
               - NO_EXECUTABLE_PRICE
               - ZERO_DEPTH_2PCT
@@ -1498,12 +1599,12 @@ components:
         asset:
           code: USTRY
           type: credit_alphanum12
-          issuer: GCQZ4L8T7N2R5V9X1B4E7H0K3M6P9S2U5W8Z1C4F7J0L3N6Q9T2V5Y8A1D4G
+          issuer: GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE
         quote: { code: XLM, type: native, issuer: null }
         from: 60890000
         to: 60950000
         resolution: day
-        methodologyVersion: 1.0.1
+        methodologyVersion: 1.0.2-draft
         dataSource: hubble
         gaps:
           - from: 60901000

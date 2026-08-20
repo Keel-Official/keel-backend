@@ -1,0 +1,74 @@
+{
+  "asset": {
+    "code": "USTRY",
+    "type": "credit_alphanum12",
+    "issuer": "GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE"
+  },
+  "quote": {
+    "code": "XLM",
+    "type": "native",
+    "issuer": null
+  },
+  "from": 60890000,
+  "to": 60950000,
+  "resolution": "day",
+  "methodologyVersion": "1.0.2-draft",
+  "dataSource": "hubble",
+  "gaps": [
+    {
+      "from": 60901000,
+      "to": 60903500,
+      "reason": "No state snapshot is available for this ledger range"
+    }
+  ],
+  "points": [
+    {
+      "ledgerSeq": 60890120,
+      "ledgerClosedAt": "2026-05-17T00:04:11Z",
+      "midPrice": "0.0101100",
+      "depth2PctBuySide": "48.9000000",
+      "depth5PctBuySide": "122.4000000",
+      "depth10PctBuySide": "244.1000000",
+      "manipulationCost50Pct": "1044.2000000",
+      "maxSafeCollateral": "110.8000000",
+      "band": "CRITICAL",
+      "flags": [
+        "MANIPULATION_CHEAP",
+        "THIN_DEPTH_5PCT",
+        "HOLDER_CONCENTRATION_EXTREME"
+      ]
+    },
+    {
+      "ledgerSeq": 60912345,
+      "ledgerClosedAt": "2026-05-19T11:02:44Z",
+      "midPrice": "0.0104200",
+      "depth2PctBuySide": "41.2200000",
+      "depth5PctBuySide": "104.8800000",
+      "depth10PctBuySide": "211.0400000",
+      "manipulationCost50Pct": "892.4100000",
+      "maxSafeCollateral": "95.1100000",
+      "band": "CRITICAL",
+      "flags": [
+        "MANIPULATION_CHEAP",
+        "THIN_DEPTH_5PCT",
+        "HOLDER_CONCENTRATION_EXTREME"
+      ]
+    },
+    {
+      "ledgerSeq": 60934000,
+      "ledgerClosedAt": "2026-05-20T14:48:02Z",
+      "midPrice": "1.0420000",
+      "depth2PctBuySide": "39.8000000",
+      "depth5PctBuySide": "99.1000000",
+      "depth10PctBuySide": "198.4000000",
+      "manipulationCost50Pct": "870.0000000",
+      "maxSafeCollateral": "90.2000000",
+      "band": "CRITICAL",
+      "flags": [
+        "MANIPULATION_CHEAP",
+        "THIN_DEPTH_5PCT",
+        "HOLDER_CONCENTRATION_EXTREME"
+      ]
+    }
+  ]
+}

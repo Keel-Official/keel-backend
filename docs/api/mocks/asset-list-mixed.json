@@ -1,0 +1,80 @@
+{
+  "total": 53,
+  "limit": 3,
+  "offset": 0,
+  "methodologyVersion": "1.0.2-draft",
+  "items": [
+    {
+      "asset": {
+        "code": "USDC",
+        "type": "credit_alphanum4",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      },
+      "quote": {
+        "code": "XLM",
+        "type": "native",
+        "issuer": null
+      },
+      "midPrice": "2.8419300",
+      "priceSource": "book",
+      "depth5PctBuySide": "441038.9920700",
+      "maxSafeCollateral": "419502.2756400",
+      "band": "LOW",
+      "bandConfidence": "full",
+      "flags": [],
+      "ledgerSeq": 61234567
+    },
+    {
+      "asset": {
+        "code": "RWAX",
+        "type": "credit_alphanum4",
+        "issuer": "GDAHBQY3L2VLORCYFFNJ4ON64RZDSMVPB32MPA6MZGY42YZD246H2FJ5"
+      },
+      "quote": {
+        "code": "XLM",
+        "type": "native",
+        "issuer": null
+      },
+      "midPrice": "0.4410000",
+      "priceSource": "pool",
+      "depth5PctBuySide": "2710.9910000",
+      "maxSafeCollateral": "2677.9400000",
+      "band": "HIGH",
+      "bandConfidence": "full",
+      "flags": [
+        "THIN_DEPTH_5PCT",
+        "HOLDER_CONCENTRATION_EXTREME",
+        "NO_GENUINE_TRADE_7D",
+        "HOLDER_CONCENTRATION_HIGH"
+      ],
+      "ledgerSeq": 61234567
+    },
+    {
+      "asset": {
+        "code": "USTRY",
+        "type": "credit_alphanum12",
+        "issuer": "GBTVRMGKICFP3DB2U57IHURHMTU7EVSOU5R7H47DQJZFQZLYLKSXUJZE"
+      },
+      "quote": {
+        "code": "XLM",
+        "type": "native",
+        "issuer": null
+      },
+      "midPrice": null,
+      "priceSource": "none",
+      "depth5PctBuySide": "0.0000000",
+      "maxSafeCollateral": null,
+      "band": "CRITICAL",
+      "bandConfidence": "full",
+      "flags": [
+        "NO_EXECUTABLE_PRICE",
+        "ZERO_DEPTH_2PCT",
+        "NO_GENUINE_TRADE_30D",
+        "NO_GENUINE_TRADE_7D",
+        "HOLDER_CONCENTRATION_EXTREME",
+        "HOLDER_CONCENTRATION_HIGH"
+      ],
+      "ledgerSeq": 61234567
+    }
+  ]
+}

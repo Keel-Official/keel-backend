@@ -358,6 +358,42 @@ type SupportingMetrics struct {
 	GenuineVolumeInWindow *decimal.Decimal
 }
 
+// OracleResistance answers one question: is moving the price to a critical level
+// cheaper than the genuine trading volume that actually occurred inside the
+// window an oracle averages over.
+//
+// It is an object rather than a single ratio on purpose. A ratio would hide two
+// states that have to stay visible. A GenuineVolume of zero makes the ratio
+// undefined, and an asset with no trading at all inside the oracle window is an
+// important finding rather than missing data. And a ratio computed from a
+// ManipulationCost whose Reachable is false is a meaningless number. In object
+// form both states are readable and Ratio is simply nil. See DEC-003 section 2.5.
+type OracleResistance struct {
+	// CriticalDelta is the delta treated as the critical threshold for this
+	// asset. It always equals one of the Delta values in ManipulationCost.
+	CriticalDelta decimal.Decimal
+
+	// ManipulationCost and Reachable are copied from the ManipulationCost entry
+	// at CriticalDelta, so a reader never has to match them up by hand.
+	ManipulationCost decimal.Decimal
+	Reachable        bool
+
+	// GenuineVolume is the genuine trade volume in the quote asset over the last
+	// WindowSeconds, after the genuine trade filtering rules are applied. This is
+	// the comparison baseline, and it is the defense an attacker has to outweigh.
+	GenuineVolume decimal.Decimal
+
+	// WindowSeconds is repeated here even though it is also a threshold, so that
+	// a response can be read and archived without consulting anything else.
+	WindowSeconds int
+
+	// Ratio is ManipulationCost divided by GenuineVolume. Below 1 means moving
+	// the price to the critical level is cheaper than all the genuine trading
+	// across the window. Nil when GenuineVolume is zero or Reachable is false,
+	// because the division is then meaningless. Nil means undefined, not zero.
+	Ratio *decimal.Decimal
+}
+
 // TradeRef points at one trade on the ledger. Both fields are carried so a reader
 // can verify the claim against Horizon without a second lookup.
 type TradeRef struct {
@@ -390,7 +426,7 @@ type AssetRisk struct {
 	// between delta 0.5 and delta 1.
 	MaxReachablePrice       *decimal.Decimal
 	CostToMaxReachablePrice *decimal.Decimal
-	OracleResistance        *decimal.Decimal // MC(critical) + genuine volume in the window
+	OracleResistance        *OracleResistance // nil when there is no executable price
 	MaxSafeCollateral       *decimal.Decimal
 
 	Supporting SupportingMetrics

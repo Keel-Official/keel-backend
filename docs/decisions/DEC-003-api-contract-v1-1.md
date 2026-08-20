@@ -1,17 +1,20 @@
-# Keel: API Contract Changes for v1.1.0
+# Keel: API Contract Changes, v1.1.0 then v1.2.0
 
-**Decision:** The API contract moves to 1.1.0 in order to carry methodology
-v1.0.1, namely `SPREAD_EXTREME`, the `reachable` distinction, the extended
-manipulation ladder, and oracle resistance.
-**Status:** DRAFT. Not frozen. See section 7 for the freeze conditions.
-**Source of the changes:** `docs/internal/memo-pra-development.md` sections 1 and 2.
-**Affected file:** `docs/api/keel-openapi.yaml`
+**Decision:** The API contract moved to 1.1.0 to carry methodology v1.0.1, then to
+**1.2.0** to carry v1.0.2-draft and to become handoff-ready for the frontend.
+**Status:** NOT FROZEN, but no longer blocking a frontend. Three of the four freeze
+conditions in section 7 are met; the fourth needs the frontend builder. One
+methodology question, `criticalDelta`, is open and is Al's to settle. See sections
+7 and 8.
+**Source of the changes:** `docs/internal/memo-pra-development.md` sections 1 and 2,
+then the audit findings P1-6 through P1-13 and P1-28 through P1-31.
+**Affected files:** `docs/api/keel-openapi.yaml`, `docs/api/mocks/`,
+`internal/domain/types.go`
 
-> **Translation note.** Translated to English under DEC-005 with its content
-> unchanged. Section 4 still carries an error the contract itself has already
-> corrected: it lists `MC(delta=1)` as `reachable: true`, and the correct value is
-> `false`. That is fixed under task T6, not here. See findings P1-26 and P1-27 in
-> `docs/internal/audit-2026-08-20.md`.
+> **Note on section 4.** It is left as written, including its claim that
+> `MC(delta=1)` is `reachable: true`, which is wrong. Section 8 records the
+> correction rather than editing the history of this document. Findings P1-26 and
+> P1-27.
 
 ---
 
@@ -239,30 +242,175 @@ cannot be frozen by accident.
 
 ## 6. Open questions for the frontend builder
 
+**How an answer is recorded.** Each question below carries an `Answered:` line. An
+answer is only complete when that line names the date and what changed, even when
+the answer is "no change needed". An answer that leaves no trace is
+indistinguishable from a question that was never asked, and
+`scripts/verifikasi-audit.sh` checks these lines mechanically rather than trusting
+anyone's memory.
+
 1. Does the list page need `spreadPct` on `AssetSummary`, or is the
    `SPREAD_EXTREME` flag enough to mark the row?
-2. `criticalDelta` is pinned to 0.5 for every asset. Does the dashboard need to
-   choose its own critical delta through a query parameter?
+   **Answered:** not yet.
+2. `criticalDelta` is pinned to one value for every asset. Does the dashboard need
+   to choose its own critical delta through a query parameter?
+   **Answered:** not yet. Note this question is now entangled with the open
+   methodology question in section 8: the value itself is disputed, not only
+   whether it is selectable.
 3. There is no example response with `oracleResistance.ratio` below 1, which is the
    most dangerous state, because no sample asset has both non-zero genuine volume
    inside a 300 second window and a low manipulation cost. Do we need a purpose
    built synthetic example to design that display, or do we wait for real data?
+   **Answered:** not yet.
 4. What kind of distinguishing display does `dataSource: trades-implied` need? Its
    depth is a lower bound, not a measurement.
+   **Answered:** not yet.
+5. `asset-list-mixed.json` holds three rows and all three are
+   `bandConfidence: full`. The `partial` case is real on that endpoint. Do you want
+   a dedicated list example with a partial row, or is the detail example enough to
+   design from?
+   **Answered:** not yet.
 
 ---
 
 ## 7. Freeze conditions
 
-The new contract may be frozen once all four are done:
+- [x] The golden fixture table in section 3 is filled in by hand and saved as
+      `testdata/fixtures/ustry_pre_exploit.md` with a reason for every number.
+      Done, and independently recomputed in 60 digit decimal arithmetic.
+- [x] Every `TODO-FIXTURE` marker and `reachable: null` in `AssetBrokenBook` is
+      replaced with fixture numbers, and `flags` and `band` are completed. Done.
+- [x] The scale of `spreadPct` is agreed: PERCENT, matching every other field
+      whose name ends in `Pct`. Recorded in `docs/methodology/README.md` section 2.
+- [ ] The questions in section 6 are answered by the frontend builder. **This is
+      the only remaining condition, and it is not something this repository can
+      close on its own.**
 
-- [ ] The golden fixture table in section 3 is filled in by hand and saved as
-      `testdata/fixtures/ustry_pre_exploit.md` with a reason for every number
-- [ ] Every `TODO-FIXTURE` marker and `reachable: null` in `AssetBrokenBook` is
-      replaced with fixture numbers, and `flags` and `band` are completed
-- [ ] The scale of `spreadPct` is agreed, see section 2.4. If fractions are chosen,
-      the methodology stays and every other `Pct` field changes with it
-- [ ] The four questions in section 6 are answered by the frontend builder
+Each of these is checked mechanically by `scripts/verifikasi-audit.sh`, in the
+section headed "DEC-003 freeze conditions". The checklist above is a summary of
+those checks and not a substitute for them: a tick typed by hand is a claim, and a
+passing check is evidence.
 
-After that, `MethodologyVersion` rises to 1.0.1 in the implementation, not only in
-the example responses.
+`MethodologyVersion` in the implementation is already `1.0.2-draft`, and every
+example response now says the same. Before this pass the contract advertised
+methodology 1.0.1 in most examples and 1.0.2-draft in one, while the code produced
+1.0.2-draft, so it claimed a version nothing produced.
+
+---
+
+## 8. What v1.2.0 changed, 20 August 2026
+
+Everything in this section closes a finding from `docs/internal/audit-2026-08-20.md`.
+
+### 8.1 Three fields the code had and the contract did not
+
+`costToMaxReachablePrice`, `unevaluatedFlags`, and `bandConfidence` are now in
+`AssetRisk`, all three required, and present in all five example responses.
+Findings P1-8 through P1-12.
+
+`bandConfidence` also goes on `AssetSummary`, which section 5 of this document had
+previously decided against for `spreadPct`. The reasoning differs: the list page is
+where a band is read fastest and with the least context, and
+`09-flag-dan-band.md` section 2 states the dashboard is *required* to display
+confidence. A row reading `LOW` with no confidence marker is the exact display the
+methodology forbids. `spreadPct` stays off the summary, because the
+`SPREAD_EXTREME` flag already marks that row.
+
+`costToMaxReachablePrice` carries one note the fixture forced: because the sum runs
+over asks strictly below the maximum, a book whose only ask *is* the maximum yields
+zero by construction, for any asset. A zero there is a statement about the shape of
+the book, not a discovery about the asset. That is now written into the field
+description so nobody reads the USTRY zero as unique to USTRY.
+
+### 8.2 `oracleResistance` resolved in favor of the contract
+
+`internal/domain/types.go` held it as a single `*decimal.Decimal` while this
+document defined an object. The code now carries a `domain.OracleResistance`
+struct matching the contract. Findings P1-6 and P1-7.
+
+The contract won because it had the written reasoning and the scalar did not, and
+that reasoning is still right: a ratio hides a `genuineVolume` of zero, which is a
+finding rather than missing data, and it hides a `reachable: false`, which makes any
+ratio meaningless.
+
+### 8.3 Corrections to the examples
+
+- `documentUrl` pointed at `github.com/ciganytry/keel` and at
+  `docs/methodology/00-ikhtisar.md`. The org is `Keel-Official/keel-backend` and
+  that file does not exist, so the link in the `/methodology` response was broken
+  twice over. Findings P1-28 and P1-29.
+- `assetBrokenBook.ledgerClosedAt` read `2026-02-21T23:39:00Z`. Ledger 61340263
+  closed at `2026-02-22T00:10:21Z`, pinned from two directions: the golden fixture
+  uses that time, and ledger 61340272 closed at 00:11:16, nine ledgers later.
+  Findings P1-30 and P1-31.
+- Two synthetic issuer addresses were **not valid Stellar addresses**. Both were 60
+  characters instead of 56 and contained 0, 1, 8, and 9, which are not in the
+  base32 alphabet, so they violated the `G[A-Z2-7]{55}` pattern this same file
+  declares on `assetId`. A frontend copying one into a test would have built a path
+  the API's own pattern rejects. They are replaced with addresses generated as
+  proper StrKey ed25519 public keys, version byte 48 and a valid CRC16-XModem
+  checksum, derived deterministically from a label so they are reproducible and
+  belong to no real account.
+- The methodology version in the examples was 1.0.1 in most places and 1.0.2-draft
+  in one, while the implementation produces 1.0.2-draft. The contract advertised a
+  version nothing produced. All examples now read 1.0.2-draft.
+
+### 8.4 Findings from validating the file with a real tool
+
+`npx @redocly/cli lint` had never been run against this contract. It reported five
+errors and four warnings, none of them structural. Fixed:
+
+- **`security` was absent entirely.** Keel has no authentication by design, but
+  omitting the field says nothing; a client generator cannot tell "no auth" apart
+  from "forgotten". The root now declares `security: []`, which is the explicit
+  form.
+- **`license` had a name and no identifier.** Now `identifier: MIT`.
+- **`429` was declared on 2 of 5 endpoints**, although NFR-5 applies a limit of 60
+  requests per minute per IP globally. A frontend polling `/health` would have met
+  an undocumented 429, and `/asset/{assetId}/history` is the heaviest endpoint of
+  the five. All five now declare it.
+
+The one remaining warning is that the server URLs point at `example.com` and
+`localhost`. That is accurate: there is no production host yet.
+
+### 8.5 Generated mocks, and why they are generated
+
+`docs/api/mocks/` now holds every example response as standalone JSON, plus a
+README for the frontend. They are produced by `make api-mocks` and their freshness
+is provable with `make api-mocks-check`.
+
+Hand copied mocks were rejected as an option. A hand copy is a second home for the
+same data, and every second home in this repository has drifted: section 5 of the
+PRD still carries flag definitions this methodology superseded, and
+`keel-bootstrap.sh` still carries a `CLAUDE.md` from before the repository was in
+English. A generator plus a drift check is the only version that stays true.
+
+### 8.6 The one methodology question still open, and it is Al's
+
+`criticalDelta` has two values in this repository and they disagree.
+
+| Source | Value |
+|---|---|
+| This contract, and every example | 0.5 |
+| `keel-methodology-core.md` section 9: `P_critical = 2 x P0` | 1.0 |
+| `DefaultParams()` in `internal/conformance` | 1.0 |
+
+It is not cosmetic. On the golden fixture, delta 0.5 gives `Cost 0` with
+`Reachable true`, and delta 1 gives `Cost 130.06` with `Reachable false`. Since
+`C_max` takes `MC(P_critical) x m` as one of its two terms, the choice changes
+`C_max` itself.
+
+**The argument for 0.5**, which is also what the contract already says: at delta 1
+on this fixture the target is unreachable, so `MC` there is not a cost-to-reach at
+all and using it as a term in `C_max` multiplies a meaningless number. At delta 0.5
+the target is reachable at zero cost, `C_max` comes out zero, and zero is the
+correct conservative answer for an asset in that state.
+
+**Why this is not settled here.** Changing it means changing
+`keel-methodology-core.md` section 9 and raising `MethodologyVersion`. The
+methodology is the paid deliverable and `internal/depth` is the red zone, so the
+value is Al's to set, not Claude's. The contract is deliberately left at 0.5 and
+the disagreement is recorded rather than papered over.
+
+Until it is settled, `docs/api/mocks/README.md` tells the frontend to read
+`criticalDelta` from the response and hardcode neither value.

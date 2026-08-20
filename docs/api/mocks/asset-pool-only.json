@@ -1,0 +1,108 @@
+{
+  "asset": {
+    "code": "RWAX",
+    "type": "credit_alphanum4",
+    "issuer": "GDAHBQY3L2VLORCYFFNJ4ON64RZDSMVPB32MPA6MZGY42YZD246H2FJ5"
+  },
+  "quote": {
+    "code": "XLM",
+    "type": "native",
+    "issuer": null
+  },
+  "ledgerSeq": 61234567,
+  "ledgerClosedAt": "2026-08-19T04:12:31Z",
+  "computedAt": "2026-08-19T04:15:04Z",
+  "methodologyVersion": "1.0.2-draft",
+  "dataSource": "horizon",
+  "midPrice": "0.4410000",
+  "priceSource": "pool",
+  "spreadPct": null,
+  "depth": [
+    {
+      "delta": 0.02,
+      "buySide": "1092.0044000",
+      "sellSide": "1103.1180000",
+      "fromSdex": "0.0000000",
+      "fromAmm": "1092.0044000"
+    },
+    {
+      "delta": 0.05,
+      "buySide": "2710.9910000",
+      "sellSide": "2777.4420000",
+      "fromSdex": "0.0000000",
+      "fromAmm": "2710.9910000"
+    },
+    {
+      "delta": 0.1,
+      "buySide": "5355.8800000",
+      "sellSide": "5631.0210000",
+      "fromSdex": "0.0000000",
+      "fromAmm": "5355.8800000"
+    }
+  ],
+  "manipulationCost": [
+    {
+      "delta": 0.5,
+      "targetPrice": "0.6615000",
+      "cost": "24418.0900000",
+      "reachable": true
+    },
+    {
+      "delta": 1,
+      "targetPrice": "0.8820000",
+      "cost": "45441.7700000",
+      "reachable": true
+    },
+    {
+      "delta": 10,
+      "targetPrice": "4.8510000",
+      "cost": "218044.1100000",
+      "reachable": true
+    },
+    {
+      "delta": 100,
+      "targetPrice": "44.5410000",
+      "cost": "1010288.4400000",
+      "reachable": true
+    }
+  ],
+  "maxReachablePrice": null,
+  "costToMaxReachablePrice": null,
+  "oracleResistance": {
+    "criticalDelta": 0.5,
+    "manipulationCost": "24418.0900000",
+    "reachable": true,
+    "genuineVolume": "0.0000000",
+    "windowSeconds": 300,
+    "ratio": null
+  },
+  "maxSafeCollateral": "2677.9400000",
+  "holderTop1Pct": "61.8800000",
+  "holderTop10Pct": "92.4100000",
+  "holderHhi": "0.4128000",
+  "volumeToSupply": {
+    "d1": "0.0000000",
+    "d7": "0.0009000",
+    "d30": "0.0041000"
+  },
+  "lastGenuineTrade": {
+    "ledgerSeq": 61102331,
+    "at": "2026-08-11T22:04:19Z"
+  },
+  "tradesExcludedPct": "18.4000000",
+  "flags": [
+    "THIN_DEPTH_5PCT",
+    "HOLDER_CONCENTRATION_EXTREME",
+    "NO_GENUINE_TRADE_7D",
+    "HOLDER_CONCENTRATION_HIGH"
+  ],
+  "unevaluatedFlags": [],
+  "band": "HIGH",
+  "bandConfidence": "full",
+  "warnings": [
+    "There is no SDEX orderbook. The reference price is taken from the pool spot price.",
+    "The liquidity comes from a single AMM pool.",
+    "spreadPct is null because there are not two sides of a book. maxReachablePrice is null because an AMM curve has no upper price bound, so every manipulation rung is reachable and only the cost differs.",
+    "There was no genuine trade within the 300 second oracle window, so the oracle resistance ratio cannot be computed."
+  ]
+}
