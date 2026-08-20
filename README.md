@@ -32,8 +32,8 @@ built yet" apart from "failed".
 ## Starting from nothing
 
 ```bash
-git clone https://github.com/Keel-Official/keel.git
-cd keel
+git clone https://github.com/Keel-Official/keel-backend.git
+cd keel-backend
 
 make ci          # gofmt, build, vet, architecture tests, and tests. Must be green
 go run ./cmd/keel version

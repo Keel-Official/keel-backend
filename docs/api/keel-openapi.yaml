@@ -4,48 +4,49 @@ info:
   title: Keel Liquidity Risk API
   version: 1.1.0
   description: |
-    API read-only untuk metrik risiko likuiditas aset Stellar.
+    A read-only API for the liquidity risk metrics of Stellar assets.
 
-    Keel mengukur kedalaman likuiditas efektif (effective depth) per aset dari
-    orderbook SDEX dan reserve AMM pool, lalu menurunkan biaya manipulasi harga
-    dan rekomendasi ukuran collateral maksimum yang aman.
+    Keel measures the effective liquidity depth of an asset from the SDEX
+    orderbook and AMM pool reserves, then derives the cost of manipulating its
+    price and a recommendation for the maximum safe collateral size.
 
-    ## Yang perlu diketahui sebelum memakai API ini
+    ## What to know before using this API
 
-    **1. Seluruh nilai numerik dikirim sebagai string, bukan number.**
-    Amount Stellar adalah int64 dalam stroop dengan 7 desimal. JSON number adalah
-    IEEE 754 double dan akan kehilangan presisi. Konsumen wajib memakai library
-    desimal (decimal.js, big.js) dan tidak boleh melakukan aritmetika dengan
-    parseFloat. Satu-satunya field numerik yang dikirim sebagai number adalah
-    `delta` (0.02, 0.05, 0.10) dan hitungan bilangan bulat seperti `ledgerSeq`.
+    **1. Every numeric value is sent as a string, not a number.**
+    Stellar amounts are int64 stroops with 7 decimals. A JSON number is an IEEE
+    754 double and will lose precision. Consumers must use a decimal library
+    (decimal.js, big.js) and must not do arithmetic with parseFloat. The only
+    numeric fields sent as numbers are `delta` (0.02, 0.05, 0.10) and whole
+    counts such as `ledgerSeq`.
 
-    **2. Metrik selalu sedikit tertinggal.** API membaca hasil yang sudah
-    dihitung, bukan menghitung saat request masuk. Header
-    `X-Keel-Staleness-Seconds` menyatakan seberapa lama. Target maksimal 900 detik.
+    **2. The metrics always lag slightly.** The API reads results that were
+    already computed; it does not compute them when the request arrives. The
+    `X-Keel-Staleness-Seconds` header states by how much. The target maximum is
+    900 seconds.
 
-    **3. Aset tanpa harga bukan error.** Aset tanpa orderbook dan tanpa pool
-    mengembalikan HTTP 200 dengan `priceSource: "none"` dan band `CRITICAL`.
-    Itu temuan bernilai tinggi, bukan kegagalan. Jangan tampilkan sebagai error.
+    **3. An asset with no price is not an error.** An asset with no orderbook and
+    no pool returns HTTP 200 with `priceSource: "none"` and band `CRITICAL`. That
+    is a high-value finding, not a failure. Do not display it as an error.
 
-    **4. Tidak ada SLA.** Ini proof of concept yang didanai Instawards. Jangan
-    dipakai sebagai satu-satunya dasar keputusan finansial.
+    **4. There is no SLA.** This is a proof of concept funded by Instawards. Do
+    not use it as the sole basis for a financial decision.
 
-    **5. Keel permanen read-only.** Tidak ada endpoint yang menulis apa pun ke
-    jaringan Stellar. Tidak ada autentikasi karena tidak ada data pengguna.
+    **5. Keel is permanently read-only.** No endpoint writes anything to the
+    Stellar network. There is no authentication because there is no user data.
 
-    **6. Buku rusak bukan error, dan bukan kondisi normal.** Sebuah aset dapat
-    punya orderbook dengan spread ratusan persen. Ketika itu terjadi, `midPrice`
-    tetap dikirim tetapi tidak bermakna, `spreadPct` bernilai besar, dan flag
-    `SPREAD_EXTREME` menyala. Metrik turunan `midPrice`, termasuk tangga depth
-    2/5/10 persen, ikut kehilangan makna. Tampilan untuk keadaan ini harus
-    dirancang terpisah dari aset sehat maupun dari aset tanpa harga. Lihat contoh
-    respons `assetBrokenBook`.
+    **6. A broken book is not an error, and it is not a normal condition either.**
+    An asset can have an orderbook with a spread of hundreds of percent. When that
+    happens, `midPrice` is still sent but is meaningless, `spreadPct` is large, and
+    the `SPREAD_EXTREME` flag fires. The metrics derived from `midPrice`, including
+    the 2/5/10 percent depth ladder, lose their meaning with it. The display for
+    this state has to be designed separately from a healthy asset and separately
+    from an asset with no price. See the `assetBrokenBook` example response.
 
-    **7. `cost` pada `manipulationCost` tidak boleh dibaca sendirian.** Selalu
-    baca bersama `reachable`. Biaya nol dengan `reachable: true` berarti harga
-    sasaran gratis. Biaya nol dengan `reachable: false` berarti tidak ada
-    likuiditas sama sekali di rentang itu, sehingga harga tidak dapat digeser
-    bertahap ke sana. Dua keadaan yang berlawanan arti.
+    **7. `cost` inside `manipulationCost` must never be read on its own.** Always
+    read it together with `reachable`. A zero cost with `reachable: true` means the
+    target price is free. A zero cost with `reachable: false` means there is no
+    liquidity at all in that range, so the price cannot be walked up to it. Two
+    states with opposite meanings.
 
   contact:
     name: Ciganytry
@@ -55,26 +56,26 @@ info:
 
 servers:
   - url: https://api.keel.example/v1
-    description: Produksi (tanpa SLA)
+    description: Production (no SLA)
   - url: http://localhost:3000/v1
-    description: Lokal
+    description: Local
 
 tags:
   - name: assets
-    description: Metrik risiko per aset
+    description: Per-asset risk metrics
   - name: meta
-    description: Kesehatan layanan dan versi metodologi
+    description: Service health and methodology version
 
 paths:
 
   /health:
     get:
       tags: [meta]
-      summary: Status layanan
+      summary: Service status
       operationId: getHealth
       responses:
         '200':
-          description: Layanan hidup
+          description: The service is alive
           content:
             application/json:
               schema:
@@ -90,16 +91,16 @@ paths:
   /methodology:
     get:
       tags: [meta]
-      summary: Versi metodologi dan ambang yang berlaku
+      summary: The active methodology version and thresholds
       description: |
-        Mengembalikan versi metodologi aktif beserta seluruh nilai ambang yang
-        dipakai untuk mengevaluasi flag. Ambang ini dipilih, bukan dikalibrasi
-        terhadap kumpulan insiden. Konsumen dianjurkan menerapkan ambang sendiri
-        dengan membaca flag individual.
+        Returns the active methodology version together with every threshold value
+        used to evaluate the flags. These thresholds are chosen, not calibrated
+        against a set of incidents. Consumers are encouraged to apply their own
+        thresholds by reading the individual flags.
       operationId: getMethodology
       responses:
         '200':
-          description: Metodologi aktif
+          description: The active methodology
           content:
             application/json:
               schema:
@@ -109,10 +110,10 @@ paths:
                 documentUrl: https://github.com/ciganytry/keel/blob/main/docs/methodology/00-ikhtisar.md
                 calibrated: false
                 calibrationNote: >-
-                  Ambang dipilih berdasarkan besaran insiden Blend Mei 2026 dan
-                  penilaian konservatif, bukan dikalibrasi terhadap kumpulan
-                  insiden. Seluruh flag dilaporkan terpisah agar konsumen dapat
-                  menerapkan ambang sendiri.
+                  The thresholds were chosen based on the magnitude of the Blend
+                  incident of May 2026 and on conservative judgement, not
+                  calibrated against a set of incidents. Every flag is reported
+                  separately so that consumers can apply their own thresholds.
                 thresholds:
                   manipulationCheapAbsolute: '10000.0000000'
                   manipulationCheapUnit: XLM
@@ -131,7 +132,7 @@ paths:
   /assets:
     get:
       tags: [assets]
-      summary: Daftar aset yang dipantau
+      summary: List the monitored assets
       operationId: listAssets
       parameters:
         - $ref: '#/components/parameters/Band'
@@ -140,7 +141,7 @@ paths:
         - $ref: '#/components/parameters/Offset'
       responses:
         '200':
-          description: Daftar aset
+          description: The asset list
           headers:
             X-Keel-Staleness-Seconds:
               $ref: '#/components/headers/Staleness'
@@ -159,14 +160,15 @@ paths:
   /asset/{assetId}/depth:
     get:
       tags: [assets]
-      summary: Metrik risiko terkini atau pada ledger historis
+      summary: Current risk metrics, or metrics at a historical ledger
       description: |
-        Tanpa parameter `ledger`, mengembalikan hasil scan terbaru dari Horizon.
-        Dengan parameter `ledger`, mengembalikan hasil replay historis dari Hubble.
+        Without the `ledger` parameter, this returns the most recent scan from
+        Horizon. With the `ledger` parameter, it returns a historical replay from
+        Hubble.
 
-        Jalur historis bersifat batch dan tidak menjamin ketersediaan untuk
-        sembarang ledger. Kalau ledger yang diminta belum tersedia, respons
-        adalah 404 dengan kode `LEDGER_NOT_AVAILABLE`, bukan 500.
+        The historical path is batch based and does not guarantee availability for
+        an arbitrary ledger. If the requested ledger is not available yet, the
+        response is a 404 with code `LEDGER_NOT_AVAILABLE`, not a 500.
       operationId: getAssetDepth
       parameters:
         - $ref: '#/components/parameters/AssetId'
@@ -175,8 +177,8 @@ paths:
       responses:
         '200':
           description: |
-            Metrik risiko. Perhatikan bahwa aset tanpa harga eksekutabel juga
-            mengembalikan 200, dengan `priceSource: "none"` dan band `CRITICAL`.
+            The risk metrics. Note that an asset with no executable price also
+            returns 200, with `priceSource: "none"` and band `CRITICAL`.
           headers:
             X-Keel-Staleness-Seconds:
               $ref: '#/components/headers/Staleness'
@@ -209,10 +211,10 @@ paths:
   /asset/{assetId}/history:
     get:
       tags: [assets]
-      summary: Deret waktu metrik pada rentang ledger
+      summary: A time series of metrics over a ledger range
       description: |
-        Dipakai dashboard untuk kurva tren dan halaman studi kasus Blend.
-        Rentang maksimal 90 hari per permintaan.
+        Used by the dashboard for trend curves and by the Blend case study page.
+        The maximum range is 90 days per request.
       operationId: getAssetHistory
       parameters:
         - $ref: '#/components/parameters/AssetId'
@@ -220,7 +222,7 @@ paths:
         - name: from
           in: query
           required: true
-          description: Ledger sequence awal, inklusif
+          description: The starting ledger sequence, inclusive
           schema:
             type: integer
             format: int64
@@ -229,7 +231,7 @@ paths:
         - name: to
           in: query
           required: true
-          description: Ledger sequence akhir, inklusif
+          description: The ending ledger sequence, inclusive
           schema:
             type: integer
             format: int64
@@ -237,14 +239,14 @@ paths:
           example: 60950000
         - name: resolution
           in: query
-          description: Interval agregasi titik data
+          description: The aggregation interval between data points
           schema:
             type: string
             enum: [hour, day]
             default: day
       responses:
         '200':
-          description: Deret waktu
+          description: The time series
           headers:
             X-Keel-Methodology-Version:
               $ref: '#/components/headers/MethodologyVersion'
@@ -271,9 +273,9 @@ components:
       in: path
       required: true
       description: |
-        Identitas aset. Format `CODE:ISSUER` untuk aset terbitan, atau `XLM`
-        untuk aset native. Tanda titik dua tidak perlu di-encode, tetapi
-        konsumen yang memakai URL builder ketat boleh meng-encode-nya sebagai `%3A`.
+        The asset identity. The format is `CODE:ISSUER` for an issued asset, or
+        `XLM` for the native asset. The colon does not need encoding, but a
+        consumer using a strict URL builder may encode it as `%3A`.
       schema:
         type: string
         pattern: '^(XLM|[A-Za-z0-9]{1,12}(:|%3A)G[A-Z2-7]{55})$'
@@ -287,9 +289,9 @@ components:
       name: quote
       in: query
       description: |
-        Aset quote yang dipakai sebagai satuan pengukuran. Kalau tidak diisi,
-        dipakai pasangan primer aset tersebut, yaitu pasangan dengan depth
-        gabungan terbesar di 10 persen.
+        The quote asset used as the unit of measurement. If omitted, the asset's
+        primary pair is used, meaning the pair with the largest combined depth at
+        10 percent.
       schema:
         type: string
         pattern: '^(XLM|[A-Za-z0-9]{1,12}(:|%3A)G[A-Z2-7]{55})$'
@@ -299,8 +301,8 @@ components:
       name: ledger
       in: query
       description: |
-        Ledger sequence untuk replay historis. Kalau diisi, `dataSource` pada
-        respons akan bernilai `hubble`.
+        The ledger sequence for a historical replay. When set, `dataSource` in the
+        response will be `hubble`.
       schema:
         type: integer
         format: int64
@@ -310,7 +312,7 @@ components:
     Band:
       name: band
       in: query
-      description: Saring berdasarkan band risiko
+      description: Filter by risk band
       schema:
         type: string
         enum: [LOW, MEDIUM, HIGH, CRITICAL]
@@ -318,7 +320,7 @@ components:
     HasFlag:
       name: hasFlag
       in: query
-      description: Saring aset yang memicu flag tertentu
+      description: Filter for assets that trigger a specific flag
       schema:
         $ref: '#/components/schemas/Flag'
 
@@ -343,14 +345,15 @@ components:
 
     Staleness:
       description: |
-        Berapa detik data ini tertinggal dari ledger terkini saat dihitung.
-        Untuk respons historis, nilainya 0 karena data historis tidak basi.
+        How many seconds behind the latest ledger this data was when it was
+        computed. For a historical response the value is 0, because historical
+        data does not go stale.
       schema:
         type: integer
       example: 412
 
     MethodologyVersion:
-      description: Versi metodologi yang menghasilkan angka pada respons ini
+      description: The methodology version that produced the numbers in this response
       schema:
         type: string
       example: 1.0.0
@@ -360,21 +363,20 @@ components:
     Decimal:
       type: string
       description: |
-        Nilai desimal presisi tinggi sebagai string. JANGAN parseFloat.
-        Pakai library desimal untuk aritmetika apa pun.
+        A high precision decimal value as a string. DO NOT parseFloat. Use a
+        decimal library for any arithmetic.
       pattern: '^-?[0-9]+(\.[0-9]+)?$'
       example: '124533.4821900'
 
     AssetType:
       type: string
       description: |
-        Jenis aset menurut XDR Stellar, dikirim eksplisit oleh Keel.
+        The asset type per the Stellar XDR, sent explicitly by Keel.
 
-        Konsumen TIDAK boleh menyimpulkan jenis dari panjang `code`. Kode
-        sepanjang 4 karakter atau kurang dapat diterbitkan sebagai
-        `credit_alphanum12`, dan Horizon melaporkannya apa adanya. Menebak dari
-        panjang kode menghasilkan identitas aset yang berbeda dari aset yang
-        sebenarnya diukur.
+        Consumers MUST NOT infer the type from the length of `code`. A code of
+        four characters or fewer can be issued as `credit_alphanum12`, and Horizon
+        reports it as issued. Guessing from code length produces an asset identity
+        different from the asset that was actually measured.
       enum: [native, credit_alphanum4, credit_alphanum12]
       example: credit_alphanum4
 
@@ -389,30 +391,30 @@ components:
         issuer:
           type: [string, 'null']
           description: |
-            Null jika dan hanya jika `type` bernilai `native`. Untuk kedua jenis
-            credit, issuer selalu terisi.
+            Null if and only if `type` is `native`. For both credit types the
+            issuer is always present.
           example: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
 
     DataSource:
       type: string
       description: |
-        Asal data yang dipakai menghitung respons ini.
+        The origin of the data used to compute this response.
 
-        `horizon` scan live dari orderbook dan pool terkini.
-        `hubble` replay state historis dari snapshot.
-        `trades-implied` state orderbook pada ledger tersebut tidak tersedia,
-        sehingga harga dan likuiditas direkonstruksi dari catatan trade yang
-        benar-benar tereksekusi. Nilai ini selalu disertai `warnings`, dan seluruh
-        angka depth yang dihasilkannya adalah batas bawah, bukan pengukuran
-        penuh: trade membuktikan likuiditas yang terpakai, bukan likuiditas yang
-        tersedia. Jangan tampilkan hasil `trades-implied` setara hasil `horizon`.
+        `horizon` a live scan of the current orderbook and pools.
+        `hubble` a replay of historical state from a snapshot.
+        `trades-implied` the orderbook state at that ledger was unavailable, so
+        price and liquidity were reconstructed from trades that actually executed.
+        This value always comes with `warnings`, and every depth figure it produces
+        is a lower bound rather than a full measurement: a trade proves the
+        liquidity that was used, not the liquidity that was available. Do not
+        display a `trades-implied` result as equivalent to a `horizon` result.
       enum: [horizon, hubble, trades-implied]
 
     Flag:
       type: string
       description: |
-        Kondisi risiko yang terpicu. Flag dilaporkan individual agar konsumen
-        dapat menerapkan kebijakan sendiri, tidak hanya bergantung pada band.
+        A risk condition that fired. Flags are reported individually so that a
+        consumer can apply their own policy rather than depending only on the band.
       enum:
         - NO_EXECUTABLE_PRICE
         - ZERO_DEPTH_2PCT
@@ -428,7 +430,7 @@ components:
 
     Band:
       type: string
-      description: Flag terburuk yang terpicu. Bukan hasil pembobotan.
+      description: The worst flag level that fired. Not the result of a weighting.
       enum: [LOW, MEDIUM, HIGH, CRITICAL]
 
     DepthPoint:
@@ -437,122 +439,121 @@ components:
       properties:
         delta:
           type: number
-          description: Pergeseran harga relatif, 0.02 berarti 2 persen
+          description: The relative price shift; 0.02 means 2 percent
           enum: [0.02, 0.05, 0.1]
         buySide:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            Notional dalam aset quote yang dapat diserap dengan membeli sebelum
-            harga marginal melewati P0 dikali (1 + delta). Relevan untuk risiko
-            manipulasi oracle.
+            The notional in the quote asset that can be absorbed by buying before
+            the marginal price passes P0 times (1 + delta). Relevant to oracle
+            manipulation risk.
         sellSide:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            Notional dalam aset quote yang dapat diserap dengan menjual sebelum
-            harga marginal jatuh di bawah P0 dikali (1 - delta). Relevan untuk
-            risiko likuidasi.
+            The notional in the quote asset that can be absorbed by selling before
+            the marginal price falls below P0 times (1 - delta). Relevant to
+            liquidation risk.
         fromSdex:
           allOf: [$ref: '#/components/schemas/Decimal']
-          description: Kontribusi orderbook SDEX pada sisi beli, untuk transparansi
+          description: The SDEX orderbook contribution on the buy side, for transparency
         fromAmm:
           allOf: [$ref: '#/components/schemas/Decimal']
-          description: Kontribusi AMM pool pada sisi beli, untuk transparansi
+          description: The AMM pool contribution on the buy side, for transparency
 
     ManipulationCost:
       type: object
       description: |
-        Satu anak tangga simulasi manipulasi harga naik. Tangga penuh adalah
-        0.5, 1, 10, dan 100. Tangga besar sengaja disertakan karena aset dengan
-        buku rusak justru tidak terbaca oleh tangga kecil.
+        One rung of the upward price manipulation simulation. The full ladder is
+        0.5, 1, 10, and 100. The large rungs are included deliberately, because an
+        asset with a broken book is invisible to the small ones.
       required: [delta, targetPrice, cost, reachable]
       properties:
         delta:
           type: number
           description: |
-            Kenaikan harga relatif yang disimulasikan. 0.5 berarti naik 50 persen,
-            100 berarti naik 10000 persen.
+            The simulated relative price increase. 0.5 means a rise of 50 percent,
+            100 means a rise of 10000 percent.
           enum: [0.5, 1, 10, 100]
         targetPrice:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            Harga sasaran simulasi, yaitu `midPrice` dikali (1 + delta). Dikirim
-            agar konsumen tidak perlu menghitung ulang dan agar tangga tetap
-            terbaca ketika `midPrice` sendiri tidak masuk akal.
+            The simulated target price, that is `midPrice` times (1 + delta). It is
+            sent so that consumers do not have to recompute it and so that the
+            ladder stays readable when `midPrice` itself makes no sense.
         cost:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            Notional dalam aset quote yang dibutuhkan untuk menyerap seluruh ask
-            yang berada di bawah `targetPrice`. WAJIB dibaca bersama `reachable`.
+            The notional in the quote asset required to absorb every ask below
+            `targetPrice`. MUST be read together with `reachable`.
         reachable:
           type: boolean
           description: |
-            True kalau `targetPrice` benar-benar dapat dicapai dengan menyerap
-            likuiditas secara bertahap. False kalau likuiditas habis sebelum
-            `targetPrice` tercapai, sehingga harga hanya dapat melompat ke ask
-            terdekat yang tersedia, bukan digeser ke sasaran.
+            True when `targetPrice` really can be attained by absorbing liquidity
+            step by step. False when liquidity runs out before `targetPrice` is
+            reached, so the price can only jump to the nearest available ask rather
+            than being walked to the target.
 
-            Kombinasi yang harus dibedakan tampilannya:
+            The combinations that must be displayed differently:
 
-            | cost | reachable | arti |
+            | cost | reachable | meaning |
             |---|---|---|
-            | 0 | true | harga sasaran dapat dicapai tanpa biaya |
-            | 0 | false | tidak ada likuiditas sama sekali dalam rentang itu |
-            | > 0 | true | biaya nyata untuk mencapai sasaran |
-            | > 0 | false | biaya menghabiskan seluruh ask, tetap tidak sampai sasaran |
+            | 0 | true | the target price is attainable at no cost |
+            | 0 | false | there is no liquidity at all in that range |
+            | > 0 | true | a real cost to reach the target |
+            | > 0 | false | the cost exhausts every ask and still does not reach the target |
 
-            Lihat juga `maxReachablePrice`.
+            See also `maxReachablePrice`.
 
     OracleResistance:
       type: object
       description: |
-        Ketahanan aset terhadap manipulasi harga oracle. Menjawab satu
-        pertanyaan: apakah menggeser harga ke tingkat kritis lebih murah
-        daripada volume perdagangan asli yang benar-benar terjadi selama jendela
-        waktu yang dipakai oracle.
+        The asset's resistance to oracle price manipulation. It answers one
+        question: is moving the price to a critical level cheaper than the genuine
+        trading volume that actually occurred during the window the oracle uses.
 
-        Biaya manipulasi sendirian tidak cukup. Biaya 10000 XLM murah untuk aset
-        yang diperdagangkan 5 juta XLM sehari, dan mahal untuk aset yang
-        diperdagangkan 200 XLM sehari. Perbandingan itulah yang dilaporkan di
-        sini, bukan biaya mentahnya saja.
+        A manipulation cost on its own is not enough. A cost of 10000 XLM is cheap
+        for an asset trading 5 million XLM a day, and expensive for an asset
+        trading 200 XLM a day. It is that comparison that is reported here, not
+        the raw cost alone.
       required: [criticalDelta, manipulationCost, reachable, genuineVolume, windowSeconds]
       properties:
         criticalDelta:
           type: number
           description: |
-            Delta yang diperlakukan sebagai ambang kritis untuk aset ini. Sama
-            dengan salah satu nilai `delta` pada `manipulationCost`.
+            The delta treated as the critical threshold for this asset. Equal to
+            one of the `delta` values in `manipulationCost`.
           example: 0.5
         manipulationCost:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            Nilai `cost` dari entri `manipulationCost` pada `criticalDelta`,
-            disalin agar konsumen tidak perlu mencocokkan sendiri.
+            The `cost` of the `manipulationCost` entry at `criticalDelta`, copied
+            here so consumers do not have to match it up themselves.
         reachable:
           type: boolean
           description: |
-            Nilai `reachable` dari entri yang sama. Kalau false, `manipulationCost`
-            di atas tidak menyatakan biaya mencapai sasaran, dan `ratio` bernilai
-            null.
+            The `reachable` value of the same entry. When false, the
+            `manipulationCost` above does not state the cost of reaching the
+            target, and `ratio` is null.
         genuineVolume:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            Volume trade asli dalam aset quote selama `windowSeconds` terakhir,
-            setelah aturan penyaringan trade asli diterapkan. Ini pembanding
-            biaya manipulasi.
+            The genuine trade volume in the quote asset over the last
+            `windowSeconds`, after the genuine trade filtering rules are applied.
+            This is the comparison baseline for the manipulation cost.
         windowSeconds:
           type: integer
           description: |
-            Panjang jendela pengamatan dalam detik, sama dengan
-            `oracleWindowSeconds` pada GET /methodology. Dikirim ulang di sini
-            supaya respons dapat dibaca tanpa memanggil endpoint lain.
+            The length of the observation window in seconds, equal to
+            `oracleWindowSeconds` at GET /methodology. It is repeated here so that
+            the response can be read without calling another endpoint.
           example: 300
         ratio:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
-            `manipulationCost` dibagi `genuineVolume`. Nilai di bawah 1 berarti
-            menggeser harga ke tingkat kritis lebih murah daripada seluruh
-            perdagangan asli sepanjang jendela oracle. Null kalau `genuineVolume`
-            nol atau `reachable` false, karena pembagiannya tidak bermakna.
+            `manipulationCost` divided by `genuineVolume`. A value below 1 means
+            that moving the price to the critical level is cheaper than all of the
+            genuine trading across the oracle window. Null when `genuineVolume` is
+            zero or `reachable` is false, because the division is then meaningless.
 
     VolumeToSupply:
       type: object
@@ -595,7 +596,7 @@ components:
         asset: { $ref: '#/components/schemas/Asset' }
         quote:
           allOf: [$ref: '#/components/schemas/Asset']
-          description: Satuan seluruh nilai notional pada respons ini
+          description: The unit of every notional value in this response
         ledgerSeq:
           type: integer
           format: int64
@@ -613,29 +614,30 @@ components:
             - $ref: '#/components/schemas/Decimal'
             - type: 'null'
           description: |
-            Null kalau priceSource bernilai none. Perhatikan bahwa midPrice yang
-            terisi belum tentu bermakna: kalau `SPREAD_EXTREME` menyala, angka ini
-            adalah titik tengah dari dua harga yang tidak berhubungan satu sama lain.
+            Null when priceSource is none. Note that a populated midPrice is not
+            necessarily meaningful: when `SPREAD_EXTREME` fires, this number is the
+            midpoint of two prices that have nothing to do with each other.
         priceSource:
           type: string
           enum: [book, pool, none]
           description: |
-            `book` berarti dari mid orderbook, `pool` berarti dari harga spot pool
-            karena orderbook kosong atau satu sisi, `none` berarti aset tidak
-            punya harga eksekutabel sama sekali. Nilai `none` bukan error.
+            `book` means the orderbook mid, `pool` means the pool spot price
+            because the orderbook is empty or one sided, `none` means the asset has
+            no executable price at all. The value `none` is not an error.
         spreadPct:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
-            Selisih best ask dan best bid dibagi `midPrice`, dinyatakan dalam
-            PERSEN mengikuti konvensi seluruh field berakhiran `Pct` pada API ini.
-            Nilai '196.0777141' berarti spread 196 persen.
+            The difference between the best ask and the best bid divided by
+            `midPrice`, expressed in PERCENT, following the convention of every
+            field in this API whose name ends in `Pct`. A value of '196.0777141'
+            means a spread of 196 percent.
 
-            Null kalau salah satu sisi buku kosong atau `priceSource` bukan `book`,
-            karena spread tidak terdefinisi tanpa dua sisi buku.
+            Null when either side of the book is empty or when `priceSource` is not
+            `book`, because a spread is undefined without two sides of a book.
 
-            Nilai di atas `spreadExtremePct` memicu `SPREAD_EXTREME`. Di atas
-            ambang itu `midPrice` dan seluruh metrik yang diturunkan darinya,
-            termasuk tangga depth 2/5/10 persen, kehilangan makna.
+            A value above `spreadExtremePct` triggers `SPREAD_EXTREME`. Above that
+            threshold, `midPrice` and every metric derived from it, including the
+            2/5/10 percent depth ladder, lose their meaning.
         depth:
           type: array
           items: { $ref: '#/components/schemas/DepthPoint' }
@@ -644,35 +646,35 @@ components:
         manipulationCost:
           type: array
           description: |
-            Tangga 0.5, 1, 10, 100 dalam urutan delta menaik. Array kosong kalau
-            tidak ada harga eksekutabel.
+            The 0.5, 1, 10, 100 ladder in ascending delta order. An empty array
+            when there is no executable price.
           items: { $ref: '#/components/schemas/ManipulationCost' }
           maxItems: 4
         maxReachablePrice:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
-            Harga tertinggi yang masih dapat dicapai dengan menyerap seluruh ask
-            yang tersedia. Ini batas atas nyata pergerakan harga lewat orderbook.
+            The highest price still attainable by absorbing every available ask.
+            This is the real upper bound on price movement through the orderbook.
 
-            Setiap entri `manipulationCost` yang `targetPrice`-nya berada di atas
-            nilai ini pasti bernilai `reachable: false`.
+            Every `manipulationCost` entry whose `targetPrice` sits above this
+            value is necessarily `reachable: false`.
 
-            Null dalam dua keadaan: tidak ada ask sama sekali pada pasangan ini,
-            atau seluruh likuiditas berasal dari AMM. Kurva constant product tidak
-            punya batas atas harga, sehingga tidak ada nilai maksimum yang dapat
-            dilaporkan.
+            Null in two situations: there is no ask at all on this pair, or all the
+            liquidity comes from an AMM. A constant product curve has no upper
+            price bound, so there is no maximum that can be reported.
         oracleResistance:
           oneOf: [$ref: '#/components/schemas/OracleResistance', type: 'null']
           description: |
-            Null kalau tidak ada harga eksekutabel, karena tidak ada harga yang
-            bisa digeser.
+            Null when there is no executable price, because then there is no price
+            to move.
         maxSafeCollateral:
           oneOf:
             - $ref: '#/components/schemas/Decimal'
             - type: 'null'
           description: |
-            Rekomendasi ukuran collateral maksimum dalam aset quote. Null kalau
-            tidak dapat dihitung, misalnya karena tidak ada harga eksekutabel.
+            The recommended maximum collateral size in the quote asset. Null when
+            it cannot be computed, for example because there is no executable
+            price.
         holderTop1Pct:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
         holderTop10Pct:
@@ -683,12 +685,12 @@ components:
           oneOf: [$ref: '#/components/schemas/VolumeToSupply', type: 'null']
         lastGenuineTrade:
           oneOf: [$ref: '#/components/schemas/LastGenuineTrade', type: 'null']
-          description: Null kalau tidak ada trade asli yang ditemukan sama sekali
+          description: Null when no genuine trade was found at all
         tradesExcludedPct:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
-            Persentase volume 30 hari yang dikecualikan oleh aturan trade asli.
-            Nilai tinggi menandakan dugaan wash trading.
+            The percentage of 30 day volume excluded by the genuine trade rules. A
+            high value indicates suspected wash trading.
         flags:
           type: array
           items: { $ref: '#/components/schemas/Flag' }
@@ -698,8 +700,8 @@ components:
           items:
             type: string
           description: |
-            Catatan tentang keterbatasan perhitungan pada respons ini. Sebaiknya
-            ditampilkan ke pengguna, bukan disembunyikan.
+            Notes about the limitations of the computation behind this response.
+            These should be shown to the user, not hidden.
 
     AssetSummary:
       type: object
@@ -788,8 +790,9 @@ components:
         gaps:
           type: array
           description: |
-            Rentang ledger di dalam permintaan yang datanya tidak tersedia.
-            Dashboard wajib menampilkan celah ini, bukan menginterpolasinya.
+            Ledger ranges inside the request for which no data is available. The
+            dashboard is required to display these gaps rather than interpolate
+            across them.
           items:
             type: object
             required: [from, to, reason]
@@ -820,7 +823,7 @@ components:
           type: string
         historicalAvailable:
           type: boolean
-          description: False kalau jalur Hubble sedang tidak tersedia
+          description: False when the Hubble path is currently unavailable
 
     Methodology:
       type: object
@@ -833,33 +836,34 @@ components:
           format: uri
         calibrated:
           type: boolean
-          description: Selalu false pada v1. Ambang dipilih, bukan dikalibrasi.
+          description: Always false in v1. The thresholds are chosen, not calibrated.
         calibrationNote:
           type: string
         thresholds:
           type: object
           description: |
-            Peta ambang bernama. Bersifat terbuka: kunci baru dapat muncul tanpa
-            menaikkan versi mayor API, jadi konsumen wajib membacanya lewat nama
-            kunci, bukan posisi.
+            A map of named thresholds. It is open ended: new keys can appear
+            without a major API version bump, so consumers are required to read
+            them by key name rather than by position.
 
-            Konvensi satuan: setiap kunci berakhiran `Pct` dinyatakan dalam persen,
-            bukan pecahan. `spreadExtremePct: '20.0'` berarti 20 persen dan
-            dibandingkan langsung dengan `spreadPct` pada respons aset.
+            Unit convention: every key ending in `Pct` is expressed in percent, not
+            as a fraction. `spreadExtremePct: '20.0'` means 20 percent and is
+            compared directly against `spreadPct` in an asset response.
           additionalProperties: true
           properties:
             spreadExtremePct:
               allOf: [$ref: '#/components/schemas/Decimal']
               description: |
-                Ambang pemicu SPREAD_EXTREME, dalam persen. Di atas ambang ini
-                harga acuan dianggap tidak bermakna dan aset masuk band HIGH.
+                The threshold that triggers SPREAD_EXTREME, in percent. Above this
+                threshold the reference price is considered meaningless and the
+                asset enters band HIGH.
             oracleWindowSeconds:
               type: integer
               description: |
-                Panjang jendela waktu yang diasumsikan dipakai oracle untuk
-                meratakan harga, dalam detik. Dipakai sebagai pembanding volume
-                asli pada `oracleResistance`. Ambang ini dipilih, bukan dibaca
-                dari oracle mana pun, karena tiap oracle punya jendela sendiri.
+                The assumed length of the window an oracle uses to average prices,
+                in seconds. Used as the comparison baseline for genuine volume in
+                `oracleResistance`. This threshold is chosen, not read from any
+                oracle, because every oracle has its own window.
 
     Error:
       type: object
@@ -880,7 +884,7 @@ components:
                 - RATE_LIMITED
             message:
               type: string
-              description: Pesan yang boleh ditampilkan langsung ke pengguna
+              description: A message that may be shown directly to the user
             detail:
               type: object
               additionalProperties: true
@@ -888,7 +892,7 @@ components:
   responses:
 
     BadRequest:
-      description: Parameter tidak valid
+      description: Invalid parameter
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -898,21 +902,21 @@ components:
                 error:
                   code: INVALID_ASSET_ID
                   message: >-
-                    Format assetId tidak valid. Gunakan CODE:ISSUER untuk aset
-                    terbitan atau XLM untuk aset native.
+                    Invalid assetId format. Use CODE:ISSUER for an issued asset or
+                    XLM for the native asset.
             rentangTerlaluPanjang:
               value:
                 error:
                   code: INVALID_RANGE
-                  message: Rentang maksimal 90 hari per permintaan.
+                  message: The maximum range is 90 days per request.
                   detail:
                     requestedLedgers: 1200000
                     maxLedgers: 1555200
 
     NotFound:
       description: |
-        Aset tidak dipantau, atau ledger yang diminta tidak tersedia. Keduanya
-        adalah kondisi yang wajar, bukan kegagalan sistem.
+        The asset is not monitored, or the requested ledger is not available. Both
+        are ordinary conditions, not system failures.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -922,22 +926,22 @@ components:
                 error:
                   code: ASSET_NOT_MONITORED
                   message: >-
-                    Aset ini tidak termasuk dalam demonstration set. Lihat
-                    GET /v1/assets untuk daftar aset yang dipantau.
+                    This asset is not part of the demonstration set. See
+                    GET /v1/assets for the list of monitored assets.
             ledgerBelumTersedia:
               value:
                 error:
                   code: LEDGER_NOT_AVAILABLE
                   message: >-
-                    Data historis untuk ledger ini belum tersedia. Data historis
-                    diperbarui dalam batch harian.
+                    Historical data for this ledger is not available yet.
+                    Historical data is refreshed in daily batches.
                   detail:
                     requestedLedger: 61999999
                     earliestAvailable: 60100000
                     latestAvailable: 61180000
 
     HistoricalUnavailable:
-      description: Jalur historis sedang tidak tersedia. Jalur live tidak terpengaruh.
+      description: The historical path is currently unavailable. The live path is unaffected.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -945,11 +949,11 @@ components:
             error:
               code: HISTORICAL_UNAVAILABLE
               message: >-
-                Layanan data historis sedang tidak tersedia. Metrik terkini
-                tetap dapat diakses tanpa parameter ledger.
+                The historical data service is currently unavailable. Current
+                metrics remain accessible without the ledger parameter.
 
     RateLimited:
-      description: Melebihi 60 request per menit
+      description: Exceeded 60 requests per minute
       headers:
         Retry-After:
           schema: { type: integer }
@@ -959,12 +963,12 @@ components:
           example:
             error:
               code: RATE_LIMITED
-              message: Batas 60 request per menit terlampaui.
+              message: The limit of 60 requests per minute was exceeded.
 
   examples:
 
     AssetHealthy:
-      summary: Aset likuid dengan orderbook dan pool
+      summary: A liquid asset with both an orderbook and a pool
       value:
         asset:
           code: USDC
@@ -1039,11 +1043,11 @@ components:
         band: LOW
         warnings:
           - >-
-            Tangga delta 100 tidak tercapai. Seluruh ask habis pada harga
-            41.8842000, di bawah harga sasaran 287.0349300.
+            The delta 100 rung was not reached. Every ask is exhausted at a price
+            of 41.8842000, below the target price of 287.0349300.
 
     AssetPoolOnly:
-      summary: Aset tanpa orderbook, hanya punya AMM pool
+      summary: An asset with no orderbook, only an AMM pool
       value:
         asset:
           code: RWAX
@@ -1121,18 +1125,18 @@ components:
           - HOLDER_CONCENTRATION_HIGH
         band: HIGH
         warnings:
-          - Tidak ada orderbook SDEX. Harga acuan diambil dari harga spot pool.
-          - Likuiditas hanya berasal dari satu pool AMM.
+          - There is no SDEX orderbook. The reference price is taken from the pool spot price.
+          - The liquidity comes from a single AMM pool.
           - >-
-            spreadPct null karena tidak ada dua sisi buku. maxReachablePrice null
-            karena kurva AMM tidak punya batas atas harga, sehingga seluruh tangga
-            manipulasi terjangkau, hanya biayanya yang berbeda.
+            spreadPct is null because there are not two sides of a book.
+            maxReachablePrice is null because an AMM curve has no upper price bound,
+            so every manipulation rung is reachable and only the cost differs.
           - >-
-            Tidak ada trade asli dalam jendela oracle 300 detik, sehingga rasio
-            ketahanan oracle tidak dapat dihitung.
+            There was no genuine trade within the 300 second oracle window, so the
+            oracle resistance ratio cannot be computed.
 
     AssetNoPrice:
-      summary: Aset tanpa harga eksekutabel. Ini HTTP 200, bukan error.
+      summary: An asset with no executable price. This is HTTP 200, not an error.
       value:
         asset:
           code: USTRY
@@ -1188,13 +1192,13 @@ components:
           - HOLDER_CONCENTRATION_HIGH
         band: CRITICAL
         warnings:
-          - Tidak ada orderbook maupun pool untuk pasangan ini.
+          - There is neither an orderbook nor a pool for this pair.
           - >-
-            Aset tanpa harga eksekutabel tidak dapat dinilai sebagai collateral
-            dengan metode apa pun. Ini adalah temuan, bukan kegagalan perhitungan.
+            An asset with no executable price cannot be assessed as collateral by
+            any method. This is a finding, not a computation failure.
 
     AssetHistorical:
-      summary: Hasil replay historis, perhatikan dataSource bernilai hubble
+      summary: A historical replay result; note that dataSource is hubble
       value:
         asset:
           code: USTRY
@@ -1275,57 +1279,59 @@ components:
           - WASH_TRADE_SUSPECTED
         band: CRITICAL
         warnings:
-          - Tidak ada likuiditas AMM untuk pasangan ini pada ledger tersebut.
+          - There was no AMM liquidity for this pair at that ledger.
           - >-
-            Tangga delta 10 dan 100 tidak tercapai. Seluruh ask habis pada harga
-            0.0891000. Biaya 2210.4400000 pada kedua tangga itu adalah biaya
-            menghabiskan buku, bukan biaya mencapai harga sasaran.
+            The delta 10 and 100 rungs were not reached. Every ask is exhausted at
+            a price of 0.0891000. The cost of 2210.4400000 on both of those rungs
+            is the cost of exhausting the book, not the cost of reaching the target
+            price.
           - >-
-            Tidak ada trade asli dalam jendela oracle 300 detik, sehingga rasio
-            ketahanan oracle tidak dapat dihitung.
+            There was no genuine trade within the 300 second oracle window, so the
+            oracle resistance ratio cannot be computed.
 
     AssetBrokenBook:
       summary: >-
-        assetBrokenBook. Buku dengan spread 196 persen. HTTP 200, bukan error,
-        dan bukan kondisi normal. Butuh tampilan tersendiri.
+        assetBrokenBook. A book with a spread of 196 percent. HTTP 200, not an
+        error, and not a normal condition. It needs a display of its own.
       description: |
-        Keadaan ketiga yang harus dibedakan frontend, di samping aset sehat dan
-        aset tanpa harga.
+        This is the third state the frontend has to distinguish, alongside a
+        healthy asset and an asset with no price.
 
-        USTRY/USDC sesaat sebelum ledger 61340263, keadaan nyata di ledger, bukan
-        angka karangan. Bukunya berisi tepat satu ask pada 106.7372828 dan tepat
-        satu bid pada 1.0570000. Titik tengahnya 53.8971414 untuk aset yang
-        sebenarnya bernilai sekitar 1.06.
+        USTRY/USDC moments before ledger 61340263, a real state on the ledger, not
+        invented numbers. The book held exactly one ask at 106.7372828 and exactly
+        one bid at 1.0570000. The midpoint is 53.8971414 for an asset actually
+        worth about 1.06.
 
-        Yang harus dilakukan tampilan pada keadaan ini:
+        What the display has to do in this state:
 
-        1. Jangan tampilkan `midPrice` sebagai harga. Ia titik tengah dari dua
-           harga yang tidak berhubungan. Kalau tetap ditampilkan, beri penanda
-           bahwa angkanya tidak bermakna.
-        2. Turunkan atau redam tangga depth 2/5/10 persen. Ketiganya diturunkan
-           dari `midPrice` yang sudah tidak bermakna, dan tetap dilaporkan hanya
-           karena dijanjikan di SOW, bukan karena berguna di sini.
-        3. Naikkan tangga `manipulationCost` delta 10 dan 100 beserta
-           `maxReachablePrice`. Pada buku serusak ini, tangga besar dan
-           `SPREAD_EXTREME` yang membawa informasi, bukan tangga wajib.
-        4. Bedakan `cost: '0'` dengan `reachable: false` dari `cost: '0'` dengan
-           `reachable: true`. Lihat butir 7 pada deskripsi API.
+        1. Do not present `midPrice` as a price. It is the midpoint of two prices
+           that have nothing to do with each other. If it is shown at all, mark it
+           as meaningless.
+        2. Damp down or demote the 2/5/10 percent depth ladder. All three are
+           derived from a `midPrice` that no longer means anything, and they are
+           still reported only because the SOW promised them, not because they are
+           useful here.
+        3. Promote the `manipulationCost` rungs at delta 10 and 100 along with
+           `maxReachablePrice`. On a book this broken it is the large rungs and
+           `SPREAD_EXTREME` that carry the information, not the mandated ladder.
+        4. Distinguish `cost: '0'` with `reachable: false` from `cost: '0'` with
+           `reachable: true`. See point 7 in the API description.
 
-        Seluruh angka pada contoh ini SUDAH TERISI dari golden fixture di
-        testdata/fixtures/ustry_pre_exploit.md, yang dihitung dengan tangan
-        sebelum implementasi ada. Penanda `TODO-FIXTURE` dan `reachable: null`
-        tidak ada lagi.
+        Every number in this example is ALREADY FILLED IN from the golden fixture
+        at testdata/fixtures/ustry_pre_exploit.md, which was computed by hand
+        before any implementation existed. The `TODO-FIXTURE` markers and
+        `reachable: null` are gone.
 
-        SATU KOREKSI TERHADAP VERSI SEBELUMNYA. Entri delta 1.0 sebelumnya
-        tertulis `reachable: true`. Itu SALAH dan merupakan persis kesalahan
-        yang butir 7 pada deskripsi API peringatkan. Ask termahal di buku
-        berharga 106.7372828, di bawah target 107.7942828, sehingga tidak ada
-        ask yang memenuhi `>= target` dan `reachable` bernilai false. Nilai
-        `cost: '130.0627093'` pada baris itu TIDAK menyatakan biaya mencapai
-        sasaran, sebab sasarannya tidak dapat dicapai sama sekali.
+        ONE CORRECTION AGAINST THE PREVIOUS VERSION. The delta 1.0 entry previously
+        read `reachable: true`. That was WRONG and it is exactly the mistake that
+        point 7 of the API description warns about. The most expensive ask on the
+        book is priced at 106.7372828, below the target of 107.7942828, so no ask
+        satisfies `>= target` and `reachable` is false. The `cost: '130.0627093'`
+        on that row does NOT state the cost of reaching the target, because the
+        target cannot be reached at all.
 
-        Bentuk field, nama field, dan tipenya sudah final dan aman dipakai
-        frontend untuk mulai membangun.
+        The field shapes, field names, and types are final and safe for the
+        frontend to start building against.
       value:
         asset:
           code: USTRY
@@ -1393,46 +1399,46 @@ components:
         band: CRITICAL
         warnings:
           - >-
-            Spread 196.0777141 persen melampaui ambang spreadExtremePct.
-            midPrice 53.8971414 adalah titik tengah dari ask 106.7372828 dan bid
-            1.0570000, dua harga yang tidak berhubungan. Seluruh metrik yang
-            diturunkan dari midPrice, termasuk tangga depth 2/5/10 persen, tidak
-            bermakna pada respons ini.
+            A spread of 196.0777141 percent exceeds the spreadExtremePct threshold.
+            The midPrice of 53.8971414 is the midpoint of an ask at 106.7372828 and
+            a bid at 1.0570000, two prices unrelated to each other. Every metric
+            derived from midPrice, including the 2/5/10 percent depth ladder, is
+            meaningless in this response.
           - >-
-            Tidak ada pool AMM untuk pasangan ini, sehingga seluruh nilai fromAmm
-            nol dan maxReachablePrice ditentukan sepenuhnya oleh orderbook.
+            There is no AMM pool for this pair, so every fromAmm value is zero and
+            maxReachablePrice is determined entirely by the orderbook.
           - >-
-            dataSource trades-implied. Snapshot orderbook pada ledger ini tidak
-            tersedia, sehingga kedua sisi buku direkonstruksi dari operasi yang
-            benar-benar tereksekusi di ledger. Angka depth pada respons ini adalah
-            batas bawah, bukan pengukuran penuh.
+            dataSource is trades-implied. The orderbook snapshot at this ledger was
+            unavailable, so both sides of the book were reconstructed from
+            operations that actually executed on the ledger. The depth figures in
+            this response are lower bounds, not full measurements.
           - >-
-            Cost 0.0000000 pada delta 0.5 dengan reachable true adalah kondisi
-            paling berbahaya yang dapat dilaporkan Keel: harga 80.8457121 dapat
-            dicapai tanpa membayar apa pun kepada pihak ketiga. Bandingkan dengan
-            delta 1.0, 10, dan 100 yang cost-nya 130.0627093 tetapi reachable
-            false; di sana buku sudah habis sebelum sampai sasaran dan angka biaya
-            itu tidak berarti sasaran mahal dicapai.
+            A cost of 0.0000000 at delta 0.5 with reachable true is the most
+            dangerous condition Keel can report: the price 80.8457121 is attainable
+            without paying anything to a third party. Compare that with delta 1.0,
+            10, and 100, whose cost is 130.0627093 but whose reachable is false;
+            there the book runs out before the target and that cost figure does not
+            mean the target is expensive to reach.
           - >-
-            maxSafeCollateral 0.0000000 karena depth sisi jual pada delta
-            likuidasi bernilai nol, sehingga suku pertama C_max nol dan
-            minimumnya ikut nol.
+            maxSafeCollateral is 0.0000000 because the sell side depth at the
+            liquidation delta is zero, so the first term of C_max is zero and the
+            minimum is zero with it.
           - >-
-            Enam flag tidak dapat dinilai dari snapshot ini karena membutuhkan
-            data supply, riwayat trade, atau distribusi trustline:
+            Six flags cannot be assessed from this snapshot because they require
+            supply data, trade history, or trustline distribution:
             MANIPULATION_RATIO_LOW, NO_GENUINE_TRADE_30D, NO_GENUINE_TRADE_7D,
-            WASH_TRADE_SUSPECTED, HOLDER_CONCENTRATION_EXTREME, dan
-            HOLDER_CONCENTRATION_HIGH. Kontrak versi ini belum punya field
-            unevaluatedFlags dan bandConfidence untuk menyatakannya, sehingga
-            keenamnya sementara hanya muncul di warning ini. Lihat catatan
-            keputusan terbuka pada DEC-003.
+            WASH_TRADE_SUSPECTED, HOLDER_CONCENTRATION_EXTREME, and
+            HOLDER_CONCENTRATION_HIGH. This version of the contract has no
+            unevaluatedFlags or bandConfidence field to state that, so all six
+            appear only in this warning for now. See the open decision note in
+            DEC-003.
           - >-
-            oracleResistance null karena volume trade asli dalam jendela oracle
-            tidak dapat dihitung dari snapshot orderbook saja. Null berarti tidak
-            diketahui, bukan nol.
+            oracleResistance is null because genuine trade volume within the oracle
+            window cannot be computed from an orderbook snapshot alone. Null means
+            unknown, not zero.
 
     AssetListMixed:
-      summary: Daftar aset dengan campuran band
+      summary: An asset list with a mix of bands
       value:
         total: 53
         limit: 3
@@ -1487,7 +1493,7 @@ components:
             ledgerSeq: 61234567
 
     HistoryUstry:
-      summary: Deret waktu dengan celah data, perhatikan array gaps
+      summary: A time series with a data gap; note the gaps array
       value:
         asset:
           code: USTRY
@@ -1502,7 +1508,7 @@ components:
         gaps:
           - from: 60901000
             to: 60903500
-            reason: Snapshot state tidak tersedia pada rentang ledger ini
+            reason: No state snapshot is available for this ledger range
         points:
           - ledgerSeq: 60890120
             ledgerClosedAt: '2026-05-17T00:04:11Z'

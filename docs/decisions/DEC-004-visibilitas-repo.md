@@ -1,77 +1,79 @@
-# DEC-004: Visibilitas Repo dan Syarat Membukanya
+# DEC-004: Repository Visibility and the Conditions for Opening It
 
-**Keputusan:** Repo `Keel-Official/keel` tetap **privat** sampai `internal/depth` lolos
-golden fixture. Sebelum visibilitasnya diubah ke publik, dua berkas wajib dikeluarkan
-lebih dulu.
-**Status:** BERLAKU sejak 20 Agustus 2026, commit pertama.
-**Terkait:** DoD Deliverable 1 bagian 6 mensyaratkan repo publik sebagai bukti.
-
----
-
-## 1. Kenapa tidak langsung publik
-
-DoD menjanjikan repo publik, jadi visibilitas ini bukan pertanyaan apakah, melainkan
-kapan. Yang dipertimbangkan: pada commit pertama, `internal/depth` masih kosong, job
-`conformance` merah karenanya, dan job `golangci-lint` merah karena versi action.
-Pembaca pertama yang datang dari tautan SCF akan melihat dua job merah dan folder inti
-yang kosong, dan tidak punya konteks untuk tahu bahwa keduanya disengaja.
-
-Menunggu sampai golden fixture lolos memberi kesan pertama yang berbeda dengan biaya
-nol, karena riwayat commit-nya tetap utuh dan tetap menunjukkan pekerjaan berjalan
-sejak 20 Agustus. Yang hilang kalau menunggu: tidak ada. Repo privat sudah cukup
-sebagai cadangan kerja.
-
-**Pemicu membuka:** `make conformance` lolos tanpa build tag, yaitu saat
-`internal/conformance/golden_test.go` tidak lagi butuh `//go:build conformance` dan
-job `conformance` di CI hijau tanpa `continue-on-error`.
+**Decision:** The repository `Keel-Official/keel-backend` stays **private** until
+`internal/depth` passes the golden fixture. Before its visibility is changed to
+public, two files must be taken out first.
+**Status:** IN FORCE from 20 August 2026, the first commit.
+**Related:** the Deliverable 1 DoD section 6 requires a public repository as
+evidence.
 
 ---
 
-## 2. Dua berkas yang wajib keluar sebelum publik
+## 1. Why not public immediately
 
-| Berkas | Alasan |
+The DoD promises a public repository, so visibility is not a question of whether
+but of when. What weighed on the timing: at the first commit `internal/depth` is
+still empty, the `conformance` job is red because of that, and the `golangci-lint`
+job was red because of an action version. A first-time reader arriving from an SCF
+link would see two red jobs and an empty core package, with no context for knowing
+that both are deliberate.
+
+Waiting until the golden fixture passes buys a different first impression at zero
+cost, because the commit history stays intact and still shows work starting on 20
+August. What is lost by waiting: nothing. A private repository already serves as a
+backup of the work.
+
+**The trigger for opening:** `make conformance` passes without a build tag, meaning
+`internal/conformance/golden_test.go` no longer needs `//go:build conformance` and
+the `conformance` job in CI is green without `continue-on-error`.
+
+---
+
+## 2. The two files that must come out before going public
+
+| File | Reason |
 |---|---|
-| `docs/context/Keel_SoW.pdf` | Memuat anggaran 126 jam dan 2.268 dolar serta ketentuan dengan pemberi dana. Itu dokumen antara Al dan Instawards, bukan bahan yang perlu dibaca publik untuk menilai metodologi |
-| `docs/internal/` | Memo pra-development, rencana eksekusi, dan audit repo. Isinya kritik terhadap repo sendiri, koreksi terhadap SOW, dan alokasi jam kerja |
+| `docs/context/Keel_SoW.pdf` | Contains the 126 hour, $2,268 budget and the terms agreed with the funder. That is a document between Al and Instawards, not material the public needs in order to assess the methodology |
+| `docs/internal/` | The pre-development memo, the execution plan, and the repository audit. They contain criticism of the repository itself, corrections to the SOW, and an allocation of working hours |
 
-Perhatikan bahwa **`git rm` saja tidak cukup.** Keduanya sudah masuk riwayat pada commit
-`f499ab4`, jadi menghapusnya di commit berikutnya tetap menyisakannya di riwayat dan
-tetap terbaca siapa pun setelah repo publik. Yang berlaku salah satu dari dua jalan:
+Note that **`git rm` alone is not sufficient.** Both are already in the history as
+of commit `f499ab4`, so deleting them in a later commit still leaves them in the
+history and still readable by anyone once the repository is public. One of two
+roads applies:
 
-1. Tulis ulang riwayat dengan `git filter-repo` sebelum repo dibuka. Bisa dilakukan
-   selama repo masih privat dan belum ada fork atau clone pihak lain.
-2. Pindahkan seluruh isi ke repo publik baru dengan satu commit awal bersih, dan
-   simpan repo ini sebagai arsip privat.
+1. Rewrite the history with `git filter-repo` before the repository is opened. This
+   is possible while it is still private and nobody else has forked or cloned it.
+2. Move the contents into a fresh public repository with one clean initial commit,
+   and keep this one as a private archive.
 
-Jalan 1 lebih murah selama pihak lain belum meng-clone. Jalan 2 lebih aman dan
-kehilangan riwayat commit, yang justru salah satu bukti yang ingin ditunjukkan. Pilih
-saat visibilitas benar-benar diubah, jangan sekarang, karena jumlah clone pihak lain
-belum diketahui pada saat itu.
+Road 1 is cheaper as long as nobody else has cloned. Road 2 is safer and loses the
+commit history, which is itself one of the pieces of evidence worth showing. Choose
+when visibility is actually changed, not now, because the number of third party
+clones is not knowable until then.
 
-**Yang tetap tinggal dan memang harus publik:** `docs/methodology/`,
-`docs/decisions/`, `docs/architecture/`, `docs/api/`, `docs/evidences/`, dan
-`testdata/fixtures/`. Justru itu isi deliverable-nya. `docs/evidences/` berisi data
-on-chain yang siapa pun bisa ambil sendiri dari Horizon, jadi tidak ada yang perlu
-disembunyikan di sana.
-
----
-
-## 3. Kenapa keputusan ini ditulis
-
-Keputusan yang hanya hidup di kepala akan hilang. Kegagalan yang paling mungkin terjadi
-di sini bukan lupa membuka repo, melainkan repo dibuka bulan depan dalam keadaan
-tergesa-gesa menjelang tenggat, tanpa ada yang ingat bahwa SoW ikut di dalamnya.
-
-Karena itu syaratnya juga ditegakkan mekanis, bukan hanya ditulis:
-`scripts/verifikasi-audit.sh` bagian "Syarat visibilitas repo" memeriksa visibilitas
-repo lewat `gh`, dan berteriak kalau repo sudah publik sementara salah satu berkas masih
-ada. Aturan yang hanya ditulis di dokumen akan dilanggar dalam dua minggu.
+**What stays and should be public:** `docs/methodology/`, `docs/decisions/`,
+`docs/architecture/`, `docs/api/`, `docs/evidences/`, and `testdata/fixtures/`.
+Those are the deliverable. `docs/evidences/` holds on-chain data anyone can fetch
+from Horizon themselves, so there is nothing there to hide.
 
 ---
 
-## 4. Yang mengubah keputusan ini
+## 3. Why this decision is written down
 
-- Ambassador Chapter Lead atau reviewer SCF meminta tautan repo publik sebelum
-  `internal/depth` selesai. Kalau itu terjadi, buka repo lebih awal dan tambahkan satu
-  paragraf di README yang menjelaskan job merah mana yang disengaja dan kenapa.
-- Muncul kebutuhan kolaborator luar yang tidak bisa diberi akses privat.
+A decision that lives only in someone's head disappears. The most likely failure
+here is not forgetting to open the repository; it is opening it next month in a
+rush before a deadline, with nobody remembering that the SoW went along with it.
+
+So the condition is also enforced mechanically rather than only written: the
+"Repository visibility" section of `scripts/verifikasi-audit.sh` checks visibility
+through `gh` and shouts if the repository is already public while either file is
+still present. A rule that lives only in a document gets broken within two weeks.
+
+---
+
+## 4. What would change this decision
+
+- The Ambassador Chapter Lead or an SCF reviewer asks for a public repository link
+  before `internal/depth` is finished. If that happens, open it early and add a
+  paragraph to the README explaining which red jobs are deliberate and why.
+- A external collaborator appears who cannot be given private access.

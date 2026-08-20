@@ -111,7 +111,7 @@ cek P1-25 "bukti spike berhenti tepat di 200 record, yaitu satu halaman Horizon"
 cek P1-26 "DEC-003 masih menulis MC delta 1 sebagai reachable true" \
   grep -qF '`130.0627093`, `true`' docs/decisions/DEC-003-api-contract-v1-1.md
 cek P1-27 "padahal fixture dan kontrak sudah mengoreksinya menjadi false" \
-  grep -q "Entri delta 1.0 sebelumnya" docs/api/keel-openapi.yaml
+  grep -qF 'The delta 1.0 entry previously' docs/api/keel-openapi.yaml
 cek P1-28 "documentUrl menunjuk org ciganytry, bukan Keel-Official" \
   grep -q "github.com/ciganytry/keel" docs/api/keel-openapi.yaml
 cek P1-29 "dan menunjuk 00-ikhtisar.md yang tidak ada" ikhtisar_hilang
