@@ -1,10 +1,10 @@
-# Konfirmasi ledger 61340272 memang 22 Februari 2026
+# Confirming ledger 61340272 really is 22 February 2026
 {
   "sequence": 61340272,
   "closed_at": "2026-02-22T00:11:16Z"
 }
 
-# Seluruh riwayat trade USTRY/USDC. Perhatikan credit_alphanum12
+# The entire USTRY/USDC trade history. Note credit_alphanum12
 {
   "ledger_close_time": "2026-08-19T20:21:31Z",
   "base_amount": "0.0294625",
@@ -2006,7 +2006,7 @@
   "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
 }
 
-# Offer yang masih terbuka di pasar itu hari ini[
+# The offers still open in that market today[
   {
     "_links": {
       "self": {

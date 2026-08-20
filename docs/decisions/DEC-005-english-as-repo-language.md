@@ -43,6 +43,15 @@ assumed to have carried over.
 | `docs/api/keel-openapi.yaml` descriptions and examples | `docs/context/Keel_SoW.pdf`, a third-party document |
 | `README.md`, `CLAUDE.md`, and every zone `CLAUDE.md` | Identifier names already in English |
 | `testdata/fixtures/`, `.claude/commands/`, `.claude/hooks/` | Identifier names, see below |
+| `docs/evidences/` annotations | `keel-bootstrap.sh`, see below |
+
+**`keel-bootstrap.sh` is deliberately not translated.** It is the scaffolding
+generator that produced this repository's initial files, and it carries its own
+embedded copies of `CLAUDE.md`, `README.md`, and the zone files. Translating those
+copies would recreate the exact failure this repository keeps hitting: two homes for
+one definition, guaranteed to drift. It has already drifted. An archive header in
+English was added at the top of the file explaining this, and the recommendation is
+to delete the file, which is Al's call rather than Claude's.
 
 **Identifier names are left for a separate decision, and this is a deliberate
 limit, not an oversight.** Several identifiers are Indonesian: `belumSiap`,
@@ -115,8 +124,11 @@ a secondary source is "evidence" or "a report".
 
 `scripts/verifikasi-audit.sh` verifies audit claims by grepping for Indonesian
 sentences in the documents. Translating those sentences makes every such check
-fail, and a failing check prints `TIDAK TERBUKTI`, which reads as "this finding was
-fixed". It would not be fixed. It would be invisible.
+fail, and a failing check prints `NOT`, which reads as "this finding was fixed".
+It would not be fixed. It would be invisible.
+
+The script's own vocabulary changed with this pass: `TERBUKTI` became `PROVEN` and
+`TIDAK` became `NOT`.
 
 This is exactly the silent-failure class this project exists to catch, so it is
 handled explicitly: every grep anchor in that script is updated in the same pass as

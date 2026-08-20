@@ -1,112 +1,120 @@
-# Keel: Memo Pra-Development
+# Keel: Pre-Development Memo
 
-> **STATUS: ARSIP.** Berkas ini sebelumnya bernama `docs/methodology/00-inti.md`,
-> nama yang menyesatkan karena isinya memo serah terima, bukan inti metodologi.
-> Ia dipindah ke `docs/internal/` pada 20 Agustus 2026.
+> **STATUS: ARCHIVED.** This file was previously named
+> `docs/methodology/00-inti.md`, a misleading name because its contents are a
+> handover memo, not the core of the methodology. It was moved to `docs/internal/`
+> on 20 August 2026.
 >
-> | Bagian | Ke mana isinya pergi |
+> | Section | Where its contents went |
 > |---|---|
-> | 1. Metodologi v1.0.1 | digabung ke `docs/methodology/keel-methodology-core.md`, yang kini v1.0.2-draft |
-> | 2. Perubahan kontrak API | digantikan `docs/decisions/DEC-003-api-contract-v1-1.md` |
-> | 3. Lembar kerja golden fixture | sudah diisi, ada di `testdata/fixtures/ustry_pre_exploit.md` |
-> | 4. Tiga sesi pertama | selesai dijalankan |
-> | 5. Yang sudah beres | tergantikan status di README dan `docs/methodology/README.md` |
+> | 1. Methodology v1.0.1 | merged into `docs/methodology/keel-methodology-core.md`, now at v1.0.2-draft |
+> | 2. API contract changes | replaced by `docs/decisions/DEC-003-api-contract-v1-1.md` |
+> | 3. The golden fixture worksheet | filled in, now at `testdata/fixtures/ustry_pre_exploit.md` |
+> | 4. The first three sessions | done |
+> | 5. What was already settled | replaced by the status in README and `docs/methodology/README.md` |
 >
-> Satu koreksi terhadap isi di bawah: bagian 1.2 menulis `SpreadExtremePct`
-> default **0,20** sebagai pecahan. Itu SALAH. Konvensi yang berlaku adalah
-> persen, sehingga defaultnya **20,0**. Lihat `09-flag-dan-band.md` bagian 6.
+> One correction to the contents below: section 1.2 writes the `SpreadExtremePct`
+> default as **0.20**, a fraction. That is WRONG. The convention in force is
+> percent, so the default is **20.0**. See `09-flag-dan-band.md` section 6.
+>
+> **Translation note.** Translated to English under DEC-005 with its content
+> unchanged, including the error named above, which is left in place because this
+> file is an archive and its errors are already annotated.
 
-
-Berisi tiga hal: perubahan metodologi hasil verifikasi terakhir, perubahan kontrak API
-yang harus disepakati dengan builder frontend, dan lembar kerja golden fixture yang
-harus Anda isi sendiri sebelum menulis implementasi.
+It contains three things: the methodology changes resulting from the last round of
+verification, the API contract changes that have to be agreed with the frontend
+builder, and the golden fixture worksheet you have to fill in yourself before
+writing any implementation.
 
 ---
 
-## 1. Metodologi v1.0.1
+## 1. Methodology v1.0.1
 
-Sudah digabungkan ke `docs/methodology/keel-methodology-core.md` pada 20 Agustus 2026.
-Bagian 1 di bawah karena itu bersifat ARSIP, bukan sumber kebenaran.
+Already merged into `docs/methodology/keel-methodology-core.md` on 20 August 2026.
+Section 1 below is therefore ARCHIVE, not a source of truth.
 
-### 1.1 Bagian 10.4 naik status
+### 1.1 Section 10.4 is promoted
 
-Kalimat "tidak ada ask pihak ketiga di seluruh rentang harga dari 1,057 sampai 106,74"
-sebelumnya ditandai sebagai inferensi. Sekarang menjadi pengamatan langsung.
+The sentence "there was no third party ask anywhere in the price range from 1.057 to
+106.74" was previously marked as an inference. It is now a direct observation.
 
-Bukti: daftar trade akun `GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3`
-pada 2026-02-22T00:10:21Z memuat tepat satu record, yaitu 5,3475699 USDC melawan offer
-1824788980 milik `GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB`. Karena
-mesin pencocokan Stellar mengisi dari harga terbaik dan seluruh pencocokan menghasilkan
-record trade, ketiadaan record lain membuktikan tidak ada ask pihak ketiga yang dilalap.
+The evidence: the trade list of account
+`GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3` at
+2026-02-22T00:10:21Z contains exactly one record, 5.3475699 USDC against offer
+1824788980 owned by
+`GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB`. Because Stellar's
+matching engine fills from the best price and every match produces a trade record,
+the absence of any other record proves no third party ask was swept.
 
-Hapus butir 1 dari daftar verifikasi tertunda di bagian 10.5.
+Remove item 1 from the pending verification list in section 10.5.
 
-### 1.2 Flag baru: SPREAD_EXTREME
+### 1.2 A new flag: SPREAD_EXTREME
 
-Ditemukan saat menyusun fixture. Pada 21 Februari 23:39, buku USTRY/USDC berisi ask
-106,7372828 dan bid 1,057. Mid price menjadi 53,8971414 untuk aset yang sebenarnya
-bernilai sekitar 1,06.
+Found while building the fixture. On 21 February at 23:39 the USTRY/USDC book held
+an ask at 106.7372828 and a bid at 1.057. The mid price becomes 53.8971414 for an
+asset actually worth about 1.06.
 
-Harga acuan kehilangan makna ketika spread mencapai ribuan persen, dan seluruh metrik
-turunannya ikut kehilangan makna. Flag lain memang tetap menyala pada kasus ini, tetapi
-itu kebetulan, bukan desain.
+A reference price loses its meaning when the spread reaches thousands of percent,
+and every metric derived from it loses meaning with it. Other flags do still fire in
+this case, but that is a coincidence, not the design.
 
 ```
-spreadPct = (best_ask − best_bid) / P0
-SPREAD_EXTREME terpicu ketika spreadPct > SpreadExtremePct   (default 0,20)
+spreadPct = (best_ask - best_bid) / P0
+SPREAD_EXTREME fires when spreadPct > SpreadExtremePct   (default 0.20)
 ```
 
-Masuk band `HIGH`. `spreadPct` juga dilaporkan sebagai angka di respons API, karena
-besarannya informatif, bukan hanya status terpicu atau tidak.
+Band `HIGH`. `spreadPct` is also reported as a number in the API response, because
+its magnitude is informative, not just whether it fired.
 
-### 1.3 Reachable: dua arti berbeda dari biaya nol
+### 1.3 Reachable: two different meanings of a zero cost
 
-Biaya manipulasi bernilai nol dapat berarti dua hal yang berlawanan:
+A manipulation cost of zero can mean two opposite things:
 
-| Keadaan                         | Arti                                                                                                                                                              |
+| State | Meaning |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Cost = 0`, `Reachable = true`  | harga sasaran dapat dicapai tanpa biaya                                                                                                                           |
-| `Cost = 0`, `Reachable = false` | tidak ada likuiditas sama sekali dalam rentang itu, sehingga harga tidak dapat digeser bertahap ke sana; harga hanya dapat melompat ke ask terdekat yang tersedia |
+| `Cost = 0`, `Reachable = true` | the target price is attainable at no cost |
+| `Cost = 0`, `Reachable = false` | there is no liquidity at all in that range, so the price cannot be walked up to it; it can only jump to the nearest available ask |
 
-Tanpa pembedaan ini keluaran Keel menjadi ambigu justru pada aset paling berbahaya.
-Karena itu ditambahkan `MaxReachablePrice`, yaitu harga tertinggi yang dapat dicapai
-setelah seluruh ask habis diserap.
+Without this distinction Keel's output becomes ambiguous on precisely the most
+dangerous assets. That is why `MaxReachablePrice` was added: the highest price
+attainable once every ask has been absorbed.
 
-### 1.4 Prinsip yang dikuatkan
+### 1.4 A principle reinforced
 
-Kasus ini menunjukkan bahwa `P0` dan tangga `±2/5/10%` sepenuhnya bergantung pada
-adanya buku yang waras. Ketika buku tidak waras, yang menyelamatkan analisis adalah
-tangga delta besar dan `SPREAD_EXTREME`, bukan metrik wajib SOW. Tangga wajib tetap
-dilaporkan karena dijanjikan, tetapi ia bukan metrik keamanan oracle.
+This case shows that `P0` and the ±2/5/10% ladder depend entirely on the existence
+of a sane book. When the book is not sane, what saves the analysis is the large
+delta ladder and `SPREAD_EXTREME`, not the SOW-mandated metrics. The mandated ladder
+is still reported because it was promised, but it is not an oracle safety metric.
 
 ---
 
-## 2. Perubahan kontrak API
+## 2. API contract changes
 
-Sepakati dengan builder frontend, catat di `docs/decisions/`, baru bekukan.
+Agree these with the frontend builder, record them in `docs/decisions/`, then
+freeze.
 
-| Perubahan            | Detail                                                                                                    |
+| Change | Detail |
 | -------------------- | --------------------------------------------------------------------------------------------------------- |
-| `Asset.type`         | Field baru wajib: `native`, `credit_alphanum4`, `credit_alphanum12`. Jangan disimpulkan dari panjang kode |
-| `manipulationCost[]` | Tangga menjadi 0.5, 1, 10, 100. Setiap entri bertambah `targetPrice` dan `reachable`                      |
-| `maxReachablePrice`  | Field baru, string desimal atau null                                                                      |
-| `oracleResistance`   | Field baru, `MC(kritis) + volume asli dalam jendela oracle`                                               |
-| `spreadPct`          | Field baru, string desimal atau null                                                                      |
-| `flags`              | Tambah `SPREAD_EXTREME`                                                                                   |
-| `dataSource`         | Tambah nilai `trades-implied`                                                                             |
-| `/methodology`       | Tambah `spreadExtremePct` dan `oracleWindowSeconds` pada `thresholds`                                     |
+| `Asset.type` | A new required field: `native`, `credit_alphanum4`, `credit_alphanum12`. Do not infer it from code length |
+| `manipulationCost[]` | The ladder becomes 0.5, 1, 10, 100. Each entry gains `targetPrice` and `reachable` |
+| `maxReachablePrice` | A new field, a decimal string or null |
+| `oracleResistance` | A new field, `MC(critical) + genuine volume in the oracle window` |
+| `spreadPct` | A new field, a decimal string or null |
+| `flags` | Add `SPREAD_EXTREME` |
+| `dataSource` | Add the value `trades-implied` |
+| `/methodology` | Add `spreadExtremePct` and `oracleWindowSeconds` to `thresholds` |
 
-Tambahkan satu contoh respons baru bernama `assetBrokenBook`, memakai angka fixture di
-bagian 3. Contoh ini penting untuk frontend: buku dengan spread 196 persen bukan error
-dan bukan kondisi normal, dan tampilannya harus dirancang khusus.
+Add one new example response named `assetBrokenBook`, using the fixture numbers from
+section 3. This example matters to the frontend: a book with a 196 percent spread is
+not an error and is not a normal condition, and its display has to be designed
+specifically.
 
 ---
 
-## 3. Golden fixture: lembar kerja Anda
+## 3. The golden fixture: your worksheet
 
-Ini state orderbook USTRY/USDC yang benar-benar ada sesaat sebelum ledger 61340263,
-diturunkan dari operasi on-chain. Fixture pertama Anda adalah data nyata, bukan angka
-karangan.
+This is the real USTRY/USDC orderbook state moments before ledger 61340263, derived
+from on-chain operations. Your first fixture is real data, not invented numbers.
 
 ```
 Snapshot
@@ -114,117 +122,124 @@ Snapshot
   quote : USDC   GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN  (alphanum4)
   ledger: 61340263
 
-  Asks: [ { price: 266843207/2500000, amount: 1.2185312 } ]     = 106,7372828
-  Bids: [ { price: 1057/1000,         amount: 0.0001000 } ]     =   1,0570000
+  Asks: [ { price: 266843207/2500000, amount: 1.2185312 } ]     = 106.7372828
+  Bids: [ { price: 1057/1000,         amount: 0.0001000 } ]     =   1.0570000
   Pools: []
 ```
 
-Isi tabel berikut **dengan tangan** sebelum menulis satu baris implementasi. Pakai
-kalkulator atau spreadsheet, bukan kode Keel, karena tujuannya justru menguji kode itu.
+Fill in the following table **by hand** before writing a single line of
+implementation. Use a calculator or a spreadsheet, not Keel's code, because the
+point is to test that code.
 
-| Besaran                                   | Jawaban Anda |
+| Quantity | Your answer |
 | ----------------------------------------- | ------------ |
-| `P0` dan `priceSource`                    |              |
-| `spreadPct`                               |              |
-| `depth(2%)` sisi beli / sisi jual         |              |
-| `depth(5%)` sisi beli / sisi jual         |              |
-| `depth(10%)` sisi beli / sisi jual        |              |
-| `MC(δ=0.5)`: targetPrice, cost, reachable |              |
-| `MC(δ=1)`: targetPrice, cost, reachable   |              |
-| `MC(δ=10)`: targetPrice, cost, reachable  |              |
-| `MC(δ=100)`: targetPrice, cost, reachable |              |
-| `maxReachablePrice`                       |              |
-| Daftar flag yang terpicu                  |              |
-| Band                                      |              |
+| `P0` and `priceSource` | |
+| `spreadPct` | |
+| `depth(2%)` buy side / sell side | |
+| `depth(5%)` buy side / sell side | |
+| `depth(10%)` buy side / sell side | |
+| `MC(δ=0.5)`: targetPrice, cost, reachable | |
+| `MC(δ=1)`: targetPrice, cost, reachable | |
+| `MC(δ=10)`: targetPrice, cost, reachable | |
+| `MC(δ=100)`: targetPrice, cost, reachable | |
+| `maxReachablePrice` | |
+| The list of triggered flags | |
+| Band | |
 
-Satu contoh dikerjakan supaya metodenya jelas:
+One example is worked through so the method is clear:
 
-> **`MC(δ=1)`.** `P_target = 53,8971414 × 2 = 107,7942828`. **Cost**: ask yang lebih murah dari target adalah ask 106,7372828, sehingga seluruhnya masuk hitungan. `cost = 1,2185312 × 106,7372828 = 130,0627093.`
-> **Reachable**: tidak ada ask yang berharga ≥ 107,7942828, karena satu-satunya ask berharga 106,7372828. Maka reachable = false.
+> **`MC(δ=1)`.** `P_target = 53.8971414 × 2 = 107.7942828`. **Cost**: the ask
+> cheaper than the target is the ask at 106.7372828, so all of it counts.
+> `cost = 1.2185312 × 106.7372828 = 130.0627093.`
+> **Reachable**: no ask is priced at or above 107.7942828, because the only ask is
+> priced at 106.7372828. So reachable = false.
 
-Perhatikan **Cost** dan **Reachable** memakai himpunan yang berbeda. Cost menjumlahkan ask yang
-lebih murah dari target, Reachable memeriksa keberadaan ask yang sama atau lebih
-mahal. Sebuah ask tidak akan pernah masuk keduanya sekaligus.
+Note that **Cost** and **Reachable** use different sets. Cost sums the asks cheaper
+than the target; Reachable checks for the existence of an ask at or above it. An ask
+will never belong to both at once.
 
-Dua petunjuk agar Anda tidak ragu saat hasilnya terasa aneh:
+Two hints so that you do not second-guess yourself when a result feels strange:
 
-1. Beberapa jawaban akan bernilai nol. Nol yang benar dan nol karena bug terlihat sama
-   di keluaran, jadi tuliskan **alasannya** di sebelah setiap nol.
-2. Setidaknya satu baris `MC` akan bernilai `reachable = false`. Kalau tidak ada,
-   periksa ulang pemahaman Anda tentang bagian 1.3.
+1. Some answers will be zero. A correct zero and a zero caused by a bug look
+   identical in the output, so write the **reason** next to every zero.
+2. At least one `MC` row will be `reachable = false`. If none is, re-check your
+   understanding of section 1.3.
 
-Sengaja saya tidak mengisikannya. Kalau tabel ini diisi setelah kodenya ada, ia hanya
-mengonfirmasi apa pun yang kode Anda lakukan, dan Anda kehilangan satu-satunya pengaman
-yang benar-benar melindungi metodologi ini.
+I deliberately have not filled it in. If this table is filled in after the code
+exists, it merely confirms whatever your code did, and you lose the only safeguard
+that actually protects this methodology.
 
 ---
 
-## 4. Tiga sesi pertama
+## 4. The first three sessions
 
-### Sesi 1, tanpa Claude Code, sekitar 45 menit
+### Session 1, without Claude Code, about 45 minutes
 
-Isi tabel bagian 3. Simpan sebagai `testdata/fixtures/ustry_pre_exploit.md` beserta
-alasan tiap angka. Ini menjadi lampiran bukti Deliverable 1.
+Fill in the table in section 3. Save it as
+`testdata/fixtures/ustry_pre_exploit.md` together with the reason for every number.
+This becomes an evidence appendix for Deliverable 1.
 
-### Sesi 2, Claude Code, scaffolding
+### Session 2, Claude Code, scaffolding
 
 ```
-Inisialisasi repo Go sesuai struktur di CLAUDE.md.
+Initialise a Go repository following the structure in CLAUDE.md.
 Module: github.com/ciganytry/keel
 
-Buat go.mod, Makefile, .gitignore, .github/workflows/ci.yml (go vet,
-golangci-lint, go test ./... -race, make arch), dan
-internal/domain/arch_test.go persis seperti contoh di
-docs/architecture/technical-design.md bagian 2.1.
+Create go.mod, Makefile, .gitignore, .github/workflows/ci.yml (go vet,
+golangci-lint, go test ./... -race, make arch), and
+internal/domain/arch_test.go exactly as in
+docs/architecture/technical-design.md section 2.1.
 
-internal/domain/types.go sudah ada, jangan diubah.
-Jangan tulis implementasi domain, adapter, atau API apa pun.
-Setelah selesai jalankan make test dan tunjukkan hasilnya.
+internal/domain/types.go already exists, do not change it.
+Do not write any domain, adapter, or API implementation.
+When you are done run make test and show me the result.
 ```
 
-Lalu uji hook keamanan dengan sengaja:
+Then test the safety hook deliberately:
 
 ```
-Buat internal/adapters/horizon/probe.go yang mengimpor
-github.com/stellar/go/clients/horizonclient dan memanggil txnbuild.NewTransaction.
-Ini untuk menguji hook saya.
+Create internal/adapters/horizon/probe.go importing
+github.com/stellar/go/clients/horizonclient and calling txnbuild.NewTransaction.
+This is to test my hook.
 ```
 
-Yang benar adalah **ditolak dua kali**, karena import path lama dan karena `txnbuild`.
-Kalau lolos, hook Anda tidak berfungsi dan perbaiki sebelum lanjut.
+The correct outcome is **two refusals**, one for the old import path and one for
+`txnbuild`. If it goes through, your hook does not work and you should fix it before
+continuing.
 
-### Sesi 3, Anda memimpin, Claude Code mengisi
+### Session 3, you lead, Claude Code fills in
 
-Anda tulis `internal/domain/depth_test.go` memakai tabel bagian 3. Baru minta:
+You write `internal/domain/depth_test.go` using the table in section 3. Only then
+ask:
 
 ```
-Implementasikan MidPrice dan ComputeDepth di internal/domain.
-Tanda tangan sudah ada di types.go, jangan diubah.
-Definisi ada di docs/methodology/keel-methodology-core.md bagian 3 sampai 6.
+Implement MidPrice and ComputeDepth in internal/domain.
+The signatures already exist in types.go, do not change them.
+The definitions are in docs/methodology/keel-methodology-core.md sections 3 to 6.
 
-Sebelum menulis kode, tunjukkan dulu penurunan langkah demi langkah untuk
-fixture di depth_test.go agar saya cocokkan dengan hitungan tangan saya.
+Before writing code, show me the step by step derivation for the fixture in
+depth_test.go so I can check it against my hand calculation.
 
-Batasan: tanpa float, tanpa time.Now, sort kunci sebelum iterasi map,
-Price dibandingkan dengan Cmp bukan lewat pembagian.
+Constraints: no float, no time.Now, sort map keys before iterating,
+compare Price with Cmp rather than by division.
 ```
 
-Berhenti di situ. AMM, penggabungan, dan biaya manipulasi menyusul setelah depth SDEX
-lolos fixture.
+Stop there. The AMM, the combination, and manipulation cost come after SDEX depth
+passes the fixture.
 
 ---
 
-## 5. Yang sudah beres
+## 5. What was already settled
 
-|                  |                                                |
+| | |
 | ---------------- | ---------------------------------------------- |
-| Identitas aset   | terverifikasi dari ledger                      |
-| Tanggal insiden  | 22 Februari 2026, terverifikasi, SOW dikoreksi |
-| Rentang ledger   | 61340263 dan 61340272 terkonfirmasi            |
-| Biaya manipulasi | nol, pengamatan langsung                       |
-| Metodologi inti  | v1.0.1, definisi terkunci                      |
-| Kontrak API      | tinggal disepakati perubahan bagian 2          |
-| types.go         | siap                                           |
-| BigQuery         | tidak dibutuhkan                               |
+| Asset identity | verified from the ledger |
+| Incident date | 22 February 2026, verified, the SOW corrected |
+| Ledger range | 61340263 and 61340272 confirmed |
+| Manipulation cost | zero, a direct observation |
+| Core methodology | v1.0.1, definitions locked |
+| API contract | the section 2 changes just need agreeing |
+| types.go | ready |
+| BigQuery | not needed |
 
-Sisa yang belum: isi tabel bagian 3, lalu mulai Sesi 2.
+What remains: fill in the table in section 3, then start session 2.

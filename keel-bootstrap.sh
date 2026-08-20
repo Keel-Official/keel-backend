@@ -1,5 +1,27 @@
 #!/usr/bin/env bash
 #
+# ARCHIVED, AND DELIBERATELY NOT TRANSLATED. Read this before running it.
+#
+# This is the scaffolding generator that created this repository's initial file
+# set. It has done its job: every file it emits already exists, in better form,
+# and under version control.
+#
+# Its body is still Indonesian while the rest of the repository is English under
+# DEC-005. That is on purpose, and translating it would be the wrong fix. This
+# script carries its own embedded copies of CLAUDE.md, README.md, and the zone
+# files. Translating those copies would recreate exactly the failure this
+# repository keeps getting bitten by: two homes for one definition, guaranteed to
+# drift. It has already drifted; the CLAUDE.md embedded below is the pre-English
+# version and no longer matches the real one.
+#
+# It is safe to run only in the narrow sense that it skips files that already
+# exist, so it cannot overwrite anything here. It is not safe as a reference:
+# MODULE_PATH below still reads CHANGEME, and the module is
+# github.com/Keel-Official/keel.
+#
+# RECOMMENDATION: delete this file. Its history is preserved in git either way.
+# Kept for now because deleting it is Al's call, not Claude's.
+#
 # keel-bootstrap.sh
 #
 # Membuat struktur folder + file konteks Claude Code untuk proyek Keel.

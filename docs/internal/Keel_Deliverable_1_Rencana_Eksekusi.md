@@ -1,109 +1,159 @@
-# Keel Deliverable 1: Rencana Eksekusi
+# Keel Deliverable 1: Execution Plan
 
-**Janji SOW:** Liquidity Depth Engine. Backend yang membaca orderbook SDEX, reserve AMM pool, dan distribusi trustline. Per aset menghitung effective depth di +/-2%, +/-5%, +/-10%, holder concentration, rasio volume-to-supply, waktu sejak trade asli terakhir, dan rekomendasi ukuran collateral maksimum yang aman. Mendukung historical replay di state ledger sebelumnya. Metodologi terdokumentasi dan reproducible.
+**The SOW promise:** a Liquidity Depth Engine. A backend that reads the SDEX
+orderbook, AMM pool reserves, and trustline distribution. Per asset it computes
+effective depth at +/-2%, +/-5%, +/-10%, holder concentration, the volume-to-supply
+ratio, the time since the last genuine trade, and a recommendation for the maximum
+safe collateral size. It supports historical replay at a past ledger state. The
+methodology is documented and reproducible.
 
-**Anggaran:** 126 jam = $2.268
-**Bukti yang harus diserahkan:** repo publik + dokumen metodologi + hasil cross-validation terhadap Horizon di sample ledger.
+**Budget:** 126 hours = $2,268
+**Evidence to be handed over:** a public repository, a methodology document, and
+cross-validation results against Horizon on a sample of ledgers.
+
+> **Translation note.** Translated to English under DEC-005 with its content
+> unchanged. The TypeScript type sketches below are leftovers from before the
+> project moved to Go; the shapes are still right, the syntax is not. The DoD in
+> section 6 also promises eleven numbered methodology files, and
+> `docs/methodology/README.md` section 3 documents why the real structure differs
+> and recommends amending this section instead.
 
 ---
 
-## 1. Alokasi 126 jam
+## 1. Allocating the 126 hours
 
-| Komponen | Jam | Kapan |
+| Component | Hours | When |
 |---|---|---|
-| D1.1 Lapisan akses data (Horizon + Hubble) | 24 | Minggu 1 |
-| D1.2 Inti perhitungan depth | 22 | Minggu 1 akhir sampai Minggu 2 |
-| D1.3 Metrik pendukung | 20 | Minggu 2 |
-| D1.4 Ukuran collateral aman | 12 | Minggu 2 |
-| D1.5 Historical replay | 20 | Minggu 3 awal |
-| D1.6 Harness validasi + 50 sample ledger | 16 | Berjalan sejak Minggu 1 |
-| D1.7 Dokumen metodologi | 12 | Berjalan terus, difinalkan Minggu 3 |
+| D1.1 Data access layer (Horizon + Hubble) | 24 | Week 1 |
+| D1.2 The depth computation core | 22 | End of week 1 into week 2 |
+| D1.3 Supporting metrics | 20 | Week 2 |
+| D1.4 Safe collateral size | 12 | Week 2 |
+| D1.5 Historical replay | 20 | Start of week 3 |
+| D1.6 Validation harness + 50 sample ledgers | 16 | Running from week 1 |
+| D1.7 The methodology document | 12 | Continuous, finalised in week 3 |
 | **Total** | **126** | |
 
-Perhatikan D1.6 dan D1.7 bukan tahap di akhir. Keduanya berjalan paralel sejak hari pertama. Kalau ditunda, keduanya tidak akan selesai.
+Note that D1.6 and D1.7 are not end-stage tasks. Both run in parallel from day one.
+Deferred, neither will finish.
 
 ---
 
-## 2. Enam keputusan definisi yang harus diambil sebelum koding
+## 2. Six definitional decisions to take before coding
 
-SOW menyebut metrik tapi tidak mendefinisikannya. Definisi adalah pekerjaan intelektual Deliverable 1, bukan kodenya. Ambil keputusan ini di Day 4 sampai 6, tulis alasannya, lalu implementasi mengikuti.
+The SOW names metrics but does not define them. The definitions are the
+intellectual work of Deliverable 1, not the code. Take these decisions on days 4
+through 6, write the reasoning down, then let the implementation follow.
 
-### D-1. Depth diukur terhadap aset apa?
+### D-1. Depth is measured against which asset?
 
-Aset Stellar bisa diperdagangkan terhadap banyak counter-asset sekaligus (XLM, USDC, aset lain). "Depth USTRY" tidak bermakna tanpa menyebut lawannya.
+A Stellar asset can trade against many counter assets at once (XLM, USDC, others).
+"USTRY depth" is meaningless without naming the other side.
 
-Rekomendasi: hitung depth untuk **setiap pasangan yang punya likuiditas apa pun**, lalu tetapkan satu pasangan primer (yang total depth di 10% paling besar), dan laporkan keduanya. Alasannya: penyerang akan memakai jalur termurah, jadi mengabaikan pasangan sekunder membuat Anda terlalu optimistis. Tapi angka utama di dashboard butuh satu nilai.
+Recommendation: compute depth for **every pair that has any liquidity**, then
+designate one primary pair (the one with the largest total depth at 10%), and report
+both. The reason: an attacker will use the cheapest route, so ignoring the secondary
+pairs makes you too optimistic. But the headline number on a dashboard needs a
+single value.
 
-Catat juga: Stellar punya path payment yang bisa merutekan lewat aset perantara. Ini menambah likuiditas efektif yang tidak terlihat di pasangan langsung. Untuk 30 hari, nyatakan sebagai keterbatasan yang diketahui, jangan coba implementasi path finding.
+Also note: Stellar has path payments that can route through intermediate assets.
+That adds effective liquidity invisible in the direct pair. For 30 days, state it as
+a known limitation; do not attempt path finding.
 
-### D-2. Mid price ketika book kosong atau satu sisi
+### D-2. The mid price when the book is empty or one sided
 
-Kasus ini sering pada aset tipis, dan aset tipis justru target utama Keel.
+This case is common on thin assets, and thin assets are exactly Keel's target.
 
-Urutan fallback yang disarankan:
-1. Ada bid dan ask: `P0 = (best_bid + best_ask) / 2`
-2. Hanya satu sisi book: pakai harga spot pool kalau ada, catat warning
-3. Tidak ada book, hanya pool: `P0 = reserveQuote / reserveBase`
-4. Tidak ada keduanya: **`priceSource = 'none'`**
+The suggested fallback order:
+1. A bid and an ask both exist: `P0 = (best_bid + best_ask) / 2`
+2. Only one side of the book: use the pool spot price if there is one, and record a
+   warning
+3. No book, only a pool: `P0 = reserveQuote / reserveBase`
+4. Neither: **`priceSource = 'none'`**
 
-Kasus 4 bukan error dan tidak boleh melempar exception. Aset yang tidak punya harga eksekutabel adalah aset paling berbahaya yang bisa Anda temukan. Ia harus muncul sebagai hasil dengan skor risiko maksimum, bukan sebagai baris yang hilang dari laporan.
+Case 4 is not an error and must not throw. An asset with no executable price is the
+most dangerous asset you can find. It has to appear as a result with the maximum
+risk score, not as a row missing from the report.
 
-### D-3. Level yang melewati batas harga: ambil penuh atau tidak sama sekali?
+### D-3. A level that crosses the price limit: take it whole or not at all?
 
-Saat berjalan menyusuri book, level terakhir biasanya melewati `P_limit`. Dua pilihan: buang level itu (konservatif) atau ambil sebagian sampai persis di batas.
+Walking the book, the last level usually crosses `P_limit`. Two options: discard
+that level (conservative) or take it partially up to exactly the limit.
 
-Rekomendasi: **buang.** Lebih konservatif, lebih sederhana, dan untuk produk yang tujuannya memperingatkan risiko, bias konservatif adalah arah yang benar. Dokumentasikan bahwa ini pilihan sadar, dan sebutkan bahwa ini membuat depth SDEX sedikit lebih rendah dari nilai teoretis.
+Recommendation: **discard.** More conservative, simpler, and for a product whose
+purpose is to warn about risk, a conservative bias is the right direction. Document
+that this is a deliberate choice, and state that it makes SDEX depth slightly lower
+than the theoretical value.
 
-### D-4. Apa itu "trade asli" (genuine trade)?
+### D-4. What is a "genuine trade"?
 
-SOW menjanjikan "time since the last genuine trade". Kata *genuine* itu yang membuat metriknya bernilai, karena wash trading adalah cara termudah membuat aset mati terlihat hidup.
+The SOW promises "time since the last genuine trade". It is the word *genuine* that
+makes the metric valuable, because wash trading is the easiest way to make a dead
+asset look alive.
 
-Definisi minimal yang bisa Anda implementasi dalam 30 hari:
+The minimal definition you can implement in 30 days:
 
-Sebuah trade **tidak dihitung** kalau salah satu berikut benar:
-- Akun pembeli sama dengan akun penjual
-- Notional di bawah ambang debu (misal setara $10)
-- Salah satu sisi adalah akun issuer aset itu sendiri
-- Kedua sisi adalah akun yang trustline-nya dibuat dalam jendela waktu yang sama dan hanya pernah bertransaksi satu sama lain (opsional, mahal, tandai sebagai v2 kalau waktu sempit)
+A trade **does not count** if any of the following is true:
+- The buying account is the same as the selling account
+- The notional is below a dust threshold (say the equivalent of $10)
+- Either side is the asset's own issuer account
+- Both sides are accounts whose trustlines were created in the same time window and
+  which have only ever traded with each other (optional, expensive, mark it as v2 if
+  time is tight)
 
-Yang penting: **laporkan berapa banyak trade yang dikecualikan dan kenapa.** Angka "87% volume 30 hari terakhir dikecualikan sebagai non-genuine" jauh lebih kuat daripada sekadar tanggal. Ini juga membuat metode Anda bisa diaudit orang lain.
+What matters: **report how many trades were excluded and why.** The statement "87%
+of the last 30 days of volume was excluded as non-genuine" is far stronger than a
+bare date. It also makes your method auditable by someone else.
 
-### D-5. Holder concentration dihitung dari populasi apa?
+### D-5. Holder concentration is computed over what population?
 
-Sumber: trustline. Tapi ada pengecualian yang harus diputuskan:
+The source is trustlines. But there are exclusions to decide:
 
-- **Akun issuer:** dikecualikan. Issuer memegang supply yang belum beredar.
-- **Reserve liquidity pool:** aset yang terkunci di pool bukan dipegang holder. Putuskan apakah masuk denominator, dan konsisten dengan definisi supply di D-6.
-- **Akun kustodian atau bursa:** tidak bisa dideteksi otomatis dengan andal. Jangan coba. Sebutkan sebagai keterbatasan.
+- **The issuer account:** excluded. The issuer holds supply that is not yet
+  circulating.
+- **Liquidity pool reserves:** an asset locked in a pool is not held by a holder.
+  Decide whether it enters the denominator, and stay consistent with the supply
+  definition in D-6.
+- **Custodian or exchange accounts:** cannot be reliably detected automatically. Do
+  not try. State it as a limitation.
 
-Metrik yang dilaporkan: share top-1, share top-10, dan HHI. HHI lebih tahan terhadap ekor panjang daripada Gini dan lebih mudah dijelaskan.
+The metrics reported: the top-1 share, the top-10 share, and HHI. HHI is more robust
+to a long tail than Gini and easier to explain.
 
-**Catatan teknis penting:** jangan mengambil daftar holder dari Horizon `/accounts?asset=`. Untuk aset dengan ribuan trustline, paginasinya akan menghabiskan kuota rate limit Anda (Horizon publik membatasi sekitar 3600 request per jam per IP). Ambil dari Hubble tabel `trust_lines` dalam satu query. Ini juga otomatis memberi Anda versi historisnya, yang dibutuhkan D1.5.
+**An important technical note:** do not pull the holder list from Horizon
+`/accounts?asset=`. For an asset with thousands of trustlines, the pagination will
+consume your rate limit budget (public Horizon caps at roughly 3600 requests per
+hour per IP). Pull it from the Hubble `trust_lines` table in a single query. That
+also gives you the historical version for free, which is what D1.5 needs.
 
-### D-6. Supply mana yang dipakai untuk rasio volume-to-supply?
+### D-6. Which supply is used for the volume-to-supply ratio?
 
-Pilihan: total yang diterbitkan, total yang dipegang trustline, atau supply beredar setelah mengurangi kepemilikan issuer dan pool.
+The options: total issued, total held by trustlines, or circulating supply after
+subtracting issuer and pool holdings.
 
-Rekomendasi: **supply yang dipegang trustline non-issuer.** Ini yang paling dekat dengan "berapa banyak yang benar-benar bisa dijual seseorang". Volume diambil dari `/trade_aggregations` (atau `history_trades` di Hubble untuk historis) dengan jendela 24 jam, 7 hari, dan 30 hari. Laporkan ketiganya, karena aset tipis sering punya volume 24 jam nol tapi 30 hari tidak nol.
+Recommendation: **the supply held by non-issuer trustlines.** That is the closest to
+"how much could somebody actually sell". Volume comes from `/trade_aggregations` (or
+`history_trades` in Hubble for the historical case) over 24 hour, 7 day, and 30 day
+windows. Report all three, because thin assets often have zero 24 hour volume and
+non-zero 30 day volume.
 
 ---
 
-## 3. Komponen, satu per satu
+## 3. The components, one at a time
 
-### D1.1 Lapisan akses data (24 jam)
+### D1.1 The data access layer (24 hours)
 
-Dua klien, satu bentuk keluaran.
+Two clients, one output shape.
 
 ```typescript
-type Asset = { code: string; issuer: string | null };  // null berarti XLM native
+type Asset = { code: string; issuer: string | null };  // null means native XLM
 
-type Level = { price: number; amount: number };        // amount dalam unit base
+type Level = { price: number; amount: number };        // amount in base units
 
 type PoolReserves = {
   poolId: string;
   reserveBase: number;
   reserveQuote: number;
-  feeBp: number;                                        // 30 untuk pool Stellar
+  feeBp: number;                                        // 30 for Stellar pools
 };
 
 type Snapshot = {
@@ -117,182 +167,241 @@ type Snapshot = {
 };
 ```
 
-`horizonClient.getSnapshot(base, quote)` dan `hubbleClient.getSnapshot(base, quote, ledgerSeq)` mengembalikan bentuk yang identik. Seluruh sisa engine tidak boleh tahu dari mana snapshot datang. Ini yang membuat D1.5 murah.
+`horizonClient.getSnapshot(base, quote)` and
+`hubbleClient.getSnapshot(base, quote, ledgerSeq)` return an identical shape. The
+rest of the engine must not know where the snapshot came from. That is what makes
+D1.5 cheap.
 
-Yang harus ada di klien Horizon: retry dengan backoff, penghitung request untuk menjaga rate limit, cache dengan TTL, dan normalisasi harga (Horizon mengembalikan harga sebagai pecahan `price_r` numerator/denominator, jangan pakai field `price` string tanpa memeriksa presisi).
+What the Horizon client needs: retry with backoff, a request counter to protect the
+rate limit, a cache with a TTL, and price normalisation (Horizon returns prices as
+the `price_r` numerator/denominator fraction; do not use the `price` string without
+checking its precision).
 
-Yang harus ada di klien Hubble: pemangkasan partisi yang ketat (`WHERE batch_run_date BETWEEN ...`), tidak ada `SELECT *`, dan cache hasil ke disk lokal karena setiap query berbiaya uang.
+What the Hubble client needs: strict partition pruning
+(`WHERE batch_run_date BETWEEN ...`), no `SELECT *`, and a local disk cache of
+results, because every query costs money.
 
-### D1.2 Inti perhitungan depth (22 jam)
+### D1.2 The depth computation core (22 hours)
 
 ```typescript
 function computeDepth(snapshot: Snapshot, deltas: number[]): DepthResult;
 ```
 
-Fungsi murni. Tidak ada fetch, tidak ada I/O, tidak ada jam sistem.
+A pure function. No fetching, no I/O, no system clock.
 
-Algoritma untuk satu delta, sisi beli:
+The algorithm for one delta, buy side:
 
 ```
 P0        = midPrice(snapshot)
 P_limit   = P0 * (1 + delta)
-n_sdex    = jumlah (price * amount) untuk setiap ask dengan price <= P_limit
-n_amm     = untuk tiap pool: reserveQuote * (sqrt(P_limit / P_pool) - 1),
-            nol kalau P_pool >= P_limit, lalu digross-up dengan fee
+n_sdex    = sum of (price * amount) for every ask with price <= P_limit
+n_amm     = per pool: reserveQuote * (sqrt(P_limit / P_pool) - 1),
+            zero when P_pool >= P_limit, then grossed up by the fee
 depth     = n_sdex + n_amm
 ```
 
-Sisi jual simetris memakai bids dan `P0 * (1 - delta)`.
+The sell side is symmetric, using bids and `P0 * (1 - delta)`.
 
-Test yang wajib ada sebelum modul ini dianggap selesai:
-1. Fixture testnet dengan orderbook buatan yang depth-nya Anda hitung manual di kertas.
-2. Fixture pool murni tanpa orderbook, dicek terhadap aturan jempol `depth ≈ (delta/2) * reserveQuote`.
-3. Kasus tepi: book kosong, satu sisi kosong, pool kosong, dua pool untuk pasangan yang sama, aset tanpa harga sama sekali.
-4. Uji monotonisitas: `depth(2%) <= depth(5%) <= depth(10%)`. Kalau ini gagal, ada bug di logika penggabungan.
+Tests that must exist before this module counts as done:
+1. A testnet fixture with a hand-built orderbook whose depth you computed manually
+   on paper.
+2. A pool-only fixture with no orderbook, checked against the rule of thumb
+   `depth ≈ (delta/2) * reserveQuote`.
+3. Edge cases: empty book, one side empty, empty pool, two pools on the same pair, an
+   asset with no price at all.
+4. A monotonicity test: `depth(2%) <= depth(5%) <= depth(10%)`. If that fails there
+   is a bug in the combination logic.
 
-Test nomor 4 murah dan menangkap sebagian besar kesalahan penggabungan.
+Test 4 is cheap and catches most combination mistakes.
 
-### D1.3 Metrik pendukung (20 jam)
+### D1.3 Supporting metrics (20 hours)
 
-Implementasi D-4, D-5, dan D-6 di atas. Semuanya menerima snapshot atau data historis dengan `ledgerSeq`, dan semuanya mengembalikan nilai plus daftar pengecualian yang diterapkan.
+Implement D-4, D-5, and D-6 above. All of them take a snapshot or historical data
+with a `ledgerSeq`, and all of them return a value plus the list of exclusions
+applied.
 
-Pola yang disarankan: setiap metrik mengembalikan `{ value, excluded, warnings }`. Kolom `excluded` itulah yang membuat metodologi Anda bisa diperiksa orang lain, dan itu yang membedakan laporan yang dipercaya dari laporan yang dianggap kotak hitam.
+The suggested pattern: every metric returns `{ value, excluded, warnings }`. It is
+that `excluded` field that makes your methodology inspectable by someone else, and
+it is what separates a report that is trusted from one treated as a black box.
 
-### D1.4 Ukuran collateral aman (12 jam)
-
-```
-C_max = min( D_jual(delta_likuidasi) * h , biaya_manipulasi(delta_kritis) * m )
-```
-
-Dua parameter harus punya nilai default yang bisa dipertahankan, bukan angka yang Anda karang. Cara mendapatkannya: baca parameter risiko Blend yang sebenarnya (liquidation threshold, close factor, liquidation incentive), pakai itu sebagai default, dan **sebutkan sumbernya di dokumentasi**. Kalimat "default kami berasal dari parameter Blend yang berlaku pada Mei 2026" jauh lebih kuat daripada "kami memakai haircut 50%".
-
-Buat semuanya bisa dikonfigurasi. Keel bersifat agnostik terhadap protokol, jadi API harus mengizinkan pemanggil memasukkan parameternya sendiri.
-
-Laporkan dua sisi terpisah, jangan digabung jadi satu angka:
-- **Batas likuidasi** dari depth sisi jual, menjawab "kalau posisi ini dilikuidasi, apakah pasar sanggup menyerapnya"
-- **Batas manipulasi** dari biaya menaikkan harga, menjawab "apakah memompa harga aset ini lebih murah daripada nilai yang bisa dicuri"
-
-Aset bisa lolos satu dan gagal yang lain. Ini pembeda utama Keel dari alat pemantauan yang sudah ada.
-
-### D1.5 Historical replay (20 jam)
-
-Karena `computeDepth()` sudah murni, komponen ini hanya berarti membangun `hubbleClient.getSnapshot(base, quote, ledgerSeq)` yang benar.
-
-Pekerjaan sebenarnya ada di validasi, bukan di pengambilan data. Urutan yang wajib:
-
-1. Ambil snapshot Hubble untuk ledger yang Anda punya rekaman Horizon-nya (lihat bagian 4).
-2. Bandingkan level per level, bukan hanya total. Perbedaan pada satu offer besar bisa tersembunyi di angka agregat.
-3. Baru setelah cocok, jalankan pada rentang tanggal apa pun.
-
-Kalau Hubble ternyata tidak menyimpan snapshot `offers` cukup rapat, aktifkan jalur rekonstruksi dari event: ambil snapshot terdekat sebelum ledger target, lalu terapkan berurutan operasi `manage_buy_offer`, `manage_sell_offer`, dan trade dari `history_operations` sampai ledger target. Ini menambah 3 sampai 5 hari kerja dan harus dibayar dengan pemotongan scope Deliverable 3.
-
-### D1.6 Harness validasi (16 jam)
-
-Ini yang menghasilkan "cross-validation results" yang dijanjikan di tabel bukti SOW. Rancangannya dijelaskan di bagian 4.
-
-### D1.7 Dokumen metodologi (12 jam)
-
-Struktur yang disarankan, satu file per bagian di `docs/methodology/`:
+### D1.4 Safe collateral size (12 hours)
 
 ```
-00-ikhtisar.md              apa yang diukur dan kenapa
-01-sumber-data.md           Horizon vs Hubble, batasan masing-masing
-02-harga-acuan.md           definisi P0 dan urutan fallback (D-2)
-03-depth-sdex.md            walk the book, perlakuan level terakhir (D-3)
-04-depth-amm.md             penurunan rumus lengkap, perlakuan fee
-05-penggabungan.md          kenapa tidak dijumlahkan langsung
-06-pemilihan-pasangan.md    numeraire dan pasangan primer (D-1)
-07-metrik-pendukung.md      genuine trade, konsentrasi, volume-supply (D-4 s.d. D-6)
-08-collateral.md            rumus C_max dan asal parameter defaultnya
-09-validasi.md              protokol cross-validation dan hasilnya
-10-keterbatasan.md          apa yang metode ini tidak tangkap
+C_max = min( D_sell(delta_liquidation) * h , manipulation_cost(delta_critical) * m )
 ```
 
-File `10-keterbatasan.md` adalah yang paling berpengaruh terhadap kredibilitas Anda. Isi minimal: likuiditas tercatat tidak sama dengan likuiditas eksekutabel (offer bisa ditarik seketika), path payment lewat aset perantara tidak dihitung, likuiditas off-chain di bursa terpusat tidak terlihat, dan ambang aman dipilih bukan dikalibrasi dari banyak insiden.
+Both parameters need a defensible default value, not a number you invented. How to
+get one: read Blend's actual risk parameters (liquidation threshold, close factor,
+liquidation incentive), use those as the defaults, and **name the source in the
+documentation**. The sentence "our defaults come from the Blend parameters in force
+in May 2026" is far stronger than "we used a 50% haircut".
 
-Reviewer yang berpengalaman akan mencari bagian ini. Ketiadaannya lebih merugikan daripada isinya.
+Make everything configurable. Keel is protocol agnostic, so the API has to let a
+caller supply their own parameters.
+
+Report the two sides separately, do not merge them into one number:
+- **The liquidation limit**, from sell side depth, answering "if this position is
+  liquidated, can the market absorb it"
+- **The manipulation limit**, from the cost of pushing the price up, answering "is
+  pumping this asset cheaper than the value that could be stolen"
+
+An asset can pass one and fail the other. This is Keel's main differentiator from
+the monitoring tools that already exist.
+
+### D1.5 Historical replay (20 hours)
+
+Because `computeDepth()` is already pure, this component only means building a
+correct `hubbleClient.getSnapshot(base, quote, ledgerSeq)`.
+
+The real work is in the validation, not the fetching. The mandatory order:
+
+1. Pull a Hubble snapshot for a ledger you have a Horizon recording of (see section
+   4).
+2. Compare level by level, not just the total. A difference on one large offer can
+   hide inside an aggregate figure.
+3. Only after they match, run it over any date range.
+
+If Hubble turns out not to hold `offers` snapshots densely enough, activate the
+event reconstruction path: take the nearest snapshot before the target ledger, then
+apply the `manage_buy_offer`, `manage_sell_offer`, and trade operations from
+`history_operations` in order up to the target ledger. That adds 3 to 5 working days
+and has to be paid for by cutting Deliverable 3 scope.
+
+### D1.6 The validation harness (16 hours)
+
+This is what produces the "cross-validation results" promised in the SOW evidence
+table. Its design is described in section 4.
+
+### D1.7 The methodology document (12 hours)
+
+The suggested structure, one file per section under `docs/methodology/`:
+
+```
+00-ikhtisar.md              what is measured and why
+01-sumber-data.md           Horizon versus Hubble, the limits of each
+02-harga-acuan.md           the definition of P0 and the fallback order (D-2)
+03-depth-sdex.md            walking the book, treatment of the last level (D-3)
+04-depth-amm.md             the full derivation, treatment of the fee
+05-penggabungan.md          why they are not summed directly
+06-pemilihan-pasangan.md    numeraire and the primary pair (D-1)
+07-metrik-pendukung.md      genuine trades, concentration, volume-supply (D-4 to D-6)
+08-collateral.md            the C_max formula and where its defaults come from
+09-validasi.md              the cross-validation protocol and its results
+10-keterbatasan.md          what this method does not catch
+```
+
+`10-keterbatasan.md` is the file with the largest effect on your credibility. The
+minimum contents: posted liquidity is not executable liquidity (an offer can be
+withdrawn instantly), path payments through intermediate assets are not counted,
+off-chain liquidity on centralised exchanges is invisible, and the safe thresholds
+were chosen rather than calibrated from many incidents.
+
+An experienced reviewer will look for this section. Its absence costs more than its
+contents.
 
 ---
 
-## 4. Protokol cross-validation
+## 4. The cross-validation protocol
 
-SOW menjanjikan "cross-validation passed on at least 50 sample ledgers" tapi tidak mendefinisikan apa yang divalidasi terhadap apa. Anda yang harus mendefinisikannya, dan definisinya menentukan seberapa meyakinkan buktinya.
+The SOW promises "cross-validation passed on at least 50 sample ledgers" but does
+not define what is validated against what. You have to define it, and that
+definition determines how convincing the evidence is.
 
-Tiga lapis, dari yang paling murah ke yang paling kuat:
+Three layers, cheapest to strongest:
 
-**Lapis 1: hitung ulang manual (5 aset).**
-Ambil orderbook mentah, salin ke spreadsheet, hitung depth dengan tangan. Bandingkan dengan output engine. Lampirkan spreadsheet-nya di repo. Ini membuktikan rumusnya benar.
+**Layer 1: manual recomputation (5 assets).**
+Take a raw orderbook, copy it into a spreadsheet, compute the depth by hand. Compare
+against the engine output. Attach the spreadsheet in the repository. This proves the
+formula is right.
 
-**Lapis 2: fixture testnet (10 skenario).**
-Aset dan orderbook yang Anda buat sendiri di testnet dengan angka yang Anda tentukan. Hasil yang benar diketahui sebelum kode dijalankan. Ini membuktikan implementasinya benar.
+**Layer 2: testnet fixtures (10 scenarios).**
+Assets and orderbooks you build yourself on testnet with numbers you choose. The
+correct result is known before the code runs. This proves the implementation is
+right.
 
-**Lapis 3: Horizon live versus Hubble historis (50+ pasangan).**
-Ini yang memenuhi janji SOW dan ini yang butuh dimulai sekarang.
+**Layer 3: live Horizon versus historical Hubble (50+ pairs).**
+This is what fulfils the SOW promise and this is what needs to start now.
 
-Cara kerjanya:
+How it works:
 
 ```
-Mulai Day 2:
-  cron tiap 30 menit
-  untuk 8 aset terpilih:
+Starting Day 2:
+  cron every 30 minutes
+  for 8 selected assets:
     snapshot = horizonClient.getSnapshot(...)
-    simpan mentah ke recordings/{asset}/{ledgerSeq}.json
+    save raw to recordings/{asset}/{ledgerSeq}.json
 
-Mulai Day 16 (setelah Hubble mengejar):
-  untuk setiap rekaman:
-    h = hubbleClient.getSnapshot(asset, ledgerSeq yang sama)
-    bandingkan: jumlah level, harga tiap level, amount tiap level,
-                reserve pool, dan hasil computeDepth() dari keduanya
-    catat: cocok / beda / selisih
+Starting Day 16 (once Hubble has caught up):
+  for every recording:
+    h = hubbleClient.getSnapshot(asset, the same ledgerSeq)
+    compare: level count, the price of each level, the amount of each level,
+             pool reserves, and the computeDepth() result from both
+    record: match / differ / delta
 ```
 
-Dua minggu perekaman pada 8 aset tiap 30 menit menghasilkan ribuan pasangan. Anda memilih 50 sebagai sampel yang dilaporkan, tapi Anda punya seluruhnya sebagai cadangan. Hasilnya masuk ke `docs/methodology/09-validasi.md` sebagai tabel: aset, ledger, hasil, selisih.
+Two weeks of recording 8 assets every 30 minutes produces thousands of pairs. You
+choose 50 as the reported sample, but you hold all of them in reserve. The results
+go into `docs/methodology/09-validasi.md` as a table: asset, ledger, result,
+difference.
 
-Kalau ada yang tidak cocok, itu bukan kegagalan. Selisih yang dijelaskan dengan benar (misalnya Hubble mengambil snapshot pada batas batch sehingga tertinggal beberapa ledger) justru menunjukkan Anda memahami datanya. Yang berbahaya adalah tidak pernah membandingkan.
-
----
-
-## 5. Urutan pengerjaan yang mengurangi risiko
-
-Jangan bangun komponen sampai selesai satu per satu. Bangun irisan tipis yang tembus dari ujung ke ujung dulu.
-
-**Irisan 1 (Day 2 sampai 5):** satu aset, satu pasangan, satu delta, hanya SDEX, tanpa pool, tanpa metrik pendukung, hasil dicetak ke terminal. Tujuannya membuktikan seluruh rantai jalan.
-
-**Irisan 2 (Day 6 sampai 9):** tambahkan AMM dan penggabungan. Tambahkan ketiga delta. Masih satu aset.
-
-**Irisan 3 (Day 10 sampai 13):** tambahkan metrik pendukung dan C_max. Jalankan pada 50 aset, simpan ke database.
-
-**Irisan 4 (Day 16 sampai 19):** tukar sumber data ke Hubble. Kalau irisan 1 sampai 3 dirancang benar, ini hanya mengganti satu implementasi antarmuka.
-
-Kalau Anda menemukan bahwa irisan 4 membutuhkan perubahan pada `depth.ts`, berarti ada kebocoran abstraksi dan itu harus diperbaiki segera, bukan ditambal.
+If something does not match, that is not a failure. A difference explained
+correctly (for example, Hubble snapshots at a batch boundary so it lags a few
+ledgers) actually demonstrates that you understand the data. What is dangerous is
+never having compared.
 
 ---
 
-## 6. Definition of Done Deliverable 1
+## 5. A work order that reduces risk
 
-Centang semua sebelum menyatakan selesai ke Ambassador Chapter Lead:
+Do not build components to completion one at a time. Build a thin slice that cuts
+end to end first.
 
-**Kode**
-- [ ] Repo publik, README berisi cara menjalankan dari nol
-- [ ] `computeDepth()` fungsi murni, tidak ada I/O di dalamnya
-- [ ] Hasil untuk 50+ aset tersimpan dan bisa di-query
-- [ ] Historical replay jalan dan sudah divalidasi terhadap ledger kontrol
-- [ ] Test lolos untuk 10 fixture testnet dan seluruh kasus tepi di D1.2
-- [ ] Semua hasil membawa `ledgerSeq`
+**Slice 1 (days 2 to 5):** one asset, one pair, one delta, SDEX only, no pools, no
+supporting metrics, the result printed to the terminal. The point is to prove the
+whole chain works.
 
-**Metodologi**
-- [ ] Sebelas file di `docs/methodology/` lengkap
-- [ ] Setiap keputusan D-1 sampai D-6 tertulis beserta alasannya
-- [ ] Penurunan rumus AMM ada dan bisa diikuti pembaca luar
-- [ ] File keterbatasan ditulis jujur dan spesifik
-- [ ] Orang luar bisa mereproduksi satu angka dari nol hanya dengan membaca dokumen
+**Slice 2 (days 6 to 9):** add the AMM and the combination. Add all three deltas.
+Still one asset.
 
-**Validasi**
-- [ ] Spreadsheet hitung ulang manual untuk 5 aset ada di repo
-- [ ] Hasil perbandingan 50+ pasangan Horizon versus Hubble tertabulasi
-- [ ] Selisih yang muncul sudah dijelaskan, bukan diabaikan
+**Slice 3 (days 10 to 13):** add the supporting metrics and C_max. Run it over 50
+assets, store to the database.
 
-**Uji terakhir yang paling penting**
-- [ ] Kedua builder bisa menjelaskan, tanpa melihat catatan, kenapa depth SDEX dan AMM tidak boleh dijumlahkan secara terpisah, dan kenapa risiko likuidasi ada di sisi jual sedangkan risiko manipulasi ada di sisi beli.
+**Slice 4 (days 16 to 19):** swap the data source to Hubble. If slices 1 through 3
+were designed correctly, this is only swapping one interface implementation.
 
-Kalau butir terakhir gagal, Deliverable 1 belum selesai meskipun semua kode jalan. Itulah yang akan diuji saat aplikasi SCF Build.
+If you find that slice 4 requires changes to `depth.ts`, there is an abstraction
+leak and it has to be fixed immediately rather than patched around.
+
+---
+
+## 6. Definition of Done for Deliverable 1
+
+Tick every box before declaring it complete to the Ambassador Chapter Lead:
+
+**Code**
+- [ ] A public repository, with a README covering how to run it from nothing
+- [ ] `computeDepth()` is a pure function with no I/O inside it
+- [ ] Results for 50+ assets stored and queryable
+- [ ] Historical replay works and has been validated against a control ledger
+- [ ] Tests pass for 10 testnet fixtures and every edge case in D1.2
+- [ ] Every result carries `ledgerSeq`
+
+**Methodology**
+- [ ] All eleven files under `docs/methodology/` complete
+- [ ] Every decision D-1 through D-6 written down with its reasoning
+- [ ] The AMM derivation present and followable by an outside reader
+- [ ] The limitations file written honestly and specifically
+- [ ] An outsider can reproduce one number from scratch using the documents alone
+
+**Validation**
+- [ ] The manual recomputation spreadsheet for 5 assets present in the repository
+- [ ] The 50+ pair Horizon versus Hubble comparison tabulated
+- [ ] Any differences that appear are explained, not ignored
+
+**The final and most important test**
+- [ ] Both builders can explain, without notes, why SDEX and AMM depth must not be
+      summed separately, and why liquidation risk lives on the sell side while
+      manipulation risk lives on the buy side.
+
+If that last item fails, Deliverable 1 is not done even if all the code runs. It is
+what will be tested during the SCF Build application.

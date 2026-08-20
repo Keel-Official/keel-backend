@@ -1,4 +1,4 @@
-# Trade yang menyentuh akun burner. Jumlahnya sedikit, langsung ketemu
+# Trades touching the burner account. Few of them, found immediately
 
 {
   "_links": {
@@ -146,7 +146,7 @@
 }
 
 
-# Amount asli offer, untuk memverifikasi angka 1,2185 dari Rekt
+# The offer's original amount, to verify the 1.2185 figure from Rekt
 {
   "_links": {
     "self": {
