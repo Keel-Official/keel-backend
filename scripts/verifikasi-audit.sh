@@ -66,7 +66,7 @@ cek P0-3 "Uji conformance gagal build, jadi golden fixture belum menguji apa pun
 
 bagian "P1  Spesifikasi bercabang"
 cek P1-1 "TDD menyatakan snapshot mentah tidak disimpan di DB" \
-  grep -q "Snapshot mentah tidak disimpan di database" docs/architecture/Keel_Technical_Design_Document.md
+  grep -qF 'Raw snapshots are not stored in the database' docs/architecture/Keel_Technical_Design_Document.md
 cek P1-2 "tetapi 0001_snapshots.sql justru menyimpan kolom raw JSONB" \
   grep -q "raw                 JSONB" migrations/0001_snapshots.sql
 cek P1-3 "dan tabel metrics yang dibaca API tidak ada di migrations" metrics_hilang

@@ -1,68 +1,70 @@
 # Keel: Technical Design Document
 
-**Versi:** 0.2 (draf)
-**Tanggal:** Agustus 2026, dianotasi 20 Agustus 2026
-**Penulis:** draf disusun bersama Claude, keputusan dimiliki tim
-**Pembaca:** kedua builder, reviewer SCF Build
+**Version:** 0.2 (draft)
+**Date:** August 2026, annotated 20 August 2026
+**Author:** drafted together with Claude, the decisions are owned by the team
+**Audience:** both builders, SCF Build reviewers
 
-> **PERINGATAN KESEGARAN.** Dokumen ini disusun ketika Keel direncanakan dalam
-> TypeScript. Implementasi berjalan dalam **Go**. Bagian yang menyebut nama
-> berkas `.ts`, `decimal.js`, `big.js`, Fastify, Hono, ESLint, atau
-> dependency-cruiser adalah peninggalan dan **tidak berlaku**. Bentuk
-> arsitekturnya tetap berlaku; hanya perkakasnya yang berubah.
+> **STALENESS WARNING.** This document was written when Keel was planned in
+> TypeScript. The implementation is in **Go**. Any part naming a `.ts` file,
+> `decimal.js`, `big.js`, Fastify, Hono, ESLint, or dependency-cruiser is a
+> leftover and **does not apply**. The shape of the architecture still applies;
+> only the tooling changed.
 >
-> | Bagian | Tertulis | Yang berlaku sekarang |
+> | Section | What it says | What applies now |
 > |---|---|---|
-> | 2.1 | dependency-cruiser atau ESLint `import/no-restricted-paths` | `internal/domain/arch_test.go`, dijalankan lewat `make arch` di CI |
-> | 3.3 | `decimal.js` atau `big.js` | `github.com/shopspring/decimal`, keputusan T4 tertutup |
-> | 4 | modul `.ts` di `domain/` | paket Go: tipe di `internal/domain`, rumus di `internal/depth`, uji kesesuaian di `internal/conformance` |
-> | 5 | skema `assets`, `metrics`, `runs` | belum ada di `migrations/`; yang ada baru `0001_snapshots.sql`. Skema di sini juga belum memuat kolom v1.0.2 (`unevaluated_flags`, `band_confidence`, `spread_pct`, `max_reachable_price`) |
-> | 7 | Fastify atau Hono | belum diputuskan untuk Go, lihat keputusan terbuka |
-> | 9 butir 6 | test determinisme JSON | ada, `TestInvarianDeterminisme` di `internal/conformance` |
-> | 11 dan 13 T1/T2 | rencana cadangan dan anggaran BigQuery | ditunda seluruhnya, lihat `docs/decisions/DEC-002-hold-bigquery.md` |
+> | 2.1 | dependency-cruiser or the ESLint `import/no-restricted-paths` rule | `internal/domain/arch_test.go`, run through `make arch` in CI |
+> | 3.3 | `decimal.js` or `big.js` | `github.com/shopspring/decimal`, decision T4 closed |
+> | 4 | `.ts` modules under `domain/` | Go packages: types in `internal/domain`, formulas in `internal/depth`, conformance tests in `internal/conformance` |
+> | 5 | the `assets`, `metrics`, `runs` schema | not present in `migrations/` yet; all that exists is `0001_snapshots.sql`. The schema here also lacks the v1.0.2 columns (`unevaluated_flags`, `band_confidence`, `spread_pct`, `max_reachable_price`) |
+> | 7 | Fastify or Hono | not decided for Go yet, see the open decisions |
+> | 9 item 6 | the JSON determinism test | exists, `TestInvarianDeterminisme` in `internal/conformance` |
+> | 11 and 13 T1/T2 | the fallback plan and the BigQuery budget | deferred entirely, see `docs/decisions/DEC-002-hold-bigquery.md` |
 
-Dokumen ini menjelaskan **bagaimana** Keel dibangun. Apa yang dibangun ada di PRD. Apa yang dijanjikan ada di SOW.
+This document explains **how** Keel is built. What is built is in the PRD. What was
+promised is in the SOW.
 
-Bagian yang ditandai **[MENUNGGU SPIKE]** belum bisa difinalkan sebelum hasil spike Hubble di Day 0.
-
----
-
-## 1. Sasaran dan bukan sasaran
-
-### Sasaran teknis
-1. Perhitungan yang **deterministik dan bisa direproduksi** pada `ledgerSeq` yang sama
-2. Satu implementasi perhitungan yang dipakai jalur live maupun historis
-3. Jalur historis bisa ditukar tanpa menyentuh kode perhitungan
-4. Read-only mutlak, ditegakkan secara mekanis bukan lewat konvensi
-
-### Bukan sasaran
-- High availability. Tidak ada SLA (NFR-4)
-- Latensi rendah untuk perhitungan historis. Batch, dan dinyatakan begitu
-- Skala di luar beberapa ratus aset
-- Multi-tenancy, autentikasi, manajemen pengguna
+Sections marked **[AWAITING SPIKE]** cannot be finalised before the results of the
+Day 0 Hubble spike.
 
 ---
 
-## 2. Arsitektur
+## 1. Goals and non-goals
+
+### Technical goals
+1. Computation that is **deterministic and reproducible** at the same `ledgerSeq`
+2. One computation implementation used by both the live and the historical path
+3. The historical path can be swapped without touching computation code
+4. Absolutely read-only, enforced mechanically rather than by convention
+
+### Non-goals
+- High availability. There is no SLA (NFR-4)
+- Low latency for historical computation. It is batch, and it is stated as such
+- Scale beyond a few hundred assets
+- Multi-tenancy, authentication, user management
+
+---
+
+## 2. Architecture
 
 ```
                    ┌──────────────────┐
    Horizon ───────▶│                  │
-   (state terkini) │                  │
+   (current state) │                  │
                    │    ADAPTERS      │──▶ Snapshot ──┐
    Hubble ────────▶│                  │              │
-   (state historis)└──────────────────┘              │
+   (historical)    └──────────────────┘              │
                                                       ▼
                                            ┌────────────────────┐
                                            │      DOMAIN        │
                                            │  depth, metrics,   │
                                            │  collateral, flags │
-                                           │  (fungsi murni)    │
+                                           │  (pure functions)  │
                                            └────────┬───────────┘
                                                     │ AssetRisk
                                                     ▼
    ┌──────────────┐      ┌───────────────┐   ┌──────────────┐
-   │ ORCHESTRATOR │─────▶│    STORE      │◀──│  API (baca)  │
+   │ ORCHESTRATOR │─────▶│    STORE      │◀──│  API (read)  │
    │ scan, replay │      │  PostgreSQL   │   └──────┬───────┘
    └──────────────┘      └───────────────┘          │
                                                     ▼
@@ -71,112 +73,129 @@ Bagian yang ditandai **[MENUNGGU SPIKE]** belum bisa difinalkan sebelum hasil sp
                                              └──────────────┘
 ```
 
-### 2.1 Aturan dependensi (wajib ditegakkan lint)
+### 2.1 Dependency rules (lint must enforce these)
 
 ```
-domain/          tidak boleh mengimpor apa pun dari adapters/, store/, api/
-adapters/        boleh mengimpor tipe dari domain/, tidak boleh logika
-orchestrator/    boleh mengimpor semuanya
-api/             hanya membaca store/, tidak pernah memanggil adapters langsung
+domain/          must not import anything from adapters/, store/, api/
+adapters/        may import types from domain/, must contain no logic
+orchestrator/    may import everything
+api/             reads store/ only, never calls adapters directly
 ```
 
-Aturan pertama adalah yang menentukan. `domain/` tidak boleh tahu dari mana snapshot datang. Itulah yang membuat historical replay hanya berarti menukar adapter.
+The first rule is the decisive one. `domain/` must not know where a snapshot came
+from. That is what makes historical replay a matter of swapping an adapter.
 
-Tegakkan dengan `dependency-cruiser` atau aturan `import/no-restricted-paths` di ESLint, dan jalankan di CI. Aturan yang hanya ditulis di dokumen akan dilanggar dalam dua minggu.
+Enforce it with `dependency-cruiser` or the `import/no-restricted-paths` rule in
+ESLint, and run it in CI. A rule that lives only in a document gets broken within
+two weeks.
 
-### 2.2 Kenapa API tidak memanggil adapter langsung
+### 2.2 Why the API does not call adapters directly
 
-Kalau endpoint API memanggil Horizon saat request masuk, satu aset populer bisa menghabiskan kuota rate limit Horizon Anda dalam hitungan menit, dan pengguna mendapat latensi yang tidak terduga. API hanya membaca hasil yang sudah dihitung orchestrator. Konsekuensinya metrik selalu sedikit tertinggal, dan itu diterima secara eksplisit di NFR-1 (maksimal 15 menit).
+If an API endpoint called Horizon when a request arrived, one popular asset could
+burn your Horizon rate limit budget in minutes, and users would get unpredictable
+latency. The API only reads results already computed by the orchestrator. The
+consequence is that metrics always lag slightly, and that is accepted explicitly in
+NFR-1 (at most 15 minutes).
 
 ---
 
-## 3. Sumber data
+## 3. Data sources
 
-### 3.1 Horizon (jalur live)
+### 3.1 Horizon (the live path)
 
-| Kebutuhan | Endpoint | Catatan |
+| Need | Endpoint | Note |
 |---|---|---|
-| Orderbook | `/order_book` | **State terkini saja. Tidak menerima parameter ledger** |
-| Reserve pool | `/liquidity_pools` | State terkini saja |
-| Deret harga | `/trade_aggregations` | Historis, native, gratis |
-| Trade | `/trades` | Historis, untuk deteksi trade asli |
-| Supply aset | `/assets` | State terkini |
+| Orderbook | `/order_book` | **Current state only. It takes no ledger parameter** |
+| Pool reserves | `/liquidity_pools` | Current state only |
+| Price series | `/trade_aggregations` | Historical, native, free |
+| Trades | `/trades` | Historical, for genuine trade detection |
+| Asset supply | `/assets` | Current state |
 
-`Latest-Ledger` di header respons dipakai sebagai `ledgerSeq` snapshot. Jangan memakai jam sistem.
+The `Latest-Ledger` response header is used as the snapshot's `ledgerSeq`. Do not
+use the system clock.
 
-### 3.2 Hubble (jalur historis) [MENUNGGU SPIKE]
+### 3.2 Hubble (the historical path) [AWAITING SPIKE]
 
-Dataset `crypto-stellar.crypto_stellar` di BigQuery. Tabel yang dibutuhkan: `offers`, `liquidity_pools`, `trust_lines`, `history_trades`.
+The `crypto-stellar.crypto_stellar` dataset on BigQuery. The tables needed:
+`offers`, `liquidity_pools`, `trust_lines`, `history_trades`.
 
-Semua query wajib:
-- memangkas partisi dengan `WHERE batch_run_date BETWEEN ...`
-- tidak pernah `SELECT *`
-- menyetel `maximum_bytes_billed` agar query yang salah gagal, bukan menagih
+Every query must:
+- prune partitions with `WHERE batch_run_date BETWEEN ...`
+- never use `SELECT *`
+- set `maximum_bytes_billed` so that a wrong query fails rather than bills
 
-Kalau spike menunjukkan snapshot `offers` terlalu jarang untuk Mei 2026, aktifkan rencana cadangan di bagian 11.
+If the spike shows the `offers` snapshots are too sparse for May 2026, activate the
+fallback plan in section 11.
 
-### 3.3 Presisi angka (penting, mudah salah)
+### 3.3 Numeric precision (important, easy to get wrong)
 
-Ini penyebab paling umum cross-validation gagal tanpa sebab yang jelas.
+This is the most common cause of cross-validation failing for no visible reason.
 
-- Amount Stellar adalah **int64 dalam stroop**, 7 desimal. Simpan sebagai `bigint` atau string, jangan `number`
-- Horizon mengembalikan harga sebagai **pecahan rasional** `price_r: { n, d }`. Pakai itu. String `price` adalah hasil pembulatan dan tidak boleh dipakai untuk perhitungan
-- Semua aritmetika depth memakai `decimal.js` atau `big.js`, bukan float IEEE 754
-- Konversi ke `number` hanya di lapisan penyajian, tepat sebelum dikirim ke API
+- Stellar amounts are **int64 in stroops**, 7 decimals. Store them as `bigint` or a
+  string, never as `number`
+- Horizon returns prices as a **rational fraction** `price_r: { n, d }`. Use that.
+  The `price` string is already rounded and must not be used in a computation
+- All depth arithmetic uses `decimal.js` or `big.js`, not IEEE 754 floats
+- Convert to `number` only in the presentation layer, immediately before sending to
+  the API
 
-Kalau ini dilanggar, jalur Horizon dan jalur Hubble akan menghasilkan angka yang berbeda di digit ke sekian, cross-validation akan penuh ketidakcocokan palsu, dan Anda akan mengejar bug yang tidak ada.
+Break these and the Horizon path and the Hubble path will produce numbers that
+differ in some later digit, cross-validation will fill up with false mismatches,
+and you will chase a bug that does not exist.
 
 ---
 
-## 4. Modul domain
+## 4. Domain modules
 
-> **PENINGGALAN TYPESCRIPT.** Daftar berkas `.ts` di bawah tidak berlaku.
-> Pembagian yang sebenarnya:
+> **TYPESCRIPT LEFTOVER.** The list of `.ts` files below does not apply. The real
+> split is:
 >
-> | Paket Go | Isi | Zona |
+> | Go package | Contents | Zone |
 > |---|---|---|
-> | `internal/domain` | tipe bersama saja, tanpa perhitungan | kuning |
-> | `internal/depth` | seluruh rumus: harga acuan, depth SDEX dan AMM, penggabungan, biaya manipulasi, flag, band, C_max | merah |
-> | `internal/conformance` | golden fixture dan uji kesesuaian, black-box terhadap `internal/depth` | hijau |
+> | `internal/domain` | shared types only, no computation | yellow |
+> | `internal/depth` | every formula: reference price, SDEX and AMM depth, the combination, manipulation cost, flags, bands, C_max | red |
+> | `internal/conformance` | the golden fixture and conformance tests, black-box against `internal/depth` | green |
 >
-> Aturan kemurnian pada paragraf terakhir bagian ini tetap berlaku penuh, dan
-> sekarang ditegakkan secara mekanis oleh `internal/domain/arch_test.go`.
-
+> The purity rules in the final paragraph of this section still apply in full, and
+> are now enforced mechanically by `internal/domain/arch_test.go`.
 
 ```
 domain/
   types.ts        Asset, Level, PoolReserves, Snapshot, AssetRisk, Flag
-  price.ts        midPrice() dan urutan fallback (keputusan D-2)
+  price.ts        midPrice() and the fallback order (decision D-2)
   depthSdex.ts    walk the book
-  depthAmm.ts     rumus constant product dengan fee
-  depthCombine.ts penggabungan berdasarkan harga marginal (keputusan D-3)
-  manipulation.ts biaya manipulasi
+  depthAmm.ts     the constant product formula with fee
+  depthCombine.ts combination by marginal price (decision D-3)
+  manipulation.ts manipulation cost
   collateral.ts   C_max
-  concentration.ts konsentrasi holder
-  activity.ts     trade asli dan volume-to-supply
-  flags.ts        evaluasi flag dan penentuan band
+  concentration.ts holder concentration
+  activity.ts     genuine trades and volume-to-supply
+  flags.ts        flag evaluation and band determination
   version.ts      METHODOLOGY_VERSION
 ```
 
-Setiap file di `domain/` harus lolos tiga syarat: tanpa I/O, tanpa `Date.now()`, tanpa `Math.random()`. Kalau butuh waktu, terima sebagai argumen.
+Every file under `domain/` has to pass three conditions: no I/O, no `Date.now()`,
+no `Math.random()`. If it needs the time, it takes it as an argument.
 
-`flags.ts` memuat seluruh ambang sebagai konstanta bernama di satu tempat, bukan tersebar. Ambang adalah bagian metodologi, dan mengubahnya harus mengubah `METHODOLOGY_VERSION`.
+`flags.ts` holds every threshold as a named constant in one place, not scattered.
+Thresholds are part of the methodology, and changing one has to change
+`METHODOLOGY_VERSION`.
 
 ---
 
-## 5. Skema penyimpanan
+## 5. Storage schema
 
-PostgreSQL. Satu instance managed (Neon atau Supabase tier gratis) sudah cukup.
+PostgreSQL. One managed instance on a free tier (Neon or Supabase) is enough.
 
 ```sql
 create table assets (
   id             serial primary key,
   code           text not null,
-  issuer         text,                      -- null untuk XLM native
-  quote_code     text not null,             -- pasangan primer
+  issuer         text,                      -- null for native XLM
+  quote_code     text not null,             -- the primary pair
   quote_issuer   text,
   active         boolean not null default true,
-  selection_note text,                      -- kenapa aset ini masuk demonstration set
+  selection_note text,                      -- why this asset is in the demonstration set
   added_at       timestamptz not null default now(),
   unique (code, issuer, quote_code, quote_issuer)
 );
@@ -220,149 +239,179 @@ create table runs (
 );
 ```
 
-Constraint unik pada `metrics` memuat `methodology_version` dan `data_source`. Ini disengaja: hasil dari metodologi berbeda atau sumber berbeda adalah baris berbeda, bukan saling menimpa. Itulah yang membuat cross-validation bisa dilakukan dengan satu query SQL, dan yang membuat perubahan metodologi di tengah sprint tidak diam-diam merusak deret waktu.
+The unique constraint on `metrics` includes `methodology_version` and
+`data_source`. That is deliberate: a result from a different methodology or a
+different source is a different row, not an overwrite. It is what makes
+cross-validation a single SQL query, and what stops a mid-sprint methodology change
+from silently corrupting the time series.
 
-**Snapshot mentah tidak disimpan di database.** Untuk 50 aset setiap 15 menit selama 30 hari, itu puluhan gigabyte tanpa manfaat. Yang disimpan hanya rekaman untuk cross-validation: 8 aset terpilih, sebagai file JSON gzip di `recordings/`, dan 60 di antaranya ikut git sebagai bukti.
+**Raw snapshots are not stored in the database.** For 50 assets every 15 minutes
+across 30 days that is tens of gigabytes for no benefit. What is stored is only the
+recordings needed for cross-validation: 8 selected assets, as gzipped JSON files
+under `recordings/`, 60 of which go into git as evidence.
 
 ---
 
 ## 6. Orchestrator
 
-### 6.1 Job scan (live)
+### 6.1 The scan job (live)
 
-Berjalan setiap 15 menit.
+Runs every 15 minutes.
 
 ```
-untuk setiap aset aktif:
+for every active asset:
   snapshot = horizonAdapter.getSnapshot(asset, quote)
-  metrik   = computeAssetRisk(snapshot, params)
-  simpan ke metrics
-  catat kegagalan per aset, jangan hentikan seluruh job
+  metrics  = computeAssetRisk(snapshot, params)
+  store into metrics
+  record per-asset failures, do not halt the whole job
 ```
 
-Satu aset gagal tidak boleh menggagalkan scan. Kegagalan dicatat di `runs.assets_failed` dan aset itu memakai hasil sebelumnya, ditandai basi.
+One asset failing must not fail the scan. Failures are recorded in
+`runs.assets_failed` and that asset keeps its previous result, marked stale.
 
-### 6.2 Job recorder (cross-validation)
+### 6.2 The recorder job (cross-validation)
 
-Berjalan setiap 30 menit untuk 8 aset terpilih. Menyimpan snapshot Horizon mentah ke disk. **Mulai Day 2**, bukan Minggu 3, karena kebenaran pembanding tidak bisa dibuat surut.
+Runs every 30 minutes for 8 selected assets. It writes raw Horizon snapshots to
+disk. **Starting Day 2**, not week 3, because a comparison baseline cannot be
+created retroactively.
 
-### 6.3 Job replay (historis)
+### 6.3 The replay job (historical)
 
-Dijalankan manual dengan rentang ledger. Memakai `hubbleAdapter`. Menulis ke tabel yang sama dengan `data_source = 'hubble'`.
+Run manually with a ledger range. It uses `hubbleAdapter`. It writes to the same
+table with `data_source = 'hubble'`.
 
-### 6.4 Anggaran rate limit Horizon
+### 6.4 The Horizon rate limit budget
 
-Horizon publik membatasi sekitar 3600 request per jam per IP. Target kita di bawah 3000.
+Public Horizon limits roughly 3600 requests per hour per IP. Our target is under
+3000.
 
 ```
-Per aset per scan:  1 orderbook + 1 daftar pool + 1 trade_aggregations  = 3
-50 aset                                                                 = 150
-Scan tiap 15 menit                                                      = 600/jam
-Recorder 8 aset tiap 30 menit                                           = 32/jam
-Cadangan retry                                                          = ~100/jam
-                                                            Total       ≈ 750/jam
+Per asset per scan:  1 orderbook + 1 pool list + 1 trade_aggregations  = 3
+50 assets                                                              = 150
+A scan every 15 minutes                                                = 600/hour
+The recorder, 8 assets every 30 minutes                                = 32/hour
+Retry headroom                                                         = ~100/hour
+                                                          Total        ≈ 750/hour
 ```
 
-Ruang lebihnya besar, dan itu disengaja. Data holder diambil dari Hubble, bukan Horizon, tepat untuk menjaga anggaran ini. Kalau jumlah aset naik ke 200, hitung ulang sebelum menaikkannya.
+The headroom is large, and that is deliberate. Holder data comes from Hubble rather
+than Horizon precisely in order to protect this budget. If the asset count rises to
+200, recompute before raising it.
 
 ---
 
-## 7. Lapisan API
+## 7. The API layer
 
-- Framework: Fastify atau Hono. Ringan, cukup
-- Hanya membaca dari PostgreSQL. Tidak pernah memanggil adapter
-- Cache respons 60 detik
-- Rate limit 60 request per menit per IP
-- Tidak ada autentikasi. Tidak ada data pengguna
-- CORS terbuka. Ini API publik read-only
-- Setiap respons membawa `ledgerSeq`, `computedAt`, `methodologyVersion`, `dataSource`, `warnings`
+- Framework: Fastify or Hono. Light, sufficient
+- Reads from PostgreSQL only. Never calls an adapter
+- 60 second response cache
+- A rate limit of 60 requests per minute per IP
+- No authentication. There is no user data
+- CORS open. This is a public read-only API
+- Every response carries `ledgerSeq`, `computedAt`, `methodologyVersion`,
+  `dataSource`, `warnings`
 
-Header respons menyertakan `X-Keel-Staleness-Seconds` supaya konsumen tahu seberapa lama data tertinggal tanpa harus menghitung sendiri.
+The response headers include `X-Keel-Staleness-Seconds` so that a consumer knows
+how far behind the data is without computing it themselves.
 
 ---
 
-## 8. Mode terdegradasi
+## 8. Degraded modes
 
-Bagian ini yang membedakan sistem yang bisa dipercaya dari yang tidak. Definisikan sekarang, bukan saat terjadi.
+This section is what separates a system that can be trusted from one that cannot.
+Define it now, not when it happens.
 
-| Kondisi | Perilaku |
+| Condition | Behaviour |
 |---|---|
-| Horizon lambat atau down | Job scan gagal sebagian, API tetap menyajikan hasil terakhir dengan `X-Keel-Staleness-Seconds` tinggi dan warning eksplisit |
-| Hubble melewati anggaran biaya | Endpoint historis mengembalikan 503 dengan pesan yang jelas. Jalur live tidak terpengaruh |
-| Aset tidak punya harga sama sekali | **Bukan error.** `priceSource: 'none'`, flag `NO_EXECUTABLE_PRICE`, band `CRITICAL` |
-| Aset baru tanpa riwayat metrik | 404 dengan pesan bahwa aset tidak dipantau, bukan 500 |
-| Query historis untuk ledger yang belum ada di Hubble | 404 dengan penjelasan ketersediaan data, bukan 500 |
+| Horizon slow or down | The scan job partially fails, the API keeps serving the last result with a high `X-Keel-Staleness-Seconds` and an explicit warning |
+| Hubble passes the cost budget | The historical endpoint returns 503 with a clear message. The live path is unaffected |
+| An asset has no price at all | **Not an error.** `priceSource: 'none'`, flag `NO_EXECUTABLE_PRICE`, band `CRITICAL` |
+| A new asset with no metric history | 404 with a message that the asset is not monitored, not a 500 |
+| A historical query for a ledger not yet in Hubble | 404 with an explanation of data availability, not a 500 |
 
-Baris ketiga adalah yang paling penting dan paling mudah diimplementasi salah. Frontend harus menerima ini sebagai temuan bernilai tinggi, bukan layar error.
+The third row is the most important and the easiest to implement wrongly. The
+frontend has to receive it as a high-value finding, not as an error screen.
 
 ---
 
 ## 9. Reproducibility
 
-NFR-9 menyatakan menjalankan ulang pada `ledgerSeq` dan `methodologyVersion` yang sama harus menghasilkan angka identik. Mekanismenya:
+NFR-9 states that re-running at the same `ledgerSeq` and `methodologyVersion` must
+produce identical numbers. The mechanisms:
 
-1. Tidak ada `Date.now()`, `Math.random()`, atau urutan iterasi tidak deterministik di `domain/`
-2. Pool diurutkan berdasarkan `poolId` sebelum diproses
-3. Level orderbook diurutkan berdasarkan harga, tie-break berdasarkan urutan asli
-4. Seluruh aritmetika desimal, bukan float
-5. `METHODOLOGY_VERSION` naik setiap kali ambang atau rumus berubah
-6. **Test otomatis:** jalankan `computeAssetRisk` dua kali pada snapshot fixture yang sama, bandingkan hasil berupa string JSON. Harus identik byte per byte
+1. No `Date.now()`, `Math.random()`, or non-deterministic iteration order in
+   `domain/`
+2. Pools are sorted by `poolId` before processing
+3. Orderbook levels are sorted by price, tie-broken by original order
+4. All arithmetic is decimal, not float
+5. `METHODOLOGY_VERSION` rises whenever a threshold or a formula changes
+6. **An automated test:** run `computeAssetRisk` twice on the same fixture snapshot
+   and compare the results as JSON strings. They must be identical byte for byte
 
-Butir 6 murah dan menangkap pelanggaran butir 1 sampai 4 secara otomatis.
+Item 6 is cheap and catches violations of items 1 through 4 automatically.
 
 ---
 
 ## 10. Deployment
 
-| Komponen | Platform | Catatan |
+| Component | Platform | Note |
 |---|---|---|
-| API + orchestrator | Satu container di Railway, Fly.io, atau Render | Satu proses, job dijadwalkan dengan cron internal |
-| Database | PostgreSQL managed (Neon atau Supabase) | Tier gratis cukup untuk skala ini |
-| Dashboard | Vercel atau Netlify | Statik, memanggil API |
-| Recorder | Proses yang sama dengan orchestrator | Menulis ke volume persisten |
+| API + orchestrator | One container on Railway, Fly.io, or Render | One process, jobs scheduled by an internal cron |
+| Database | Managed PostgreSQL (Neon or Supabase) | A free tier is enough at this scale |
+| Dashboard | Vercel or Netlify | Static, calls the API |
+| Recorder | The same process as the orchestrator | Writes to a persistent volume |
 
-Tidak ada Kubernetes. Tidak ada Terraform. Tidak ada CI/CD berlapis. Deliverable dinilai dari bukti yang bisa diverifikasi, bukan dari kecanggihan infrastruktur.
+No Kubernetes. No Terraform. No layered CI/CD. The deliverable is judged on
+verifiable evidence, not on infrastructure sophistication.
 
-Environment variable: URL Horizon, kredensial BigQuery, URL database, batas anggaran query. Semuanya lewat secret platform, tidak pernah di repo.
-
----
-
-## 11. Rencana cadangan kalau spike Day 0 gagal [MENUNGGU SPIKE]
-
-Kalau snapshot `offers` di Hubble terlalu jarang untuk Mei 2026:
-
-**Rekonstruksi dari event.** Ambil snapshot state terdekat sebelum ledger target, lalu terapkan berurutan seluruh operasi yang mengubah orderbook (`manage_buy_offer`, `manage_sell_offer`, `create_passive_sell_offer`, `path_payment_*`) dan trade dari `history_operations` serta `history_trades` sampai ledger target.
-
-Ini state machine yang lurus tapi memakan 3 sampai 5 hari kerja, dan harus dibayar dengan pemotongan scope Deliverable 3 sesuai urutan di PRD bagian 12.
-
-Adapter tetap satu antarmuka yang sama. Yang berubah hanya isi `hubbleAdapter.getSnapshot()`. Inilah alasan aturan dependensi di bagian 2.1 tidak boleh dikompromikan.
+Environment variables: the Horizon URL, BigQuery credentials, the database URL, the
+query budget limit. All through platform secrets, never in the repository.
 
 ---
 
-## 12. Alternatif yang ditolak
+## 11. The fallback plan if the Day 0 spike fails [AWAITING SPIKE]
 
-Bagian ini ada supaya keputusan tidak diperdebatkan ulang di Minggu 3.
+If the `offers` snapshots in Hubble are too sparse for May 2026:
 
-| Alternatif | Kenapa ditolak |
+**Reconstruction from events.** Take the nearest state snapshot before the target
+ledger, then apply in order every operation that mutates the orderbook
+(`manage_buy_offer`, `manage_sell_offer`, `create_passive_sell_offer`,
+`path_payment_*`) plus the trades from `history_operations` and `history_trades` up
+to the target ledger.
+
+That is a straightforward state machine but it costs 3 to 5 working days, and it has
+to be paid for by cutting Deliverable 3 scope in the order given in PRD section 12.
+
+The adapter stays behind the same single interface. All that changes is the body of
+`hubbleAdapter.getSnapshot()`. That is exactly why the dependency rules in section
+2.1 must not be compromised.
+
+---
+
+## 12. Rejected alternatives
+
+This section exists so that decisions are not re-argued in week 3.
+
+| Alternative | Why it was rejected |
 |---|---|
-| Menjalankan captive core sendiri | Dikecualikan eksplisit di SOW. Waktu setup dan biaya infrastruktur tidak sepadan untuk 30 hari |
-| Menghitung metrik saat request masuk | Menghabiskan kuota Horizon, latensi tidak terduga, dan tidak reproducible |
-| Menyimpan seluruh snapshot mentah di database | Puluhan gigabyte tanpa manfaat. Cukup rekaman terbatas untuk cross-validation |
-| Menjumlahkan depth SDEX dan AMM secara terpisah | Melebih-lebihkan likuiditas. Keduanya bersaing di rentang harga yang sama |
-| Memakai feed harga eksternal untuk konversi USD | Melanggar prinsip P-1 di PRD. Argumen Keel jadi melingkar |
-| Float untuk amount dan harga | Merusak determinisme dan cross-validation |
-| Kubernetes untuk deployment | Waktu yang dipakai tidak menghasilkan bukti deliverable apa pun |
-| Skor risiko komposit berbobot | Bobotnya tidak bisa dibenarkan dari satu insiden. Diganti klasifikasi berbasis aturan |
+| Running our own captive core | Explicitly excluded in the SOW. The setup time and infrastructure cost are not worth it for 30 days |
+| Computing metrics when a request arrives | Burns the Horizon quota, gives unpredictable latency, and is not reproducible |
+| Storing every raw snapshot in the database | Tens of gigabytes for no benefit. A limited set of recordings for cross-validation is enough |
+| Summing SDEX and AMM depth separately | Overstates liquidity. Both compete over the same price range |
+| Using an external price feed for USD conversion | Violates principle P-1 in the PRD. Keel's argument becomes circular |
+| Floats for amounts and prices | Breaks determinism and cross-validation |
+| Kubernetes for deployment | The time spent produces no deliverable evidence whatsoever |
+| A weighted composite risk score | The weights cannot be justified from a single incident. Replaced by rule based classification |
 
 ---
 
-## 13. Keputusan yang masih terbuka
+## 13. Decisions still open
 
-| # | Keputusan | Butuh apa | Batas waktu |
+| # | Decision | What it needs | Deadline |
 |---|---|---|---|
-| T1 | Kerapatan snapshot Hubble, dan apakah rencana cadangan bagian 11 diaktifkan | Hasil spike Day 0 | Day 1 |
-| T2 | Nilai `maximum_bytes_billed` dan anggaran BigQuery bulanan | Estimasi biaya dari spike | Day 2 |
-| T3 | Pasangan quote primer per aset: XLM atau USDC | Keputusan D-1 di rencana Deliverable 1 | Minggu 1 |
-| ~~T4~~ | ~~Library desimal~~ **TERTUTUP**: `github.com/shopspring/decimal`, terpasang di `go.mod` | | selesai |
-| T5 | Interval scan: 15 menit atau lebih jarang | Anggaran rate limit setelah pengukuran nyata | Minggu 2 |
-| T6 | Platform hosting final | Preferensi tim dan batas tier gratis | Minggu 2 |
+| T1 | Hubble snapshot density, and whether the section 11 fallback is activated | The Day 0 spike result | Day 1 |
+| T2 | The `maximum_bytes_billed` value and the monthly BigQuery budget | A cost estimate from the spike | Day 2 |
+| T3 | The primary quote pair per asset: XLM or USDC | Decision D-1 in the Deliverable 1 plan | Week 1 |
+| ~~T4~~ | ~~The decimal library~~ **CLOSED**: `github.com/shopspring/decimal`, present in `go.mod` | | done |
+| T5 | The scan interval: 15 minutes or wider | The rate limit budget after real measurement | Week 2 |
+| T6 | The final hosting platform | Team preference and free tier limits | Week 2 |
