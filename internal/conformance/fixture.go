@@ -1,13 +1,13 @@
-// Package conformance memuat golden fixture Keel beserta nilai harapannya.
+// Package conformance holds Keel's golden fixture and its expected values.
 //
-// Paket ini sengaja TERPISAH dari internal/depth. Ia hanya boleh memanggil API
-// yang diekspor, sehingga uji kesesuaian bersifat black-box secara struktural
-// dan bukan sekadar karena disiplin penulisnya. Konsekuensi lain yang
-// disengaja: zona merah tidak perlu disentuh untuk merawat test.
+// This package is deliberately SEPARATE from internal/depth. It may only call
+// exported API, which makes the conformance test black-box structurally rather
+// than by its author's discipline alone. Another deliberate consequence: the red
+// zone does not have to be touched in order to maintain these tests.
 //
-// Seluruh angka di sini berasal dari testdata/fixtures/ustry_pre_exploit.md, yang
-// dihitung dengan tangan SEBELUM implementasi ada. Jangan menyesuaikan angka
-// ini agar cocok dengan kode. Sesuaikan kode agar cocok dengan angka ini.
+// Every number here comes from testdata/fixtures/ustry_pre_exploit.md, computed
+// by hand BEFORE any implementation existed. Do not adjust these numbers to
+// match the code. Adjust the code to match these numbers.
 package conformance
 
 import (
@@ -18,29 +18,30 @@ import (
 	"github.com/Keel-Official/keel/internal/domain"
 )
 
-// Toleransi perbandingan desimal.
+// Tolerance for decimal comparison.
 //
-// Dibutuhkan karena sebagian nilai harapan tidak berujung. spreadPct pada
-// fixture ini adalah 528401414/269485707, yang desimalnya tidak pernah
-// berhenti. Presisi perhitungan yang sebenarnya adalah konstanta metodologi
-// dan belum ditetapkan; sampai itu diputuskan, toleransi ini yang berlaku.
+// Required because some expected values do not terminate. spreadPct on this
+// fixture is 528401414/269485707, whose decimal expansion never ends. The
+// precision of the computation itself is a methodology constant and has not been
+// fixed yet; until it is decided, this tolerance applies.
 var Tolerance = decimal.RequireFromString("0.0000001")
 
-// dec adalah pembaca konstanta desimal. Panik pada masukan buruk, yang benar
-// untuk fixture: konstanta salah ketik harus meledak saat itu juga.
+// dec reads a decimal constant. It panics on bad input, which is correct for a
+// fixture: a mistyped constant must blow up immediately.
 func dec(s string) decimal.Decimal { return decimal.RequireFromString(s) }
 
-// ---------------------------------------------------------------- Aset
+// ---------------------------------------------------------------- Assets
 
 var (
-	// USTRY berkode lima karakter sehingga bertipe alphanum12. Query Horizon
-	// dengan alphanum4 mengembalikan hasil kosong tanpa pesan error.
+	// AssetUSTRY has a five character code and is therefore an alphanum12 asset.
+	// Querying Horizon with alphanum4 returns an empty result and no error.
 	AssetUSTRY = domain.Asset{
 		Code:   "USTRY",
 		Issuer: "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
 		Type:   domain.AssetTypeAlphanum12,
 	}
 
+	// AssetUSDC is the quote asset of the fixture pair.
 	AssetUSDC = domain.Asset{
 		Code:   "USDC",
 		Issuer: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
@@ -48,16 +49,16 @@ var (
 	}
 )
 
-// ---------------------------------------------------------------- Masukan
+// ---------------------------------------------------------------- Input
 
-// GoldenSnapshot adalah state buku USTRY/USDC yang benar-benar ada on-chain
-// sesaat sebelum ledger 61340263.
+// GoldenSnapshot is the state of the USTRY/USDC book that genuinely existed
+// on-chain moments before ledger 61340263.
 //
-// Ask dipasang oleh op 263453036239003649 pada 21 Feb 23:38:51, bid oleh
-// op 263453066303434753 pada 23:39:31. Keduanya milik akun yang SAMA,
-// GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB. Bid 0,0001 itu
-// ikut membentuk P0 tanpa mewakili likuiditas nyata apa pun, dan itulah alasan
-// konkret P0 tidak boleh dibaca sendirian.
+// The ask was placed by op 263453036239003649 on 21 February at 23:38:51, the
+// bid by op 263453066303434753 at 23:39:31. Both belong to the SAME account,
+// GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB. That 0.0001 bid
+// helps form P0 without representing any real liquidity at all, and it is the
+// concrete reason P0 must never be read on its own.
 func GoldenSnapshot() domain.Snapshot {
 	return domain.Snapshot{
 		Base:           AssetUSTRY,
@@ -77,16 +78,16 @@ func GoldenSnapshot() domain.Snapshot {
 	}
 }
 
-// DefaultParams memuat ambang default pada docs/methodology/09-flag-dan-band.md
-// bagian 6.
+// DefaultParams holds the default thresholds from
+// docs/methodology/09-flag-dan-band.md section 6.
 //
-// SATUAN: seluruh field berakhiran Pct dinyatakan dalam PERSEN, bukan pecahan.
-// SpreadExtremePct bernilai 20 berarti 20 persen, dan dibandingkan dengan
-// spreadPct yang bernilai 196,08 pada fixture ini. Konvensi ini diseragamkan
-// karena HolderTop1ExtremePct dan kawan-kawan sudah memakai persen, sehingga
-// pecahan akan menjadi satu-satunya pengecualian dan sumber bug diam.
+// UNITS: every field ending in Pct is expressed in PERCENT, not as a fraction.
+// SpreadExtremePct set to 20 means 20 percent, and it is compared against a
+// spreadPct of 196.08 on this fixture. The convention was unified this way
+// because HolderTop1ExtremePct and its siblings already use percent, so a
+// fraction would be the single exception and a source of silent bugs.
 //
-// Seluruh nilai ini DIPILIH, bukan dikalibrasi terhadap kumpulan insiden.
+// Every one of these values is CHOSEN, not calibrated against a set of incidents.
 func DefaultParams() domain.Params {
 	return domain.Params{
 		MarketDeltas:       []decimal.Decimal{dec("0.02"), dec("0.05"), dec("0.10")},
@@ -97,8 +98,8 @@ func DefaultParams() domain.Params {
 		ManipulationCriticalDelta: dec("1.0"),
 		ManipulationMargin:        dec("0.25"),
 
-		// 15 menit adalah ASUMSI, belum dikonfirmasi sebagai jendela Reflector
-		// yang sebenarnya.
+		// 15 minutes is an ASSUMPTION and has not been confirmed as Reflector's
+		// actual window.
 		OracleWindow: 15 * time.Minute,
 
 		Thresholds: domain.Thresholds{

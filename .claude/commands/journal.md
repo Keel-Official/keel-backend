@@ -1,15 +1,15 @@
 ---
-description: Tutup sesi belajar hari ini dan catat ke jurnal
+description: Close today's learning session and record it in the journal
 allowed-tools: Read, Edit, Bash(git log:*), Bash(git diff:*)
 ---
 
-Tutup sesi hari ini.
+Close today's session.
 
-1. Lihat `git log` dan `git diff` sesi ini. Ringkas apa yang berubah.
-2. Pisahkan tegas: mana yang ditulis Al, mana yang kamu tulis.
-3. Ajukan satu pertanyaan tentang kode yang KAMU tulis hari ini. Kalau
-   Al tidak bisa menjawabnya, itu utang pemahaman dan harus dicatat.
-4. Tambahkan entri ke `docs/learning/journal.md` dengan format yang sudah
-   ada di file itu. Isi bagian "Utang pemahaman" dengan jujur.
+1. Look at `git log` and `git diff` for this session. Summarise what changed.
+2. Draw a hard line between what Al wrote and what you wrote.
+3. Ask one question about the code YOU wrote today. If Al cannot answer it, that
+   is an understanding debt and it has to be recorded.
+4. Add an entry to `docs/learning/journal.md` using the format already in that
+   file. Fill in the "Understanding debt" section honestly.
 
-Jangan memuji. Catat apa adanya.
+Do not compliment. Record it as it is.

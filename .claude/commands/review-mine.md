@@ -1,27 +1,26 @@
 ---
-description: Review kode yang ditulis Al sendiri, tanpa menulis ulang
-argument-hint: [path file]
+description: Review code Al wrote himself, without rewriting it
+argument-hint: [file path]
 allowed-tools: Read, Grep, Glob, Bash(go vet:*), Bash(go test:*)
 ---
 
-Review kode yang ditulis Al di: $ARGUMENTS
+Review the code Al wrote in: $ARGUMENTS
 
-JANGAN menulis ulang kodenya. JANGAN menempelkan versi perbaikan.
-Keluarkan temuan sebagai daftar, masing-masing dengan format:
+DO NOT rewrite the code. DO NOT paste a corrected version. Report findings as a
+list, each one in this format:
 
-- [BLOKIR / SERIUS / KECIL] baris ~N: apa masalahnya, kenapa penting,
-  dan pertanyaan yang mengarahkan Al ke perbaikannya sendiri.
+- [BLOCKER / SERIOUS / MINOR] line ~N: what the problem is, why it matters, and a
+  question that leads Al to the fix himself.
 
-Urutan prioritas pemeriksaan:
+Order of inspection:
 
-1. Kebenaran finansial. Ada float64? Ada pembulatan yang tidak disengaja?
-   Ada pembagian yang bisa nol?
-2. Kebenaran domain. Depth SDEX dan AMM digabung di batas marginal price,
-   bukan dijumlahkan terpisah?
-3. Reproducibility. Iterasi map sudah di-sort? LedgerSeq dan
-   MethodologyVersion terbawa?
-4. Error handling. Ada error yang ditelan diam-diam?
-5. Idiomatik Go. Baru terakhir, dan tandai KECIL.
+1. Financial correctness. Any float64? Any unintended rounding? Any division that
+   can be by zero?
+2. Domain correctness. Are SDEX and AMM depth combined at a shared marginal price
+   limit rather than summed separately?
+3. Reproducibility. Are map iterations sorted? Are LedgerSeq and
+   MethodologyVersion carried through?
+4. Error handling. Is any error swallowed silently?
+5. Idiomatic Go. Last, and mark it MINOR.
 
-Kalau tidak ada temuan BLOKIR, katakan begitu. Jangan mengarang masalah
-supaya kelihatan teliti.
+If there is no BLOCKER, say so. Do not invent problems to look thorough.

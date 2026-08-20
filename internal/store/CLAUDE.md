@@ -1,30 +1,30 @@
-# ZONA HIJAU: internal/store
+# GREEN ZONE: internal/store
 
-Persistensi Postgres. Tulis bebas, ini plumbing.
+Postgres persistence. Write freely, this is plumbing.
 
-Paket ini **bodoh dengan sengaja**. Ia menyimpan dan membaca, tidak menghitung
-apa pun. Kalau ada rumus yang mulai muncul di sini, tempatnya salah dan
-seharusnya di `internal/depth`.
+This package is **deliberately dumb**. It stores and it reads; it computes
+nothing. If a formula starts appearing here it is in the wrong place and belongs
+in `internal/depth`.
 
-## Aturan
+## Rules
 
-1. Harga disimpan sebagai pecahan `price_n` dan `price_d`, bukan satu kolom
-   desimal hasil pembagian. Jangan pernah menambah kolom `float`, `real`, atau
-   `double precision` di skema mana pun.
-2. Amount memakai `NUMERIC`, dan dibaca ke `decimal.Decimal`, bukan `float64`.
-3. Setiap baris hasil membawa `ledger_seq` dan `methodology_version`. Hasil dari
-   versi metodologi berbeda adalah baris berbeda, bukan saling menimpa. Itu yang
-   membuat cross-validation bisa dikerjakan dengan satu query.
-4. Kolom `data_source` menerima tiga nilai: `horizon`, `hubble`, dan
-   `trades-implied`. Nilai ketiga sering terlupa, dan constraint yang menolaknya
-   akan gagal justru pada jalur historis yang dipakai studi kasus Blend.
+1. Prices are stored as the fraction `price_n` and `price_d`, not as one decimal
+   column holding the quotient. Never add a `float`, `real`, or
+   `double precision` column to any schema here.
+2. Amounts use `NUMERIC` and are read into `decimal.Decimal`, never `float64`.
+3. Every result row carries `ledger_seq` and `methodology_version`. Results from
+   different methodology versions are different rows, not overwrites of each
+   other. That is what makes cross-validation a single query.
+4. The `data_source` column accepts three values: `horizon`, `hubble`, and
+   `trades-implied`. The third is easy to forget, and a constraint that rejects it
+   will fail on exactly the historical path the Blend case study depends on.
 
-## Yang belum beres sebelum menulis di sini
+## Settle this before writing here
 
-`migrations/0001_snapshots.sql` masih bertentangan dengan TDD bagian 5. TDD
-menyatakan snapshot mentah TIDAK disimpan di database dan mendefinisikan tabel
-`assets`, `metrics`, dan `runs`. Migrasi yang ada melakukan sebaliknya, dan tabel
-`metrics` yang dibaca `keel serve` belum ada sama sekali.
+`migrations/0001_snapshots.sql` still contradicts TDD section 5. The TDD states
+that raw snapshots are NOT stored in the database and defines the tables
+`assets`, `metrics`, and `runs`. The migration that exists does the opposite, and
+the `metrics` table that `keel serve` reads does not exist at all.
 
-Selesaikan itu lebih dulu, jangan menulis query di atas skema yang masih
-bercabang. Lihat `docs/internal/audit-2026-08-20.md` temuan P1-1 sampai P1-5.
+Settle that first. Do not write queries on top of a schema that is still forked.
+See findings P1-1 through P1-5 in `docs/internal/audit-2026-08-20.md`.

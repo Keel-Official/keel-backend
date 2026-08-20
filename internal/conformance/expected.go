@@ -6,29 +6,30 @@ import (
 	"github.com/Keel-Official/keel/internal/domain"
 )
 
-// Nilai harapan untuk GoldenSnapshot. Sumber: testdata/fixtures/ustry_pre_exploit.md.
+// Expected values for GoldenSnapshot. Source: testdata/fixtures/ustry_pre_exploit.md.
 //
-// Setiap nol di berkas ini punya alasan tertulis, karena nol yang benar dan nol
-// karena bug terlihat sama persis di keluaran.
+// Every zero in this file carries a written reason, because a correct zero and a
+// zero caused by a bug look exactly the same in the output.
 
-// ---------------------------------------------------------------- Harga
+// ---------------------------------------------------------------- Price
 
 var (
-	// (1,057 + 106,7372828) / 2. Kedua sisi buku terisi, jadi priceSource book.
-	// Nilainya 53,90 untuk aset yang sebenarnya bernilai sekitar 1,06. Itu
-	// bukan bug, melainkan sifat mid price ketika spread ribuan persen.
+	// ExpectedP0 is (1.057 + 106.7372828) / 2. Both sides of the book are
+	// populated, so priceSource is book. The value is 53.90 for an asset
+	// actually worth about 1.06. That is not a bug, it is what a mid price does
+	// when the spread runs into the thousands of percent.
 	ExpectedP0          = dec("53.8971414")
 	ExpectedPriceSource = domain.PriceSourceBook
 
-	// (106,7372828 − 1,057) / 53,8971414, dinyatakan dalam PERSEN.
-	// Nilai eksaknya 528401414/269485707 yang desimalnya tidak berujung,
-	// sehingga perbandingan wajib memakai Tolerance.
+	// ExpectedSpreadPct is (106.7372828 - 1.057) / 53.8971414, expressed in
+	// PERCENT. The exact value is 528401414/269485707, whose decimal expansion
+	// never terminates, so any comparison has to use Tolerance.
 	ExpectedSpreadPct = dec("196.0777140585048")
 )
 
 // ---------------------------------------------------------------- Depth
 
-// ExpectedDepthPoint adalah satu baris tangga depth yang diharapkan.
+// ExpectedDepthPoint is one expected row of the depth ladder.
 type ExpectedDepthPoint struct {
 	Delta    decimal.Decimal
 	BuySide  decimal.Decimal
@@ -38,26 +39,27 @@ type ExpectedDepthPoint struct {
 	Reason   string
 }
 
-// ExpectedDepth seluruhnya nol, dan nol itu BENAR.
+// ExpectedDepth is entirely zero, and that zero is CORRECT.
 //
-// Satu-satunya ask berharga 106,7372828, jauh di atas seluruh target beli
-// (54,975084228 / 56,591998470 / 59,286855540). Satu-satunya bid berharga
-// 1,057, jauh di bawah seluruh target jual (52,819198572 / 51,202284330 /
-// 48,507427260). Tidak ada satu pun level yang jatuh di dalam pita.
+// The only ask is priced at 106.7372828, far above every buy target
+// (54.975084228 / 56.591998470 / 59.286855540). The only bid is priced at 1.057,
+// far below every sell target (52.819198572 / 51.202284330 / 48.507427260). Not
+// one level falls inside any price window.
 //
-// FromAmm nol karena Pools kosong, bukan karena kurva tidak tersentuh.
+// FromAmm is zero because Pools is empty, not because the curve was left
+// untouched.
 var ExpectedDepth = []ExpectedDepthPoint{
 	{dec("0.02"), decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero,
-		"target beli 54,975084228 dan target jual 52,819198572, tak ada level di dalam pita"},
+		"buy target 54.975084228 and sell target 52.819198572, no level inside the window"},
 	{dec("0.05"), decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero,
-		"target beli 56,591998470 dan target jual 51,202284330, tak ada level di dalam pita"},
+		"buy target 56.591998470 and sell target 51.202284330, no level inside the window"},
 	{dec("0.10"), decimal.Zero, decimal.Zero, decimal.Zero, decimal.Zero,
-		"target beli 59,286855540 dan target jual 48,507427260, tak ada level di dalam pita"},
+		"buy target 59.286855540 and sell target 48.507427260, no level inside the window"},
 }
 
-// ---------------------------------------------------------------- Manipulasi
+// ---------------------------------------------------------------- Manipulation
 
-// ExpectedManipulationPoint adalah satu baris tangga biaya manipulasi.
+// ExpectedManipulationPoint is one expected row of the manipulation cost ladder.
 type ExpectedManipulationPoint struct {
 	Delta       decimal.Decimal
 	TargetPrice decimal.Decimal
@@ -66,65 +68,66 @@ type ExpectedManipulationPoint struct {
 	Reason      string
 }
 
-// ExpectedManipulation adalah baris paling mudah disalahpahami di seluruh
-// fixture, dan versi test sebelumnya memang menyalahpahaminya di dua baris.
+// ExpectedManipulation is the most misread row in the whole fixture, and an
+// earlier version of this test misread it on two lines.
 //
-// Cost dan Reachable memakai himpunan ask yang BERBEDA:
+// Cost and Reachable use DIFFERENT sets of asks:
 //
-//	Cost      menjumlahkan ask dengan price <  target
-//	Reachable memeriksa keberadaan ask dengan price >= target
+//	Cost      sums the asks with price <  target
+//	Reachable checks whether an ask exists with price >= target
 //
-// Sebuah ask tidak pernah masuk keduanya sekaligus. Karena itu baris δ=0,5
-// punya Cost nol DAN Reachable true secara bersamaan, dan itu adalah kondisi
-// paling berbahaya yang bisa ada: harga 80,85 dapat dicapai tanpa membayar
-// apa pun kepada pihak ketiga.
+// An ask never belongs to both at once. That is why the delta 0.5 row has Cost
+// zero AND Reachable true at the same time, and that is the most dangerous
+// condition that can exist: the price 80.85 can be reached without paying
+// anything to a third party.
 //
-// Sebaliknya δ=1, 10, dan 100 punya Cost 130,06 tetapi Reachable false. Angka
-// 130,06 di situ TIDAK boleh dibaca sebagai "harga itu mahal dicapai", sebab
-// harga itu tidak dapat dicapai sama sekali; buku habis sebelum sampai ke sana.
+// Conversely delta 1, 10, and 100 have Cost 130.06 but Reachable false. The
+// 130.06 there must NOT be read as "that price is expensive to reach", because
+// that price cannot be reached at all; the book runs out before it.
 var ExpectedManipulation = []ExpectedManipulationPoint{
 	{dec("0.5"), dec("80.8457121"), decimal.Zero, true,
-		"tak ada ask lebih murah dari 80,85 sehingga Cost nol, tetapi ask 106,74 memenuhi >= target sehingga Reachable"},
+		"no ask is cheaper than 80.85 so Cost is zero, but the ask at 106.74 satisfies >= target so it is reachable"},
 	{dec("1"), dec("107.7942828"), dec("130.06270929502336"), false,
-		"ask 106,74 lebih murah dari target sehingga masuk Cost, dan tak ada ask >= 107,79"},
+		"the ask at 106.74 is cheaper than the target so it counts toward Cost, and no ask is >= 107.79"},
 	{dec("10"), dec("592.8685554"), dec("130.06270929502336"), false,
-		"idem, buku sudah habis jauh di bawah target"},
+		"same again, the book runs out far below the target"},
 	{dec("100"), dec("5443.6112814"), dec("130.06270929502336"), false,
-		"idem, buku sudah habis jauh di bawah target"},
+		"same again, the book runs out far below the target"},
 }
 
-// ---------------------------------------------------------------- Jangkauan
+// ---------------------------------------------------------------- Reach
 
 var (
-	// Harga ask tertinggi di buku, yaitu harga tertinggi yang dapat dicapai
-	// penyerang. Rasionya 100,98 kali terhadap harga sebenarnya 1,057.
+	// ExpectedMaxReachablePrice is the highest ask price on the book, which is
+	// the highest price an attacker can reach. It is 100.98 times the asset's
+	// actual value of 1.057.
 	ExpectedMaxReachablePrice = dec("106.7372828")
 
-	// Nol karena tidak ada satu pun ask yang lebih murah dari 106,7372828.
-	// Mencapai harga tertinggi di buku ini GRATIS.
+	// ExpectedCostToMaxReachablePrice is zero because not one ask is cheaper
+	// than 106.7372828. Reaching the highest price on this book is FREE.
 	//
-	// Pasangan kedua angka inilah baris terpenting di seluruh fixture. Serangan
-	// nyata jatuh di celah antara delta 0,5 dan 1, sehingga terlewat oleh
-	// tangga delta diskret dan hanya tertangkap di sini.
+	// This pair of numbers is the most important line in the entire fixture. The
+	// real attack fell in the gap between delta 0.5 and delta 1, so the discrete
+	// delta ladder missed it and only these two numbers caught it.
 	ExpectedCostToMaxReachablePrice = decimal.Zero
 )
 
-// ---------------------------------------------------------------- Flag
+// ---------------------------------------------------------------- Flags
 
-// ExpectedFlags adalah flag yang harus TRIGGERED, seluruhnya dapat dinilai
-// dari snapshot saja.
+// ExpectedFlags are the flags that must be TRIGGERED, all of them decidable
+// from the snapshot alone.
 var ExpectedFlags = []domain.Flag{
-	domain.FlagZeroDepth2Pct,     // CRITICAL: depth +/-2% nol di kedua sisi
-	domain.FlagManipulationCheap, // CRITICAL: Cost(0,5) = 0 dengan Reachable true
-	domain.FlagSpreadExtreme,     // HIGH:     196,08% melewati ambang 20%
-	domain.FlagThinDepth5Pct,     // MEDIUM:   depth 5% nol, di bawah ambang absolut mana pun
+	domain.FlagZeroDepth2Pct,     // CRITICAL: depth at +/-2% is zero on both sides
+	domain.FlagManipulationCheap, // CRITICAL: Cost(0.5) = 0 with Reachable true
+	domain.FlagSpreadExtreme,     // HIGH:     196.08% is past the 20% threshold
+	domain.FlagThinDepth5Pct,     // MEDIUM:   depth at 5% is zero, below any absolute threshold
 }
 
-// ExpectedUnevaluatedFlags membutuhkan data supply, riwayat trade, atau
-// distribusi trustline yang tidak ada di Snapshot.
+// ExpectedUnevaluatedFlags need supply data, trade history, or trustline
+// distribution, none of which is present in a Snapshot.
 //
-// Keenamnya wajib dilaporkan sebagai tidak dapat dinilai, BUKAN sebagai nol
-// dan bukan sebagai clear. Nol berarti terukur nol, dan itu klaim yang berbeda.
+// All six must be reported as not evaluable, NOT as zero and NOT as clear. Zero
+// means measured to be zero, and that is a different claim.
 var ExpectedUnevaluatedFlags = []domain.Flag{
 	domain.FlagManipulationRatioLow,
 	domain.FlagNoGenuineTrade30D,
@@ -134,18 +137,20 @@ var ExpectedUnevaluatedFlags = []domain.Flag{
 	domain.FlagHolderConcentrationHigh,
 }
 
-// ExpectedClearFlags sudah diperiksa dan tidak terpenuhi.
+// ExpectedClearFlags were checked and are not met.
 var ExpectedClearFlags = []domain.Flag{
-	domain.FlagNoExecutablePrice, // priceSource book, jadi ada harga eksekutabel
+	domain.FlagNoExecutablePrice, // priceSource is book, so an executable price exists
 }
 
 var (
-	// Tingkat tertinggi di antara flag yang triggered. Tidak ada pembobotan.
+	// ExpectedBand is the highest level among the triggered flags. There is no
+	// weighting.
 	ExpectedBand = domain.BandCritical
 
-	// partial karena MANIPULATION_RATIO_LOW dan HOLDER_CONCENTRATION_EXTREME
-	// bertingkat HIGH tetapi unevaluated. Band tetap CRITICAL sebab sudah ada
-	// dua flag CRITICAL yang terpicu, sehingga ketidaklengkapan data tidak
-	// mengubah kesimpulan PADA KASUS INI. Itu kebetulan, bukan jaminan.
+	// ExpectedBandConfidence is partial because MANIPULATION_RATIO_LOW and
+	// HOLDER_CONCENTRATION_EXTREME sit at the HIGH level but are unevaluated.
+	// The band stays CRITICAL because two CRITICAL flags are already triggered,
+	// so the incomplete data does not change the conclusion IN THIS CASE. That
+	// is a coincidence, not a guarantee.
 	ExpectedBandConfidence = domain.BandConfidencePartial
 )

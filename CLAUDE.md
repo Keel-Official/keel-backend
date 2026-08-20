@@ -1,61 +1,70 @@
 # Keel
 
-Liquidity risk engine untuk ekosistem Stellar. Mengukur effective liquidity
-depth dari orderbook SDEX dan reserve AMM pool.
+Liquidity risk engine for the Stellar ecosystem. It measures effective liquidity
+depth from the SDEX orderbook and AMM pool reserves.
 
-Oracle menjawab "berapa harganya". Keel menjawab "berapa volume yang bisa
-ditopang harga itu".
+An oracle answers "what is the price". Keel answers "what volume can that price
+actually support".
 
 ## Stack
 
-- Go (backend). Postgres (storage). BigQuery/Hubble (data historis).
-- Semua nilai moneter pakai `github.com/shopspring/decimal`. TIDAK PERNAH float64.
-- SDK Stellar: `github.com/stellar/go-stellar-sdk/...` (BUKAN `github.com/stellar/go/...`).
+- Go (backend). Postgres (storage). BigQuery/Hubble (historical data).
+- Every monetary value uses `github.com/shopspring/decimal`. NEVER float64.
+- Stellar SDK: `github.com/stellar/go-stellar-sdk/...` (NOT `github.com/stellar/go/...`).
 
-## Aturan yang tidak bisa ditawar
+## Language
 
-1. Setiap output membawa `LedgerSeq` dan `MethodologyVersion`.
-2. Iterasi map harus di-sort dulu sebelum dipakai (reproducibility, NFR-9).
-3. `computeDepth()` adalah fungsi murni. Tidak ada network call di dalamnya.
-4. Depth SDEX dan AMM digabung lewat batas marginal price bersama.
-   TIDAK dijumlahkan secara terpisah.
-5. Harga dibaca dari field `price_r` (pecahan n/d), BUKAN string `price`.
+English, everywhere: comments, documents, commit messages, and the API contract.
+See `docs/decisions/DEC-005-english-as-repo-language.md`, including the binding
+glossary in section 3. A handful of identifier names are still Indonesian and
+that is a known, deliberately visible exception.
 
-## Zona kerja
+## Non-negotiable rules
 
-Repo ini dipakai untuk belajar backend Go, bukan hanya untuk menghasilkan kode.
-Tiga zona:
+1. Every output carries `LedgerSeq` and `MethodologyVersion`.
+2. Map keys must be sorted before iteration (reproducibility, NFR-9).
+3. `computeDepth()` is a pure function. No network calls inside it.
+4. SDEX and AMM depth are combined through a shared marginal price limit.
+   They are NOT summed separately.
+5. Prices are read from the `price_r` field (the n/d fraction), NOT from the
+   `price` string.
 
-- **HIJAU** (`internal/store`, `internal/api`, `internal/conformance`,
-  `migrations/`, `scripts/`, `docker-compose.yml`, Makefile): tulis bebas. Ini
-  plumbing. Satu batas di `internal/conformance`: angka harapan di sana berasal
-  dari golden fixture yang dihitung dengan tangan. Jangan pernah menyesuaikan
-  angka itu agar cocok dengan kode. Sesuaikan kode agar cocok dengan angka itu.
-- **KUNING** (`internal/horizon`, `internal/hubble`, `internal/domain`):
-  boleh tulis, tapi setelah selesai jelaskan setiap keputusan desain dalam
-  3 kalimat. Sebutkan satu alternatif yang kamu tolak dan alasannya.
-- **MERAH** (`internal/depth`): Al yang menulis. Kamu tidak punya izin tulis
-  di sana (dikunci di .claude/settings.json). Perannya reviewer dan
-  penanya, bukan penulis. Lihat internal/depth/CLAUDE.md.
+## Working zones
 
-Kalau Al minta kamu menulis kode zona merah, tolak dan tawarkan `/teach`
-atau `/review-mine` sebagai gantinya.
+This repository is used to learn backend Go, not only to produce code. Three
+zones:
 
-## Gaya jawaban
+- **GREEN** (`internal/store`, `internal/api`, `internal/conformance`,
+  `migrations/`, `scripts/`, `docker-compose.yml`, Makefile): write freely, this
+  is plumbing. One limit inside `internal/conformance`: the expected values there
+  come from a golden fixture computed by hand. Never adjust those numbers to
+  match the code. Adjust the code to match those numbers.
+- **YELLOW** (`internal/horizon`, `internal/hubble`, `internal/domain`): you may
+  write here, but when you are done explain every design decision in three
+  sentences. Name one alternative you rejected and why.
+- **RED** (`internal/depth`): Al writes this. You have no write permission there
+  (locked in .claude/settings.json, and Bash is blocked by
+  .claude/hooks/lindungi-zona-merah.sh). Your role is reviewer and questioner,
+  not author. See internal/depth/CLAUDE.md.
 
-- Jangan pakai em dash.
-- Kalau Al salah, katakan langsung. Jangan validasi ide yang lemah.
-- Kalau ada asumsi yang kamu buat, sebutkan eksplisit.
+If Al asks you to write red zone code, refuse and offer `/teach` or
+`/review-mine` instead.
 
-## Referensi (baca saat dibutuhkan, jangan dimuat semua)
+## Answer style
 
-- Kontrak API: docs/api/keel-openapi.yaml
-- Metodologi (deliverable berbayar): docs/methodology/
-- Keputusan arsitektur: docs/decisions/
-- Audit repo dan alat pembantahnya: docs/internal/audit-2026-08-20.md,
-  dijalankan dengan `bash scripts/verifikasi-audit.sh`
+- Do not use em dashes.
+- When Al is wrong, say so directly. Do not validate a weak idea.
+- State every assumption you make explicitly.
 
-Perhatikan tidak ada `@` di depan jalur mana pun di daftar ini. Itu disengaja.
-Awalan `@` memuat berkasnya ke konteks setiap sesi, dan kontrak OpenAPI sendirian
-berukuran 1.500 baris. Judul bagian ini menulis "baca saat dibutuhkan, jangan
-dimuat semua", dan `@` melakukan kebalikannya.
+## References (read when needed, do not load them all)
+
+- API contract: docs/api/keel-openapi.yaml
+- Methodology (the paid deliverable): docs/methodology/
+- Architecture decisions: docs/decisions/
+- Repository audit and the tool that disputes it: docs/internal/audit-2026-08-20.md,
+  run with `bash scripts/verifikasi-audit.sh`
+
+Note that no path in this list carries an `@` prefix. That is deliberate. An `@`
+loads the file into context on every session, and the OpenAPI contract alone runs
+to 1,500 lines. This section is titled "read when needed, do not load them all",
+and `@` does the opposite.

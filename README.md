@@ -1,84 +1,88 @@
 # Keel
 
-Liquidity risk engine untuk ekosistem Stellar.
+Liquidity risk engine for the Stellar ecosystem.
 
-Oracle menjawab "berapa harganya". Keel menjawab "berapa volume yang bisa
-ditopang harga itu".
+An oracle answers "what is the price". Keel answers "what volume can that price
+actually support".
 
-## Keadaan sekarang
+## Where this stands
 
-Repo ini sedang dalam pembangunan dan **inti metodologinya belum
-diimplementasikan.** Yang sudah ada: definisi metodologi, kontrak API, golden
-fixture yang dihitung dengan tangan dari data on-chain nyata, tipe bersama, dan
-uji arsitektur yang menegakkan kemurnian paket. Yang belum: rumus di
-`internal/depth`, adapter data, penyimpanan, dan API.
+This repository is under construction and **the core of the methodology is not
+implemented yet.** What exists: the methodology definitions, the API contract, a
+golden fixture computed by hand from real on-chain data, the shared types, and
+architecture tests that enforce package purity. What does not exist yet: the
+formulas in `internal/depth`, the data adapters, storage, and the API.
 
-Konsekuensinya pada perintah yang bisa dijalankan:
+What that means for the commands you can run:
 
-| Perintah | Keadaan |
+| Command | State |
 |---|---|
-| `make test` | jalan, dan harus hijau |
-| `make ci` | jalan, dan harus hijau |
-| `make arch` | jalan, menegakkan kemurnian `internal/domain` dan `internal/depth` |
-| `make up` | jalan, menyalakan Postgres lokal |
-| `make conformance` | **sengaja merah.** Golden fixture adalah spesifikasi yang menunggu dipenuhi, dan `internal/depth` masih kosong |
-| `make record` | **belum ada isinya**, keluar dengan kode 3 |
-| `make scan` | **belum ada isinya**, keluar dengan kode 3 |
-| `make serve` | **belum ada isinya**, keluar dengan kode 3 |
+| `make test` | works, and must be green |
+| `make ci` | works, and must be green |
+| `make arch` | works, enforces purity of `internal/domain` and `internal/depth` |
+| `make up` | works, starts local Postgres |
+| `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and `internal/depth` is still empty |
+| `make record` | **no body yet**, exits with code 3 |
+| `make scan` | **no body yet**, exits with code 3 |
+| `make serve` | **no body yet**, exits with code 3 |
 
-Kode keluar 3 dibedakan dari 1 dengan sengaja, supaya penjadwal dapat membedakan
-"belum dibangun" dari "gagal".
+Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
+built yet" apart from "failed".
 
-## Mulai dari nol
+## Starting from nothing
 
 ```bash
 git clone https://github.com/Keel-Official/keel.git
 cd keel
 
-make ci          # gofmt, build, vet, uji arsitektur, dan test. Harus hijau
+make ci          # gofmt, build, vet, architecture tests, and tests. Must be green
 go run ./cmd/keel version
 
-make up          # nyalakan Postgres lokal, opsional pada tahap ini
+make up          # start local Postgres, optional at this stage
 ```
 
-Untuk melihat apa yang masih bercabang di repo ini sebelum ikut menulis:
+To see what is still unsettled in this repository before contributing:
 
 ```bash
 bash scripts/verifikasi-audit.sh
 ```
 
-Skrip itu menjalankan ulang setiap klaim di `docs/internal/audit-2026-08-20.md`
-dan mencetak mana yang masih benar. Ia juga menghitung ulang aritmetika golden
-fixture dari `price_r` mentah, di luar Go, sebagai pemeriksaan silang.
+That script re-runs every claim in `docs/internal/audit-2026-08-20.md` and prints
+which ones still hold. It also recomputes the golden fixture arithmetic from the
+raw `price_r` values, outside Go, as a cross-check.
 
-## Struktur
+## Layout
 
-| Direktori | Isi | Keadaan |
+| Directory | Contents | State |
 |---|---|---|
-| `cmd/keel` | entrypoint tunggal, beberapa subperintah | kerangka |
-| `internal/domain` | tipe bersama, terutama `Snapshot`, tanpa perhitungan | ada |
-| `internal/conformance` | golden fixture dan uji kesesuaian, black-box terhadap `internal/depth` | ada, menunggu `internal/depth` |
-| `internal/depth` | inti metodologi, ditulis manual | **kosong** |
-| `internal/horizon` | adapter data live | kosong |
-| `internal/hubble` | adapter data historis, ditunda, lihat DEC-002 | kosong |
-| `internal/store` | persistensi | kosong |
-| `internal/api` | HTTP handler baca | kosong |
-| `migrations` | skema Postgres | ada, dan masih bertentangan dengan TDD bagian 5 |
-| `docs/methodology` | deliverable metodologi | ada |
-| `docs/decisions` | catatan keputusan | ada |
-| `docs/api` | kontrak OpenAPI | ada |
-| `docs/evidences` | bukti on-chain mentah dari Horizon | ada |
-| `docs/learning` | jurnal belajar | ada |
-| `testdata/fixtures` | golden fixture, dihitung dengan tangan | ada |
-| `scripts` | alat sekali pakai dan verifikasi | ada |
+| `cmd/keel` | single entrypoint, several subcommands | skeleton |
+| `internal/domain` | shared types, chiefly `Snapshot`, no computation | present |
+| `internal/conformance` | golden fixture and conformance tests, black-box against `internal/depth` | present, waiting on `internal/depth` |
+| `internal/depth` | the core methodology, written by hand | **empty** |
+| `internal/horizon` | live data adapter | empty |
+| `internal/hubble` | historical data adapter, deferred, see DEC-002 | empty |
+| `internal/store` | persistence | empty |
+| `internal/api` | read-only HTTP handlers | empty |
+| `migrations` | Postgres schema | present, and still contradicts TDD section 5 |
+| `docs/methodology` | the methodology deliverable | present |
+| `docs/decisions` | decision records | present |
+| `docs/api` | OpenAPI contract | present |
+| `docs/evidences` | raw on-chain evidence from Horizon | present |
+| `docs/learning` | learning journal | present |
+| `testdata/fixtures` | golden fixture, computed by hand | present |
+| `scripts` | one-off tools and verification | present |
 
-## Aturan yang tidak bisa ditawar
+## Non-negotiable rules
 
-Ada di `CLAUDE.md`, dan sebagian ditegakkan mekanis oleh
-`internal/domain/arch_test.go`: tanpa I/O di paket murni, tanpa `float64`, tanpa
-`time.Now`, tanpa goroutine. Aturan yang hanya ditulis di dokumen akan dilanggar
-dalam dua minggu.
+They live in `CLAUDE.md`, and some are enforced mechanically by
+`internal/domain/arch_test.go`: no I/O in a pure package, no `float64`, no
+`time.Now`, no goroutines. A rule that lives only in a document gets broken within
+two weeks.
 
-## Lisensi
+## Language
+
+English, everywhere. See `docs/decisions/DEC-005-english-as-repo-language.md`.
+
+## License
 
 MIT.

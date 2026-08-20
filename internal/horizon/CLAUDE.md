@@ -1,27 +1,31 @@
-# ZONA KUNING: internal/horizon
+# YELLOW ZONE: internal/horizon
 
-Adapter untuk data live dari Horizon API.
+Adapter for live data from the Horizon API.
 
-Output WAJIB bertipe `domain.Snapshot`, sama persis dengan yang dihasilkan
-`internal/hubble`. Kalau kedua adapter menghasilkan tipe berbeda, desainnya
-gagal dan `computeDepth()` jadi ikut berubah.
+The output MUST be a `domain.Snapshot`, identical to what `internal/hubble`
+produces. If the two adapters produce different types the design has failed and
+`computeDepth()` ends up changing with them.
 
-## Endpoint
+## Endpoints
 
-- `GET /order_book` dengan parameter selling_asset_* dan buying_asset_*
+- `GET /order_book` with the selling_asset_* and buying_asset_* parameters
 - `GET /liquidity_pools`
-- `GET /assets?asset_code=...` untuk verifikasi identitas aset
+- `GET /assets?asset_code=...` to verify asset identity
 
-## Jebakan yang sering terjadi
+## Traps that keep happening
 
-1. Import path lama `github.com/stellar/go/...`. Yang benar
+1. The old import path `github.com/stellar/go/...`. The correct one is
    `github.com/stellar/go-stellar-sdk/...`.
-2. Membaca field string `price`. Yang benar `price_r` yang berbentuk
-   `{"n": 1, "d": 10}`. Field string sudah kehilangan presisi.
-3. Horizon TIDAK menyediakan data historis. Kalau butuh masa lalu, itu
-   urusan internal/hubble. Jangan pernah mengarang endpoint historis.
+2. Reading the `price` string field. The correct one is `price_r`, shaped
+   `{"n": 1, "d": 10}`. The string field has already lost precision.
+3. Horizon does NOT serve historical data. If you need the past, that is
+   internal/hubble's job. Never invent a historical endpoint.
+4. Asset type must be passed explicitly and never inferred from code length.
+   USTRY has a five character code and is `credit_alphanum12`; querying it as
+   `credit_alphanum4` returns an empty result and no error. Two decision records
+   in this repository contain exactly that mistake.
 
-## Setelah menulis kode di sini
+## After writing code here
 
-Jelaskan dalam 3 kalimat: keputusan desain apa yang kamu ambil, satu
-alternatif yang kamu tolak, dan kenapa.
+Explain in three sentences: what design decision you took, one alternative you
+rejected, and why.

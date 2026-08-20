@@ -1,20 +1,20 @@
-// Package domain berisi tipe bersama Keel: aset, harga, buku, pool,
-// snapshot, dan bentuk hasil perhitungan risiko likuiditas.
+// Package domain holds Keel's shared types: assets, prices, books, pools,
+// snapshots, and the shape of a liquidity risk result.
 //
-// Paket ini TIDAK memuat perhitungan. Seluruh rumus metodologi berada di
-// internal/depth, yang mengimpor paket ini. Pemisahan itu disengaja:
-// domain boleh disentuh siapa pun, depth adalah deliverable berbayar yang
-// harus dapat dipertahankan penulisnya.
+// This package contains NO computation. Every methodology formula lives in
+// internal/depth, which imports this package. The split is deliberate: domain is
+// open to anyone, depth is a paid deliverable whose author has to be able to
+// defend it.
 //
-// PAKET INI MURNI. Tidak boleh ada:
-//   - I/O apa pun (net/http, database/sql, os, SDK Stellar, BigQuery)
-//   - time.Now(), math/rand, goroutine
-//   - float64 atau float32, termasuk sebagai nilai antara
-//   - iterasi map tanpa sort kunci lebih dulu
+// THIS PACKAGE IS PURE. None of the following is allowed:
+//   - any I/O (net/http, database/sql, os, the Stellar SDK, BigQuery)
+//   - time.Now(), math/rand, goroutines
+//   - float64 or float32, including as an intermediate value
+//   - iterating a map without sorting its keys first
 //
-// Aturan ini ditegakkan oleh arch_test.go dan bukan sekadar konvensi.
-// Lihat docs/methodology/keel-methodology-core.md untuk definisi setiap
-// besaran di sini.
+// These rules are enforced by arch_test.go. They are not merely a convention.
+// See docs/methodology/keel-methodology-core.md for the definition of every
+// quantity declared here.
 package domain
 
 import (
@@ -24,11 +24,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// MethodologyVersion wajib naik setiap kali definisi atau ambang berubah.
-// Hasil dari versi berbeda tidak dapat dibandingkan langsung.
+// MethodologyVersion must be raised whenever a definition or a threshold
+// changes. Results produced by different versions cannot be compared directly.
 const MethodologyVersion = "1.0.2-draft"
 
-// ---------------------------------------------------------------- Aset
+// ---------------------------------------------------------------- Asset
 
 type AssetType string
 
@@ -38,15 +38,15 @@ const (
 	AssetTypeAlphanum12 AssetType = "credit_alphanum12"
 )
 
-// Asset mengidentifikasi satu aset Stellar.
+// Asset identifies one Stellar asset.
 //
-// Type wajib eksplisit dan tidak boleh disimpulkan dari panjang Code saat
-// runtime. Query Horizon dengan tipe yang salah mengembalikan hasil kosong
-// tanpa pesan error, yang merupakan kegagalan diam paling berbahaya di
-// integrasi ini. USTRY berkode 5 karakter sehingga bertipe alphanum12.
+// Type must be explicit and must never be inferred from the length of Code at
+// runtime. Querying Horizon with the wrong type returns an empty result and no
+// error, which is the most dangerous silent failure in this integration. USTRY
+// has a five character code and is therefore an alphanum12 asset.
 type Asset struct {
 	Code   string
-	Issuer string // kosong untuk native
+	Issuer string // empty for the native asset
 	Type   AssetType
 }
 
@@ -63,19 +63,19 @@ func (a Asset) Equal(o Asset) bool {
 	return a.Code == o.Code && a.Issuer == o.Issuer && a.Type == o.Type
 }
 
-// ---------------------------------------------------------------- Harga
+// ---------------------------------------------------------------- Price
 
-// Price adalah rasional eksak, selalu dinyatakan sebagai quote per base.
+// Price is an exact rational, always expressed as quote per base.
 //
-// Horizon mengirim harga dalam dua bentuk yang tidak konsisten:
+// Horizon sends prices in two inconsistent shapes:
 //
-//	/offers  -> "price_r": {"n": 266843207, "d": 2500000}   angka JSON
-//	/trades  -> "price":   {"n": "2500000", "d": "266843207"} string JSON
+//	/offers  -> "price_r": {"n": 266843207, "d": 2500000}   JSON numbers
+//	/trades  -> "price":   {"n": "2500000", "d": "266843207"} JSON strings
 //
-// dan arah price pada /trades bergantung pada aset mana yang menjadi base.
-// Adapter bertanggung jawab menormalkan keduanya menjadi quote-per-base
-// sebelum menyentuh paket ini. Jangan pernah memakai field string "price"
-// dari Horizon untuk perhitungan; itu hasil pembulatan.
+// and on /trades the direction of price depends on which asset is the base. The
+// adapter is responsible for normalising both into quote per base before
+// anything reaches this package. Never use Horizon's string "price" field for a
+// computation; it is already rounded.
 type Price struct {
 	N int64
 	D int64
@@ -89,8 +89,8 @@ func (p Price) Decimal() decimal.Decimal {
 
 func (p Price) Invert() Price { return Price{N: p.D, D: p.N} }
 
-// Cmp membandingkan tanpa pembagian, sehingga tidak ada kehilangan presisi.
-// Mengembalikan -1, 0, atau 1.
+// Cmp compares without dividing, so no precision is lost.
+// It returns -1, 0, or 1.
 func (p Price) Cmp(o Price) int {
 	left := decimal.NewFromInt(p.N).Mul(decimal.NewFromInt(o.D))
 	right := decimal.NewFromInt(o.N).Mul(decimal.NewFromInt(p.D))
@@ -99,21 +99,21 @@ func (p Price) Cmp(o Price) int {
 
 func (p Price) String() string { return fmt.Sprintf("%d/%d", p.N, p.D) }
 
-// ---------------------------------------------------------------- Buku
+// ---------------------------------------------------------------- Book
 
-// Level adalah satu tingkat harga pada orderbook.
-// Amount dinyatakan dalam unit aset base.
+// Level is one price level on the orderbook.
+// Amount is expressed in units of the base asset.
 type Level struct {
 	Price  Price
 	Amount decimal.Decimal
 }
 
-// Notional mengembalikan nilai level ini dalam aset quote.
+// Notional returns the value of this level in the quote asset.
 func (l Level) Notional() decimal.Decimal { return l.Price.Decimal().Mul(l.Amount) }
 
-// OrderBook memuat sisi beli dan jual.
-// Bids diurutkan harga menurun, Asks diurutkan harga menaik.
-// Adapter yang mengisi struct ini bertanggung jawab atas urutannya.
+// OrderBook holds the buy and sell sides.
+// Bids are ordered by descending price, Asks by ascending price.
+// Whichever adapter fills this struct is responsible for that ordering.
 type OrderBook struct {
 	Bids []Level
 	Asks []Level
@@ -135,8 +135,8 @@ func (b OrderBook) BestAsk() (Level, bool) {
 
 // ---------------------------------------------------------------- Pool
 
-// PoolReserves adalah satu pool constant product.
-// FeeBP adalah basis point, 30 pada Stellar.
+// PoolReserves is one constant product pool.
+// FeeBP is in basis points, 30 on Stellar.
 type PoolReserves struct {
 	PoolID       string
 	ReserveBase  decimal.Decimal
@@ -173,9 +173,10 @@ const (
 	DataSourceTradesImplied DataSource = "trades-implied"
 )
 
-// Snapshot adalah SATU-SATUNYA masukan bagi perhitungan depth.
-// Bentuknya identik apakah berasal dari Horizon (live) atau Hubble (historis),
-// sehingga menukar sumber data tidak menyentuh satu baris pun di paket ini.
+// Snapshot is the ONLY input to a depth computation.
+// Its shape is identical whether it came from Horizon (live) or Hubble
+// (historical), so swapping the data source does not touch a single line in
+// this package.
 type Snapshot struct {
 	Base           Asset
 	Quote          Asset
@@ -186,13 +187,13 @@ type Snapshot struct {
 	Source         DataSource
 }
 
-// ---------------------------------------------------------------- Hasil
+// ---------------------------------------------------------------- Results
 
-// DepthPoint adalah depth pada satu tingkat delta.
-// Seluruh nilai dinyatakan sebagai notional dalam aset quote.
+// DepthPoint is the depth at one delta level.
+// Every value is a notional in the quote asset.
 //
-// FromSdex dan FromAmm dilaporkan terpisah agar pihak ketiga dapat
-// memverifikasi penggabungan tanpa membaca kode. Keduanya merujuk sisi beli.
+// FromSdex and FromAmm are reported separately so that a third party can verify
+// the combination without reading the code. Both refer to the buy side.
 type DepthPoint struct {
 	Delta    decimal.Decimal
 	BuySide  decimal.Decimal
@@ -201,28 +202,28 @@ type DepthPoint struct {
 	FromAmm  decimal.Decimal
 }
 
-// ManipulationPoint adalah biaya menaikkan harga ke satu sasaran.
+// ManipulationPoint is the cost of pushing the price up to one target.
 //
-// Aturan:
+// The rules:
 //
-//	Cost(P_target)      = Σ notional ask dengan price <  P_target
-//	Reachable(P_target) = ada ask dengan price >= P_target
+//	Cost(P_target)      = sum of ask notionals with price <  P_target
+//	Reachable(P_target) = an ask exists with price >= P_target
 //
-// Penyerang harus melalap seluruh ask yang LEBIH MURAH dari sasaran, lalu
-// menyentuh sedikit saja ask pertama yang berada DI ATAS sasaran. Sentuhan
-// terakhir itu yang menetapkan harga yang dibaca oracle, dan biayanya dapat
-// sekecil apa pun.
+// The attacker has to consume every ask CHEAPER than the target, then touch
+// only a sliver of the first ask ABOVE it. That final touch is what sets the
+// price the oracle reads, and it can cost arbitrarily little.
 //
-// Tafsir hasil:
+// Reading the result:
 //
-//	Cost kecil, Reachable=true   murah dan tercapai. PALING BERBAHAYA.
-//	Cost besar, Reachable=true   mahal, pasar punya pertahanan.
-//	Reachable=false              sasaran mustahil dicapai berapa pun modalnya,
-//	                             karena buku habis sebelum sampai ke sana.
-//	                             Ini justru bukan kabar buruk.
+//	small Cost, Reachable=true   cheap and achievable. MOST DANGEROUS.
+//	large Cost, Reachable=true   expensive; the market has a defence.
+//	Reachable=false              the target cannot be reached at any price,
+//	                             because the book runs out before it. That is
+//	                             not bad news.
 //
-// Cost adalah BATAS ATAS. Keel tidak dapat mengetahui order mana yang dimiliki
-// penyerang sebelum kejadian, sehingga tidak menyaringnya. Arah bias ini aman.
+// Cost is an UPPER BOUND. Keel cannot know which orders the attacker already
+// owns ahead of the event, so it does not filter them out. That bias errs on
+// the safe side.
 type ManipulationPoint struct {
 	Delta       decimal.Decimal
 	TargetPrice decimal.Decimal
@@ -230,7 +231,7 @@ type ManipulationPoint struct {
 	Reachable   bool
 }
 
-// ---------------------------------------------------------------- Flag
+// ---------------------------------------------------------------- Flags
 
 type Flag string
 
@@ -257,13 +258,13 @@ const (
 	BandCritical Band = "CRITICAL"
 )
 
-// ---------------------------------------------------------------- Parameter
+// ---------------------------------------------------------------- Parameters
 
-// Thresholds memuat SELURUH ambang di satu tempat.
-// Nilai-nilai ini DIPILIH, bukan dikalibrasi terhadap kumpulan insiden.
-// Mengubahnya wajib menaikkan MethodologyVersion.
+// Thresholds holds EVERY threshold in one place.
+// These values are CHOSEN, not calibrated against a set of incidents.
+// Changing one requires raising MethodologyVersion.
 type Thresholds struct {
-	ManipulationCheapAbsolute decimal.Decimal // dalam aset quote
+	ManipulationCheapAbsolute decimal.Decimal // in the quote asset
 	ManipulationRatioLowPct   decimal.Decimal
 	ThinDepth5PctAbsolute     decimal.Decimal
 	SpreadExtremePct          decimal.Decimal
@@ -274,15 +275,15 @@ type Thresholds struct {
 	GenuineTradeWarnDays      int
 }
 
-// Params adalah seluruh masukan konfigurasi perhitungan.
-// Tidak ada nilai default tersembunyi di dalam fungsi; semuanya lewat sini.
+// Params is the complete configuration input to a computation.
+// No default is hidden inside a function; everything arrives through here.
 type Params struct {
-	// Tangga kualitas pasar, wajib menurut SOW: 0.02, 0.05, 0.10
+	// The market quality ladder, mandated by the SOW: 0.02, 0.05, 0.10
 	MarketDeltas []decimal.Decimal
 
-	// Tangga ketahanan manipulasi: 0.5, 1, 10, 100
-	// Diperlukan karena penyerang tidak menggeser harga 10 persen,
-	// melainkan 100 kali lipat.
+	// The manipulation resistance ladder: 0.5, 1, 10, 100
+	// Needed because an attacker does not move a price by 10 percent, they
+	// move it by a factor of 100.
 	ManipulationDeltas []decimal.Decimal
 
 	LiquidationDelta          decimal.Decimal // default 0.10
@@ -290,17 +291,17 @@ type Params struct {
 	ManipulationCriticalDelta decimal.Decimal // default 1.0
 	ManipulationMargin        decimal.Decimal // default 0.25
 
-	// Jendela VWAP oracle. Default 15 menit adalah ASUMSI, belum
-	// dikonfirmasi sebagai jendela Reflector yang sebenarnya.
+	// The oracle VWAP window. The 15 minute default is an ASSUMPTION and has
+	// not been confirmed as Reflector's actual window.
 	OracleWindow time.Duration
 
 	Thresholds Thresholds
 }
 
-// ---------------------------------------------------------------- Keluaran
+// ---------------------------------------------------------------- Output
 
-// SupportingMetrics bernilai nil ketika tidak dapat dihitung.
-// Nil berarti "tidak diketahui", bukan nol.
+// SupportingMetrics fields are nil when they cannot be computed.
+// Nil means "unknown", not zero.
 type SupportingMetrics struct {
 	HolderTop1Pct         *decimal.Decimal
 	HolderTop10Pct        *decimal.Decimal
@@ -318,7 +319,7 @@ type TradeRef struct {
 	At        time.Time
 }
 
-// AssetRisk adalah keluaran lengkap untuk satu aset pada satu ledger.
+// AssetRisk is the complete output for one asset at one ledger.
 type AssetRisk struct {
 	Base               Asset
 	Quote              Asset
@@ -327,22 +328,23 @@ type AssetRisk struct {
 	MethodologyVersion string
 	DataSource         DataSource
 
-	MidPrice    *decimal.Decimal // nil ketika PriceSource none
+	MidPrice    *decimal.Decimal // nil when PriceSource is none
 	PriceSource PriceSource
 	SpreadPct   *decimal.Decimal
 
 	Depth            []DepthPoint
 	ManipulationCost []ManipulationPoint
-	// MaxReachablePrice adalah harga ask tertinggi di buku, yaitu harga
-	// tertinggi yang dapat dicapai penyerang. CostToMaxReachablePrice adalah
-	// biaya mencapainya.
+	// MaxReachablePrice is the highest ask price on the book, which is the
+	// highest price an attacker can reach. CostToMaxReachablePrice is what
+	// reaching it costs.
 	//
-	// Pasangan kedua angka ini menangkap serangan yang lolos dari tangga delta
-	// diskret. Pada USTRY 21 Feb 2026 nilainya 106,7372828 dengan biaya nol,
-	// dan serangan nyata terjadi di celah antara delta 0,5 dan 1.
+	// This pair of numbers catches the attack that slips between two discrete
+	// rungs of the delta ladder. On USTRY, 21 February 2026, the values were
+	// 106.7372828 at a cost of zero, and the real attack landed in the gap
+	// between delta 0.5 and delta 1.
 	MaxReachablePrice       *decimal.Decimal
 	CostToMaxReachablePrice *decimal.Decimal
-	OracleResistance        *decimal.Decimal // MC(kritis) + volume asli dalam jendela
+	OracleResistance        *decimal.Decimal // MC(critical) + genuine volume in the window
 	MaxSafeCollateral       *decimal.Decimal
 
 	Supporting SupportingMetrics
@@ -351,13 +353,15 @@ type AssetRisk struct {
 	Band     Band
 	Warnings []string
 
-	// Flag yang tidak dapat diperiksa karena data yang dibutuhkan tidak ada.
-	// unevaluated BUKAN sinonim clear. Aset tanpa data trustline tidak boleh
-	// terlihat sama dengan aset yang distribusi holder-nya sudah diperiksa.
+	// Flags that could not be checked because the data they need is absent.
+	// unevaluated is NOT a synonym for clear. An asset with no trustline data
+	// must not look identical to an asset whose holder distribution was
+	// actually examined.
 	UnevaluatedFlags []Flag
 
-	// partial jika ada flag bertingkat CRITICAL atau HIGH yang unevaluated,
-	// full jika seluruhnya dapat diperiksa. Wajib ditampilkan di dashboard.
+	// partial when any flag at the CRITICAL or HIGH level is unevaluated, full
+	// when every flag at those levels could be checked. The dashboard is
+	// required to display this.
 	BandConfidence BandConfidence
 }
 

@@ -1,16 +1,21 @@
-// Package adapter menerjemahkan respons Horizon ke tipe domain.
+// Package adapter translates Horizon responses into domain types.
 //
-// Dua jebakan Go yang ditangani di sini, terbukti dari data nyata:
+// Two Go traps handled here, both established from real data:
 //
-//  1. /trades  → price.{n,d} bertipe STRING, field bernama "price"
-//     /offers  → price_r.{n,d} bertipe NUMBER, field bernama "price_r"
-//     Struct tunggal untuk keduanya gagal unmarshal atau diam-diam nol.
-//     flexInt64 menerima kedua bentuk.
+//  1. /trades  -> price.{n,d} are STRINGS, under a field named "price"
+//     /offers  -> price_r.{n,d} are NUMBERS, under a field named "price_r"
+//     A single struct for both either fails to unmarshal or silently yields zero.
+//     flexInt64 accepts either shape.
 //
-//  2. Pada /trades, arti price bergantung aset mana yang jadi base. Untuk
-//     trade eksploit USTRY/USDC, base adalah USDC dan counter USTRY, jadi
-//     price.n/price.d = 0.009369 adalah USTRY-per-USDC — KEBALIKAN dari
-//     yang diharapkan. NormalizePrice membalik arah bila perlu.
+//  2. On /trades, the meaning of price depends on which asset is the base. For
+//     the USTRY/USDC exploit trade the base is USDC and the counter is USTRY, so
+//     price.n/price.d = 0.009369 is USTRY per USDC, the INVERSE of what a reader
+//     expects. NormalizePrice flips the direction when needed.
+//
+// NOTE: as of 20 August 2026 nothing imports this package, and golangci-lint
+// reports all four declarations below as unused. It also uses float64, which the
+// non-negotiable rules forbid. Its fate is an open decision; see finding P1-16 in
+// docs/internal/audit-2026-08-20.md.
 package adapter
 
 import (
@@ -19,7 +24,7 @@ import (
 	"strings"
 )
 
-// flexInt64 unmarshal dari JSON number ATAU JSON string.
+// flexInt64 unmarshals from a JSON number OR a JSON string.
 type flexInt64 int64
 
 func (f *flexInt64) UnmarshalJSON(b []byte) error {
@@ -32,7 +37,7 @@ func (f *flexInt64) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// priceRatio adalah rasio n/d dari Horizon, apa pun tipe JSON aslinya.
+// priceRatio is the n/d ratio from Horizon, whatever its original JSON type.
 type priceRatio struct {
 	N flexInt64 `json:"n"`
 	D flexInt64 `json:"d"`
@@ -45,12 +50,12 @@ func (p priceRatio) float() float64 {
 	return float64(p.N) / float64(p.D)
 }
 
-// NormalizePrice mengembalikan harga dalam arah counter-per-base untuk
-// pasangan yang DIMINTA (quote per base). Jika base pada record adalah aset
-// kuotasi (bukan aset dasar yang diminta), harga dibalik.
+// NormalizePrice returns the price in counter-per-base direction for the pair
+// that was REQUESTED (quote per base). If the base on the record is in fact the
+// requested quote asset, the price is inverted.
 //
-//	raw          : nilai n/d dari record
-//	recordBaseIsQuote : true bila base pada record justru aset kuotasi yang diminta
+//	raw               : the n/d value from the record
+//	recordBaseIsQuote : true when the record's base is the requested quote asset
 func NormalizePrice(raw float64, recordBaseIsQuote bool) float64 {
 	if recordBaseIsQuote {
 		if raw == 0 {

@@ -1,19 +1,19 @@
 ---
-description: Jelaskan satu konsep Go atau Stellar tanpa menuliskan kode proyek
-argument-hint: [konsep]
+description: Explain one Go or Stellar concept without writing project code
+argument-hint: [concept]
 allowed-tools: Read, Grep, Glob
 ---
 
-Al sedang belajar backend Go lewat proyek ini. Ajarkan konsep berikut: $ARGUMENTS
+Al is learning backend Go through this project. Teach the following concept:
+$ARGUMENTS
 
-Aturan:
+Rules:
 
-1. Mulai dari kenapa konsep ini ada, masalah apa yang dipecahkannya.
-2. Beri SATU contoh Go minimal yang berdiri sendiri, maksimal 15 baris,
-   dan tidak menyentuh domain Keel sama sekali.
-3. Baru setelah itu, jelaskan bagaimana konsep ini muncul di Keel, dalam
-   bentuk prosa. Tanpa kode.
-4. Tutup dengan dua pertanyaan pengecek pemahaman. Jangan jawab sendiri.
+1. Start from why the concept exists, what problem it solves.
+2. Give ONE minimal, self-contained Go example, at most 15 lines, that does not
+   touch the Keel domain at all.
+3. Only then explain how the concept shows up in Keel, in prose. No code.
+4. Close with two comprehension check questions. Do not answer them yourself.
 
-Jangan menuliskan kode yang bisa langsung ditempel ke repo. Kalau Al
-tampak ingin jalan pintas, katakan langsung.
+Do not write code that could be pasted straight into the repository. If Al looks
+like he wants a shortcut, say so directly.

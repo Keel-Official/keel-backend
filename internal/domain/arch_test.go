@@ -10,30 +10,31 @@ import (
 	"testing"
 )
 
-// Uji arsitektur untuk dua paket murni Keel: internal/domain dan internal/depth.
+// Architecture tests for Keel's two pure packages: internal/domain and
+// internal/depth.
 //
-// Aturan kemurnian ada di doc comment kedua paket itu. Aturan yang hanya
-// ditulis di dokumen akan dilanggar dalam dua minggu, jadi ditegakkan di sini.
+// The purity rules are stated in both packages' doc comments. A rule that lives
+// only in a document gets broken within two weeks, so they are enforced here.
 //
-// YANG DITEGAKKAN DI SINI bersifat statis: import terlarang, tipe dan literal
-// float, time.Now, dan goroutine.
+// WHAT IS ENFORCED HERE is static: forbidden imports, float types and literals,
+// time.Now, and goroutines.
 //
-// YANG TIDAK DITEGAKKAN DI SINI: iterasi map tanpa sort lebih dulu. Mendeteksi
-// itu secara statis butuh informasi tipe penuh, dan biayanya tidak sepadan.
-// Pelanggarannya tertangkap secara perilaku oleh TestInvarianDeterminisme di
-// internal/conformance, yang membandingkan dua kali jalan byte per byte.
-// Kalau test itu dihapus, lubang ini terbuka.
+// WHAT IS NOT ENFORCED HERE: iterating a map without sorting first. Detecting
+// that statically needs full type information and the cost is not worth it. The
+// violation is caught behaviourally by TestInvarianDeterminisme in
+// internal/conformance, which compares two runs byte for byte. Delete that test
+// and this hole opens.
 //
-// arch_test.go MENGECUALIKAN DIRINYA SENDIRI dari pemindaian, karena ia memang
-// mengimpor os dan path/filepath untuk membaca berkas. Itu satu-satunya
-// pengecualian dan tidak boleh bertambah.
+// arch_test.go EXCLUDES ITSELF from the scan, because it does import os and
+// path/filepath in order to read files. That is the only exception and it must
+// not grow.
 
-// paketMurni adalah direktori yang tunduk pada aturan ini, relatif terhadap
+// paketMurni lists the directories subject to these rules, relative to
 // internal/domain.
 var paketMurni = []string{".", "../depth"}
 
-// importTerlarang. Sebuah import cocok bila sama persis atau berawalan
-// entri ini diikuti "/".
+// importTerlarang. An import matches when it is exactly one of these entries, or
+// starts with one followed by "/".
 var importTerlarang = []string{
 	"net",
 	"net/http",
@@ -70,10 +71,11 @@ func berkasGo(t *testing.T, dir string) []string {
 	entri, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// internal/depth boleh belum ada. Kalau sudah ada, ia wajib patuh.
+			// internal/depth is allowed not to exist yet. Once it does, it must
+			// comply.
 			return nil
 		}
-		t.Fatalf("baca direktori %s: %v", dir, err)
+		t.Fatalf("read directory %s: %v", dir, err)
 	}
 	var out []string
 	for _, e := range entri {
@@ -81,7 +83,7 @@ func berkasGo(t *testing.T, dir string) []string {
 			continue
 		}
 		if e.Name() == "arch_test.go" {
-			continue // lihat catatan pengecualian di kepala berkas
+			continue // see the exception note at the head of this file
 		}
 		out = append(out, filepath.Join(dir, e.Name()))
 	}
@@ -103,7 +105,7 @@ func setiapBerkasMurni(t *testing.T, fn func(t *testing.T, nama string, fset *to
 		}
 	}
 	if terpindai == 0 {
-		t.Fatal("tidak ada berkas yang dipindai; uji arsitektur ini mati diam-diam")
+		t.Fatal("no files were scanned; this architecture test has died silently")
 	}
 }
 
@@ -112,7 +114,7 @@ func TestArchTanpaImportTerlarang(t *testing.T) {
 		for _, imp := range f.Imports {
 			path := strings.Trim(imp.Path.Value, `"`)
 			if cocokTerlarang(path) {
-				t.Errorf("%s: import terlarang %q. Paket murni tidak boleh tahu dari mana data datang; pindahkan ke adapter",
+				t.Errorf("%s: forbidden import %q. A pure package must not know where the data came from; move this to an adapter",
 					fset.Position(imp.Pos()), path)
 			}
 		}
@@ -125,12 +127,12 @@ func TestArchTanpaFloat(t *testing.T) {
 			switch x := n.(type) {
 			case *ast.Ident:
 				if x.Name == "float64" || x.Name == "float32" {
-					t.Errorf("%s: tipe %s dilarang, pakai decimal.Decimal. Float merusak determinisme dan cross-validation",
+					t.Errorf("%s: the type %s is forbidden, use decimal.Decimal. Float breaks determinism and cross-validation",
 						fset.Position(x.Pos()), x.Name)
 				}
 			case *ast.BasicLit:
 				if x.Kind == token.FLOAT {
-					t.Errorf("%s: literal float %s dilarang, pakai decimal.RequireFromString(%q)",
+					t.Errorf("%s: the float literal %s is forbidden, use decimal.RequireFromString(%q)",
 						fset.Position(x.Pos()), x.Value, x.Value)
 				}
 			}
@@ -141,9 +143,9 @@ func TestArchTanpaFloat(t *testing.T) {
 
 func TestArchTanpaJamSistem(t *testing.T) {
 	terlarang := map[string]string{
-		"Now":   "time.Now dilarang; terima waktu sebagai argumen agar hasil dapat direproduksi",
-		"Since": "time.Since memanggil time.Now di dalamnya",
-		"Until": "time.Until memanggil time.Now di dalamnya",
+		"Now":   "time.Now is forbidden; accept the time as an argument so results can be reproduced",
+		"Since": "time.Since calls time.Now internally",
+		"Until": "time.Until calls time.Now internally",
 	}
 	setiapBerkasMurni(t, func(t *testing.T, nama string, fset *token.FileSet, f *ast.File) {
 		ast.Inspect(f, func(n ast.Node) bool {
@@ -168,10 +170,10 @@ func TestArchTanpaGoroutine(t *testing.T) {
 		ast.Inspect(f, func(n ast.Node) bool {
 			switch n.(type) {
 			case *ast.GoStmt:
-				t.Errorf("%s: goroutine dilarang di paket murni; urutan eksekusinya tidak deterministik",
+				t.Errorf("%s: goroutines are forbidden in a pure package; their execution order is not deterministic",
 					fset.Position(n.Pos()))
 			case *ast.SelectStmt:
-				t.Errorf("%s: select dilarang di paket murni; pemilihan case-nya acak menurut spesifikasi Go",
+				t.Errorf("%s: select is forbidden in a pure package; the Go specification makes its case choice random",
 					fset.Position(n.Pos()))
 			}
 			return true
@@ -179,10 +181,10 @@ func TestArchTanpaGoroutine(t *testing.T) {
 	})
 }
 
-// TestArchVersiMetodologiTerisi menjaga aturan yang tidak bisa ditawar nomor 1:
-// setiap keluaran membawa MethodologyVersion.
+// TestArchVersiMetodologiTerisi guards non-negotiable rule number 1: every
+// output carries a MethodologyVersion.
 func TestArchVersiMetodologiTerisi(t *testing.T) {
 	if strings.TrimSpace(MethodologyVersion) == "" {
-		t.Fatal("MethodologyVersion kosong; setiap keluaran wajib membawanya")
+		t.Fatal("MethodologyVersion is empty; every output is required to carry it")
 	}
 }

@@ -1,10 +1,10 @@
 .PHONY: up down psql build test vet fmt arch conformance ci record scan serve
 
-# ---------------------------------------------------------------- Lokal
+# ---------------------------------------------------------------- Local
 
 up:
 	docker compose up -d
-	@echo "Postgres siap di localhost:5432 (user keel / db keel)"
+	@echo "Postgres ready on localhost:5432 (user keel / db keel)"
 
 down:
 	docker compose down
@@ -26,23 +26,25 @@ vet:
 fmt:
 	gofmt -l -w .
 
-# arch menegakkan kemurnian internal/domain dan internal/depth: tanpa I/O,
-# tanpa float, tanpa time.Now, tanpa goroutine. Sudah termasuk di `make test`,
-# tetapi dipisah agar bisa dijalankan sendiri saat menulis di zona murni.
+# arch enforces the purity of internal/domain and internal/depth: no I/O, no
+# float, no time.Now, no goroutines. It already runs inside `make test`, but it
+# is split out so it can be run on its own while writing in a pure package.
 arch:
 	go test ./internal/domain/ -run TestArch -count=1 -v
 
-# conformance menguji implementasi metodologi terhadap golden fixture USTRY.
+# conformance tests the methodology implementation against the USTRY golden
+# fixture.
 #
-# SEMENTARA memakai build tag karena internal/depth belum ada isinya. Begitu
-# paket itu terisi, hapus baris //go:build di internal/conformance/golden_test.go
-# dan hapus target ini; test harus ikut `make test` biasa.
+# It TEMPORARILY uses a build tag because internal/depth has no body yet. Once
+# that package is filled in, delete the //go:build line in
+# internal/conformance/golden_test.go and delete this target; the test belongs in
+# a plain `make test`.
 conformance:
 	go test -tags conformance ./internal/conformance/ -count=1 -v
 
 ci: vet arch test
 
-# ---------------------------------------------------------------- Jalankan
+# ---------------------------------------------------------------- Run
 
 record:
 	go run ./cmd/keel record

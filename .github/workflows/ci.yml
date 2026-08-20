@@ -25,20 +25,20 @@ jobs:
 
       - name: gofmt
         run: |
-          keluar=$(gofmt -l .)
-          if [ -n "$keluar" ]; then
-            echo "berkas belum diformat:"
-            echo "$keluar"
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "these files are not formatted:"
+            echo "$unformatted"
             exit 1
           fi
 
-      # Memakai -e karena internal/conformance/golden_test.go (build tag
-      # conformance) mengimpor internal/depth yang belum ada, dan tidy tanpa -e
-      # gagal keras karenanya.
+      # Uses -e because internal/conformance/golden_test.go (behind the
+      # conformance build tag) imports internal/depth, which does not exist yet,
+      # and tidy without -e fails hard on that.
       #
-      # SYARAT PENGHAPUSAN -e: begitu internal/depth terisi, kembalikan ke
-      # `go mod tidy` biasa agar dependency yang menggantung ikut tertangkap.
-      - name: go mod tidy tidak mengubah apa pun
+      # CONDITION FOR REMOVING -e: once internal/depth has a body, go back to a
+      # plain `go mod tidy` so that dangling dependencies are caught again.
+      - name: go mod tidy changes nothing
         run: |
           go mod tidy -e
           git diff --exit-code go.mod go.sum
@@ -47,10 +47,10 @@ jobs:
 
       - run: go vet ./...
 
-      # Kemurnian internal/domain dan internal/depth. Dipisah sebagai langkah
-      # sendiri supaya kegagalannya terbaca jelas di daftar langkah, bukan
-      # tenggelam di antara test lain.
-      - name: arch (kemurnian paket domain dan depth)
+      # Purity of internal/domain and internal/depth. Split into its own step so
+      # that a failure reads clearly in the step list instead of drowning among
+      # the other tests.
+      - name: arch (purity of the domain and depth packages)
         run: go test ./internal/domain/ -run TestArch -count=1 -v
 
       - run: go test ./... -race -count=1
@@ -64,29 +64,29 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      # Action v6 memasang biner golangci-lint v1 (1.64.8) TERLEPAS dari
-      # `version: latest`, dan biner v1 menolak .golangci.yml yang ditulis untuk
-      # v2 dengan pesan "additional properties 'version', 'formatters' not
-      # allowed". Terbukti di run pertama repo ini, 20 Agustus 2026. Action v9
-      # adalah action era v2. Lihat docs/internal/audit-2026-08-20.md bagian 7.
+      # Action v6 installs the v1 golangci-lint binary (1.64.8) REGARDLESS of
+      # `version: latest`, and a v1 binary rejects a .golangci.yml written for v2
+      # with "additional properties 'version', 'formatters' not allowed". Proven
+      # on this repository's first CI run, 20 August 2026. Action v9 is the v2 era
+      # action. See docs/internal/audit-2026-08-20.md section 7.
       #
-      # Versi biner DIPATOK, bukan `latest`. Linter yang naik versi sendiri
-      # membuat CI merah tanpa ada satu baris kode pun yang berubah, dan itu
-      # membuat kegagalan CI kehilangan arti.
+      # The binary version is PINNED, not `latest`. A linter that bumps itself
+      # turns CI red without a single line of code changing, which drains the
+      # meaning out of a CI failure.
       - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.13.0
 
   conformance:
-    name: conformance (metodologi belum diimplementasikan)
+    name: conformance (methodology not implemented yet)
     runs-on: ubuntu-latest
-    # SENGAJA dibiarkan boleh gagal. Golden fixture USTRY adalah spesifikasi
-    # yang menunggu dipenuhi, dan internal/depth masih kosong, jadi job ini
-    # merah sampai metodologi selesai ditulis. Itu keadaan yang jujur.
+    # DELIBERATELY allowed to fail. The USTRY golden fixture is a specification
+    # waiting to be met, and internal/depth is still empty, so this job stays red
+    # until the methodology is written. That is an honest state.
     #
-    # SYARAT PENGHAPUSAN: begitu internal/depth lolos fixture, hapus baris
-    # continue-on-error, hapus build tag di golden_test.go, dan lipat job ini
-    # ke dalam job build.
+    # CONDITION FOR REMOVAL: once internal/depth passes the fixture, delete the
+    # continue-on-error line, delete the build tag in golden_test.go, and fold
+    # this job into the build job.
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4

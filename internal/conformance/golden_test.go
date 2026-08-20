@@ -1,17 +1,17 @@
 //go:build conformance
 
-// Uji kesesuaian metodologi terhadap golden fixture USTRY/USDC.
+// Methodology conformance test against the USTRY/USDC golden fixture.
 //
-// KENAPA ADA BUILD TAG. Berkas ini mengimpor internal/depth, yang saat ini
-// belum ada isinya. Tanpa tag, seluruh repo gagal build dan CI kehilangan
-// makna. Tag ini bersifat SEMENTARA.
+// WHY THE BUILD TAG. This file imports internal/depth, which currently has no
+// body. Without the tag the whole repository fails to build and CI loses its
+// meaning. The tag is TEMPORARY.
 //
-// SYARAT PENGHAPUSAN: begitu internal/depth berisi implementasi yang lolos,
-// hapus baris //go:build di atas dan hapus target `conformance` yang terpisah
-// di Makefile. Test ini harus jalan di `make test` biasa, bukan di jalur khusus
-// yang mudah dilupakan.
+// CONDITION FOR REMOVAL: once internal/depth contains an implementation that
+// passes, delete the //go:build line above and delete the separate `conformance`
+// target in the Makefile. This test belongs in a plain `make test`, not on a
+// special path that is easy to forget.
 //
-// Jalankan sementara ini dengan: make conformance
+// For now, run it with: make conformance
 
 package conformance
 
@@ -26,13 +26,13 @@ import (
 	"github.com/Keel-Official/keel/internal/domain"
 )
 
-// eqDec membandingkan dalam ranah desimal, bukan float64, dan bukan lewat
-// math.Abs. Versi test sebelumnya memakai keduanya, yang melanggar aturan
-// paket yang sedang diujinya sendiri.
+// eqDec compares in the decimal domain, not in float64, and not through
+// math.Abs. An earlier version of this test used both, which violated the rules
+// of the very package it was testing.
 func eqDec(t *testing.T, label string, got, want decimal.Decimal) {
 	t.Helper()
 	if got.Sub(want).Abs().GreaterThan(Tolerance) {
-		t.Errorf("%s = %s, mau %s (toleransi %s)", label, got, want, Tolerance)
+		t.Errorf("%s = %s, want %s (tolerance %s)", label, got, want, Tolerance)
 	}
 }
 
@@ -45,20 +45,20 @@ func mustRisk(t *testing.T) domain.AssetRisk {
 	return r
 }
 
-// ---------------------------------------------------------------- Harga
+// ---------------------------------------------------------------- Price
 
 func TestMidPrice(t *testing.T) {
 	got, src := depth.MidPrice(GoldenSnapshot())
 	eqDec(t, "P0", got, ExpectedP0)
 	if src != ExpectedPriceSource {
-		t.Errorf("priceSource = %q, mau %q", src, ExpectedPriceSource)
+		t.Errorf("priceSource = %q, want %q", src, ExpectedPriceSource)
 	}
 }
 
 func TestSpreadPct(t *testing.T) {
 	r := mustRisk(t)
 	if r.SpreadPct == nil {
-		t.Fatal("spreadPct nil, mau 196,0777141; nil berarti tidak diketahui dan kedua sisi buku terisi")
+		t.Fatal("spreadPct is nil, want 196.0777141; nil means unknown and both sides of the book are populated")
 	}
 	eqDec(t, "spreadPct", *r.SpreadPct, ExpectedSpreadPct)
 }
@@ -72,7 +72,7 @@ func TestComputeDepth(t *testing.T) {
 		t.Fatalf("ComputeDepth: %v", err)
 	}
 	if len(got) != len(ExpectedDepth) {
-		t.Fatalf("jumlah baris depth = %d, mau %d", len(got), len(ExpectedDepth))
+		t.Fatalf("number of depth rows = %d, want %d", len(got), len(ExpectedDepth))
 	}
 	for i, want := range ExpectedDepth {
 		g := got[i]
@@ -80,11 +80,11 @@ func TestComputeDepth(t *testing.T) {
 		eqDec(t, "depth("+want.Delta.String()+").BuySide  "+want.Reason, g.BuySide, want.BuySide)
 		eqDec(t, "depth("+want.Delta.String()+").SellSide "+want.Reason, g.SellSide, want.SellSide)
 		eqDec(t, "depth("+want.Delta.String()+").FromSdex", g.FromSdex, want.FromSdex)
-		eqDec(t, "depth("+want.Delta.String()+").FromAmm (Pools kosong)", g.FromAmm, want.FromAmm)
+		eqDec(t, "depth("+want.Delta.String()+").FromAmm (Pools is empty)", g.FromAmm, want.FromAmm)
 	}
 }
 
-// ---------------------------------------------------------------- Manipulasi
+// ---------------------------------------------------------------- Manipulation
 
 func TestComputeManipulationCost(t *testing.T) {
 	p := DefaultParams()
@@ -93,7 +93,7 @@ func TestComputeManipulationCost(t *testing.T) {
 		t.Fatalf("ComputeManipulationCost: %v", err)
 	}
 	if len(got) != len(ExpectedManipulation) {
-		t.Fatalf("jumlah baris manipulationCost = %d, mau %d", len(got), len(ExpectedManipulation))
+		t.Fatalf("number of manipulationCost rows = %d, want %d", len(got), len(ExpectedManipulation))
 	}
 	for i, want := range ExpectedManipulation {
 		g := got[i]
@@ -102,7 +102,7 @@ func TestComputeManipulationCost(t *testing.T) {
 		eqDec(t, "MC("+d+").TargetPrice", g.TargetPrice, want.TargetPrice)
 		eqDec(t, "MC("+d+").Cost", g.Cost, want.Cost)
 		if g.Reachable != want.Reachable {
-			t.Errorf("MC(%s).Reachable = %v, mau %v. Alasan: %s",
+			t.Errorf("MC(%s).Reachable = %v, want %v. Reason: %s",
 				d, g.Reachable, want.Reachable, want.Reason)
 		}
 	}
@@ -111,18 +111,18 @@ func TestComputeManipulationCost(t *testing.T) {
 func TestMaxReachablePrice(t *testing.T) {
 	r := mustRisk(t)
 	if r.MaxReachablePrice == nil {
-		t.Fatal("maxReachablePrice nil, mau 106,7372828; buku punya ask sehingga nilainya terdefinisi")
+		t.Fatal("maxReachablePrice is nil, want 106.7372828; the book has an ask so the value is defined")
 	}
 	eqDec(t, "maxReachablePrice", *r.MaxReachablePrice, ExpectedMaxReachablePrice)
 
 	if r.CostToMaxReachablePrice == nil {
-		t.Fatal("costToMaxReachablePrice nil, mau 0")
+		t.Fatal("costToMaxReachablePrice is nil, want 0")
 	}
-	eqDec(t, "costToMaxReachablePrice (gratis, tak ada ask lebih murah)",
+	eqDec(t, "costToMaxReachablePrice (free, no cheaper ask exists)",
 		*r.CostToMaxReachablePrice, ExpectedCostToMaxReachablePrice)
 }
 
-// ---------------------------------------------------------------- Flag
+// ---------------------------------------------------------------- Flags
 
 func flagSet(fs []domain.Flag) []string {
 	out := make([]string, len(fs))
@@ -137,12 +137,12 @@ func compareFlags(t *testing.T, label string, got, want []domain.Flag) {
 	t.Helper()
 	g, w := flagSet(got), flagSet(want)
 	if len(g) != len(w) {
-		t.Errorf("%s = %v, mau %v", label, g, w)
+		t.Errorf("%s = %v, want %v", label, g, w)
 		return
 	}
 	for i := range g {
 		if g[i] != w[i] {
-			t.Errorf("%s = %v, mau %v", label, g, w)
+			t.Errorf("%s = %v, want %v", label, g, w)
 			return
 		}
 	}
@@ -154,34 +154,34 @@ func TestFlagsAndBand(t *testing.T) {
 	compareFlags(t, "unevaluatedFlags", r.UnevaluatedFlags, ExpectedUnevaluatedFlags)
 
 	if r.Band != ExpectedBand {
-		t.Errorf("band = %q, mau %q", r.Band, ExpectedBand)
+		t.Errorf("band = %q, want %q", r.Band, ExpectedBand)
 	}
 	if r.BandConfidence != ExpectedBandConfidence {
-		t.Errorf("bandConfidence = %q, mau %q", r.BandConfidence, ExpectedBandConfidence)
+		t.Errorf("bandConfidence = %q, want %q", r.BandConfidence, ExpectedBandConfidence)
 	}
 }
 
-// TestClearFlagsTidakIkutUnevaluated menjaga pembedaan yang justru jadi alasan
-// versi 1.0.2 ada: clear dan unevaluated tidak boleh tertukar.
+// TestClearFlagsTidakIkutUnevaluated guards the distinction that version 1.0.2
+// exists for: clear and unevaluated must never be swapped.
 func TestClearFlagsTidakIkutUnevaluated(t *testing.T) {
 	r := mustRisk(t)
 	for _, clear := range ExpectedClearFlags {
 		for _, u := range r.UnevaluatedFlags {
 			if u == clear {
-				t.Errorf("flag %q dilaporkan unevaluated, padahal dapat diperiksa dan hasilnya clear", clear)
+				t.Errorf("flag %q is reported unevaluated, but it can be checked and the result is clear", clear)
 			}
 		}
 		for _, f := range r.Flags {
 			if f == clear {
-				t.Errorf("flag %q dilaporkan triggered, padahal seharusnya clear", clear)
+				t.Errorf("flag %q is reported triggered, but it should be clear", clear)
 			}
 		}
 	}
 }
 
-// ---------------------------------------------------------------- Invarian
+// ---------------------------------------------------------------- Invariants
 
-// Invarian 1 dan 2 pada testdata/fixtures/ustry_pre_exploit.md.
+// Invariants 1 and 2 in testdata/fixtures/ustry_pre_exploit.md.
 func TestInvarianMonotonisitas(t *testing.T) {
 	p := DefaultParams()
 
@@ -191,11 +191,11 @@ func TestInvarianMonotonisitas(t *testing.T) {
 	}
 	for i := 1; i < len(d); i++ {
 		if d[i].BuySide.LessThan(d[i-1].BuySide) {
-			t.Errorf("depth sisi beli menurun dari delta %s ke %s: %s lalu %s",
+			t.Errorf("buy side depth decreases from delta %s to %s: %s then %s",
 				d[i-1].Delta, d[i].Delta, d[i-1].BuySide, d[i].BuySide)
 		}
 		if d[i].SellSide.LessThan(d[i-1].SellSide) {
-			t.Errorf("depth sisi jual menurun dari delta %s ke %s: %s lalu %s",
+			t.Errorf("sell side depth decreases from delta %s to %s: %s then %s",
 				d[i-1].Delta, d[i].Delta, d[i-1].SellSide, d[i].SellSide)
 		}
 	}
@@ -206,17 +206,17 @@ func TestInvarianMonotonisitas(t *testing.T) {
 	}
 	for i := 1; i < len(mc); i++ {
 		if mc[i].Cost.LessThan(mc[i-1].Cost) {
-			t.Errorf("biaya manipulasi menurun dari delta %s ke %s: %s lalu %s",
+			t.Errorf("manipulation cost decreases from delta %s to %s: %s then %s",
 				mc[i-1].Delta, mc[i].Delta, mc[i-1].Cost, mc[i].Cost)
 		}
 	}
 }
 
-// Invarian 3: maxReachablePrice sama persis dengan harga ask tertinggi di buku.
+// Invariant 3: maxReachablePrice equals exactly the highest ask price on the book.
 func TestInvarianMaxReachableAdalahAskTertinggi(t *testing.T) {
 	s := GoldenSnapshot()
 	if len(s.Book.Asks) == 0 {
-		t.Skip("fixture tanpa ask")
+		t.Skip("fixture has no ask")
 	}
 	tertinggi := s.Book.Asks[0].Price
 	for _, a := range s.Book.Asks[1:] {
@@ -226,57 +226,58 @@ func TestInvarianMaxReachableAdalahAskTertinggi(t *testing.T) {
 	}
 	r := mustRisk(t)
 	if r.MaxReachablePrice == nil {
-		t.Fatal("maxReachablePrice nil padahal buku punya ask")
+		t.Fatal("maxReachablePrice is nil although the book has an ask")
 	}
-	eqDec(t, "maxReachablePrice vs ask tertinggi di buku",
+	eqDec(t, "maxReachablePrice vs the highest ask on the book",
 		*r.MaxReachablePrice, tertinggi.Decimal())
 }
 
-// Invarian 5: NFR-9. Menjalankan perhitungan dua kali menghasilkan JSON
-// identik byte per byte.
+// Invariant 5: NFR-9. Running the computation twice produces byte for byte
+// identical JSON.
 //
-// Test ini murah dan menangkap pelanggaran larangan time.Now, math/rand, dan
-// iterasi map tanpa sort secara otomatis, tanpa perlu membaca kodenya.
+// This test is cheap and it catches violations of the bans on time.Now,
+// math/rand, and unsorted map iteration automatically, without anyone having to
+// read the code.
 func TestInvarianDeterminisme(t *testing.T) {
 	a, err := depth.ComputeAssetRisk(GoldenSnapshot(), DefaultParams())
 	if err != nil {
-		t.Fatalf("jalan pertama: %v", err)
+		t.Fatalf("first run: %v", err)
 	}
 	b, err := depth.ComputeAssetRisk(GoldenSnapshot(), DefaultParams())
 	if err != nil {
-		t.Fatalf("jalan kedua: %v", err)
+		t.Fatalf("second run: %v", err)
 	}
 
 	ja, err := json.Marshal(a)
 	if err != nil {
-		t.Fatalf("marshal jalan pertama: %v", err)
+		t.Fatalf("marshal first run: %v", err)
 	}
 	jb, err := json.Marshal(b)
 	if err != nil {
-		t.Fatalf("marshal jalan kedua: %v", err)
+		t.Fatalf("marshal second run: %v", err)
 	}
 	if string(ja) != string(jb) {
-		t.Errorf("dua jalan menghasilkan JSON berbeda\npertama: %s\nkedua  : %s", ja, jb)
+		t.Errorf("the two runs produced different JSON\nfirst:  %s\nsecond: %s", ja, jb)
 	}
 }
 
 // ---------------------------------------------------------------- Metadata
 
-// Setiap keluaran wajib membawa LedgerSeq dan MethodologyVersion.
+// Every output is required to carry LedgerSeq and MethodologyVersion.
 func TestMetadataWajib(t *testing.T) {
 	r := mustRisk(t)
 	s := GoldenSnapshot()
 
 	if r.LedgerSeq != s.LedgerSeq {
-		t.Errorf("ledgerSeq = %d, mau %d", r.LedgerSeq, s.LedgerSeq)
+		t.Errorf("ledgerSeq = %d, want %d", r.LedgerSeq, s.LedgerSeq)
 	}
 	if r.MethodologyVersion != domain.MethodologyVersion {
-		t.Errorf("methodologyVersion = %q, mau %q", r.MethodologyVersion, domain.MethodologyVersion)
+		t.Errorf("methodologyVersion = %q, want %q", r.MethodologyVersion, domain.MethodologyVersion)
 	}
 	if r.DataSource != s.Source {
-		t.Errorf("dataSource = %q, mau %q", r.DataSource, s.Source)
+		t.Errorf("dataSource = %q, want %q", r.DataSource, s.Source)
 	}
 	if !r.LedgerClosedAt.Equal(s.LedgerClosedAt) {
-		t.Errorf("ledgerClosedAt = %v, mau %v", r.LedgerClosedAt, s.LedgerClosedAt)
+		t.Errorf("ledgerClosedAt = %v, want %v", r.LedgerClosedAt, s.LedgerClosedAt)
 	}
 }

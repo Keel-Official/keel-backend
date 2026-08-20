@@ -1,23 +1,29 @@
-# ZONA KUNING: internal/hubble
+# YELLOW ZONE: internal/hubble
 
-Adapter untuk data historis dari Hubble (BigQuery dataset
+Adapter for historical data from Hubble (the BigQuery dataset
 `crypto-stellar.crypto_stellar`).
 
-Output WAJIB bertipe `domain.Snapshot`, identik dengan internal/horizon.
+The output MUST be a `domain.Snapshot`, identical to internal/horizon.
 
-## Batasan biaya
+## Cost constraints
 
-Berjalan di BigQuery Sandbox: 1TB query per bulan, gratis, tanpa billing.
-Setiap query WAJIB:
+This runs on the BigQuery Sandbox: 1TB of query per month, free, no billing.
+Every query MUST:
 
-- memfilter partisi (batasi rentang ledger atau tanggal) sebelum apa pun
-- memilih kolom secara eksplisit, tidak pernah SELECT *
-- didahului dry run untuk mengecek byte yang akan dipindai
+- filter on the partition (bound the ledger range or the date) before anything else
+- select columns explicitly, never SELECT *
+- be preceded by a dry run to check how many bytes it will scan
 
-Query tanpa filter partisi bisa memindai ratusan GB dalam sekali jalan.
+A query with no partition filter can scan hundreds of gigabytes in one go.
 
-## Aturan
+## Rules
 
-Jangan pernah menuliskan issuer address aset dari ingatan. Kalau butuh
-identitas aset, ambil dari `docs/decisions/` atau minta Al mengonfirmasi
-dari sumber primer lebih dulu.
+Never write an asset issuer address from memory. If you need an asset identity,
+take it from `docs/decisions/` or ask Al to confirm it from a primary source
+first.
+
+## Status
+
+Deferred. See `docs/decisions/DEC-002-hold-bigquery.md`: only one thing is blocked
+without BigQuery, the orderbook state at a past ledger, and there are three
+cheaper substitutes ahead of it in the queue.

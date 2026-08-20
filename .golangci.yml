@@ -12,14 +12,17 @@ linters:
 
   settings:
     misspell:
+      # The repository language is English as of DEC-005, so a US dictionary is
+      # now the right one. Before that decision this linter flagged Indonesian
+      # words as misspellings, which was a false positive on every comment.
       locale: US
 
   exclusions:
     rules:
-      # Stub yang sengaja panic sampai metodologi ditulis. Hapus pengecualian
-      # ini begitu internal/depth terisi.
+      # Stubs that panic on purpose until the methodology is written. Remove this
+      # exclusion once internal/depth has a body.
       - path: internal/depth/
-        text: "belum diimplementasikan"
+        text: "not implemented"
 
 formatters:
   enable:

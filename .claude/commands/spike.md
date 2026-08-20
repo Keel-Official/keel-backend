@@ -1,19 +1,19 @@
 ---
-description: Jalankan spike terbatas waktu, tulis temuan, jangan tulis kode produksi
-argument-hint: [pertanyaan yang mau dijawab]
+description: Run a time-boxed spike, write the finding, do not write production code
+argument-hint: [the question to answer]
 allowed-tools: Read, Write, Grep, Glob, Bash(go run:*), WebFetch
 ---
 
-Spike untuk menjawab: $ARGUMENTS
+Spike to answer: $ARGUMENTS
 
-Ini spike, bukan implementasi. Aturannya:
+This is a spike, not an implementation. The rules:
 
-1. Tujuannya menjawab SATU pertanyaan faktual, bukan membangun fitur.
-2. Kode spike ditulis di `scripts/spike/` dan bersifat sekali pakai.
-   Jangan menyentuh `internal/`.
-3. Selesai spike, tulis temuan ke `docs/decisions/` sebagai catatan
-   pendek: pertanyaan, apa yang dicoba, apa hasilnya, apa yang diputuskan.
-4. Kalau jawabannya "tidak bisa" atau "datanya tidak ada", itu hasil yang
-   sah dan berharga. Katakan apa adanya.
+1. The goal is to answer ONE factual question, not to build a feature.
+2. Spike code goes in `scripts/spike/` and is disposable. Do not touch
+   `internal/`.
+3. When the spike is done, write the finding into `docs/decisions/` as a short
+   note: the question, what was tried, what came out, what was decided.
+4. If the answer is "cannot be done" or "the data is not there", that is a valid
+   and valuable result. Say it plainly.
 
-Jangan lanjut ke implementasi tanpa Al menyetujui dulu.
+Do not move on to implementation without Al agreeing first.

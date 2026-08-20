@@ -1,4 +1,10 @@
--- Snapshot orderbook + AMM. Satu baris per pengambilan per pasangan aset.
+-- Orderbook and AMM snapshots. One row per capture per asset pair.
+--
+-- NOTE: this schema contradicts TDD section 5, which states that raw snapshots
+-- are NOT stored in the database and defines the tables assets, metrics, and
+-- runs instead. The metrics table that `keel serve` reads does not exist yet.
+-- See findings P1-1 through P1-5 in docs/internal/audit-2026-08-20.md. Reconcile
+-- before writing any query on top of this.
 
 CREATE TABLE IF NOT EXISTS snapshots (
     id                  BIGSERIAL PRIMARY KEY,
@@ -17,9 +23,9 @@ CREATE INDEX IF NOT EXISTS idx_snapshots_pair_time
 CREATE INDEX IF NOT EXISTS idx_snapshots_ledger
     ON snapshots (ledger_seq);
 
--- Level orderbook yang sudah dinormalisasi.
--- Harga disimpan sebagai pecahan (price_n / price_d) supaya tidak ada
--- kehilangan presisi. JANGAN menambahkan kolom float di sini.
+-- Normalised orderbook levels.
+-- Prices are stored as a fraction (price_n / price_d) so that no precision is
+-- lost. DO NOT add a float column here.
 
 CREATE TABLE IF NOT EXISTS snapshot_levels (
     id           BIGSERIAL PRIMARY KEY,
