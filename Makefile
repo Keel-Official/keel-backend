@@ -1,4 +1,4 @@
-.PHONY: up down psql build test vet fmt arch conformance ci record scan serve
+.PHONY: up down psql migrate build test vet fmt arch conformance ci record scan serve
 
 # ---------------------------------------------------------------- Local
 
@@ -11,6 +11,12 @@ down:
 
 psql:
 	docker compose exec postgres psql -U keel -d keel
+
+# migrate applies every file in migrations/ in filename order, exactly once
+# each, tracked in a schema_migrations table. It is the ONLY way migrations are
+# applied; see the comment in docker-compose.yml for why initdb is not used.
+migrate:
+	bash scripts/migrate.sh
 
 # ---------------------------------------------------------------- Go
 

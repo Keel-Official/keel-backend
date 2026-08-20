@@ -134,7 +134,7 @@ func setiapBerkasMurni(t *testing.T, fn func(t *testing.T, nama string, fset *to
 }
 
 func TestArchTanpaImportTerlarang(t *testing.T) {
-	setiapBerkasMurni(t, func(t *testing.T, nama string, fset *token.FileSet, f *ast.File) {
+	setiapBerkasMurni(t, func(t *testing.T, _ string, fset *token.FileSet, f *ast.File) {
 		for _, imp := range f.Imports {
 			path := strings.Trim(imp.Path.Value, `"`)
 			if cocokTerlarang(path) {
@@ -146,7 +146,7 @@ func TestArchTanpaImportTerlarang(t *testing.T) {
 }
 
 // periksaFloat reports every float type and float literal in one parsed file.
-func periksaFloat(t *testing.T, nama string, fset *token.FileSet, f *ast.File) {
+func periksaFloat(t *testing.T, _ string, fset *token.FileSet, f *ast.File) {
 	t.Helper()
 	ast.Inspect(f, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -236,7 +236,7 @@ func TestArchTanpaJamSistem(t *testing.T) {
 		"Since": "time.Since calls time.Now internally",
 		"Until": "time.Until calls time.Now internally",
 	}
-	setiapBerkasMurni(t, func(t *testing.T, nama string, fset *token.FileSet, f *ast.File) {
+	setiapBerkasMurni(t, func(t *testing.T, _ string, fset *token.FileSet, f *ast.File) {
 		ast.Inspect(f, func(n ast.Node) bool {
 			sel, ok := n.(*ast.SelectorExpr)
 			if !ok {
@@ -255,7 +255,7 @@ func TestArchTanpaJamSistem(t *testing.T) {
 }
 
 func TestArchTanpaGoroutine(t *testing.T) {
-	setiapBerkasMurni(t, func(t *testing.T, nama string, fset *token.FileSet, f *ast.File) {
+	setiapBerkasMurni(t, func(t *testing.T, _ string, fset *token.FileSet, f *ast.File) {
 		ast.Inspect(f, func(n ast.Node) bool {
 			switch n.(type) {
 			case *ast.GoStmt:

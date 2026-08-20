@@ -39,7 +39,13 @@ make ci          # gofmt, build, vet, architecture tests, and tests. Must be gre
 go run ./cmd/keel version
 
 make up          # start local Postgres, optional at this stage
+make migrate     # apply migrations/ in order, tracked in schema_migrations
 ```
+
+`make migrate` is the only way migrations are applied. They are deliberately not
+mounted into Postgres's `docker-entrypoint-initdb.d`, because that directory runs
+only when the data directory is empty: it applies the first file on a fresh volume
+and silently ignores every file after it.
 
 To see what is still unsettled in this repository before contributing:
 
@@ -63,7 +69,7 @@ raw `price_r` values, outside Go, as a cross-check.
 | `internal/hubble` | historical data adapter, deferred, see DEC-002 | empty |
 | `internal/store` | persistence | empty |
 | `internal/api` | read-only HTTP handlers | empty |
-| `migrations` | Postgres schema | present, and still contradicts TDD section 5 |
+| `migrations` | Postgres schema, applied with `make migrate` | present, reconciled with TDD section 5 |
 | `docs/methodology` | the methodology deliverable | present |
 | `docs/decisions` | decision records | present |
 | `docs/api` | OpenAPI contract | present |

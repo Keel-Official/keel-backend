@@ -10,7 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - keel_pgdata:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d:ro
+      # migrations/ is deliberately NOT mounted into
+      # /docker-entrypoint-initdb.d. Postgres runs that directory only when the
+      # data directory is empty, so it applies the first file on a fresh volume
+      # and silently ignores every file after it. Migrations go through
+      # `make migrate` instead, which is the only mechanism.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U keel"]
       interval: 5s

@@ -19,12 +19,22 @@ in `internal/depth`.
    `trades-implied`. The third is easy to forget, and a constraint that rejects it
    will fail on exactly the historical path the Blend case study depends on.
 
-## Settle this before writing here
+## The schema you are writing against
 
-`migrations/0001_snapshots.sql` still contradicts TDD section 5. The TDD states
-that raw snapshots are NOT stored in the database and defines the tables
-`assets`, `metrics`, and `runs`. The migration that exists does the opposite, and
-the `metrics` table that `keel serve` reads does not exist at all.
+`migrations/0001_core.sql`, reconciled with TDD section 5 on 20 August 2026. It
+holds `assets`, `metrics`, and `runs`. Raw snapshots are not in the database; the
+cross-validation recordings go to `recordings/` as gzipped JSON.
 
-Settle that first. Do not write queries on top of a schema that is still forked.
-See findings P1-1 through P1-5 in `docs/internal/audit-2026-08-20.md`.
+Two things about it that are decisions rather than gaps:
+
+- `oracle_resistance` is JSONB, not a numeric column, because `types.go` holds it
+  as a scalar while the API contract defines an object and that conflict is not
+  resolved yet. JSONB holds either shape, so the schema does not prejudge it.
+  Finding P1-6.
+- There are no columns for the two `C_max` terms. Methodology section 9 requires
+  both to be reported rather than only their minimum, but `domain.AssetRisk`
+  carries only the minimum today. Closing that needs the type to change first,
+  then a migration. Finding P1-15.
+
+Apply it with `make migrate`, never by mounting it into initdb. The reason is in
+the comment at the top of `scripts/migrate.sh`.

@@ -30,8 +30,13 @@ const MethodologyVersion = "1.0.2-draft"
 
 // ---------------------------------------------------------------- Asset
 
+// AssetType is the asset type as the Stellar XDR defines it. It is carried
+// explicitly rather than derived, because Horizon reports whatever the issuer
+// chose, and a five character code such as USTRY is alphanum12.
 type AssetType string
 
+// The three asset types Stellar has. A query using the wrong one returns an
+// empty result and no error, so these values are never guessed.
 const (
 	AssetTypeNative     AssetType = "native"
 	AssetTypeAlphanum4  AssetType = "credit_alphanum4"
@@ -50,6 +55,7 @@ type Asset struct {
 	Type   AssetType
 }
 
+// IsNative reports whether this is XLM, the only asset with no issuer.
 func (a Asset) IsNative() bool { return a.Type == AssetTypeNative }
 
 func (a Asset) String() string {
@@ -59,6 +65,8 @@ func (a Asset) String() string {
 	return a.Code + ":" + a.Issuer
 }
 
+// Equal compares all three fields. Code alone is not an identity: two different
+// issuers can each mint an asset called USDC.
 func (a Asset) Equal(o Asset) bool {
 	return a.Code == o.Code && a.Issuer == o.Issuer && a.Type == o.Type
 }
@@ -81,12 +89,19 @@ type Price struct {
 	D int64
 }
 
+// Valid reports whether this fraction is usable. A zero denominator is undefined
+// and a non-positive numerator is not a price.
 func (p Price) Valid() bool { return p.D != 0 && p.N > 0 }
 
+// Decimal divides the fraction out. Use it for reporting, not for comparison:
+// Cmp compares without dividing and loses nothing.
 func (p Price) Decimal() decimal.Decimal {
 	return decimal.NewFromInt(p.N).Div(decimal.NewFromInt(p.D))
 }
 
+// Invert flips the direction of the price exactly, by swapping numerator and
+// denominator. Inverting twice returns the original bit for bit, which a
+// reciprocal computed by division would not guarantee.
 func (p Price) Invert() Price { return Price{N: p.D, D: p.N} }
 
 // Cmp compares without dividing, so no precision is lost.
@@ -119,6 +134,8 @@ type OrderBook struct {
 	Asks []Level
 }
 
+// BestBid returns the highest bid. The boolean is false when the buy side is
+// empty, which is an ordinary state on a thin asset rather than an error.
 func (b OrderBook) BestBid() (Level, bool) {
 	if len(b.Bids) == 0 {
 		return Level{}, false
@@ -126,6 +143,8 @@ func (b OrderBook) BestBid() (Level, bool) {
 	return b.Bids[0], true
 }
 
+// BestAsk returns the lowest ask. The boolean is false when the sell side is
+// empty, which is an ordinary state on a thin asset rather than an error.
 func (b OrderBook) BestAsk() (Level, bool) {
 	if len(b.Asks) == 0 {
 		return Level{}, false
@@ -144,6 +163,9 @@ type PoolReserves struct {
 	FeeBP        int32
 }
 
+// SpotPrice is the pool's marginal price, Y over X. It returns zero when the base
+// reserve is zero, and a caller must check IsEmpty rather than reading that zero
+// as a price.
 func (p PoolReserves) SpotPrice() decimal.Decimal {
 	if p.ReserveBase.IsZero() {
 		return decimal.Zero
@@ -151,22 +173,34 @@ func (p PoolReserves) SpotPrice() decimal.Decimal {
 	return p.ReserveQuote.Div(p.ReserveBase)
 }
 
+// IsEmpty reports whether either reserve is zero. Such a pool quotes no usable
+// price and contributes no depth.
 func (p PoolReserves) IsEmpty() bool {
 	return p.ReserveBase.IsZero() || p.ReserveQuote.IsZero()
 }
 
 // ---------------------------------------------------------------- Snapshot
 
+// PriceSource records where the reference price came from. It is reported to the
+// consumer because a price taken from a pool and a price taken from a two sided
+// book carry very different confidence.
 type PriceSource string
 
+// The three price sources. none is a legitimate result rather than an error: an
+// asset with no executable price is the highest-value finding Keel can produce.
 const (
 	PriceSourceBook PriceSource = "book"
 	PriceSourcePool PriceSource = "pool"
 	PriceSourceNone PriceSource = "none"
 )
 
+// DataSource records how the underlying data was obtained. It is part of the
+// output because a number reconstructed from trades is a lower bound and must
+// never be displayed as equivalent to a measurement.
 type DataSource string
 
+// The three data sources. trades-implied always carries a warning, because a
+// trade proves the liquidity that was used, not the liquidity that was available.
 const (
 	DataSourceHorizon       DataSource = "horizon"
 	DataSourceHubble        DataSource = "hubble"
@@ -233,8 +267,14 @@ type ManipulationPoint struct {
 
 // ---------------------------------------------------------------- Flags
 
+// Flag is one risk condition. Flags are reported individually rather than only as
+// a band, so a consumer who disagrees with Keel's thresholds can still apply
+// their own policy.
 type Flag string
 
+// The eleven flags. Their definitions and thresholds live in
+// docs/methodology/09-flag-dan-band.md, which is the single source of truth for
+// them; this list is only the vocabulary.
 const (
 	FlagNoExecutablePrice          Flag = "NO_EXECUTABLE_PRICE"
 	FlagZeroDepth2Pct              Flag = "ZERO_DEPTH_2PCT"
@@ -249,8 +289,12 @@ const (
 	FlagWashTradeSuspected         Flag = "WASH_TRADE_SUSPECTED"
 )
 
+// Band is the risk level of an asset: the highest level among the triggered
+// flags. There is no weighting, no averaging, and no composite score.
 type Band string
 
+// The four bands. LOW means no flag fired, which is not the same as an asset
+// having been fully checked, so read BandConfidence alongside it.
 const (
 	BandLow      Band = "LOW"
 	BandMedium   Band = "MEDIUM"
@@ -314,6 +358,8 @@ type SupportingMetrics struct {
 	GenuineVolumeInWindow *decimal.Decimal
 }
 
+// TradeRef points at one trade on the ledger. Both fields are carried so a reader
+// can verify the claim against Horizon without a second lookup.
 type TradeRef struct {
 	LedgerSeq uint32
 	At        time.Time
@@ -365,8 +411,13 @@ type AssetRisk struct {
 	BandConfidence BandConfidence
 }
 
+// BandConfidence states whether the band rests on a complete check. It exists
+// because an asset with missing data must not look identical to an asset that was
+// examined and found safe.
 type BandConfidence string
 
+// The two confidence values. partial means at least one flag at the CRITICAL or
+// HIGH level could not be evaluated at all.
 const (
 	BandConfidenceFull    BandConfidence = "full"
 	BandConfidencePartial BandConfidence = "partial"

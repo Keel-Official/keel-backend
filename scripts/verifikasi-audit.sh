@@ -10,6 +10,19 @@
 # Both are useful. Once a finding is dealt with, its line MUST flip to NOT, and
 # that is the signal the work is done.
 #
+# NOT EVERY PROVEN LINE IS AN OPEN FINDING. Some lines are the supporting half of
+# a pair: the ones whose text starts with "although" state a fact that makes the
+# line above it a defect, and they stay PROVEN forever because the fact stays
+# true. P1-5 is the clearest case: "although the domain already has
+# DataSourceTradesImplied" was what made the old CHECK constraint a bug, and it
+# is still true now that the constraint is fixed. Read the pairs together.
+#
+# A claim must also never survive its own resolution. Where a finding is about a
+# file or directory, the check is gated on that path still existing, because
+# "imported by nobody" goes vacuously true the moment something is deleted. Where
+# a finding is about file contents, the check matches the content rather than the
+# filename, so a rename cannot make it disappear either.
+#
 # Usage: bash scripts/verifikasi-audit.sh
 # Exit code: always 0. This file reports, it does not judge.
 
@@ -46,6 +59,19 @@ adapter_unzoned()  { adapter_exists && ! grep -q "internal/adapter" CLAUDE.md; }
 # Proven while the float ban still stops at the pure packages.
 float_ban_partial(){ ! grep -q "TestArchTanpaFloatDiSeluruhRepo" internal/domain/arch_test.go; }
 metrics_missing()  { ! grep -riq "create table.*metrics" migrations/; }
+# Any migration that puts a raw snapshot blob in the database, whatever the file
+# is called. Matched on the column rather than on a filename, so renaming the
+# file cannot make the finding disappear.
+migration_stores_raw(){ grep -rqE '^\s*raw\s+JSONB' migrations/; }
+tdd_says_no_raw(){ grep -qF 'Raw snapshots are not stored in the database' docs/architecture/Keel_Technical_Design_Document.md; }
+tdd_versus_migrations(){ tdd_says_no_raw && migration_stores_raw; }
+# A source or data_source CHECK that lists horizon and hubble but not
+# trades-implied. Matched on the absent value, not on an exact string.
+check_rejects_trades_implied(){
+  grep -rqE "(data_)?source[[:space:]]+(TEXT[[:space:]]+)?(NOT NULL[[:space:]]+)?CHECK" migrations/ || return 1
+  grep -rq "trades-implied" migrations/ && return 1
+  return 0
+}
 contract_lacks()   { ! grep -qE "^ +$1:" docs/api/keel-openapi.yaml; }
 ikhtisar_missing() { [ ! -f docs/methodology/00-ikhtisar.md ]; }
 spike_one_page()   { [ "$(grep -c ledger_close_time docs/evidences/spike_results_1.txt)" = 200 ]; }
@@ -75,13 +101,10 @@ check P0-2 "internal/depth holds no .go file" depth_empty
 check P0-3 "The conformance test fails to build, so the golden fixture tests nothing" conformance_dead
 
 section "P1  Forked specification"
-check P1-1 "The TDD states raw snapshots are not stored in the DB" \
-  grep -qF 'Raw snapshots are not stored in the database' docs/architecture/Keel_Technical_Design_Document.md
-check P1-2 "yet 0001_snapshots.sql stores a raw JSONB column" \
-  grep -q "raw                 JSONB" migrations/0001_snapshots.sql
+check P1-1 "The TDD and the migrations contradict each other on storing raw snapshots" tdd_versus_migrations
+check P1-2 "A migration stores raw snapshots in a JSONB column" migration_stores_raw
 check P1-3 "and the metrics table the API reads is absent from migrations" metrics_missing
-check P1-4 "The CHECK on source accepts only horizon and hubble" \
-  grep -qF "source IN ('horizon', 'hubble')" migrations/0001_snapshots.sql
+check P1-4 "A data source CHECK rejects trades-implied" check_rejects_trades_implied
 check P1-5 "although the domain already has DataSourceTradesImplied" \
   grep -q "DataSourceTradesImplied" internal/domain/types.go
 check P1-6 "types.go holds OracleResistance as a scalar" \

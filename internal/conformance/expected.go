@@ -18,7 +18,10 @@ var (
 	// populated, so priceSource is book. The value is 53.90 for an asset
 	// actually worth about 1.06. That is not a bug, it is what a mid price does
 	// when the spread runs into the thousands of percent.
-	ExpectedP0          = dec("53.8971414")
+	ExpectedP0 = dec("53.8971414")
+
+	// ExpectedPriceSource is book, because both sides of the book are populated.
+	// How unrelated those two prices are does not change where they came from.
 	ExpectedPriceSource = domain.PriceSourceBook
 
 	// ExpectedSpreadPct is (106.7372828 - 1.057) / 53.8971414, expressed in
