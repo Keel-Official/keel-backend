@@ -73,7 +73,7 @@ func (a Asset) Equal(o Asset) bool {
 //	/trades  -> "price":   {"n": "2500000", "d": "266843207"} JSON strings
 //
 // and on /trades the direction of price depends on which asset is the base. The
-// adapter is responsible for normalising both into quote per base before
+// adapter is responsible for normalizing both into quote per base before
 // anything reaches this package. Never use Horizon's string "price" field for a
 // computation; it is already rounded.
 type Price struct {
@@ -216,7 +216,7 @@ type DepthPoint struct {
 // Reading the result:
 //
 //	small Cost, Reachable=true   cheap and achievable. MOST DANGEROUS.
-//	large Cost, Reachable=true   expensive; the market has a defence.
+//	large Cost, Reachable=true   expensive; the market has a defense.
 //	Reachable=false              the target cannot be reached at any price,
 //	                             because the book runs out before it. That is
 //	                             not bad news.

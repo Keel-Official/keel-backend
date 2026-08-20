@@ -34,7 +34,17 @@ section() { printf "\n%s%s%s\n" "$bold" "$1" "$off"; }
 no_commit()        { ! git rev-parse HEAD; }
 depth_empty()      { [ -z "$(ls internal/depth/*.go 2>/dev/null)" ]; }
 conformance_dead() { ! go vet -tags conformance ./internal/conformance/; }
-adapter_unused()   { ! grep -rq "internal/adapter" --include='*.go' .; }
+# The four internal/adapter findings are all gated on the directory still
+# existing. Without the gate they would read as PROVEN once it was deleted,
+# because "no package imports it" and "it is not in the zone map" are both
+# vacuously true of a directory that is gone. A finding must not survive its own
+# resolution.
+adapter_exists()   { [ -d internal/adapter ]; }
+adapter_uses_float(){ adapter_exists && grep -rq "float64" internal/adapter/; }
+adapter_unused()   { adapter_exists && ! grep -rq "internal/adapter" --include='*.go' .; }
+adapter_unzoned()  { adapter_exists && ! grep -q "internal/adapter" CLAUDE.md; }
+# Proven while the float ban still stops at the pure packages.
+float_ban_partial(){ ! grep -q "TestArchTanpaFloatDiSeluruhRepo" internal/domain/arch_test.go; }
 metrics_missing()  { ! grep -riq "create table.*metrics" migrations/; }
 contract_lacks()   { ! grep -qE "^ +$1:" docs/api/keel-openapi.yaml; }
 ikhtisar_missing() { [ ! -f docs/methodology/00-ikhtisar.md ]; }
@@ -91,12 +101,10 @@ check P1-14 "while DefaultParams uses a critical delta of 1.0" \
   grep -qF 'ManipulationCriticalDelta: dec("1.0")' internal/conformance/fixture.go
 check P1-15 "The methodology requires both C_max terms reported, not only the minimum" \
   grep -qF 'both have to be reported' docs/methodology/keel-methodology-core.md
-check P1-16 "internal/adapter uses float64" grep -q "float64" internal/adapter/horizon.go
-check P1-17 "arch_test scans only internal/domain and internal/depth" \
-  grep -qF 'paketMurni = []string{".", "../depth"}' internal/domain/arch_test.go
+check P1-16 "internal/adapter uses float64" adapter_uses_float
+check P1-17 "The float ban stops at the pure packages instead of covering the repository" float_ban_partial
 check P1-18 "internal/adapter is imported by no package" adapter_unused
-check P1-19 "internal/adapter does not appear in the CLAUDE.md zone map" \
-  bash -c '! grep -q "internal/adapter" CLAUDE.md'
+check P1-19 "internal/adapter does not appear in the CLAUDE.md zone map" adapter_unzoned
 check P1-20 "DEC-001 still uses the 0.50 dollar report and a ratio of 1 to 22 million" \
   grep -qF "1 to 22 million" docs/decisions/DEC-001-ustry-identity.md
 check P1-21 "although evidence in the repo shows the executing trade was 5.3475699 USDC" \

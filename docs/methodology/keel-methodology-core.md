@@ -333,9 +333,9 @@ MR(P_target, W) = MC(P_target) + V_genuine(W)
 
 where `V_genuine(W)` is the genuine trade volume within the window `W`.
 
-The second term is the invisible defence. A market with real trading forces an
+The second term is the invisible defense. A market with real trading forces an
 attacker to outweigh real volume in order to move the average. A market with no
-trading has no such defence at all.
+trading has no such defense at all.
 
 On 22 February 2026 both terms were zero or close to zero at the same time. That
 is what made the attack effectively free.

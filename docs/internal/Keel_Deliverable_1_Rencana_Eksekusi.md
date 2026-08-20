@@ -173,7 +173,7 @@ rest of the engine must not know where the snapshot came from. That is what make
 D1.5 cheap.
 
 What the Horizon client needs: retry with backoff, a request counter to protect the
-rate limit, a cache with a TTL, and price normalisation (Horizon returns prices as
+rate limit, a cache with a TTL, and price normalization (Horizon returns prices as
 the `price_r` numerator/denominator fraction; do not use the `price` string without
 checking its precision).
 
@@ -293,7 +293,7 @@ The suggested structure, one file per section under `docs/methodology/`:
 `10-keterbatasan.md` is the file with the largest effect on your credibility. The
 minimum contents: posted liquidity is not executable liquidity (an offer can be
 withdrawn instantly), path payments through intermediate assets are not counted,
-off-chain liquidity on centralised exchanges is invisible, and the safe thresholds
+off-chain liquidity on centralized exchanges is invisible, and the safe thresholds
 were chosen rather than calibrated from many incidents.
 
 An experienced reviewer will look for this section. Its absence costs more than its

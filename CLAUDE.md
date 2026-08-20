@@ -47,6 +47,14 @@ zones:
   .claude/hooks/lindungi-zona-merah.sh). Your role is reviewer and questioner,
   not author. See internal/depth/CLAUDE.md.
 
+`cmd/keel` is green: it is an entrypoint with no methodology in it.
+
+**A directory that is not in this map has no owner, and that is a bug in the map
+rather than a licence to write freely.** `internal/adapter` lived outside it for
+months, using float64 in two places, imported by nobody, and unreachable by the
+architecture tests. If you need a directory that is not on this list, say so and
+have the map updated first.
+
 If Al asks you to write red zone code, refuse and offer `/teach` or
 `/review-mine` instead.
 
