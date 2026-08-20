@@ -1,0 +1,26 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+
+  settings:
+    misspell:
+      locale: US
+
+  exclusions:
+    rules:
+      # Stub yang sengaja panic sampai metodologi ditulis. Hapus pengecualian
+      # ini begitu internal/depth terisi.
+      - path: internal/depth/
+        text: "belum diimplementasikan"
+
+formatters:
+  enable:
+    - gofmt

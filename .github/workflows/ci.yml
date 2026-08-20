@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: "1.23"
+
+jobs:
+  build:
+    name: build, vet, arch, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: gofmt
+        run: |
+          keluar=$(gofmt -l .)
+          if [ -n "$keluar" ]; then
+            echo "berkas belum diformat:"
+            echo "$keluar"
+            exit 1
+          fi
+
+      # Memakai -e karena internal/conformance/golden_test.go (build tag
+      # conformance) mengimpor internal/depth yang belum ada, dan tidy tanpa -e
+      # gagal keras karenanya.
+      #
+      # SYARAT PENGHAPUSAN -e: begitu internal/depth terisi, kembalikan ke
+      # `go mod tidy` biasa agar dependency yang menggantung ikut tertangkap.
+      - name: go mod tidy tidak mengubah apa pun
+        run: |
+          go mod tidy -e
+          git diff --exit-code go.mod go.sum
+
+      - run: go build ./...
+
+      - run: go vet ./...
+
+      # Kemurnian internal/domain dan internal/depth. Dipisah sebagai langkah
+      # sendiri supaya kegagalannya terbaca jelas di daftar langkah, bukan
+      # tenggelam di antara test lain.
+      - name: arch (kemurnian paket domain dan depth)
+        run: go test ./internal/domain/ -run TestArch -count=1 -v
+
+      - run: go test ./... -race -count=1
+
+  lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  conformance:
+    name: conformance (metodologi belum diimplementasikan)
+    runs-on: ubuntu-latest
+    # SENGAJA dibiarkan boleh gagal. Golden fixture USTRY adalah spesifikasi
+    # yang menunggu dipenuhi, dan internal/depth masih kosong, jadi job ini
+    # merah sampai metodologi selesai ditulis. Itu keadaan yang jujur.
+    #
+    # SYARAT PENGHAPUSAN: begitu internal/depth lolos fixture, hapus baris
+    # continue-on-error, hapus build tag di golden_test.go, dan lipat job ini
+    # ke dalam job build.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - run: go test -tags conformance ./internal/conformance/ -count=1 -v

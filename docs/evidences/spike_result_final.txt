@@ -1,0 +1,273 @@
+{
+  "ledger_close_time": "2026-02-14T16:38:40Z",
+  "base_amount": "0.0039954",
+  "counter_amount": "0.0100000",
+  "price": {
+    "n": "2502899",
+    "d": "1000000"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+  "base_asset_code": null,
+  "counter_asset_code": "CETES"
+}
+{
+  "ledger_close_time": "2026-02-14T16:39:42Z",
+  "base_amount": "0.0041667",
+  "counter_amount": "0.0104288",
+  "price": {
+    "n": "10000000",
+    "d": "3995367"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GBFKRGJYZXLTDEI36ZCQEIM225NMOCR2VDBOIHJTXJ54FEFFVL2FKALE",
+  "base_asset_code": null,
+  "counter_asset_code": "CETES"
+}
+{
+  "ledger_close_time": "2026-02-14T16:42:45Z",
+  "base_amount": "0.2100000",
+  "counter_amount": "0.0100000",
+  "price": {
+    "n": "1",
+    "d": "21"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GBHAX4JGYQMS2USR6JWQXHCX7DQ437ACD4ZLYGWDV7NYQGKN6V7PF57F",
+  "base_asset_code": null,
+  "counter_asset_code": "TESOURO"
+}
+{
+  "ledger_close_time": "2026-02-14T16:47:53Z",
+  "base_amount": "0.1000000",
+  "counter_amount": "0.5824334",
+  "price": {
+    "n": "58243333",
+    "d": "10000000"
+  },
+  "base_account": "GDGW6W4ZK5JDHZIN3RAYI3MJVPHFHOGENL3TP2AGX7LO6LIH6CI7PYNF",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "USDC",
+  "counter_asset_code": null
+}
+{
+  "ledger_close_time": "2026-02-14T16:51:36Z",
+  "base_amount": "0.0223596",
+  "counter_amount": "0.0999997",
+  "price": {
+    "n": "1324048753",
+    "d": "296052762"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "TESOURO"
+}
+{
+  "ledger_close_time": "2026-02-20T00:01:26Z",
+  "base_amount": "0.0036966",
+  "counter_amount": "0.0164676",
+  "price": {
+    "n": "2034940069",
+    "d": "456795677"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "TESOURO"
+}
+{
+  "ledger_close_time": "2026-02-20T00:11:28Z",
+  "base_amount": "0.0016227",
+  "counter_amount": "0.0015334",
+  "price": {
+    "n": "740597951",
+    "d": "783709625"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "USTRY"
+}
+{
+  "ledger_close_time": "2026-02-20T13:32:59Z",
+  "base_amount": "0.0005227",
+  "counter_amount": "0.0001000",
+  "price": {
+    "n": "10000000",
+    "d": "52265991"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GAMLVXKVURRK2ZGWHCDVUSEVFGU27IGTASEH7KAH2Z2HPIXHJNSTADOK",
+  "base_asset_code": null,
+  "counter_asset_code": "XCHF"
+}
+{
+  "ledger_close_time": "2026-02-20T13:47:30Z",
+  "base_amount": "0.0000009",
+  "counter_amount": "0.0000008",
+  "price": {
+    "n": "8881393",
+    "d": "10000000"
+  },
+  "base_account": "GBPSLPV4FH3WRW7N7POM4LC3LVFF25OKMNQF34BTD6P4QHQMHAIJ32IE",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "EURC",
+  "counter_asset_code": "USDC"
+}
+{
+  "ledger_close_time": "2026-02-20T13:51:28Z",
+  "base_amount": "0.0000009",
+  "counter_amount": "0.0000008",
+  "price": {
+    "n": "8881393",
+    "d": "10000000"
+  },
+  "base_account": "GBPSLPV4FH3WRW7N7POM4LC3LVFF25OKMNQF34BTD6P4QHQMHAIJ32IE",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "EURC",
+  "counter_asset_code": "USDC"
+}
+{
+  "ledger_close_time": "2026-02-20T13:56:19Z",
+  "base_amount": "0.0099998",
+  "counter_amount": "0.0088813",
+  "price": {
+    "n": "8881393",
+    "d": "10000000"
+  },
+  "base_account": "GBPSLPV4FH3WRW7N7POM4LC3LVFF25OKMNQF34BTD6P4QHQMHAIJ32IE",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "EURC",
+  "counter_asset_code": "USDC"
+}
+{
+  "ledger_close_time": "2026-02-20T17:00:12Z",
+  "base_amount": "2.2104252",
+  "counter_amount": "2.0887078",
+  "price": {
+    "n": "1538347033",
+    "d": "1627992682"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "USTRY"
+}
+{
+  "ledger_close_time": "2026-02-20T17:04:19Z",
+  "base_amount": "9.5244661",
+  "counter_amount": "9.0000000",
+  "price": {
+    "n": "1538347033",
+    "d": "1627992682"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "USTRY"
+}
+{
+  "ledger_close_time": "2026-02-20T18:31:49Z",
+  "base_amount": "0.0997906",
+  "counter_amount": "0.0942525",
+  "price": {
+    "n": "161013937",
+    "d": "170474798"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "USTRY"
+}
+{
+  "ledger_close_time": "2026-02-21T05:08:57Z",
+  "base_amount": "0.0090999",
+  "counter_amount": "0.0099998",
+  "price": {
+    "n": "10000000",
+    "d": "9099999"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GBMHPHMZKOE3UXKQRXDCR5QPKNIBH2XJM6NHN3RURFYGLIGAZONCQBM2",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "XCHF"
+}
+{
+  "ledger_close_time": "2026-02-21T23:41:04Z",
+  "base_amount": "0.0038982",
+  "counter_amount": "0.0100990",
+  "price": {
+    "n": "10000000",
+    "d": "3860001"
+  },
+  "base_account": "GBMHPHMZKOE3UXKQRXDCR5QPKNIBH2XJM6NHN3RURFYGLIGAZONCQBM2",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "XCHF"
+}
+{
+  "ledger_close_time": "2026-02-21T23:42:24Z",
+  "base_amount": "0.0000072",
+  "counter_amount": "0.0000079",
+  "price": {
+    "n": "10000000",
+    "d": "9099999"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GBMHPHMZKOE3UXKQRXDCR5QPKNIBH2XJM6NHN3RURFYGLIGAZONCQBM2",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "XCHF"
+}
+{
+  "ledger_close_time": "2026-02-21T23:46:56Z",
+  "base_amount": "0.0090999",
+  "counter_amount": "0.0099998",
+  "price": {
+    "n": "10000000",
+    "d": "9099999"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GBMHPHMZKOE3UXKQRXDCR5QPKNIBH2XJM6NHN3RURFYGLIGAZONCQBM2",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "XCHF"
+}
+{
+  "ledger_close_time": "2026-02-21T23:47:19Z",
+  "base_amount": "0.0000027",
+  "counter_amount": "0.0000070",
+  "price": {
+    "n": "10000000",
+    "d": "3860001"
+  },
+  "base_account": "GBMHPHMZKOE3UXKQRXDCR5QPKNIBH2XJM6NHN3RURFYGLIGAZONCQBM2",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "XCHF"
+}
+{
+  "ledger_close_time": "2026-02-22T00:10:21Z",
+  "base_amount": "5.3475699",
+  "counter_amount": "0.0501003",
+  "price": {
+    "n": "2500000",
+    "d": "266843207"
+  },
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "USTRY"
+}
+{
+  "ledger_close_time": "2026-02-22T00:10:57Z",
+  "base_amount": "0.0000084",
+  "counter_amount": "0.0000080",
+  "price": {
+    "n": "1000",
+    "d": "1057"
+  },
+  "base_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_asset_code": "USDC",
+  "counter_asset_code": "USTRY"
+}

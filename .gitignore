@@ -1,0 +1,18 @@
+# Binaries
+# Jangkar / wajib. Tanpa itu pola ini juga mencocokkan direktori cmd/keel,
+# sehingga entrypoint satu-satunya proyek ini hilang dari repo tanpa peringatan.
+/bin/
+/keel
+
+# Env
+.env
+.env.*
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# Spike sekali pakai
+/scripts/spike/out/
+
+# OS
+.DS_Store

@@ -1,0 +1,2041 @@
+# Konfirmasi ledger 61340272 memang 22 Februari 2026
+{
+  "sequence": 61340272,
+  "closed_at": "2026-02-22T00:11:16Z"
+}
+
+# Seluruh riwayat trade USTRY/USDC. Perhatikan credit_alphanum12
+{
+  "ledger_close_time": "2026-08-19T20:21:31Z",
+  "base_amount": "0.0294625",
+  "counter_amount": "0.0316082",
+  "price": {
+    "n": "927703793",
+    "d": "864729730"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:21Z",
+  "base_amount": "0.0148813",
+  "counter_amount": "0.0159651",
+  "price": {
+    "n": "927703793",
+    "d": "864729730"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:21Z",
+  "base_amount": "0.0039605",
+  "counter_amount": "0.0042468",
+  "price": {
+    "n": "255651681",
+    "d": "238416802"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:21Z",
+  "base_amount": "0.0039825",
+  "counter_amount": "0.0042703",
+  "price": {
+    "n": "255651681",
+    "d": "238416802"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:15Z",
+  "base_amount": "0.0040064",
+  "counter_amount": "0.0042960",
+  "price": {
+    "n": "255651681",
+    "d": "238416802"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:15Z",
+  "base_amount": "0.0040288",
+  "counter_amount": "0.0043200",
+  "price": {
+    "n": "255651681",
+    "d": "238416802"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:09Z",
+  "base_amount": "0.0040531",
+  "counter_amount": "0.0043460",
+  "price": {
+    "n": "255651681",
+    "d": "238416802"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T20:18:09Z",
+  "base_amount": "0.0040759",
+  "counter_amount": "0.0043705",
+  "price": {
+    "n": "255651681",
+    "d": "238416802"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T20:15:07Z",
+  "base_amount": "0.1173120",
+  "counter_amount": "0.1258553",
+  "price": {
+    "n": "927703793",
+    "d": "864729730"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:14:33Z",
+  "base_amount": "0.0074495",
+  "counter_amount": "0.0079921",
+  "price": {
+    "n": "927703793",
+    "d": "864729730"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:14:16Z",
+  "base_amount": "0.0147029",
+  "counter_amount": "0.0157737",
+  "price": {
+    "n": "927703793",
+    "d": "864729730"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:05:53Z",
+  "base_amount": "0.1184705",
+  "counter_amount": "0.1270971",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:04:11Z",
+  "base_amount": "0.0381717",
+  "counter_amount": "0.0409513",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:03:03Z",
+  "base_amount": "0.1174039",
+  "counter_amount": "0.1259528",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:01:45Z",
+  "base_amount": "0.0247431",
+  "counter_amount": "0.0265448",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T20:01:45Z",
+  "base_amount": "0.0096612",
+  "counter_amount": "0.0103647",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:59:06Z",
+  "base_amount": "0.0231734",
+  "counter_amount": "0.0248608",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:59:06Z",
+  "base_amount": "0.0097317",
+  "counter_amount": "0.0104404",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:56:53Z",
+  "base_amount": "0.0098141",
+  "counter_amount": "0.0105288",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:07:40Z",
+  "base_amount": "16.0357731",
+  "counter_amount": "17.2034362",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:07:40Z",
+  "base_amount": "8.9258686",
+  "counter_amount": "9.5758068",
+  "price": {
+    "n": "107281513",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:03:08Z",
+  "base_amount": "0.0047763",
+  "counter_amount": "0.0051241",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:01:20Z",
+  "base_amount": "0.0042504",
+  "counter_amount": "0.0045600",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:01:15Z",
+  "base_amount": "0.0042504",
+  "counter_amount": "0.0045600",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T19:01:09Z",
+  "base_amount": "0.0042505",
+  "counter_amount": "0.0045601",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:58:50Z",
+  "base_amount": "0.0042077",
+  "counter_amount": "0.0045118",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T18:58:44Z",
+  "base_amount": "0.0042324",
+  "counter_amount": "0.0045383",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T18:58:39Z",
+  "base_amount": "0.0042563",
+  "counter_amount": "0.0045639",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T18:58:33Z",
+  "base_amount": "0.0042804",
+  "counter_amount": "0.0045897",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T18:53:59Z",
+  "base_amount": "0.0036824",
+  "counter_amount": "0.0039506",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:42:57Z",
+  "base_amount": "0.0041402",
+  "counter_amount": "0.0044417",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:21:44Z",
+  "base_amount": "0.0322319",
+  "counter_amount": "0.0345790",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:21:44Z",
+  "base_amount": "0.0602637",
+  "counter_amount": "0.0646519",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:21:10Z",
+  "base_amount": "0.0212734",
+  "counter_amount": "0.0228225",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:20:59Z",
+  "base_amount": "0.0108669",
+  "counter_amount": "0.0116582",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:20:24Z",
+  "base_amount": "0.3686640",
+  "counter_amount": "0.3955087",
+  "price": {
+    "n": "1708025997",
+    "d": "1592095829"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:20:24Z",
+  "base_amount": "0.0039983",
+  "counter_amount": "0.0042872",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T18:20:18Z",
+  "base_amount": "0.0040202",
+  "counter_amount": "0.0043107",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T18:20:12Z",
+  "base_amount": "0.0040869",
+  "counter_amount": "0.0043823",
+  "price": {
+    "n": "1552538457",
+    "d": "1447885492"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T18:19:56Z",
+  "base_amount": "0.0471698",
+  "counter_amount": "0.0506046",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:19:56Z",
+  "base_amount": "0.0235849",
+  "counter_amount": "0.0253023",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:18:41Z",
+  "base_amount": "0.0284302",
+  "counter_amount": "0.0305004",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:18:19Z",
+  "base_amount": "0.0040848",
+  "counter_amount": "0.0043823",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:18:14Z",
+  "base_amount": "0.0146390",
+  "counter_amount": "0.0157050",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:18:14Z",
+  "base_amount": "0.0040849",
+  "counter_amount": "0.0043824",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:18:08Z",
+  "base_amount": "0.0040850",
+  "counter_amount": "0.0043825",
+  "price": {
+    "n": "1708026097",
+    "d": "1592095829"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T18:02:56Z",
+  "base_amount": "0.0041417",
+  "counter_amount": "0.0044522",
+  "price": {
+    "n": "490106",
+    "d": "455929"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:56:09Z",
+  "base_amount": "0.0041365",
+  "counter_amount": "0.0044377",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:52:10Z",
+  "base_amount": "0.0397809",
+  "counter_amount": "0.0426775",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:22Z",
+  "base_amount": "0.0040509",
+  "counter_amount": "0.0043436",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:22Z",
+  "base_amount": "0.0040731",
+  "counter_amount": "0.0043674",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:22Z",
+  "base_amount": "0.0042819",
+  "counter_amount": "0.0045913",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:22Z",
+  "base_amount": "0.0041171",
+  "counter_amount": "0.0044146",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:17Z",
+  "base_amount": "0.0041398",
+  "counter_amount": "0.0044390",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:17Z",
+  "base_amount": "0.0041060",
+  "counter_amount": "0.0044027",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:17Z",
+  "base_amount": "0.0041286",
+  "counter_amount": "0.0044270",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:17Z",
+  "base_amount": "0.0043358",
+  "counter_amount": "0.0046491",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:17Z",
+  "base_amount": "0.0446948",
+  "counter_amount": "0.0479492",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:12Z",
+  "base_amount": "0.0041266",
+  "counter_amount": "0.0044248",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:12Z",
+  "base_amount": "0.0039692",
+  "counter_amount": "0.0042560",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:12Z",
+  "base_amount": "0.0039907",
+  "counter_amount": "0.0042791",
+  "price": {
+    "n": "857821491",
+    "d": "800000000"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:12Z",
+  "base_amount": "0.0040125",
+  "counter_amount": "0.0043029",
+  "price": {
+    "n": "43029",
+    "d": "40125"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:06Z",
+  "base_amount": "0.0040344",
+  "counter_amount": "0.0043286",
+  "price": {
+    "n": "43286",
+    "d": "40344"
+  },
+  "base_account": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:06Z",
+  "base_amount": "0.0040564",
+  "counter_amount": "0.0043545",
+  "price": {
+    "n": "43545",
+    "d": "40564"
+  },
+  "base_account": "GADUP4XUZ5PUVDRX6DXZRTSVIIZW3CXOQPVGARBKBUVMPZNKG7DE4W4M"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:06Z",
+  "base_amount": "0.0040787",
+  "counter_amount": "0.0043808",
+  "price": {
+    "n": "43808",
+    "d": "40787"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T17:41:06Z",
+  "base_amount": "0.0042778",
+  "counter_amount": "0.0045971",
+  "price": {
+    "n": "45971",
+    "d": "42778"
+  },
+  "base_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV"
+}
+{
+  "ledger_close_time": "2026-08-19T17:29:55Z",
+  "base_amount": "0.0111168",
+  "counter_amount": "0.0119263",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:26:49Z",
+  "base_amount": "0.0040027",
+  "counter_amount": "0.0043038",
+  "price": {
+    "n": "43038",
+    "d": "40027"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:26:43Z",
+  "base_amount": "0.0040450",
+  "counter_amount": "0.0043515",
+  "price": {
+    "n": "43515",
+    "d": "40450"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:26:37Z",
+  "base_amount": "0.0040827",
+  "counter_amount": "0.0043944",
+  "price": {
+    "n": "43944",
+    "d": "40827"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:26:32Z",
+  "base_amount": "0.0041262",
+  "counter_amount": "0.0044436",
+  "price": {
+    "n": "44436",
+    "d": "41262"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:16:26Z",
+  "base_amount": "0.0223474",
+  "counter_amount": "0.0239746",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:16:09Z",
+  "base_amount": "0.0112305",
+  "counter_amount": "0.0120483",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:16:09Z",
+  "base_amount": "0.0112305",
+  "counter_amount": "0.0120483",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:16:03Z",
+  "base_amount": "0.0111395",
+  "counter_amount": "0.0119507",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:15:58Z",
+  "base_amount": "0.0222791",
+  "counter_amount": "0.0239014",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:14:45Z",
+  "base_amount": "0.0062949",
+  "counter_amount": "0.0067837",
+  "price": {
+    "n": "67837",
+    "d": "62949"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:14:40Z",
+  "base_amount": "0.0062873",
+  "counter_amount": "0.0067811",
+  "price": {
+    "n": "67811",
+    "d": "62873"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:14:34Z",
+  "base_amount": "0.0062798",
+  "counter_amount": "0.0067785",
+  "price": {
+    "n": "67785",
+    "d": "62798"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:14:29Z",
+  "base_amount": "0.0062724",
+  "counter_amount": "0.0067760",
+  "price": {
+    "n": "67760",
+    "d": "62724"
+  },
+  "base_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO"
+}
+{
+  "ledger_close_time": "2026-08-19T17:14:23Z",
+  "base_amount": "0.0036439",
+  "counter_amount": "0.0039093",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:32Z",
+  "base_amount": "0.0110371",
+  "counter_amount": "0.0118408",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:26Z",
+  "base_amount": "0.0016018",
+  "counter_amount": "0.0017185",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:21Z",
+  "base_amount": "0.0112534",
+  "counter_amount": "0.0120728",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:15Z",
+  "base_amount": "0.0073003",
+  "counter_amount": "0.0078934",
+  "price": {
+    "n": "78934",
+    "d": "73003"
+  },
+  "base_account": "GCXV6EEBS7ICNTDTPWN2NMCTAG3LTXEHN4PLHUS6MFUKCB4BKAIOZLNX"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:15Z",
+  "base_amount": "0.0145979",
+  "counter_amount": "0.0156609",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:09Z",
+  "base_amount": "0.0111395",
+  "counter_amount": "0.0119507",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:13:04Z",
+  "base_amount": "0.0110485",
+  "counter_amount": "0.0118530",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:58Z",
+  "base_amount": "0.0111282",
+  "counter_amount": "0.0119385",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:52Z",
+  "base_amount": "0.0224384",
+  "counter_amount": "0.0240723",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:47Z",
+  "base_amount": "0.0221881",
+  "counter_amount": "0.0238037",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:24Z",
+  "base_amount": "0.0221426",
+  "counter_amount": "0.0237549",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:08Z",
+  "base_amount": "0.0220743",
+  "counter_amount": "0.0236816",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:08Z",
+  "base_amount": "0.0331820",
+  "counter_amount": "0.0355981",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:08Z",
+  "base_amount": "0.0551154",
+  "counter_amount": "0.0591285",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:12:08Z",
+  "base_amount": "0.0320077",
+  "counter_amount": "0.0343383",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:57Z",
+  "base_amount": "0.0450589",
+  "counter_amount": "0.0483398",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:57Z",
+  "base_amount": "0.0450589",
+  "counter_amount": "0.0483398",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:51Z",
+  "base_amount": "0.1771409",
+  "counter_amount": "0.1900391",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:51Z",
+  "base_amount": "0.0294016",
+  "counter_amount": "0.0315425",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:51Z",
+  "base_amount": "0.0442852",
+  "counter_amount": "0.0475098",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:45Z",
+  "base_amount": "0.0887524",
+  "counter_amount": "0.0952148",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:45Z",
+  "base_amount": "0.0003856",
+  "counter_amount": "0.0004137",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:45Z",
+  "base_amount": "0.0295343",
+  "counter_amount": "0.0316848",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.0518050",
+  "counter_amount": "0.0555771",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.0003856",
+  "counter_amount": "0.0004137",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.0882973",
+  "counter_amount": "0.0947266",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.1179267",
+  "counter_amount": "0.1265134",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.0041132",
+  "counter_amount": "0.0044127",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.2359079",
+  "counter_amount": "0.2530851",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:39Z",
+  "base_amount": "0.3531893",
+  "counter_amount": "0.3789062",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.0625479",
+  "counter_amount": "0.0671023",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.0564451",
+  "counter_amount": "0.0605550",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.0041132",
+  "counter_amount": "0.0044128",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.1172287",
+  "counter_amount": "0.1257645",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.0003856",
+  "counter_amount": "0.0004137",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.1172645",
+  "counter_amount": "0.1258029",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:34Z",
+  "base_amount": "0.0586322",
+  "counter_amount": "0.0629014",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:28Z",
+  "base_amount": "0.0041133",
+  "counter_amount": "0.0044129",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:28Z",
+  "base_amount": "0.0003856",
+  "counter_amount": "0.0004137",
+  "price": {
+    "n": "980181207",
+    "d": "913655206"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:28Z",
+  "base_amount": "0.7071070",
+  "counter_amount": "0.7585937",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:28Z",
+  "base_amount": "0.1767767",
+  "counter_amount": "0.1896484",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:22Z",
+  "base_amount": "0.0037192",
+  "counter_amount": "0.0040242",
+  "price": {
+    "n": "40242",
+    "d": "37192"
+  },
+  "base_account": "GC5HRRQSOD6SFDMMCZZDVEOIC7AJYWX756MWIKQZU5HJ2S2SKBRGDODM"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:22Z",
+  "base_amount": "0.0080193",
+  "counter_amount": "0.0086837",
+  "price": {
+    "n": "86837",
+    "d": "80193"
+  },
+  "base_account": "GC5HRRQSOD6SFDMMCZZDVEOIC7AJYWX756MWIKQZU5HJ2S2SKBRGDODM"
+}
+{
+  "ledger_close_time": "2026-08-19T17:11:22Z",
+  "base_amount": "0.0041134",
+  "counter_amount": "0.0044130",
+  "price": {
+    "n": "980181307",
+    "d": "913655206"
+  },
+  "base_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+}
+{
+  "ledger_close_time": "2026-08-19T17:00:57Z",
+  "base_amount": "0.0531707",
+  "counter_amount": "0.0579561",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:59:30Z",
+  "base_amount": "0.0117041",
+  "counter_amount": "0.0127575",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:59:19Z",
+  "base_amount": "0.0137401",
+  "counter_amount": "0.0149768",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:58:40Z",
+  "base_amount": "0.0136909",
+  "counter_amount": "0.0149231",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:56:36Z",
+  "base_amount": "0.0055479",
+  "counter_amount": "0.0060448",
+  "price": {
+    "n": "60448",
+    "d": "55479"
+  },
+  "base_account": null
+}
+{
+  "ledger_close_time": "2026-08-19T16:56:36Z",
+  "base_amount": "0.0555279",
+  "counter_amount": "0.0605255",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:55:16Z",
+  "base_amount": "0.0584233",
+  "counter_amount": "0.0636814",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:38:48Z",
+  "base_amount": "0.0585529",
+  "counter_amount": "0.0638227",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T16:28:19Z",
+  "base_amount": "0.0040240",
+  "counter_amount": "0.0043817",
+  "price": {
+    "n": "43817",
+    "d": "40240"
+  },
+  "base_account": null
+}
+{
+  "ledger_close_time": "2026-08-19T16:23:35Z",
+  "base_amount": "0.0040290",
+  "counter_amount": "0.0043607",
+  "price": {
+    "n": "43607",
+    "d": "40290"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T16:23:30Z",
+  "base_amount": "0.0040507",
+  "counter_amount": "0.0043865",
+  "price": {
+    "n": "43865",
+    "d": "40507"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T16:23:24Z",
+  "base_amount": "0.0040726",
+  "counter_amount": "0.0044126",
+  "price": {
+    "n": "44126",
+    "d": "40726"
+  },
+  "base_account": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A"
+}
+{
+  "ledger_close_time": "2026-08-19T15:50:36Z",
+  "base_amount": "0.0109751",
+  "counter_amount": "0.0119629",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:49:06Z",
+  "base_amount": "0.0109527",
+  "counter_amount": "0.0119385",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:44:39Z",
+  "base_amount": "0.0209132",
+  "counter_amount": "0.0227954",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:44:39Z",
+  "base_amount": "0.0084604",
+  "counter_amount": "0.0092218",
+  "price": {
+    "n": "108999847",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:43:05Z",
+  "base_amount": "0.0667048",
+  "counter_amount": "0.0727082",
+  "price": {
+    "n": "108999847",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:43:05Z",
+  "base_amount": "0.0066704",
+  "counter_amount": "0.0072708",
+  "price": {
+    "n": "108999847",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:43:05Z",
+  "base_amount": "0.0210939",
+  "counter_amount": "0.0229924",
+  "price": {
+    "n": "108999847",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:43:05Z",
+  "base_amount": "0.0293735",
+  "counter_amount": "0.0320171",
+  "price": {
+    "n": "108999847",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:40:08Z",
+  "base_amount": "0.1322031",
+  "counter_amount": "0.1441012",
+  "price": {
+    "n": "108999847",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:35:53Z",
+  "base_amount": "0.1170940",
+  "counter_amount": "0.1276324",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:35:47Z",
+  "base_amount": "0.0579426",
+  "counter_amount": "0.0631575",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:35:12Z",
+  "base_amount": "0.0896515",
+  "counter_amount": "0.0977202",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:35:12Z",
+  "base_amount": "0.0219987",
+  "counter_amount": "0.0239786",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:35:12Z",
+  "base_amount": "0.0004142",
+  "counter_amount": "0.0004514",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:34:20Z",
+  "base_amount": "0.0582876",
+  "counter_amount": "0.0635335",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:34:14Z",
+  "base_amount": "0.0582887",
+  "counter_amount": "0.0635347",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:34:03Z",
+  "base_amount": "0.1168912",
+  "counter_amount": "0.1274114",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:33:29Z",
+  "base_amount": "0.0229351",
+  "counter_amount": "0.0249993",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:32:55Z",
+  "base_amount": "0.0117484",
+  "counter_amount": "0.0128058",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:32:55Z",
+  "base_amount": "0.0295107",
+  "counter_amount": "0.0321667",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:32:55Z",
+  "base_amount": "0.0093321",
+  "counter_amount": "0.0101720",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:32:55Z",
+  "base_amount": "0.0289470",
+  "counter_amount": "0.0315523",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:32:55Z",
+  "base_amount": "0.0147904",
+  "counter_amount": "0.0161216",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:32:15Z",
+  "base_amount": "0.0290018",
+  "counter_amount": "0.0316120",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:31:35Z",
+  "base_amount": "0.0323282",
+  "counter_amount": "0.0352378",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:31:12Z",
+  "base_amount": "0.0497495",
+  "counter_amount": "0.0542270",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:31:12Z",
+  "base_amount": "0.0498541",
+  "counter_amount": "0.0543409",
+  "price": {
+    "n": "108999877",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:31:12Z",
+  "base_amount": "0.0498017",
+  "counter_amount": "0.0542839",
+  "price": {
+    "n": "108999877",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:42Z",
+  "base_amount": "0.2337722",
+  "counter_amount": "0.2548118",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:31Z",
+  "base_amount": "0.0580392",
+  "counter_amount": "0.0632628",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:14Z",
+  "base_amount": "0.1094171",
+  "counter_amount": "0.1192647",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:08Z",
+  "base_amount": "0.0273351",
+  "counter_amount": "0.0297953",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:02Z",
+  "base_amount": "0.0316716",
+  "counter_amount": "0.0345221",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:02Z",
+  "base_amount": "0.1057558",
+  "counter_amount": "0.1152739",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:02Z",
+  "base_amount": "0.0000609",
+  "counter_amount": "0.0000664",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:30:02Z",
+  "base_amount": "0.1058558",
+  "counter_amount": "0.1153826",
+  "price": {
+    "n": "108999879",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:57Z",
+  "base_amount": "0.1092631",
+  "counter_amount": "0.1190967",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:57Z",
+  "base_amount": "0.0290996",
+  "counter_amount": "0.0317186",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:40Z",
+  "base_amount": "0.0118463",
+  "counter_amount": "0.0129125",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:40Z",
+  "base_amount": "0.1057478",
+  "counter_amount": "0.1152649",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:34Z",
+  "base_amount": "0.1056479",
+  "counter_amount": "0.1151562",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:11Z",
+  "base_amount": "0.0329846",
+  "counter_amount": "0.0359533",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:11Z",
+  "base_amount": "0.0197020",
+  "counter_amount": "0.0214752",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:11Z",
+  "base_amount": "0.0001122",
+  "counter_amount": "0.0001222",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:11Z",
+  "base_amount": "0.1168127",
+  "counter_amount": "0.1273258",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0311672",
+  "counter_amount": "0.0339723",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0311311",
+  "counter_amount": "0.0339329",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0128345",
+  "counter_amount": "0.0139897",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0194275",
+  "counter_amount": "0.0211759",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0452168",
+  "counter_amount": "0.0492863",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0341813",
+  "counter_amount": "0.0372576",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0341350",
+  "counter_amount": "0.0372072",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.1179813",
+  "counter_amount": "0.1285995",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0142937",
+  "counter_amount": "0.0155802",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:29:05Z",
+  "base_amount": "0.0260353",
+  "counter_amount": "0.0283785",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:59Z",
+  "base_amount": "0.0119599",
+  "counter_amount": "0.0130363",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:59Z",
+  "base_amount": "0.0399402",
+  "counter_amount": "0.0435348",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:59Z",
+  "base_amount": "0.3031311",
+  "counter_amount": "0.3304126",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:59Z",
+  "base_amount": "0.2337372",
+  "counter_amount": "0.2547734",
+  "price": {
+    "n": "108999900",
+    "d": "100000000"
+  },
+  "base_account": "GDFPIIQJMXMWXGULQSLVEVY5HZUDHROXLATFG4XBS7PJCJT6JXAIDFCN"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:59Z",
+  "base_amount": "0.0444277",
+  "counter_amount": "0.0484262",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:54Z",
+  "base_amount": "0.0460688",
+  "counter_amount": "0.0502150",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:54Z",
+  "base_amount": "0.0446853",
+  "counter_amount": "0.0487070",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+{
+  "ledger_close_time": "2026-08-19T15:28:54Z",
+  "base_amount": "0.0521497",
+  "counter_amount": "0.0568432",
+  "price": {
+    "n": "109",
+    "d": "100"
+  },
+  "base_account": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH"
+}
+
+# Offer yang masih terbuka di pasar itu hari ini[
+  {
+    "_links": {
+      "self": {
+        "href": "https://horizon.stellar.org/offers/1824788980"
+      },
+      "offer_maker": {
+        "href": "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB"
+      }
+    },
+    "id": "1824788980",
+    "paging_token": "1824788980",
+    "seller": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+    "selling": {
+      "asset_type": "credit_alphanum12",
+      "asset_code": "USTRY",
+      "asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC"
+    },
+    "buying": {
+      "asset_type": "credit_alphanum4",
+      "asset_code": "USDC",
+      "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    },
+    "amount": "1.1684309",
+    "price_r": {
+      "n": 266843207,
+      "d": 2500000
+    },
+    "price": "106.7372828",
+    "last_modified_ledger": 61340263,
+    "last_modified_time": "2026-02-22T00:10:21Z"
+  }
+]
