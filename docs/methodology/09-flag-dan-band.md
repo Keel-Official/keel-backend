@@ -1,146 +1,151 @@
-# Keel: Flag dan Band Risiko
+# Keel: Risk Flags and Bands
 
-**Versi metodologi:** 1.0.2-draft
-**Menggantikan:** PRD bagian 5.1 dan 5.2, yang sekarang cukup menunjuk ke dokumen ini
-**Diimplementasikan di:** `internal/domain/flags.go`
+**Methodology version:** 1.0.2-draft
+**Supersedes:** PRD sections 5.1 and 5.2, which now simply point here
+**Implemented in:** `internal/depth`
 
-Sebelumnya definisi flag berada di PRD sekaligus disinggung di metodologi. Dua tempat
-untuk satu definisi menjamin keduanya menyimpang. Mulai versi ini, dokumen inilah
-satu-satunya sumber kebenaran, dan PRD hanya menunjuk ke sini.
-
----
-
-## 1. Kenapa aturan, bukan skor berbobot
-
-Keel tidak menerbitkan skor 0 sampai 100 hasil pembobotan.
-
-Skor berbobot mengharuskan pembuatnya membenarkan setiap bobot, dan tidak ada dasar
-empiris untuk membenarkannya dari satu insiden. Klasifikasi berbasis aturan hanya
-mengharuskan pembenaran atas ambangnya, dan setiap flag dapat diperiksa terpisah oleh
-konsumen yang punya kebijakan sendiri.
-
-Karena itu **flag selalu dilaporkan individual di API**, bukan hanya band hasil
-turunannya. Konsumen yang tidak setuju dengan ambang Keel tetap dapat memakai flag
-mentahnya.
+Flag definitions used to live in the PRD while also being touched on in the
+methodology. Two homes for one definition guarantee that both drift. From this
+version on, this document is the single source of truth and the PRD only points
+here.
 
 ---
 
-## 2. Tiga keadaan setiap flag
+## 1. Why rules and not a weighted score
 
-Ini perbaikan penting pada versi 1.0.2. Sebelumnya flag hanya punya dua keadaan, dan
-itu membuat aset dengan data tidak lengkap tampak lebih aman daripada seharusnya.
+Keel does not publish a weighted 0 to 100 score.
 
-| Keadaan | Arti |
-|---|---|
-| `triggered` | kondisi terpenuhi |
-| `clear` | kondisi diperiksa dan tidak terpenuhi |
-| `unevaluated` | data yang dibutuhkan tidak tersedia, kondisi tidak dapat diperiksa |
+A weighted score obliges its author to justify every weight, and there is no
+empirical basis for justifying weights from a single incident. Rule based
+classification only obliges a justification of the thresholds, and every flag can
+be inspected separately by a consumer with their own policy.
 
-`unevaluated` **bukan** sinonim `clear`. Aset tanpa data trustline tidak boleh terlihat
-sama dengan aset yang distribusi holder-nya sudah diperiksa dan aman.
-
-Konsekuensi pada keluaran:
-
-- `flags` memuat flag yang `triggered`
-- `unevaluatedFlags` memuat flag yang tidak dapat diperiksa
-- `bandConfidence` bernilai `partial` jika ada flag bertingkat CRITICAL atau HIGH yang
-  `unevaluated`, dan `full` jika seluruh flag pada kedua tingkat itu dapat diperiksa
-
-Dashboard wajib menampilkan `bandConfidence`. Band `LOW` dengan confidence `partial`
-adalah pernyataan yang jauh lebih lemah daripada `LOW` dengan confidence `full`, dan
-perbedaan itu tidak boleh disembunyikan.
+For that reason **flags are always reported individually in the API**, not just
+the band derived from them. A consumer who disagrees with Keel's thresholds can
+still use the raw flags.
 
 ---
 
-## 3. Data yang dibutuhkan tiap flag
+## 2. The three states of every flag
 
-| Flag | Butuh |
-|---|---|
-| `NO_EXECUTABLE_PRICE` | snapshot buku dan pool |
-| `ZERO_DEPTH_2PCT` | snapshot buku dan pool |
-| `SPREAD_EXTREME` | snapshot buku |
-| `THIN_DEPTH_5PCT` | snapshot buku dan pool |
-| `MANIPULATION_CHEAP` | snapshot buku dan pool |
-| `MANIPULATION_RATIO_LOW` | snapshot dan supply beredar |
-| `NO_GENUINE_TRADE_7D` | riwayat trade |
-| `NO_GENUINE_TRADE_30D` | riwayat trade |
-| `WASH_TRADE_SUSPECTED` | riwayat trade |
-| `HOLDER_CONCENTRATION_HIGH` | distribusi trustline |
-| `HOLDER_CONCENTRATION_EXTREME` | distribusi trustline |
+This is an important correction in version 1.0.2. Previously a flag had only two
+states, and that made an asset with incomplete data look safer than it was.
 
-Lima flag pertama dapat dievaluasi dari `Snapshot` saja. Enam sisanya membutuhkan
-masukan tambahan, dan menjadi `unevaluated` ketika masukan itu tidak ada.
+| State | Meaning |
+| --- | --- |
+| `triggered` | the condition is met |
+| `clear` | the condition was checked and is not met |
+| `unevaluated` | the data needed is unavailable, the condition could not be checked |
+
+`unevaluated` is **not** a synonym for `clear`. An asset with no trustline data
+must not look the same as an asset whose holder distribution was examined and
+found safe.
+
+Consequences in the output:
+
+- `flags` holds the flags that are `triggered`
+- `unevaluatedFlags` holds the flags that could not be checked
+- `bandConfidence` is `partial` when any flag at the CRITICAL or HIGH level is
+  `unevaluated`, and `full` when every flag at those two levels could be checked
+
+The dashboard is required to display `bandConfidence`. A `LOW` band with `partial`
+confidence is a far weaker statement than `LOW` with `full` confidence, and that
+difference must not be hidden.
 
 ---
 
-## 4. Definisi flag
+## 3. The data each flag needs
 
-Seluruh ambang mengacu pada `Thresholds` di `types.go` dan dinyatakan dalam **aset
-quote**, bukan USD.
+| Flag | Needs |
+| --- | --- |
+| `NO_EXECUTABLE_PRICE` | a book and pool snapshot |
+| `ZERO_DEPTH_2PCT` | a book and pool snapshot |
+| `SPREAD_EXTREME` | a book snapshot |
+| `THIN_DEPTH_5PCT` | a book and pool snapshot |
+| `MANIPULATION_CHEAP` | a book and pool snapshot |
+| `MANIPULATION_RATIO_LOW` | a snapshot and circulating supply |
+| `NO_GENUINE_TRADE_7D` | trade history |
+| `NO_GENUINE_TRADE_30D` | trade history |
+| `WASH_TRADE_SUSPECTED` | trade history |
+| `HOLDER_CONCENTRATION_HIGH` | trustline distribution |
+| `HOLDER_CONCENTRATION_EXTREME` | trustline distribution |
 
-### Tingkat CRITICAL
+The first five can be evaluated from a `Snapshot` alone. The other six need extra
+input and become `unevaluated` when that input is absent.
+
+---
+
+## 4. Flag definitions
+
+Every threshold refers to `Thresholds` in `types.go` and is expressed in the
+**quote asset**, not in USD.
+
+### CRITICAL level
 
 **`NO_EXECUTABLE_PRICE`**
 ```
 priceSource == none
 ```
-Tidak ada orderbook dan tidak ada pool. Aset tidak punya harga eksekutabel sama sekali.
+No orderbook and no pool. The asset has no executable price at all.
 
 **`ZERO_DEPTH_2PCT`**
 ```
-depth(0.02).BuySide == 0  ATAU  depth(0.02).SellSide == 0
+depth(0.02).BuySide == 0  OR  depth(0.02).SellSide == 0
 ```
-Salah satu sisi saja sudah cukup. Aset yang tidak bisa dijual sama berbahayanya dengan
-aset yang tidak bisa dibeli.
+One side alone is enough. An asset that cannot be sold is as dangerous as an asset
+that cannot be bought.
 
 **`MANIPULATION_CHEAP`**
 ```
-ADA delta d sehingga:
-    Reachable(d) == true  DAN  Cost(d) < Thresholds.ManipulationCheapAbsolute
+THERE EXISTS a delta d such that:
+    Reachable(d) == true  AND  Cost(d) < Thresholds.ManipulationCheapAbsolute
 ```
 
-**Syarat `Reachable == true` adalah perbaikan versi 1.0.2 dan tidak boleh dihilangkan.**
+**The `Reachable == true` requirement is the version 1.0.2 correction and must not
+be dropped.**
 
-Alasannya konkret. Pada fixture USTRY, `Cost` bernilai 130,0627093 untuk δ = 1, 10, dan
-100, tetapi ketiganya `Reachable = false` karena tidak ada ask di atas 106,7372828.
-Tanpa syarat ini, ketiga baris itu akan ikut dinilai, padahal keduanya justru
-membuktikan serangan ke harga setinggi itu **tidak mungkin**. Menandai keadaan mustahil
-sebagai "murah" adalah kebalikan dari kenyataan.
+The reason is concrete. On the USTRY fixture, `Cost` is 130.0627093 for δ = 1, 10,
+and 100, but all three are `Reachable = false` because no ask exists above
+106.7372828. Without this requirement those three rows would be assessed, when
+what they actually prove is that an attack to a price that high is **impossible**.
+Marking an impossible state as "cheap" is the opposite of the truth.
 
-Sebaliknya `Cost(δ=0.5) = 0` dengan `Reachable = true` pada fixture yang sama adalah
-kondisi paling berbahaya yang bisa ada, dan justru itulah yang harus tertangkap.
+Conversely `Cost(δ=0.5) = 0` with `Reachable = true` on the same fixture is the
+most dangerous condition that can exist, and that is precisely what must be
+caught.
 
-### Tingkat HIGH
+### HIGH level
 
 **`MANIPULATION_RATIO_LOW`**
 ```
-ADA delta d sehingga:
+THERE EXISTS a delta d such that:
     Reachable(d) == true
-    DAN  Cost(d) / nilai_supply_beredar < Thresholds.ManipulationRatioLowPct
+    AND  Cost(d) / circulating_supply_value < Thresholds.ManipulationRatioLowPct
 ```
-Syarat `Reachable` berlaku dengan alasan yang sama seperti di atas.
+The `Reachable` requirement applies for the same reason as above.
 
 **`SPREAD_EXTREME`**
 
-Keduanya dinyatakan dalam PERSEN, bukan pecahan. `spreadPct` 196,08 dibandingkan
-dengan `SpreadExtremePct` 20,0. Kalau salah satunya ditulis sebagai pecahan, flag ini
-diam-diam tidak pernah menyala dan tidak ada yang gagal.
+Both sides of this comparison are in PERCENT, not fractions. A `spreadPct` of
+196.08 is compared against a `SpreadExtremePct` of 20.0. If either one were
+written as a fraction, this flag would silently never fire and nothing would fail.
 
 ```
 spreadPct > Thresholds.SpreadExtremePct
-    dengan spreadPct = (best_ask − best_bid) / P0 × 100
+    where spreadPct = (best_ask - best_bid) / P0 × 100
 ```
-Flag baru pada versi 1.0.2. Ketika spread mencapai ratusan persen, `P0` dan seluruh
-metrik turunannya kehilangan makna. Pada fixture USTRY nilainya 196,08 persen, yang
-berarti harga acuan 53,90 untuk aset bernilai sekitar 1,06.
+A new flag in version 1.0.2. When the spread reaches hundreds of percent, `P0` and
+every metric derived from it lose their meaning. On the USTRY fixture the value is
+196.08 percent, which means a reference price of 53.90 for an asset worth about
+1.06.
 
-Flag lain memang tetap menyala pada kasus itu, tetapi itu kebetulan dan bukan desain.
-`spreadPct` juga dilaporkan sebagai angka, bukan hanya status terpicu, karena
-besarannya informatif.
+Other flags do also fire on that case, but that is a coincidence and not the
+design. `spreadPct` is also reported as a number rather than only as a triggered
+status, because its magnitude is informative.
 
 **`NO_GENUINE_TRADE_30D`**
 ```
-tidak ada trade asli dalam Thresholds.GenuineTradeStaleDays hari terakhir
+no genuine trade within the last Thresholds.GenuineTradeStaleDays days
 ```
 
 **`HOLDER_CONCENTRATION_EXTREME`**
@@ -148,7 +153,7 @@ tidak ada trade asli dalam Thresholds.GenuineTradeStaleDays hari terakhir
 holderTop1Pct > Thresholds.HolderTop1ExtremePct
 ```
 
-### Tingkat MEDIUM
+### MEDIUM level
 
 **`THIN_DEPTH_5PCT`**
 ```
@@ -157,7 +162,7 @@ min(depth(0.05).BuySide, depth(0.05).SellSide) < Thresholds.ThinDepth5PctAbsolut
 
 **`NO_GENUINE_TRADE_7D`**
 ```
-tidak ada trade asli dalam Thresholds.GenuineTradeWarnDays hari terakhir
+no genuine trade within the last Thresholds.GenuineTradeWarnDays days
 ```
 
 **`HOLDER_CONCENTRATION_HIGH`**
@@ -172,111 +177,114 @@ tradesExcludedPct > Thresholds.WashTradeSuspectedPct
 
 ---
 
-## 5. Penurunan band
+## 5. Deriving the band
 
-Band adalah tingkat tertinggi di antara flag yang `triggered`. Tidak ada pembobotan,
-tidak ada rata-rata, tidak ada penjumlahan.
+The band is the highest level among the `triggered` flags. No weighting, no
+averaging, no summing.
 
-| Band | Terpicu bila ada flag tingkat |
-|---|---|
+| Band | Triggered when a flag exists at level |
+| --- | --- |
 | `CRITICAL` | CRITICAL |
 | `HIGH` | HIGH |
 | `MEDIUM` | MEDIUM |
-| `LOW` | tidak ada flag terpicu |
+| `LOW` | no flag triggered |
 
-`bandConfidence` ditentukan terpisah sesuai bagian 2.
-
----
-
-## 6. Nilai ambang default
-
-| Ambang | Default | Satuan |
-|---|---|---|
-| `ManipulationCheapAbsolute` | 10.000 | aset quote |
-| `ManipulationRatioLowPct` | 1,0 | persen |
-| `ThinDepth5PctAbsolute` | 50.000 | aset quote |
-| `SpreadExtremePct` | 20,0 | persen |
-| `HolderTop1ExtremePct` | 50,0 | persen |
-| `HolderTop10HighPct` | 80,0 | persen |
-| `WashTradeSuspectedPct` | 50,0 | persen |
-| `GenuineTradeStaleDays` | 30 | hari |
-| `GenuineTradeWarnDays` | 7 | hari |
-
-**Seluruh nilai ini dipilih, bukan dikalibrasi terhadap kumpulan insiden.** Kalibrasi
-memerlukan lebih banyak kejadian daripada yang tersedia. Pernyataan ini wajib muncul di
-endpoint `/methodology`, di dashboard, dan di laporan backtest, bukan hanya di dokumen
-ini.
-
-### Keterbatasan satuan yang belum terselesaikan
-
-Ambang absolut dinyatakan dalam aset quote. Konsekuensinya, aset yang diukur terhadap
-XLM dan aset yang diukur terhadap USDC tidak dapat dibandingkan langsung dengan ambang
-yang sama, dan band sebuah aset dapat berubah hanya karena harga XLM bergerak, tanpa
-likuiditas aset itu berubah sama sekali.
-
-Menyatakan ambang dalam USDC memindahkan masalahnya, karena memasukkan asumsi bahwa
-USDC stabil, yang agak ironis bagi produk yang mempertanyakan asumsi harga.
-
-Versi 1.0.2 belum memutuskan. Yang dilakukan sekarang: `quote` selalu disertakan di
-setiap respons sehingga konsumen tahu satuan yang berlaku, dan keterbatasan ini
-dinyatakan terbuka. Ini keputusan terbuka Q7 dan harus diselesaikan sebelum versi 1.1.
+`bandConfidence` is determined separately, per section 2.
 
 ---
 
-## 7. Contoh terverifikasi: USTRY/USDC, ledger 61340263
+## 6. Default threshold values
 
-Diambil dari `testdata/fixtures/ustry_pre_exploit.md`, dihitung dengan tangan sebelum
-implementasi ada.
+| Threshold | Default | Unit |
+| --- | --- | --- |
+| `ManipulationCheapAbsolute` | 10,000 | quote asset |
+| `ManipulationRatioLowPct` | 1.0 | percent |
+| `ThinDepth5PctAbsolute` | 50,000 | quote asset |
+| `SpreadExtremePct` | 20.0 | percent |
+| `HolderTop1ExtremePct` | 50.0 | percent |
+| `HolderTop10HighPct` | 80.0 | percent |
+| `WashTradeSuspectedPct` | 50.0 | percent |
+| `GenuineTradeStaleDays` | 30 | days |
+| `GenuineTradeWarnDays` | 7 | days |
 
-Masukan: satu ask 1,2185312 USTRY pada 106,7372828, satu bid 0,0001 USTRY pada 1,057,
-tanpa pool. `P0 = 53,8971414`, `spreadPct = 196,08%`.
+**Every one of these values is chosen, not calibrated against a set of
+incidents.** Calibration requires more events than are available. That statement
+is required to appear at the `/methodology` endpoint, in the dashboard, and in the
+backtest report, not only in this document.
+
+### An unresolved unit limitation
+
+Absolute thresholds are expressed in the quote asset. The consequence is that an
+asset measured against XLM and an asset measured against USDC cannot be compared
+against the same threshold, and an asset's band can change purely because the XLM
+price moved, without its liquidity changing at all.
+
+Expressing the thresholds in USDC only relocates the problem, because it imports
+the assumption that USDC is stable, which is somewhat ironic for a product built
+to question price assumptions.
+
+Version 1.0.2 does not resolve this. What is done instead: `quote` is included in
+every response so a consumer knows which unit applies, and this limitation is
+stated openly. This is open question Q7 and it must be resolved before version
+1.1.
+
+---
+
+## 7. A verified example: USTRY/USDC, ledger 61340263
+
+Taken from `testdata/fixtures/ustry_pre_exploit.md`, computed by hand before any
+implementation existed.
+
+Input: one ask of 1.2185312 USTRY at 106.7372828, one bid of 0.0001 USTRY at
+1.057, no pool. `P0 = 53.8971414`, `spreadPct = 196.08%`.
 
 **Triggered**
 
-| Flag | Tingkat | Alasan |
-|---|---|---|
-| `ZERO_DEPTH_2PCT` | CRITICAL | depth ±2% nol di kedua sisi |
-| `MANIPULATION_CHEAP` | CRITICAL | `Cost(δ=0.5) = 0` dengan `Reachable = true` |
-| `SPREAD_EXTREME` | HIGH | 196,08% melewati 20% |
-| `THIN_DEPTH_5PCT` | MEDIUM | depth 5% nol |
+| Flag | Level | Reason |
+| --- | --- | --- |
+| `ZERO_DEPTH_2PCT` | CRITICAL | depth at ±2% is zero on both sides |
+| `MANIPULATION_CHEAP` | CRITICAL | `Cost(δ=0.5) = 0` with `Reachable = true` |
+| `SPREAD_EXTREME` | HIGH | 196.08% passes 20% |
+| `THIN_DEPTH_5PCT` | MEDIUM | depth at 5% is zero |
 
 **Clear**
 
-`NO_EXECUTABLE_PRICE`, karena `priceSource = book`.
+`NO_EXECUTABLE_PRICE`, because `priceSource = book`.
 
 **Unevaluated**
 
 `MANIPULATION_RATIO_LOW`, `NO_GENUINE_TRADE_30D`, `NO_GENUINE_TRADE_7D`,
-`WASH_TRADE_SUSPECTED`, `HOLDER_CONCENTRATION_EXTREME`, `HOLDER_CONCENTRATION_HIGH`.
-Keenamnya membutuhkan data supply, riwayat trade, atau distribusi trustline yang tidak
-ada di snapshot.
+`WASH_TRADE_SUSPECTED`, `HOLDER_CONCENTRATION_EXTREME`, and
+`HOLDER_CONCENTRATION_HIGH`. All six need supply data, trade history, or trustline
+distribution, none of which is in the snapshot.
 
-**Hasil**
+**Result**
 
 ```
 band            = CRITICAL
 bandConfidence  = partial
 ```
 
-`partial` karena `MANIPULATION_RATIO_LOW` dan `HOLDER_CONCENTRATION_EXTREME` bertingkat
-HIGH tetapi `unevaluated`. Band tetap `CRITICAL` sebab sudah ada dua flag CRITICAL yang
-terpicu, sehingga ketidaklengkapan data tidak mengubah kesimpulan pada kasus ini.
+`partial` because `MANIPULATION_RATIO_LOW` and `HOLDER_CONCENTRATION_EXTREME` sit
+at the HIGH level but are `unevaluated`. The band stays `CRITICAL` because two
+CRITICAL flags are already triggered, so the incomplete data does not change the
+conclusion in this case.
 
 ---
 
-## 8. Perubahan yang menyertai versi ini
+## 8. Changes that came with this version
 
-| Berkas | Perubahan |
-|---|---|
-| `internal/domain/types.go` | tambah `UnevaluatedFlags []Flag` dan `BandConfidence` pada `AssetRisk` |
-| `docs/api/keel-openapi.yaml` | tambah `unevaluatedFlags`, `bandConfidence`, `spreadPct`, `SPREAD_EXTREME` |
-| PRD bagian 5 | ganti isinya dengan penunjuk ke dokumen ini |
-| `/methodology` | tambah `spreadExtremePct` pada `thresholds` |
+| File | Change |
+| --- | --- |
+| `internal/domain/types.go` | added `UnevaluatedFlags []Flag` and `BandConfidence` to `AssetRisk` |
+| `docs/api/keel-openapi.yaml` | add `unevaluatedFlags`, `bandConfidence`, `spreadPct`, `SPREAD_EXTREME` |
+| PRD section 5 | replace its contents with a pointer to this document |
+| `/methodology` | add `spreadExtremePct` to `thresholds` |
 
-## 9. Riwayat versi
+## 9. Version history
 
-| Versi | Perubahan |
-|---|---|
-| 1.0.0-draft | Sepuluh flag awal, band sebagai flag terburuk yang terpicu |
-| 1.0.1-draft | `SPREAD_EXTREME` ditambahkan setelah fixture menunjukkan `P0` kehilangan makna pada spread ekstrem |
-| 1.0.2-draft | `MANIPULATION_CHEAP` dan `MANIPULATION_RATIO_LOW` disyaratkan `Reachable == true`. Keadaan `unevaluated` dan `bandConfidence` ditambahkan setelah fixture menunjukkan enam flag tidak dapat dinilai dari snapshot saja |
+| Version | Change |
+| --- | --- |
+| 1.0.0-draft | The first ten flags, band defined as the worst triggered flag |
+| 1.0.1-draft | `SPREAD_EXTREME` added after the fixture showed `P0` losing its meaning at an extreme spread |
+| 1.0.2-draft | `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` now require `Reachable == true`. The `unevaluated` state and `bandConfidence` added after the fixture showed that six flags cannot be assessed from a snapshot alone |

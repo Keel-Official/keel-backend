@@ -1,156 +1,214 @@
-# DEC-001: Identitas Aset USTRY dan Rentang Ledger Insiden
+# DEC-001: USTRY Asset Identity and the Incident Ledger Range
 
-**Status:** SEBAGIAN TERKONFIRMASI. Dua item masih terbuka, prosedur penyelesaian ada di bagian 5.
-**Tanggal:** Agustus 2026
-**Dampak:** Deliverable 2 seluruhnya, rentang query Hubble, dan dua koreksi pada SOW
+**Status:** PARTIALLY CONFIRMED. Two items remain open; the procedure for closing them is in section 5.
+**Date:** August 2026
+**Impact:** all of Deliverable 2, the Hubble query range, and two corrections to the SOW
 
----
-
-## 1. Koreksi terhadap SOW (penting, perlu dikomunikasikan ke Ambassador)
-
-### Koreksi 1: Tanggal insiden
-
-| | SOW | Yang benar |
-|---|---|---|
-| Tanggal | 20 Mei 2026 | **22 Februari 2026, 00:25 UTC** |
-
-Seluruh detail lain di SOW cocok dengan insiden Februari: pembekuan sekitar 48 juta XLM, kerugian sekitar $10 juta, manipulasi harga 100x, pinjaman 61 juta XLM. Ini bukan dua insiden berbeda. Tanggalnya tercatat keliru.
-
-**Dampak:** seluruh rentang query historis berubah dari Mei ke Februari 2026. Kabar baiknya, data Februari lebih lama mengendap sehingga lebih mungkin lengkap di Hubble.
-
-### Koreksi 2: Satuan jumlah pinjaman
-
-| | SOW | Yang benar |
-|---|---|---|
-| Pinjaman | "$61 million in XLM" | **61.249.278,31 XLM**, ditambah 1.000.196,70 USDC |
-
-61 juta XLM bukan $61 juta. Total nilai kedua pinjaman sekitar $10 sampai $11 juta. Ini perbedaan sekitar enam kali lipat dan reviewer SCF akan menangkapnya.
-
-### Koreksi 3: Yang dieksploitasi bukan Blend inti
-
-Yang tereksploitasi adalah **pool YieldBlox DAO di Blend V2**, sebuah pool yang dikelola komunitas dengan parameter yang bisa diatur pengelolanya sendiri. BlockSec menyimpulkan ini kegagalan konfigurasi pool operator, bukan kerentanan kontrak inti Blend. Menyebutnya "Blend exploit" tanpa kualifikasi akan dianggap ceroboh oleh pembaca yang paham.
-
-Frasa yang lebih akurat: "insiden pool YieldBlox DAO di Blend V2".
+> **Translation note.** This document was translated to English under DEC-005 with
+> its content unchanged, including the claims that the repository audit has since
+> disputed. Two of them are known to be wrong and are fixed under task T5, not
+> here: the manipulation ratio in section 2, and the asset type in the curl
+> commands in section 5.2. See findings P1-20 through P1-23 in
+> `docs/internal/audit-2026-08-20.md`.
 
 ---
 
-## 2. Fakta yang sudah terkonfirmasi
+## 1. Corrections to the SOW (important, must be communicated to the Ambassador)
 
-| Item | Nilai | Keyakinan |
+### Correction 1: the incident date
+
+| | SOW | Correct |
 |---|---|---|
-| Tanggal dan waktu | 22 Februari 2026, 00:25 UTC (dua transaksi pinjaman) | Tinggi, banyak sumber sepakat |
-| Aset yang dimanipulasi | USTRY, stablebond US Treasury terbitan **Etherfuse** | Tinggi |
-| Pasar yang dimanipulasi | **USTRY/USDC di SDEX** | Tinggi |
-| Oracle | **Reflector**, berbasis VWAP, membaca harga dari SDEX | Tinggi |
-| Protokol | Pool YieldBlox DAO di Blend V2 (Script3) | Tinggi |
-| Harga sebelum | sekitar $1,05 sampai $1,058 | Tinggi |
-| Harga setelah | sekitar $106 sampai $107 | Tinggi |
-| Volume pra-insiden | kurang dari $1 per jam | Tinggi |
-| Pinjaman 1 | 1.000.196,70 USDC | Tinggi |
-| Pinjaman 2 | 61.249.278,31 XLM | Tinggi |
-| Collateral | dilaporkan 13.003 USTRY lalu tambahan 140.000 USTRY. BlockSec menyebut total sekitar 149.876 USTRY | **Sedang, ada selisih antar sumber. Verifikasi on-chain** |
-| Dana dibekukan | sekitar 48 juta XLM, senilai sekitar $7,2 juta | Tinggi |
+| Date | 20 May 2026 | **22 February 2026, 00:25 UTC** |
 
-### Kronologi yang dilaporkan Rekt
+Every other detail in the SOW matches the February incident: roughly 48 million XLM
+frozen, losses of about $10 million, a 100x price manipulation, a 61 million XLM
+loan. These are not two different incidents. The date was recorded wrongly.
 
-| Waktu (UTC) | Kejadian |
+**Impact:** the entire historical query range moves from May to February 2026. The
+good news is that February data has had longer to settle and is therefore more
+likely to be complete in Hubble.
+
+### Correction 2: the unit of the loan amount
+
+| | SOW | Correct |
+|---|---|---|
+| Loan | "$61 million in XLM" | **61,249,278.31 XLM**, plus 1,000,196.70 USDC |
+
+61 million XLM is not $61 million. The two loans together are worth roughly $10 to
+$11 million. That is a difference of about six times and an SCF reviewer will catch
+it.
+
+### Correction 3: what was exploited was not Blend core
+
+What was exploited is the **YieldBlox DAO pool on Blend V2**, a community managed
+pool whose parameters its own operator can set. BlockSec concluded this was a pool
+operator configuration failure, not a vulnerability in Blend's core contracts.
+Calling it "the Blend exploit" without qualification will read as careless to an
+informed reader.
+
+A more accurate phrasing: "the YieldBlox DAO pool incident on Blend V2".
+
+---
+
+## 2. Facts already confirmed
+
+| Item | Value | Confidence |
+|---|---|---|
+| Date and time | 22 February 2026, 00:25 UTC (the two loan transactions) | High, many sources agree |
+| The manipulated asset | USTRY, a US Treasury stablebond issued by **Etherfuse** | High |
+| The manipulated market | **USTRY/USDC on SDEX** | High |
+| Oracle | **Reflector**, VWAP based, reading prices from SDEX | High |
+| Protocol | The YieldBlox DAO pool on Blend V2 (Script3) | High |
+| Price before | about $1.05 to $1.058 | High |
+| Price after | about $106 to $107 | High |
+| Pre-incident volume | under $1 per hour | High |
+| Loan 1 | 1,000,196.70 USDC | High |
+| Loan 2 | 61,249,278.31 XLM | High |
+| Collateral | reported as 13,003 USTRY then a further 140,000 USTRY. BlockSec cites a total of about 149,876 USTRY | **Medium, sources disagree. Verify on-chain** |
+| Funds frozen | about 48 million XLM, worth roughly $7.2 million | High |
+
+### The chronology as reported by Rekt
+
+| Time (UTC) | Event |
 |---|---|
-| 14 Feb 2026 | Akun utama penyerang dibuat dengan 56,32 XLM |
-| 14 sampai 20 Feb | Pembelian uji USTRY dalam jumlah kecil pada harga normal sekitar $1,058 |
-| 21 Feb 23:35 | Akun burner dibuat dengan 15 XLM: `GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB` |
-| 21 Feb 23:38 | Sell offer 1,2185 USTRY pada harga 107 USDC. Hash transaksi: `09e1a9d1197c9bf0af4e87da328c4f2d5eb49b487630aa61991fb5c1c4637cdb` |
-| 22 Feb sekitar 00:10 | Akun ketiga mengeksekusi trade agar oracle membaca harga itu |
-| 22 Feb 00:25 | Dua transaksi pinjaman: 1.000.196 USDC lalu 61.249.278 XLM |
+| 14 Feb 2026 | The attacker's main account is created with 56.32 XLM |
+| 14 to 20 Feb | Small test purchases of USTRY at the normal price of about $1.058 |
+| 21 Feb 23:35 | A burner account is created with 15 XLM: `GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB` |
+| 21 Feb 23:38 | A sell offer of 1.2185 USTRY at a price of 107 USDC. Transaction hash: `09e1a9d1197c9bf0af4e87da328c4f2d5eb49b487630aa61991fb5c1c4637cdb` |
+| 22 Feb around 00:10 | A third account executes a trade so that the oracle reads that price |
+| 22 Feb 00:25 | Two loan transactions: 1,000,196 USDC then 61,249,278 XLM |
 
-**Angka yang paling penting untuk Keel:** offer manipulasi itu hanya 1,2185 USTRY. Satu sumber menyebut trade yang mengeksekusinya bernilai sekitar $0,50. Kalau angka itu terverifikasi on-chain, rasio biaya manipulasi terhadap nilai yang dicuri adalah sekitar 1 berbanding 22 juta. Itu satu angka yang menjual seluruh premis Keel.
-
----
-
-## 3. Yang masih belum terkonfirmasi
-
-1. **Alamat issuer USTRY (`G...`).** Tidak ditemukan di sumber sekunder mana pun. Harus diambil dari ledger.
-2. **Nomor ledger sequence** untuk setiap titik kronologi di atas.
-3. **Jumlah collateral yang tepat.** Sumber berbeda menyebut 153.003 dan 149.876 USTRY.
-4. **Panjang jendela VWAP Reflector.** Script3 menyebut tidak ada trade lain dalam 15 menit. Perlu konfirmasi apakah 15 menit itu memang panjang jendela oracle atau kebetulan.
-5. **Parameter risiko pool YieldBlox** saat itu: collateral factor USTRY, liability factor XLM dan USDC.
+**The number that matters most to Keel:** that manipulation offer was only 1.2185
+USTRY. One source states the trade that executed it was worth about $0.50. If that
+figure is verified on-chain, the ratio of manipulation cost to value stolen is
+roughly 1 to 22 million. That is the single number that sells Keel's entire
+premise.
 
 ---
 
-## 4. Konsekuensi untuk desain Keel
+## 3. What is still unconfirmed
 
-**Pasangan primer USTRY adalah USDC, bukan XLM.** Ini menyelesaikan sebagian keputusan terbuka T3 dan D-1. Oracle membaca pasar USTRY/USDC, jadi backtest wajib mengukur pasar itu. Mengukur USTRY/XLM akan menjawab pertanyaan yang salah.
-
-**Biaya manipulasi harus dihitung relatif terhadap jendela oracle, bukan hanya terhadap pergeseran harga.** Ini penghalusan penting pada metrik K5. Oracle Reflector berbasis VWAP, jadi yang perlu digeser penyerang bukan harga sesaat melainkan rata-rata tertimbang volume dalam jendela tertentu. Di pasar tanpa trade lain, satu trade mendominasi rata-rata itu sepenuhnya, dan itulah yang membuat serangan ini murah. Catat di `docs/methodology/07-metrik-pendukung.md` sebagai keterbatasan atau sebagai perluasan metrik.
-
-**Metrik "waktu sejak trade asli terakhir" terbukti relevan.** Volume kurang dari $1 per jam dan tidak ada trade dalam jendela oracle adalah tepat kondisi yang seharusnya memicu flag `NO_GENUINE_TRADE_7D` dan `THIN_DEPTH_5PCT`. Keel akan menandai aset ini merah jauh sebelum 22 Februari.
-
-**Ada faktor yang tidak akan tertangkap Keel, dan ini wajib masuk bagian keterbatasan.** Reflector menyatakan market maker pasar itu menarik seluruh likuiditasnya di suatu titik sebelum eksploit. Artinya kondisi berbahaya muncul relatif mendadak. Keel yang memindai tiap 15 menit akan menangkapnya, tapi Keel yang memindai harian mungkin terlambat. Frekuensi pemindaian jadi parameter yang harus dibahas jujur di laporan, bukan disembunyikan.
+1. **The USTRY issuer address (`G...`).** Not found in any secondary source. It has
+   to come from the ledger.
+2. **Ledger sequence numbers** for each point in the chronology above.
+3. **The exact collateral amount.** Different sources cite 153,003 and 149,876 USTRY.
+4. **Reflector's VWAP window length.** Script3 states there was no other trade
+   within 15 minutes. It needs confirming whether 15 minutes really is the oracle
+   window or a coincidence.
+5. **The YieldBlox pool risk parameters** at the time: the USTRY collateral factor,
+   and the XLM and USDC liability factors.
 
 ---
 
-## 5. Prosedur menyelesaikan dua item terbuka
+## 4. Consequences for Keel's design
 
-Semua di bawah memakai Horizon publik, gratis, tanpa akun.
+**USTRY's primary pair is USDC, not XLM.** This settles part of open questions T3
+and D-1. The oracle reads the USTRY/USDC market, so the backtest is required to
+measure that market. Measuring USTRY/XLM would answer the wrong question.
 
-### 5.1 Menemukan issuer USTRY
+**Manipulation cost has to be computed relative to the oracle window, not only
+relative to a price shift.** This is an important refinement to metric K5. The
+Reflector oracle is VWAP based, so what an attacker needs to move is not the
+instantaneous price but a volume weighted average over some window. In a market
+with no other trades, one trade dominates that average entirely, and that is what
+made this attack cheap. Record it in
+`docs/methodology/07-metrik-pendukung.md` either as a limitation or as an extension
+of the metric.
+
+**The metric "time since the last genuine trade" is proven relevant.** Volume under
+$1 per hour and no trade inside the oracle window are exactly the conditions that
+should trigger `NO_GENUINE_TRADE_7D` and `THIN_DEPTH_5PCT`. Keel would have marked
+this asset red long before 22 February.
+
+**There is a factor Keel will not catch, and this has to go in the limitations
+section.** Reflector states that the market maker for that market withdrew all of
+its liquidity at some point before the exploit. That means the dangerous condition
+appeared relatively suddenly. A Keel that scans every 15 minutes catches it; a Keel
+that scans daily may be too late. Scan frequency therefore becomes a parameter that
+has to be discussed honestly in the report rather than hidden.
+
+---
+
+## 5. Procedure for closing the two open items
+
+Everything below uses public Horizon: free, no account.
+
+### 5.1 Finding the USTRY issuer
 
 ```bash
 curl -s "https://horizon.stellar.org/assets?asset_code=USTRY&limit=20" | jq '._embedded.records[] | {code:.asset_code, issuer:.asset_issuer, amount, num_accounts:.num_accounts}'
 ```
 
-Kalau muncul lebih dari satu issuer, jangan menebak. Disambiguasi dengan mencocokkan terhadap akun burner yang sudah diketahui:
+If more than one issuer appears, do not guess. Disambiguate by matching against the
+known burner account:
 
 ```bash
 curl -s "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB" | jq '.balances'
 ```
 
-Balance akun itu akan memuat `asset_code: "USTRY"` beserta `asset_issuer` yang sebenarnya dipakai dalam serangan. Itu jawaban definitifnya, karena berasal dari ledger, bukan dari artikel.
+That account's balances will contain `asset_code: "USTRY"` together with the
+`asset_issuer` actually used in the attack. That is the definitive answer, because
+it comes from the ledger rather than from an article.
 
-### 5.2 Menemukan ledger sequence
+### 5.2 Finding the ledger sequence
 
-Transaksi offer manipulasi sudah diketahui hash-nya:
+The transaction hash of the manipulation offer is already known:
 
 ```bash
 curl -s "https://horizon.stellar.org/transactions/09e1a9d1197c9bf0af4e87da328c4f2d5eb49b487630aa61991fb5c1c4637cdb" | jq '{ledger, created_at, source_account, successful}'
 ```
 
-Field `ledger` adalah jangkar utama Anda. Dari sana ambil seluruh riwayat akun burner:
+The `ledger` field is the main anchor. From there, pull the burner account's full
+history:
 
 ```bash
 curl -s "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB/operations?limit=200&order=asc" | jq '._embedded.records[] | {id, type, created_at, transaction_hash}'
 ```
 
-Setiap operasi membawa waktu dan bisa ditelusuri ke ledger-nya. Dari akun ini Anda akan menemukan akun lawan trade, dan dari sana akun peminjam.
+Every operation carries its time and can be traced to its ledger. From this account
+you will find the counterparty of the trade, and from there the borrowing account.
 
-Untuk rentang backtest, sasaran yang wajar: **ledger pada 1 Februari 2026 00:00 UTC sampai 28 Februari 2026 23:59 UTC.** Ledger tutup sekitar tiap 5 detik, jadi sekitar 17.280 ledger per hari dan sekitar 480 ribu ledger untuk sebulan. Jangan menghitung dari perkiraan, ambil batasnya dari data:
+For the backtest range, a sensible target is **the ledgers from 1 February 2026
+00:00 UTC through 28 February 2026 23:59 UTC.** Ledgers close about every 5
+seconds, so roughly 17,280 ledgers per day and about 480 thousand ledgers for the
+month. Do not compute this from an estimate; take the bounds from the data:
 
 ```bash
 curl -s "https://horizon.stellar.org/trades?base_asset_type=credit_alphanum4&base_asset_code=USTRY&base_asset_issuer=<ISSUER>&counter_asset_type=credit_alphanum4&counter_asset_code=USDC&counter_asset_issuer=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&order=asc&limit=200" | jq '._embedded.records[] | {ledger_close_time, base_amount, counter_amount, price}'
 ```
 
-Endpoint ini historis dan gratis. Ia langsung memberi Anda seluruh riwayat trade pasar itu, termasuk trade manipulasinya. Untuk aset setipis USTRY, jumlah trade-nya kemungkinan kecil, dan Anda bisa melihat seluruh riwayat pasar dalam beberapa halaman.
+That endpoint is historical and free. It hands you the full trade history of that
+market directly, including the manipulation trade. For an asset as thin as USTRY the
+trade count is probably small, and the whole market history fits in a few pages.
 
-Verifikasi issuer USDC di atas sebelum dipakai.
+Verify the USDC issuer above before using it.
 
-### 5.3 Sumber primer yang harus dibaca langsung
+### 5.3 Primary sources that must be read directly
 
-Sumber yang saya pakai sejauh ini semuanya sekunder. Untuk laporan yang bisa dipertahankan, baca langsung:
+Every source used so far is secondary. For a report that can be defended, read
+directly:
 
-- Pernyataan Script3 (@script3official) tanggal 22 dan 23 Februari 2026
-- Pernyataan Reflector tentang penyebab mispricing
-- Analisis BlockSec: https://blocksec.com/blog/yieldblox-dao-incident-on-stellar-oracle-misconfiguration-enabled-a-10m-drain
-- Analisis QuillAudits: https://www.quillaudits.com/blog/hack-analysis/yeildblox-10m-hack-explained
-- Rekonstruksi forensik Rekt: https://rekt.news/yieldblox-rekt
-- Konfigurasi pool YieldBlox di Blend V2, untuk parameter risiko
+- Script3's statements (@script3official) of 22 and 23 February 2026
+- Reflector's statement on the cause of the mispricing
+- BlockSec's analysis: https://blocksec.com/blog/yieldblox-dao-incident-on-stellar-oracle-misconfiguration-enabled-a-10m-drain
+- QuillAudits' analysis: https://www.quillaudits.com/blog/hack-analysis/yeildblox-10m-hack-explained
+- Rekt's forensic reconstruction: https://rekt.news/yieldblox-rekt
+- The YieldBlox pool configuration on Blend V2, for the risk parameters
 
-Aturan untuk laporan Deliverable 2: setiap angka yang Anda klaim harus punya salah satu dari dua sumber, yaitu data on-chain yang bisa direproduksi, atau pernyataan resmi pihak yang terlibat. Angka dari artikel berita hanya dipakai sebagai petunjuk untuk dicari di ledger, tidak dikutip sebagai fakta.
+The rule for the Deliverable 2 report: every number claimed must have one of two
+sources, either reproducible on-chain data or an official statement by a party
+involved. A number from a news article is only a hint to go looking for in the
+ledger, never a fact to cite.
 
 ---
 
-## 6. Tindakan berikutnya
+## 6. Next actions
 
-1. Jalankan perintah di 5.1 dan 5.2, isi dua item terbuka, perbarui dokumen ini
-2. Kabari Ambassador Chapter Lead soal koreksi tanggal dan satuan. Ini bukan kabar buruk, ini bukti Anda memverifikasi
-3. Ubah seluruh rujukan "Mei 2026" menjadi "Februari 2026" di PRD, rencana pembangunan, dan checklist
-4. Setel rentang spike Hubble ke Februari 2026
-5. Tetapkan USDC sebagai pasangan quote primer USTRY untuk keperluan backtest
+1. Run the commands in 5.1 and 5.2, fill in the two open items, update this document
+2. Tell the Ambassador Chapter Lead about the date and unit corrections. This is not
+   bad news, it is evidence that you verified
+3. Change every reference to "May 2026" to "February 2026" in the PRD, the build
+   plan, and the checklist
+4. Set the Hubble spike range to February 2026
+5. Fix USDC as USTRY's primary quote pair for backtest purposes

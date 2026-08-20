@@ -1,518 +1,535 @@
-# Keel: Metodologi Inti
+# Keel: Core Methodology
 
-**Versi metodologi:** 1.0.2-draft
-**Berlaku untuk:** `internal/depth` seluruhnya, dengan tipe dari `internal/domain`
-**Status:** definisi terkunci, ambang belum dikalibrasi
-**Divalidasi terhadap:** insiden pool YieldBlox DAO di Blend V2, 22 Februari 2026
+**Methodology version:** 1.0.2-draft
+**Applies to:** all of `internal/depth`, using the types from `internal/domain`
+**Status:** definitions locked, thresholds not calibrated
+**Validated against:** the YieldBlox DAO pool incident on Blend V2, 22 February 2026
 
-Dokumen ini mendefinisikan apa yang Keel hitung dan mengapa. Setiap definisi di sini
-harus dapat dipertahankan tanpa merujuk pada kode. Kalau kode dan dokumen ini
-bertentangan, dokumen ini yang benar dan kodenya bug.
+This document defines what Keel computes and why. Every definition here has to be
+defensible without referring to the code. Where the code and this document
+disagree, this document is right and the code has a bug.
 
-**Pembagian sumber kebenaran.** Berkas ini mendefinisikan besaran yang dihitung.
-Definisi flag, band, dan seluruh ambang ada di `09-flag-dan-band.md`, dan berkas itu
-yang berlaku kalau keduanya berbeda. Dua tempat untuk satu definisi menjamin keduanya
-menyimpang, jadi pembagiannya harus dijaga tetap tajam.
+**Split of authority.** This file defines the quantities that are computed. The
+definitions of flags, bands, and every threshold live in `09-flag-dan-band.md`,
+and that file wins where the two differ. Two homes for one definition guarantee
+that both drift, so the split has to be kept sharp.
 
-**Konvensi satuan persen.** Setiap besaran dan ambang berakhiran `Pct` dinyatakan
-dalam PERSEN, bukan pecahan. `spreadPct` bernilai 196,0777141 berarti 196 persen, dan
-dibandingkan langsung dengan `SpreadExtremePct` yang bernilai 20,0. Sebaliknya `δ`
-selalu pecahan: `δ = 0,02` berarti 2 persen. Kedua konvensi ini berbeda dengan sengaja,
-sebab `δ` adalah masukan rumus sedangkan `Pct` adalah besaran yang dilaporkan.
-
----
-
-## 1. Pertanyaan yang dijawab
-
-Oracle menjawab: berapa harga aset ini.
-Keel menjawab: **berapa besar transaksi yang sanggup ditanggung harga itu, dan berapa
-biaya untuk memindahkannya.**
-
-Dua pertanyaan turunan yang harus dibedakan tegas, karena keduanya sering tertukar:
-
-| Risiko                | Sisi buku       | Pertanyaan                                                                   |
-| --------------------- | --------------- | ---------------------------------------------------------------------------- |
-| **Likuidasi**         | bid (sisi jual) | Kalau collateral ini harus dilikuidasi, sanggupkah pasar menyerapnya?        |
-| **Manipulasi oracle** | ask (sisi beli) | Berapa biaya menaikkan harga sampai collateral terlihat jauh lebih bernilai? |
-
-Sebuah aset bisa aman di satu sisi dan berbahaya di sisi lain. Keel melaporkan keduanya
-terpisah dan tidak pernah menggabungkannya menjadi satu angka.
+**The percent convention.** Every quantity and threshold whose name ends in `Pct`
+is expressed in PERCENT, not as a fraction. A `spreadPct` of 196.0777141 means 196
+percent, and it is compared directly against a `SpreadExtremePct` of 20.0.
+Conversely `δ` is always a fraction: `δ = 0.02` means 2 percent. The two
+conventions differ deliberately, because `δ` is an input to a formula while `Pct`
+is a reported quantity.
 
 ---
 
-## 2. Notasi dan satuan
+## 1. The question this answers
 
-| Simbol     | Arti                                            |
-| ---------- | ----------------------------------------------- |
-| `base`     | aset yang dinilai                               |
-| `quote`    | aset satuan pengukuran (pasangan primer)        |
-| `P0`       | harga acuan, quote per base                     |
-| `δ`        | pergeseran harga relatif, 0,02 berarti 2 persen |
-| `P_target` | harga sasaran, `P0 × (1 + δ)`                   |
-| `X`, `Y`   | reserve base dan quote pada satu pool AMM       |
-| `f`        | fee pool, 0,003 pada Stellar                    |
+An oracle answers: what is the price of this asset.
+Keel answers: **how large a transaction can that price support, and what does it
+cost to move it.**
 
-Aturan satuan:
+Two derived questions that must be kept firmly apart, because they are constantly
+confused:
 
-1. Seluruh nilai depth dan biaya dinyatakan sebagai **notional dalam aset quote**, bukan
-   jumlah unit token. Pertanyaan bisnisnya adalah "berapa dolar", bukan "berapa keping".
-2. Keel **tidak** mengonversi ke USD memakai feed harga eksternal. Seluruh premis produk
-   ini adalah mempertanyakan apakah harga yang dilaporkan bisa dipercaya. Memakai feed
-   untuk menghitung membuat argumennya melingkar.
-3. Amount Stellar adalah int64 dalam stroop, 7 desimal. Harga dibaca dari pecahan
-   rasional `price_r` berupa `{n, d}`, bukan dari string `price` yang sudah dibulatkan.
-   Seluruh aritmetika desimal, tidak pernah floating point.
+| Risk | Side of the book | Question |
+| --- | --- | --- |
+| **Liquidation** | bid (sell side) | If this collateral has to be liquidated, can the market absorb it? |
+| **Oracle manipulation** | ask (buy side) | What does it cost to push the price up until the collateral looks far more valuable? |
+
+An asset can be safe on one side and dangerous on the other. Keel reports both
+separately and never collapses them into a single number.
 
 ---
 
-## 3. Harga acuan `P0`
+## 2. Notation and units
 
-Urutan fallback, berhenti pada yang pertama terpenuhi:
+| Symbol | Meaning |
+| --- | --- |
+| `base` | the asset being assessed |
+| `quote` | the asset of measurement (the primary pair) |
+| `P0` | the reference price, quote per base |
+| `δ` | relative price shift, 0.02 means 2 percent |
+| `P_target` | the target price, `P0 × (1 + δ)` |
+| `X`, `Y` | the base and quote reserves of one AMM pool |
+| `f` | the pool fee, 0.003 on Stellar |
 
-| #   | Kondisi                               | `P0`                                            | `priceSource` |
-| --- | ------------------------------------- | ----------------------------------------------- | ------------- |
-| 1   | Ada bid dan ada ask                   | `(best_bid + best_ask) / 2`                     | `book`        |
-| 2   | Hanya satu sisi buku terisi, ada pool | `Y / X` dari pool dengan reserve quote terbesar | `pool`        |
-| 3   | Buku kosong, ada pool                 | `Y / X`                                         | `pool`        |
-| 4   | Tidak ada buku dan tidak ada pool     | tidak terdefinisi                               | `none`        |
+Unit rules:
 
-**Kasus 4 bukan error dan tidak boleh melempar exception.** Aset tanpa harga eksekutabel
-adalah temuan bernilai tertinggi yang bisa Keel hasilkan. Ia dilaporkan sebagai hasil
-yang sah dengan flag `NO_EXECUTABLE_PRICE` dan band `CRITICAL`.
-
-**Peringatan yang ditemukan dari data nyata.** `P0` dari mid orderbook dapat dipengaruhi
-oleh order milik penyerang sendiri. Pada insiden 22 Februari 2026, penyerang memasang
-order beli 0,0001 USTRY pada harga 1,057 pukul 23:39:31, satu menit setelah memasang
-offer manipulasinya. Order sekecil itu ikut membentuk `P0` tanpa mewakili likuiditas
-nyata apa pun. Karena itu `P0` **tidak boleh** dipakai sendirian sebagai indikator
-kesehatan, dan harus selalu dibaca bersama depth.
+1. Every depth and cost figure is a **notional in the quote asset**, not a count
+   of tokens. The business question is "how many dollars", not "how many coins".
+2. Keel does **not** convert to USD using an external price feed. The entire
+   premise of this product is to question whether a reported price can be trusted.
+   Using a feed inside the computation makes the argument circular.
+3. Stellar amounts are int64 stroops with 7 decimals. Prices are read from the
+   rational fraction `price_r`, shaped `{n, d}`, never from the already-rounded
+   `price` string. All arithmetic is decimal, never floating point.
 
 ---
 
-## 3a. Spread dan batas kebermaknaan `P0`
+## 3. The reference price `P0`
 
-Ditemukan saat menyusun golden fixture, dan menjadi alasan versi 1.0.1 ada.
+Fallback order, stopping at the first condition that is met:
+
+| # | Condition | `P0` | `priceSource` |
+| --- | --- | --- | --- |
+| 1 | A bid and an ask both exist | `(best_bid + best_ask) / 2` | `book` |
+| 2 | Only one side of the book, a pool exists | `Y / X` from the pool with the largest quote reserve | `pool` |
+| 3 | The book is empty, a pool exists | `Y / X` | `pool` |
+| 4 | Neither a book nor a pool | undefined | `none` |
+
+**Case 4 is not an error and must not raise an exception.** An asset with no
+executable price is the highest-value finding Keel can produce. It is reported as
+a legitimate result with the flag `NO_EXECUTABLE_PRICE` and band `CRITICAL`.
+
+**A warning found in real data.** A `P0` taken from the orderbook mid can be
+influenced by the attacker's own orders. During the 22 February 2026 incident the
+attacker placed a buy order for 0.0001 USTRY at a price of 1.057 at 23:39:31, one
+minute after placing the manipulation offer. An order that small still shapes `P0`
+while representing no real liquidity whatsoever. `P0` therefore **must not** be
+used on its own as a health indicator, and must always be read together with
+depth.
+
+---
+
+## 3a. Spread, and the limit of `P0`'s meaning
+
+Discovered while building the golden fixture, and the reason version 1.0.1 exists.
 
 ```
-spreadPct = (best_ask − best_bid) / P0 × 100
+spreadPct = (best_ask - best_bid) / P0 × 100
 ```
 
-`spreadPct` bernilai null ketika salah satu sisi buku kosong, sebab selisihnya tidak
-terdefinisi. Null berarti tidak diketahui, bukan nol.
+`spreadPct` is null when either side of the book is empty, because the difference
+is undefined. Null means unknown, not zero.
 
-Pada 21 Februari 2026 buku USTRY/USDC berisi ask 106,7372828 dan bid 1,057, sehingga
-`P0` menjadi 53,8971414 untuk aset yang sebenarnya bernilai sekitar 1,06. Angka itu
-bukan bug, melainkan sifat mid price ketika spread mencapai ratusan persen.
+On 21 February 2026 the USTRY/USDC book held an ask at 106.7372828 and a bid at
+1.057, which makes `P0` equal to 53.8971414 for an asset actually worth about
+1.06. That number is not a bug; it is what a mid price does when the spread runs
+into the hundreds of percent.
 
-Konsekuensinya keras: **`P0` dan seluruh metrik yang diturunkan darinya kehilangan
-makna pada spread ekstrem.** Tangga depth ±2/5/10 persen termasuk di dalamnya. Ia tetap
-dilaporkan karena dijanjikan SOW, tetapi pada buku serusak itu ia bukan metrik keamanan
-oracle. Yang menyelamatkan analisis adalah tangga delta besar di bagian 7.3 dan flag
-`SPREAD_EXTREME`.
+The consequence is harsh: **`P0` and every metric derived from it lose their
+meaning at an extreme spread.** The ±2/5/10 percent depth ladder is included in
+that. It is still reported because the SOW promised it, but on a book that broken
+it is not an oracle safety metric. What saves the analysis is the large delta
+ladder in section 7.3 and the `SPREAD_EXTREME` flag.
 
-Flag lain memang tetap menyala pada kasus USTRY, tetapi itu kebetulan dan bukan desain.
-Karena itu `spreadPct` dilaporkan sebagai angka di respons API, bukan hanya sebagai
-status terpicu atau tidak.
+Other flags do also fire on the USTRY case, but that is a coincidence and not the
+design. This is why `spreadPct` is reported as a number in the API response, not
+merely as a triggered or not-triggered status.
 
 ---
 
-## 4. Depth orderbook SDEX
+## 4. SDEX orderbook depth
 
-Depth sisi beli pada `δ` adalah total notional yang dapat diserap dengan membeli dari
-ask sebelum harga marginal melewati `P_target`.
+Buy side depth at `δ` is the total notional that can be absorbed by buying from
+the asks before the marginal price passes `P_target`.
 
 ```
 P_target = P0 × (1 + δ)
-depth_sdex_beli(δ) = Σ (price_i × amount_i)  untuk semua ask dengan price_i ≤ P_target
+depth_sdex_buy(δ) = Σ (price_i × amount_i)  for every ask with price_i <= P_target
 ```
 
-Sisi jual simetris memakai bid dan `P0 × (1 − δ)`.
+The sell side is symmetric, using the bids and `P0 × (1 - δ)`.
 
-**Keputusan: level yang melewati batas dibuang seluruhnya, tidak diambil sebagian.**
-Ini menghasilkan angka yang sedikit lebih rendah dari nilai teoretis. Pilihan ini
-disengaja dan konsisten dengan Prinsip Konservatif di bagian 12: pada setiap kasus
-ambigu, Keel memilih interpretasi yang membuat aset tampak lebih berisiko, tidak
-kurang.
+**Decision: a level that crosses the limit is discarded entirely, not taken
+partially.** This produces a figure slightly below the theoretical value. The
+choice is deliberate and consistent with the Conservative Principle in section 12:
+in every ambiguous case, Keel picks the interpretation that makes the asset look
+riskier, not safer.
 
 ---
 
-## 5. Depth AMM constant product
+## 5. Constant product AMM depth
 
-Pool Stellar memakai `X × Y = k` dengan fee 30 bps. Harga spot `P = Y / X`.
+Stellar pools use `X × Y = k` with a 30 bps fee. The spot price is `P = Y / X`.
 
-Penurunan. Membeli `Δx` base menyisakan reserve `X − Δx`, sehingga harga marginal baru:
-
-```
-P' = k / (X − Δx)²
-P' / P = X² / (X − Δx)²
-```
-
-Agar `P' / P = 1 + δ`:
+The derivation. Buying `Δx` of the base leaves a reserve of `X - Δx`, so the new
+marginal price is:
 
 ```
-X − Δx = X / √(1 + δ)
+P' = k / (X - Δx)²
+P' / P = X² / (X - Δx)²
 ```
 
-Sehingga:
+For `P' / P = 1 + δ`:
 
 ```
-depth_amm_beli(δ)  = Y × (√(1 + δ) − 1)      quote yang harus dibayar
-depth_amm_jual(δ)  = Y × (1 − √(1 − δ))      quote yang diterima
-input_kotor        = input_bersih / (1 − f)
+X - Δx = X / √(1 + δ)
 ```
 
-Uji kewajaran yang wajib ada di test: `depth_amm ≈ (δ / 2) × Y`. Penyimpangan besar dari
-ini berarti ada bug.
+Which gives:
 
-| δ   | naik, persen dari Y | turun, persen dari Y |
-| --- | ------------------- | -------------------- |
-| 2%  | 0,995%              | 1,005%               |
-| 5%  | 2,47%               | 2,53%                |
-| 10% | 4,88%               | 5,13%                |
+```
+depth_amm_buy(δ)  = Y × (√(1 + δ) - 1)      quote that must be paid
+depth_amm_sell(δ) = Y × (1 - √(1 - δ))      quote that is received
+gross_input       = net_input / (1 - f)
+```
 
-Akar kuadrat dihitung dengan presisi desimal yang ditetapkan, bukan `float64`. Nilai
-presisi dan toleransinya adalah konstanta bernama dan merupakan bagian dari metodologi,
-bukan detail implementasi.
+A sanity check that must exist in the tests: `depth_amm ≈ (δ / 2) × Y`. A large
+deviation from that means there is a bug.
+
+| δ | up, percent of Y | down, percent of Y |
+| --- | --- | --- |
+| 2% | 0.995% | 1.005% |
+| 5% | 2.47% | 2.53% |
+| 10% | 4.88% | 5.13% |
+
+The square root is computed at a fixed decimal precision, not in `float64`. That
+precision and its tolerance are named constants and are part of the methodology,
+not an implementation detail.
 
 ---
 
-## 6. Penggabungan SDEX dan AMM
+## 6. Combining SDEX and AMM
 
-**Yang salah:** `depth_total = depth_sdex + depth_amm` dihitung terpisah. Keduanya
-bersaing di rentang harga yang sama, sehingga penjumlahan independen melebih-lebihkan
-likuiditas.
+**The wrong way:** `depth_total = depth_sdex + depth_amm`, each computed
+separately. The two compete over the same price range, so summing them
+independently overstates liquidity.
 
-**Yang benar:** keduanya dibatasi oleh harga marginal akhir yang sama.
+**The right way:** both are bounded by the same final marginal price.
 
 ```
-depth_gabungan(δ):
+combined_depth(δ):
     P_target = P0 × (1 + δ)
-    n_sdex   = Σ (price × amount) untuk ask dengan price ≤ P_target
-    n_amm    = Σ atas seluruh pool:
-                   0                              jika P_pool ≥ P_target
-                   Y × (√(P_target / P_pool) − 1) jika P_pool < P_target
+    n_sdex   = Σ (price × amount) for asks with price <= P_target
+    n_amm    = Σ over every pool:
+                   0                               if P_pool >= P_target
+                   Y × (√(P_target / P_pool) - 1)  if P_pool <  P_target
     return n_sdex + n_amm
 ```
 
-Kontribusi SDEX dan AMM tetap dilaporkan terpisah di keluaran (`fromSdex`, `fromAmm`)
-agar pihak ketiga dapat memverifikasi penggabungan ini tanpa membaca kode.
+The SDEX and AMM contributions are still reported separately in the output
+(`fromSdex`, `fromAmm`) so that a third party can verify this combination without
+reading the code.
 
-Uji pembeda yang wajib ada: buat fixture dengan harga pool 5 persen di atas `P0`, lalu
-minta depth pada 2 persen. Jawaban benar adalah `fromAmm` tepat nol. Implementasi yang
-menjumlahkan terpisah akan mengembalikan angka bukan nol.
+A discriminating test that must exist: build a fixture whose pool price sits 5
+percent above `P0`, then ask for depth at 2 percent. The correct answer is
+`fromAmm` exactly zero. An implementation that sums separately returns a non-zero
+value.
 
 ---
 
-## 7. Biaya manipulasi
+## 7. Manipulation cost
 
-Bagian ini adalah kontribusi utama Keel dan definisinya diperbaiki setelah memeriksa
-data ledger insiden 22 Februari 2026.
+This section is Keel's main contribution, and its definition was corrected after
+examining the ledger data of the 22 February 2026 incident.
 
-### 7.1 Definisi
+### 7.1 Definition
 
-Biaya manipulasi untuk mencapai harga `P_target` adalah notional yang harus dibayarkan
-**kepada pihak lain** untuk menaikkan harga marginal sampai ke sana:
+The manipulation cost of reaching a price `P_target` is the notional that has to
+be paid **to other parties** in order to push the marginal price up to it:
 
 ```
 MC(P_target) = Σ (price_i × amount_i)
-               untuk seluruh ask dengan price_i ≤ P_target
-               yang TIDAK dimiliki penyerang
+               over every ask with price_i <= P_target
+               that is NOT owned by the attacker
 ```
 
-### 7.2 Kenapa klausa kepemilikan itu menentukan
+### 7.2 Why that ownership clause decides everything
 
-Ini kesalahan yang hampir masuk ke metodologi ini dan hanya terbongkar oleh data.
+This is the mistake that almost entered this methodology, and only the data
+exposed it.
 
-Intuisi yang keliru adalah menganggap ukuran transaksi manipulasi sebagai biayanya. Pada
-insiden 22 Februari, transaksi manipulasi bernilai 5,3475699 USDC. Angka itu bukan
-biaya, karena offer yang dieksekusi adalah milik penyerang sendiri. Uang itu berpindah
-dari satu akun penyerang ke akun penyerang lainnya.
+The faulty intuition is to treat the size of the manipulating transaction as its
+cost. In the 22 February incident that transaction was worth 5.3475699 USDC. That
+figure is not the cost, because the offer it executed against belonged to the
+attacker. The money moved from one attacker account to another attacker account.
 
-Biaya sebenarnya adalah nilai order **pihak ketiga** yang harus dilalap dalam perjalanan
-dari `P0` menuju `P_target`. Mesin pencocokan Stellar selalu mengisi dari harga terbaik.
-Agar sebuah order beli sampai menyentuh offer di 106,74, seluruh ask yang lebih murah
-harus habis lebih dulu.
+The real cost is the value of the **third party** orders that have to be swept on
+the way from `P0` to `P_target`. Stellar's matching engine always fills from the
+best price. For a buy order to reach the offer at 106.74, every cheaper ask has to
+be consumed first.
 
-Dan jumlah itu **persis sama dengan depth sisi beli antara `P0` dan `P_target`.**
-
-```
-MC(P_target) = depth_beli sampai P_target, dikurangi order milik penyerang
-```
-
-Keel tidak dapat mengetahui kepemilikan order sebelum kejadian. Karena itu Keel
-melaporkan versi tanpa penyaringan, yang merupakan **batas atas** biaya manipulasi.
-Arah biasnya aman: Keel akan menyatakan manipulasi lebih mahal daripada kenyataan,
-tidak pernah lebih murah.
-
-### 7.3 Konsekuensi: tangga delta besar
-
-Depth pada ±2, ±5, dan ±10 persen mengukur kualitas pasar. Ia **tidak cukup** untuk
-mengukur ketahanan terhadap manipulasi oracle, karena penyerang tidak perlu menggeser
-harga 10 persen. Pada insiden ini penyerang menggesernya 100,98 kali lipat.
-
-Keel karena itu menghitung dua tangga:
-
-| Tangga               | Nilai δ                  | Tujuan                                            |
-| -------------------- | ------------------------ | ------------------------------------------------- |
-| Kualitas pasar       | 2%, 5%, 10%              | wajib menurut SOW, menggambarkan kedalaman normal |
-| Ketahanan manipulasi | 50%, 100%, 1000%, 10000% | menggambarkan biaya serangan                      |
-
-Metrik turunan yang paling berguna adalah fungsi inversnya:
+And that amount is **exactly the buy side depth between `P0` and `P_target`.**
 
 ```
-P_reachable(C) = harga tertinggi yang dapat dicapai dengan modal C
+MC(P_target) = buy side depth up to P_target, minus the attacker's own orders
 ```
 
-Untuk USTRY pada 21 Februari 2026, `P_reachable(0)` sudah melampaui 100 kali `P0`.
+Keel cannot know order ownership ahead of the event. It therefore reports the
+unfiltered version, which is an **upper bound** on the manipulation cost. The
+direction of that bias is safe: Keel will say manipulation is more expensive than
+it really is, never cheaper.
 
-### 7.4 `Reachable`, dan dua arti berbeda dari biaya nol
+### 7.3 Consequence: the large delta ladder
 
-Ini perbaikan versi 1.0.1 dan bagian paling mudah disalahpahami di seluruh metodologi.
-Test pertama yang ditulis untuk fixture USTRY memang menyalahpahaminya di dua baris.
+Depth at ±2, ±5, and ±10 percent measures market quality. It is **not enough** to
+measure resistance to oracle manipulation, because an attacker does not need to
+move the price by 10 percent. In this incident the attacker moved it by a factor
+of 100.98.
 
-Setiap baris tangga manipulasi membawa dua besaran yang dihitung dari himpunan ask
-yang **berbeda**:
+Keel therefore computes two ladders:
 
-```
-Cost(P_target)      = Σ (price_i × amount_i)  untuk ask dengan price_i <  P_target
-Reachable(P_target) = ada ask dengan price_i >= P_target
-```
+| Ladder | δ values | Purpose |
+| --- | --- | --- |
+| Market quality | 2%, 5%, 10% | mandated by the SOW, describes ordinary depth |
+| Manipulation resistance | 50%, 100%, 1000%, 10000% | describes the cost of an attack |
 
-Sebuah ask tidak pernah masuk keduanya sekaligus. Penyerang harus melalap seluruh ask
-yang lebih murah dari sasaran, lalu menyentuh sedikit saja ask pertama yang berada di
-atas sasaran. Sentuhan terakhir itu yang menetapkan harga yang dibaca oracle, dan
-biayanya dapat sekecil apa pun.
-
-Karena itu biaya nol berarti dua hal yang berlawanan:
-
-| Keadaan | Arti |
-|---|---|
-| `Cost = 0`, `Reachable = true` | harga sasaran dapat dicapai tanpa membayar apa pun kepada pihak ketiga. **Ini kondisi paling berbahaya yang bisa ada** |
-| `Cost = 0`, `Reachable = false` | tidak ada likuiditas sama sekali dalam rentang itu, sehingga harga tidak dapat digeser bertahap ke sana. Justru bukan kabar buruk |
-
-Membaca `Cost` sendirian tanpa `Reachable` menghasilkan angka yang menyesatkan tanpa
-ada yang gagal. Pada fixture USTRY, `Cost` bernilai 130,0627093 untuk δ = 1, 10, dan
-100, dan ketiganya `Reachable = false`. Angka 130,06 di situ **tidak** berarti "harga
-itu mahal dicapai"; harga itu tidak dapat dicapai sama sekali sebab buku habis jauh
-sebelum sampai ke sana.
-
-### 7.5 Harga tercapai maksimum
-
-Tangga delta diskret dapat melewatkan serangan yang jatuh di antara dua anak tangga.
-Karena itu Keel juga melaporkan sepasang angka yang tidak bergantung pada tangga:
+The most useful derived metric is the inverse function:
 
 ```
-MaxReachablePrice       = harga ask tertinggi di buku
-CostToMaxReachablePrice = Σ notional ask dengan price < MaxReachablePrice
+P_reachable(C) = the highest price reachable with capital C
 ```
 
-Pada USTRY 21 Februari 2026 nilainya 106,7372828 dengan biaya **nol**. Serangan nyata
-jatuh di celah antara δ = 0,5 dan δ = 1, sehingga terlewat oleh seluruh tangga dan
-hanya tertangkap oleh pasangan angka ini.
+For USTRY on 21 February 2026, `P_reachable(0)` already exceeded 100 times `P0`.
+
+### 7.4 `Reachable`, and the two opposite meanings of a zero cost
+
+This is the 1.0.1 correction and the most easily misread part of the whole
+methodology. The first test written against the USTRY fixture did misread it, on
+two lines.
+
+Every row of the manipulation ladder carries two quantities computed from
+**different** sets of asks:
+
+```
+Cost(P_target)      = Σ (price_i × amount_i)  for asks with price_i <  P_target
+Reachable(P_target) = an ask exists with price_i >= P_target
+```
+
+An ask never belongs to both at once. The attacker has to sweep every ask cheaper
+than the target, then touch only a sliver of the first ask above it. That final
+touch is what sets the price the oracle reads, and it can cost arbitrarily little.
+
+A zero cost therefore means two opposite things:
+
+| State | Meaning |
+| --- | --- |
+| `Cost = 0`, `Reachable = true` | the target price can be reached without paying anything to a third party. **This is the most dangerous condition that can exist** |
+| `Cost = 0`, `Reachable = false` | there is no liquidity at all in that range, so the price cannot be walked up to it. That is not bad news |
+
+Reading `Cost` on its own, without `Reachable`, produces a misleading number and
+nothing fails. On the USTRY fixture, `Cost` is 130.0627093 for δ = 1, 10, and 100,
+and all three are `Reachable = false`. The 130.06 there does **not** mean "that
+price is expensive to reach"; that price cannot be reached at all, because the
+book runs out long before it.
+
+### 7.5 Maximum reachable price
+
+A discrete delta ladder can miss an attack that lands between two rungs. Keel
+therefore also reports a pair of numbers that does not depend on the ladder:
+
+```
+MaxReachablePrice       = the highest ask price on the book
+CostToMaxReachablePrice = Σ ask notionals with price < MaxReachablePrice
+```
+
+For USTRY on 21 February 2026 those values were 106.7372828 at a cost of **zero**.
+The real attack landed in the gap between δ = 0.5 and δ = 1, so every rung of
+every ladder missed it and only this pair of numbers caught it.
 
 ---
 
-## 8. Ketahanan oracle terhadap jendela VWAP
+## 8. Oracle resistance against a VWAP window
 
-Oracle yang dimanipulasi pada insiden ini berbasis VWAP, bukan harga sesaat. Menggeser
-harga marginal saja tidak cukup, transaksi penyerang harus juga mendominasi rata-rata
-tertimbang volume dalam jendela oracle.
+The oracle manipulated in this incident is VWAP based, not spot based. Moving the
+marginal price is not sufficient; the attacker's transaction also has to dominate
+the volume weighted average over the oracle's window.
 
 ```
 MR(P_target, W) = MC(P_target) + V_genuine(W)
 ```
 
-dengan `V_genuine(W)` adalah volume trade asli dalam jendela `W`.
+where `V_genuine(W)` is the genuine trade volume within the window `W`.
 
-Suku kedua adalah pertahanan yang tak terlihat. Pasar dengan perdagangan aktif memaksa
-penyerang mengalahkan volume nyata untuk menggerakkan rata-rata. Pasar tanpa
-perdagangan tidak punya pertahanan itu sama sekali.
+The second term is the invisible defence. A market with real trading forces an
+attacker to outweigh real volume in order to move the average. A market with no
+trading has no such defence at all.
 
-Pada 22 Februari 2026, kedua suku bernilai nol atau mendekati nol secara bersamaan.
-Itulah yang membuat serangan ini praktis gratis.
+On 22 February 2026 both terms were zero or close to zero at the same time. That
+is what made the attack effectively free.
 
-`W` adalah parameter dan bukan konstanta universal. Nilai default Keel mengasumsikan 15
-menit, mengikuti pernyataan Script3 bahwa tidak ada trade lain dalam 15 menit sebelum
-manipulasi. Angka ini **belum terkonfirmasi** sebagai panjang jendela Reflector yang
-sebenarnya dan ditandai sebagai asumsi.
-
----
-
-## 9. Ukuran collateral maksimum aman
-
-```
-C_max = min( D_jual(δ_likuidasi) × h , MC(P_kritis) × m )
-```
-
-| Simbol                | Arti                                  | Default           |
-| --------------------- | ------------------------------------- | ----------------- |
-| `D_jual(δ_likuidasi)` | depth sisi jual pada diskon likuidasi | δ = 10%           |
-| `h`                   | haircut likuidasi                     | 0,5               |
-| `MC(P_kritis)`        | biaya manipulasi ke harga kritis      | P_kritis = 2 × P0 |
-| `m`                   | margin keamanan manipulasi            | 0,25              |
-
-Kedua suku menjawab pertanyaan berbeda dan keduanya harus dilaporkan, bukan hanya
-minimumnya. Seluruh parameter dapat dikonfigurasi pemanggil, karena Keel bersifat
-agnostik terhadap protokol.
-
-Nilai default di atas **dipilih, bukan dikalibrasi.** Kalibrasi memerlukan lebih banyak
-insiden daripada yang tersedia. Pernyataan ini wajib muncul di dashboard dan di respons
-API, bukan hanya di dokumen ini.
+`W` is a parameter, not a universal constant. Keel's default assumes 15 minutes,
+following Script3's statement that no other trade occurred in the 15 minutes
+before the manipulation. That figure is **not confirmed** as Reflector's actual
+window and is marked as an assumption.
 
 ---
 
-## 10. Validasi empiris: insiden 22 Februari 2026
+## 9. Maximum safe collateral size
 
-Seluruh angka di bagian ini diturunkan dari Horizon mainnet dan dapat direproduksi
-siapa pun tanpa akun, tanpa BigQuery, dan tanpa akses istimewa.
+```
+C_max = min( D_sell(δ_liquidation) × h , MC(P_critical) × m )
+```
 
-### 10.1 Aset
+| Symbol | Meaning | Default |
+| --- | --- | --- |
+| `D_sell(δ_liquidation)` | sell side depth at the liquidation discount | δ = 10% |
+| `h` | liquidation haircut | 0.5 |
+| `MC(P_critical)` | manipulation cost to the critical price | P_critical = 2 × P0 |
+| `m` | manipulation safety margin | 0.25 |
+
+The two terms answer different questions and both have to be reported, not only
+the minimum. Every parameter is configurable by the caller, because Keel is
+protocol agnostic.
+
+The defaults above are **chosen, not calibrated.** Calibration needs more
+incidents than are available. That statement is required to appear in the
+dashboard and in the API response, not only in this document.
+
+---
+
+## 10. Empirical validation: the 22 February 2026 incident
+
+Every number in this section is derived from Horizon mainnet and can be reproduced
+by anyone with no account, no BigQuery, and no privileged access.
+
+### 10.1 Assets
 
 ```
 USTRY : GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC   (credit_alphanum12)
 USDC  : GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN   (credit_alphanum4)
 ```
 
-Perhatikan USTRY bertipe `credit_alphanum12` karena kodenya lima karakter. Query dengan
-tipe `credit_alphanum4` mengembalikan hasil kosong tanpa pesan error.
+Note that USTRY is `credit_alphanum12` because its code is five characters.
+Querying it as `credit_alphanum4` returns an empty result and no error message.
 
-### 10.2 Kronologi terverifikasi
+### 10.2 Verified chronology
 
-| Waktu UTC       | Peristiwa                                                                                                            | Bukti                                         |
-| --------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| 21 Feb 23:36:28 | Akun burner menukar 1 XLM menjadi 0,1612003 USDC untuk pendanaan                                                     | op 263452928864530433                         |
-| 21 Feb 23:38:51 | **Offer manipulasi dipasang.** Jual 1,2185312 USTRY pada `price_r` {266843207, 2500000} = 106,7372828 USDC per USTRY | tx `09e1a9d1...`, offer 1824788980            |
-| 21 Feb 23:39:31 | Order beli 0,0001 USTRY pada 1,0570000 dipasang oleh akun yang sama                                                  | op 263453066303434753                         |
-| 22 Feb 00:10:21 | **Trade manipulasi.** `GDHRCQNC...` membayar 5,3475699 USDC untuk 0,0501003 USTRY, mencocokkan offer 1824788980      | trade 263454423513071617-0, ledger 61340263   |
-| 22 Feb 00:10:57 | Trade debu 0,0000080 USTRY pada harga normal 1,057, antar akun penyerang                                             | trade 263454449283014657-0                    |
-| 22 Feb 00:11:16 | Order beli 1,057 dibatalkan                                                                                          | op 263454462168100865, ledger 61340272        |
-| 22 Feb ~00:25   | Pinjaman diambil di pool YieldBlox: 1.000.196,70 USDC lalu 61.249.278,31 XLM                                         | sumber sekunder, verifikasi on-chain tertunda |
-| 16 Mar 14:26:40 | Akun burner menukar 5,4152411 USDC menjadi 31,1670395 XLM                                                            | op 264910138253852673                         |
+| Time UTC | Event | Evidence |
+| --- | --- | --- |
+| 21 Feb 23:36:28 | The burner account swaps 1 XLM for 0.1612003 USDC as funding | op 263452928864530433 |
+| 21 Feb 23:38:51 | **The manipulation offer is placed.** Sell 1.2185312 USTRY at `price_r` {266843207, 2500000} = 106.7372828 USDC per USTRY | tx `09e1a9d1...`, offer 1824788980 |
+| 21 Feb 23:39:31 | A buy order for 0.0001 USTRY at 1.0570000 is placed by the same account | op 263453066303434753 |
+| 22 Feb 00:10:21 | **The manipulation trade.** `GDHRCQNC...` pays 5.3475699 USDC for 0.0501003 USTRY, matching offer 1824788980 | trade 263454423513071617-0, ledger 61340263 |
+| 22 Feb 00:10:57 | A dust trade of 0.0000080 USTRY at the normal price of 1.057, between attacker accounts | trade 263454449283014657-0 |
+| 22 Feb 00:11:16 | The 1.057 buy order is cancelled | op 263454462168100865, ledger 61340272 |
+| 22 Feb ~00:25 | Loans drawn from the YieldBlox pool: 1,000,196.70 USDC then 61,249,278.31 XLM | secondary sources, on-chain verification pending |
+| 16 Mar 14:26:40 | The burner account swaps 5.4152411 USDC for 31.1670395 XLM | op 264910138253852673 |
 
-### 10.3 Konsistensi aritmetika
+### 10.3 Arithmetic consistency
 
-Seluruh angka saling mengunci, yang menandakan pembacaan ini benar:
-
-```
-0,0501003 USTRY × 106,7372828  = 5,3475699 USDC     cocok dengan yang dibayarkan
-1,2185312 − 0,0501003          = 1,1684309 USTRY    cocok dengan sisa offer hari ini
-106,7372828 / 1,057            = 100,98×            cocok dengan laporan "100x"
-```
-
-### 10.4 Temuan utama
-
-**Biaya manipulasi mendekati nol.** Seluruh 5,3475699 USDC dibayarkan kepada offer milik
-penyerang sendiri, sehingga kembali ke penyerang. Tidak ada trade lain tercatat pada
-ledger 61340263 antara `P0` dan `P_target`. Karena mesin pencocokan Stellar mengisi dari
-harga terbaik, tersentuhnya offer di 106,74 berarti **tidak ada ask pihak ketiga di
-seluruh rentang harga dari 1,057 sampai 106,74.**
-
-Kalimat itu sebelumnya ditandai sebagai inferensi kuat. Sejak versi 1.0.1 ia menjadi
-**pengamatan langsung**: daftar trade akun
-`GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3` pada 2026-02-22T00:10:21Z
-memuat tepat satu record, yaitu 5,3475699 USDC melawan offer 1824788980 milik
-`GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB`. Karena seluruh pencocokan
-menghasilkan record trade, ketiadaan record lain membuktikan tidak ada ask pihak ketiga
-yang dilalap.
+Every figure locks against the others, which is what tells us the reading is
+correct:
 
 ```
-MC(100 × P0) untuk USTRY/USDC pada 21 Februari 2026 = 0 USDC
+0.0501003 USTRY × 106.7372828  = 5.3475699 USDC     matches what was paid
+1.2185312 - 0.0501003          = 1.1684309 USTRY    matches the offer remainder today
+106.7372828 / 1.057            = 100.98×            matches the reported "100x"
 ```
 
-Bukan tipis. Nol.
+### 10.4 The central finding
 
-**Skala akibatnya.** Dengan XLM pada 0,1612003 USDC, pinjaman yang diambil bernilai:
+**The manipulation cost was close to zero.** All 5.3475699 USDC went to an offer
+the attacker owned, so it returned to the attacker. No other trade is recorded on
+ledger 61340263 between `P0` and `P_target`. Because Stellar's matching engine
+fills from the best price, the fact that the offer at 106.74 was touched means
+**there was no third party ask anywhere in the price range from 1.057 to 106.74.**
+
+That sentence used to be marked as a strong inference. Since version 1.0.1 it is a
+**direct observation**: the trade list of account
+`GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3` at
+2026-02-22T00:10:21Z contains exactly one record, 5.3475699 USDC against offer
+1824788980 owned by
+`GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB`. Since every match
+produces a trade record, the absence of any other record proves no third party ask
+was swept.
 
 ```
-61.249.278,31 XLM × 0,1612003 =  9.873.402 USDC
-                    + USDC     =  1.000.197 USDC
-                      total    = 10.873.599 USDC
+MC(100 × P0) for USTRY/USDC on 21 February 2026 = 0 USDC
 ```
 
-Collateral 149.876,10 USTRY bernilai 158.419 USDC pada harga sebenarnya, dan 15.997.368
-USDC pada harga hasil manipulasi. Rasio 100,98 kali persis seperti yang diharapkan.
+Not thin. Zero.
 
-**Apa yang akan dilaporkan Keel.** Dijalankan pada USTRY/USDC pada 21 Februari 2026,
-Keel akan memicu, minimal:
+**The scale of the consequence.** With XLM at 0.1612003 USDC, the loans drawn were
+worth:
 
-| Flag                     | Alasan                                                |
-| ------------------------ | ----------------------------------------------------- |
-| `MANIPULATION_CHEAP`     | `MC(50%)` di bawah ambang absolut mana pun yang wajar |
-| `MANIPULATION_RATIO_LOW` | biaya manipulasi mendekati nol terhadap nilai supply  |
-| `THIN_DEPTH_5PCT`        | tidak ada ask sama sekali dalam rentang itu           |
-| `NO_GENUINE_TRADE_7D`    | volume di bawah 1 USDC per jam menjelang insiden      |
+```
+61,249,278.31 XLM × 0.1612003 =  9,873,402 USDC
+                      + USDC   =  1,000,197 USDC
+                        total  = 10,873,599 USDC
+```
 
-Band: `CRITICAL`. Aset ini tidak akan lolos ambang apa pun yang bisa dipertahankan.
+Collateral of 149,876.10 USTRY was worth 158,419 USDC at the real price and
+15,997,368 USDC at the manipulated price. A ratio of 100.98 times, exactly as
+expected.
 
-### 10.5 Verifikasi yang masih tertunda
+**What Keel would have reported.** Run against USTRY/USDC on 21 February 2026,
+Keel would have triggered, at minimum:
 
-1. Kedua transaksi pinjaman di pool YieldBlox, saat ini masih dari sumber sekunder.
-2. Parameter risiko pool YieldBlox yang berlaku saat itu.
-3. Panjang jendela VWAP Reflector yang sebenarnya.
+| Flag | Reason |
+| --- | --- |
+| `MANIPULATION_CHEAP` | `MC(50%)` below any defensible absolute threshold |
+| `MANIPULATION_RATIO_LOW` | manipulation cost near zero against the value of supply |
+| `THIN_DEPTH_5PCT` | no ask at all inside that range |
+| `NO_GENUINE_TRADE_7D` | volume below 1 USDC per hour going into the incident |
 
-Butir tentang daftar trade akun `GDHRCQNC...` **sudah selesai** pada versi 1.0.1 dan
-dipindah ke bagian 10.4 sebagai pengamatan langsung.
+Band: `CRITICAL`. This asset would not have passed any threshold that could be
+defended.
+
+### 10.5 Verification still pending
+
+1. Both loan transactions in the YieldBlox pool, currently from secondary sources.
+2. The YieldBlox pool risk parameters in force at the time.
+3. Reflector's actual VWAP window length.
+
+The item about account `GDHRCQNC...`'s trade list was **closed** in version 1.0.1
+and moved into section 10.4 as a direct observation.
 
 ---
 
-## 11. Depth tersirat dari trade
+## 11. Depth implied by trades
 
-Ketika state orderbook historis tidak tersedia, depth dapat dibatasi dari trade yang
-benar-benar terjadi.
+When historical orderbook state is unavailable, depth can be bounded from the
+trades that actually happened.
 
-**Klaim.** Jika sebuah trade bernilai `S` menggeser harga marginal sebesar `δ`, maka:
+**The claim.** If a trade worth `S` shifted the marginal price by `δ`, then:
 
 ```
-depth(δ) ≤ S
+depth(δ) <= S
 ```
 
-Alasannya: jika likuiditas dalam rentang harga itu lebih besar dari `S`, trade sebesar
-`S` tidak akan sanggup menembusnya.
+The reason: if there were more liquidity than `S` in that price range, a trade of
+size `S` could not have pushed through it.
 
-Ini menghasilkan batas atas, bukan pengukuran langsung. Untuk tujuan Keel itu memadai,
-karena yang perlu dibuktikan bukan nilai persis depth melainkan bahwa depth berada di
-bawah ambang aman. Biasnya konservatif ke arah yang benar.
+This yields an upper bound, not a direct measurement. For Keel's purpose that is
+sufficient, because what has to be shown is not the exact value of depth but that
+depth sits below a safe threshold. The bias is conservative in the right
+direction.
 
-Hasil yang diturunkan dengan cara ini **wajib** ditandai `dataSource: "trades-implied"`
-pada respons API. Angka berupa batas atas tidak boleh terlihat identik dengan angka
-hasil pengukuran langsung.
+A result derived this way **must** be tagged `dataSource: "trades-implied"` in the
+API response. A number that is an upper bound must not look identical to a number
+that was measured.
 
 ---
 
-## 12. Prinsip dan keterbatasan
+## 12. Principles and limitations
 
-### Prinsip konservatif
+### The conservative principle
 
-Pada setiap kasus ambigu, pilih interpretasi yang menghasilkan depth lebih rendah dan
-penilaian risiko lebih tinggi. Produk peringatan yang terlalu optimistis tidak berguna.
+In every ambiguous case, choose the interpretation that yields lower depth and a
+higher risk assessment. A warning product that is too optimistic is useless.
 
-### Keterbatasan yang diketahui
+### Known limitations
 
-1. **Likuiditas tercatat bukan likuiditas eksekutabel.** Offer dapat ditarik seketika.
-   Reflector melaporkan bahwa market maker pasar ini menarik seluruh likuiditasnya
-   sebelum insiden. Keel yang memindai setiap 15 menit akan menangkap perubahan itu,
-   Keel yang memindai harian mungkin terlambat. Frekuensi pemindaian adalah parameter
-   yang jujur, bukan detail teknis.
-2. **Path payment lintas aset perantara tidak dihitung.** Likuiditas efektif sebenarnya
-   dapat lebih besar dari yang dilaporkan Keel.
-3. **Likuiditas di bursa terpusat tidak terlihat.** Keel hanya mengukur on-chain.
-4. **Ambang dipilih, bukan dikalibrasi.** Kalibrasi memerlukan banyak insiden. Seluruh
-   flag dilaporkan terpisah agar konsumen dapat menerapkan ambang sendiri.
-5. **Backtest mengetahui hasilnya di depan.** Risiko hindsight bias nyata. Kalau ambang
-   disetel setelah melihat hasil, hal itu harus dinyatakan di laporan.
-6. **Kepemilikan order tidak dapat diketahui sebelum kejadian**, sehingga biaya
-   manipulasi yang dilaporkan selalu batas atas.
+1. **Posted liquidity is not executable liquidity.** An offer can be withdrawn
+   instantly. Reflector reported that this market's market maker pulled all of its
+   liquidity before the incident. A Keel that scans every 15 minutes catches that
+   change; a Keel that scans daily may be too late. Scan frequency is an honest
+   parameter, not a technical detail.
+2. **Cross-asset path payments are not counted.** Real effective liquidity can be
+   larger than what Keel reports.
+3. **Centralised exchange liquidity is invisible.** Keel measures on-chain only.
+4. **Thresholds are chosen, not calibrated.** Calibration needs many incidents.
+   Every flag is reported separately so that a consumer can apply their own
+   thresholds.
+5. **A backtest knows the answer in advance.** The hindsight bias risk is real. If
+   a threshold was set after seeing the outcome, that has to be stated in the
+   report.
+6. **Order ownership cannot be known ahead of the event**, so a reported
+   manipulation cost is always an upper bound.
 
 ---
 
-## 13. Versi
+## 13. Versions
 
-`MethodologyVersion` mengikuti semver dan wajib naik setiap kali definisi atau ambang
-berubah. Hasil dari versi berbeda tidak dapat dibandingkan langsung dan disimpan sebagai
-baris terpisah di basis data.
+`MethodologyVersion` follows semver and must be raised whenever a definition or a
+threshold changes. Results from different versions cannot be compared directly and
+are stored as separate rows in the database.
 
-| Versi       | Perubahan                                                                                                                                                                                            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0.0-draft | Definisi awal. Biaya manipulasi diperbaiki menjadi berbasis kepemilikan setelah pemeriksaan ledger insiden 22 Februari 2026. Tangga delta besar ditambahkan. Suku volume jendela oracle ditambahkan. |
-| 1.0.1-draft | Bagian 3a (`spreadPct` dan `SPREAD_EXTREME`) ditambahkan setelah golden fixture menunjukkan `P0` kehilangan makna pada spread ekstrem. Bagian 7.4 (`Reachable`, dua arti biaya nol) dan 7.5 (`MaxReachablePrice`) ditambahkan. Bagian 10.4 naik dari inferensi menjadi pengamatan langsung, dan butir 1 pada 10.5 ditutup. |
-| 1.0.2-draft | `MANIPULATION_CHEAP` dan `MANIPULATION_RATIO_LOW` disyaratkan `Reachable == true`. Keadaan `unevaluated` dan `bandConfidence` ditambahkan setelah fixture menunjukkan enam flag tidak dapat dinilai dari snapshot saja. Detailnya di `09-flag-dan-band.md`. Konvensi satuan persen dinyatakan eksplisit di kepala dokumen ini. |
+| Version | Change |
+| --- | --- |
+| 1.0.0-draft | Initial definitions. Manipulation cost corrected to be ownership based after examining the ledger data of the 22 February 2026 incident. The large delta ladder added. The oracle window volume term added. |
+| 1.0.1-draft | Section 3a (`spreadPct` and `SPREAD_EXTREME`) added after the golden fixture showed `P0` losing its meaning at an extreme spread. Sections 7.4 (`Reachable`, the two meanings of a zero cost) and 7.5 (`MaxReachablePrice`) added. Section 10.4 was promoted from inference to direct observation, closing item 1 of section 10.5. |
+| 1.0.2-draft | `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` now require `Reachable == true`. The `unevaluated` state and `bandConfidence` added after the fixture showed that six flags cannot be assessed from a snapshot alone. Details in `09-flag-dan-band.md`. The percent unit convention stated explicitly at the head of this document. |

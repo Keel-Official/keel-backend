@@ -77,20 +77,20 @@ cek P1-5 "padahal domain sudah punya DataSourceTradesImplied" \
 cek P1-6 "types.go menyimpan OracleResistance sebagai skalar" \
   grep -qF "OracleResistance        *decimal.Decimal" internal/domain/types.go
 cek P1-7 "padahal DEC-003 menolak bentuk skalar secara eksplisit" \
-  grep -q "Alternatif yang ditolak:\*\* satu skalar hasil bagi" docs/decisions/DEC-003-api-contract-v1-1.md
+  grep -qF "a single scalar quotient" docs/decisions/DEC-003-api-contract-v1-1.md
 cek P1-8 "CostToMaxReachablePrice ada di kode" \
   grep -q "CostToMaxReachablePrice" internal/domain/types.go
 cek P1-9 "tetapi tidak ada di kontrak API" kontrak_tanpa costToMaxReachablePrice
 cek P1-10 "unevaluatedFlags tidak ada sebagai field kontrak" kontrak_tanpa unevaluatedFlags
 cek P1-11 "bandConfidence tidak ada sebagai field kontrak" kontrak_tanpa bandConfidence
 cek P1-12 "padahal 09-flag-dan-band mewajibkan keduanya masuk openapi" \
-  grep -q "tambah .unevaluatedFlags., .bandConfidence." docs/methodology/09-flag-dan-band.md
+  grep -qF 'add `unevaluatedFlags`, `bandConfidence`' docs/methodology/09-flag-dan-band.md
 cek P1-13 "kontrak memakai criticalDelta 0.5" \
   grep -q "criticalDelta: 0.5" docs/api/keel-openapi.yaml
 cek P1-14 "sedangkan DefaultParams memakai delta kritis 1.0" \
   grep -qF 'ManipulationCriticalDelta: dec("1.0")' internal/conformance/fixture.go
 cek P1-15 "metodologi mewajibkan kedua suku C_max dilaporkan, bukan hanya minimumnya" \
-  grep -q "keduanya harus dilaporkan, bukan hanya" docs/methodology/keel-methodology-core.md
+  grep -qF 'both have to be reported' docs/methodology/keel-methodology-core.md
 cek P1-16 "internal/adapter memakai float64" grep -q "float64" internal/adapter/horizon.go
 cek P1-17 "arch_test hanya memindai internal/domain dan internal/depth" \
   grep -qF 'paketMurni = []string{".", "../depth"}' internal/domain/arch_test.go
@@ -98,7 +98,7 @@ cek P1-18 "internal/adapter tidak diimpor paket mana pun" adapter_mati
 cek P1-19 "internal/adapter tidak muncul di peta zona CLAUDE.md" \
   bash -c '! grep -q "internal/adapter" CLAUDE.md'
 cek P1-20 "DEC-001 masih memakai kabar 0,50 dolar dan rasio 1 banding 22 juta" \
-  grep -q "1 berbanding 22 juta" docs/decisions/DEC-001-ustry-identity.md
+  grep -qF "1 to 22 million" docs/decisions/DEC-001-ustry-identity.md
 cek P1-21 "padahal bukti di repo menunjukkan trade eksekusi 5,3475699 USDC" \
   grep -qF '"base_amount": "5.3475699"' docs/evidences/spike_result_2.txt
 cek P1-22 "curl DEC-002 memberi USTRY tipe credit_alphanum4" \
@@ -132,9 +132,9 @@ cek P2-4 "README menjanjikan make record jalan, padahal keluar dengan kode 3" re
 cek P2-5 "ada direktori kosong yang akan hilang saat orang lain clone" folder_kosong_ikut_hilang
 cek P2-6 "kunci zona merah bocor lewat Bash, tidak tertutup deny Edit dan Write" zona_merah_bocor
 cek P2-7 "keputusan struktur berkas metodologi masih terbuka di README metodologi" \
-  grep -q "Keputusan yang harus diambil" docs/methodology/README.md
+  grep -qF "The decision that has to be made" docs/methodology/README.md
 cek P2-8 "fixture menulis Keempatnya untuk daftar yang berisi enam flag" \
-  grep -q "Keempatnya harus dilaporkan" testdata/fixtures/ustry_pre_exploit.md
+  grep -qF "All four must be reported" testdata/fixtures/ustry_pre_exploit.md
 
 bagian "Syarat visibilitas repo, lihat DEC-004"
 # Bagian ini butuh jaringan dan gh. Dilewati kalau salah satunya tidak ada, karena

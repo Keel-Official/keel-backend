@@ -1,256 +1,268 @@
-# Keel: Perubahan Kontrak API v1.1.0
+# Keel: API Contract Changes for v1.1.0
 
-**Keputusan:** Kontrak API naik ke 1.1.0 untuk membawa metodologi v1.0.1, yaitu
-`SPREAD_EXTREME`, pembedaan `reachable`, tangga manipulasi yang diperluas, dan
-ketahanan oracle.
-**Status:** DRAFT. Belum dibekukan. Lihat bagian 7 untuk syarat pembekuan.
-**Sumber perubahan:** `docs/internal/memo-pra-development.md` bagian 1 dan 2.
-**Berkas terdampak:** `docs/api/keel-openapi.yaml`
+**Decision:** The API contract moves to 1.1.0 in order to carry methodology
+v1.0.1, namely `SPREAD_EXTREME`, the `reachable` distinction, the extended
+manipulation ladder, and oracle resistance.
+**Status:** DRAFT. Not frozen. See section 7 for the freeze conditions.
+**Source of the changes:** `docs/internal/memo-pra-development.md` sections 1 and 2.
+**Affected file:** `docs/api/keel-openapi.yaml`
+
+> **Translation note.** Translated to English under DEC-005 with its content
+> unchanged. Section 4 still carries an error the contract itself has already
+> corrected: it lists `MC(delta=1)` as `reachable: true`, and the correct value is
+> `false`. That is fixed under task T6, not here. See findings P1-26 and P1-27 in
+> `docs/internal/audit-2026-08-20.md`.
 
 ---
 
-## 1. Kenapa versi minor, bukan patch
+## 1. Why a minor version and not a patch
 
-Tiga perubahan memutus kompatibilitas untuk konsumen yang sudah menulis kode:
+Three of these changes break compatibility for a consumer who has already written
+code:
 
-| Perubahan | Kenapa memutus |
+| Change | Why it breaks |
 |---|---|
-| `Asset.type` menjadi wajib | Konsumen yang memvalidasi objek Asset secara ketat akan menolak respons lama maupun baru sampai skemanya diperbarui |
-| Tangga `manipulationCost` berubah dari 2 entri menjadi 4 | Kode yang membaca `manipulationCost[1]` sebagai delta 1.0 tetap benar, tetapi kode yang mengasumsikan panjang array 2 akan salah |
-| `cost` sekarang wajib dibaca bersama `reachable` | Kode lama yang menampilkan `cost` sendirian sekarang menampilkan angka yang menyesatkan pada kasus `reachable: false`. Ini kerusakan diam, bukan kerusakan yang melempar error |
+| `Asset.type` becomes required | A consumer validating the Asset object strictly will reject both old and new responses until their schema is updated |
+| The `manipulationCost` ladder goes from 2 entries to 4 | Code reading `manipulationCost[1]` as delta 1.0 stays correct, but code assuming the array has length 2 becomes wrong |
+| `cost` must now be read together with `reachable` | Old code displaying `cost` on its own now displays a misleading number in the `reachable: false` case. This is silent damage, not damage that raises an error |
 
-Yang ketiga adalah yang paling berbahaya, karena tidak ada yang gagal. Kode lama
-tetap jalan dan tetap menampilkan angka. Angkanya saja yang salah arti. Karena itu
-perubahan ini harus dikomunikasikan ke builder frontend secara eksplisit, tidak
-cukup lewat changelog.
+The third is the most dangerous, because nothing fails. Old code keeps running and
+keeps displaying a number. Only the meaning of the number is wrong. This change
+therefore has to be communicated to the frontend builder explicitly; a changelog is
+not enough.
 
-Belum ada konsumen produksi, jadi biaya pemutusan ini nol sekarang dan tidak akan
-nol lagi setelah dibekukan.
+There is no production consumer yet, so the cost of breaking is zero now and will
+not be zero once it is frozen.
 
 ---
 
-## 2. Daftar perubahan dan alasannya
+## 2. The changes and their reasons
 
-### 2.1 `Asset.type` wajib
+### 2.1 `Asset.type` becomes required
 
-Nilai: `native`, `credit_alphanum4`, `credit_alphanum12`.
+Values: `native`, `credit_alphanum4`, `credit_alphanum12`.
 
-Jenis aset dikirim eksplisit, bukan disimpulkan dari panjang `code`. Kode empat
-karakter atau kurang boleh diterbitkan sebagai `credit_alphanum12`, dan Horizon
-melaporkannya apa adanya. Konsumen yang menebak dari panjang kode akan menyusun
-identitas aset yang berbeda dari aset yang sebenarnya diukur Keel.
+The asset type is sent explicitly rather than inferred from the length of `code`. A
+code of four characters or fewer may be issued as `credit_alphanum12`, and Horizon
+reports it as issued. A consumer guessing from code length will construct an asset
+identity different from the asset Keel actually measured.
 
-**Alternatif yang ditolak:** membiarkan konsumen menebak dan cukup mendokumentasikan
-kaidahnya. Ditolak karena kaidahnya tidak selalu benar, dan kesalahannya baru
-kelihatan pada aset langka, yaitu justru kelas aset yang menjadi alasan Keel ada.
+**The rejected alternative:** letting consumers guess and simply documenting the
+rule. Rejected because the rule is not always true, and the error only surfaces on
+rare assets, which is precisely the class of asset Keel exists for.
 
-### 2.2 Tangga `manipulationCost` menjadi 0.5, 1, 10, 100
+### 2.2 The `manipulationCost` ladder becomes 0.5, 1, 10, 100
 
-Setiap entri sekarang membawa `targetPrice` dan `reachable` di samping `cost`.
+Each entry now carries `targetPrice` and `reachable` alongside `cost`.
 
-Tangga besar ditambahkan karena aset dengan buku rusak tidak terbaca oleh tangga
-kecil. Pada fixture USTRY, satu-satunya ask berada jauh di atas `P0 x 1.5`, jadi
-tangga 0.5 tidak menyentuh likuiditas apa pun sementara tangga 1 menyerap seluruh
-buku. Tanpa tangga 10 dan 100 tidak terlihat bahwa di atas itu tidak ada apa-apa lagi.
+The large rungs were added because an asset with a broken book is invisible to the
+small rungs. On the USTRY fixture the only ask sits far above `P0 x 1.5`, so the 0.5
+rung touches no liquidity at all while the rung at 1 absorbs the entire book.
+Without the rungs at 10 and 100 it would not be visible that there is nothing above
+that at all.
 
-`targetPrice` dikirim, bukan dibiarkan dihitung ulang konsumen, karena `midPrice`
-pada aset berbuku rusak tidak dapat dipercaya sebagai basis perkalian di sisi klien.
-Mengirimkannya membuat setiap baris tangga dapat dibaca sendiri.
+`targetPrice` is sent rather than left for the consumer to recompute, because
+`midPrice` on a broken-book asset cannot be trusted as a multiplication base on the
+client side. Sending it makes every rung of the ladder readable on its own.
 
-### 2.3 `reachable` dan `maxReachablePrice`
+### 2.3 `reachable` and `maxReachablePrice`
 
-Ini inti perubahan. `cost: "0"` punya dua arti yang berlawanan:
+This is the core of the change. `cost: "0"` has two opposite meanings:
 
-| cost | reachable | arti |
+| cost | reachable | meaning |
 |---|---|---|
-| 0 | true | harga sasaran dapat dicapai tanpa biaya |
-| 0 | false | tidak ada likuiditas sama sekali dalam rentang itu |
+| 0 | true | the target price can be reached at no cost |
+| 0 | false | there is no liquidity at all in that range |
 
-Tanpa pembedaan ini keluaran Keel ambigu justru pada aset paling berbahaya.
-`maxReachablePrice` melengkapinya dengan menyatakan batas atas pergerakan harga
-lewat buku, sehingga konsumen dapat memeriksa sendiri bahwa setiap `targetPrice`
-di atas nilai itu memang `reachable: false`.
+Without that distinction Keel's output is ambiguous on precisely the most dangerous
+assets. `maxReachablePrice` completes it by stating the upper bound on price
+movement through the book, so a consumer can check for themselves that every
+`targetPrice` above that value really is `reachable: false`.
 
-**Alternatif yang ditolak:** mengirim `cost: null` untuk kasus tidak terjangkau.
-Ditolak karena membuang informasi. Pada tangga delta 10 di contoh historis, biaya
-2210.4400000 tetap bermakna: itu biaya menghabiskan seluruh ask. Yang hilang bukan
-biayanya, melainkan tercapainya sasaran.
+**The rejected alternative:** sending `cost: null` for the unreachable case.
+Rejected because it discards information. On the delta 10 rung of the historical
+example, the cost of 2210.4400000 is still meaningful: it is the cost of exhausting
+every ask. What is lost is not the cost, it is the reaching of the target.
 
-`maxReachablePrice` bernilai null dalam dua keadaan berbeda: tidak ada ask sama
-sekali, atau likuiditas seluruhnya dari AMM. Kurva constant product tidak punya
-batas atas harga, sehingga tidak ada maksimum yang dapat dilaporkan. Keduanya
-sengaja tidak dibedakan lewat nilai, karena `priceSource` sudah membedakannya.
+`maxReachablePrice` is null in two different situations: there is no ask at all, or
+all the liquidity is in an AMM. A constant product curve has no upper price bound,
+so there is no maximum to report. The two are deliberately not distinguished by
+value, because `priceSource` already distinguishes them.
 
-### 2.4 `spreadPct` dan flag `SPREAD_EXTREME`
+### 2.4 `spreadPct` and the `SPREAD_EXTREME` flag
 
-`spreadPct = (best_ask - best_bid) / midPrice`, dilaporkan sebagai angka, bukan
-hanya status terpicu.
+`spreadPct = (best_ask - best_bid) / midPrice`, reported as a number rather than
+only as a triggered status.
 
-**Perbedaan dari metodologi, butuh persetujuan Al.** `docs/internal/memo-pra-development.md`
-bagian 1.2 menulis `SpreadExtremePct` default 0,20 sebagai pecahan. Kontrak API
-memakai skala persen: `spreadExtremePct: '20.0'`, dan `spreadPct: '196.0777141'`
-untuk spread 196 persen.
+**A difference from the methodology, needs Al's approval.**
+`docs/internal/memo-pra-development.md` section 1.2 writes the `SpreadExtremePct`
+default as 0.20, a fraction. The API contract uses a percent scale:
+`spreadExtremePct: '20.0'`, and `spreadPct: '196.0777141'` for a spread of 196
+percent.
 
-Alasannya konsistensi internal. Seluruh field berakhiran `Pct` yang sudah ada di
-API ini berskala persen: `holderTop1Pct: '11.4200000'`, `tradesExcludedPct:
-'2.1000000'`, `manipulationRatioLowPct: '1.0'`. Satu field pecahan di antara field
-persen adalah jebakan yang pasti dimakan seseorang.
+The reason is internal consistency. Every existing field in this API whose name ends
+in `Pct` is on a percent scale: `holderTop1Pct: '11.4200000'`, `tradesExcludedPct:
+'2.1000000'`, `manipulationRatioLowPct: '1.0'`. One fractional field among percent
+fields is a trap somebody will certainly walk into.
 
-Konsekuensinya nama variabel internal dan nilai API berbeda skala, dan konversi
-harus terjadi di satu tempat yang jelas di lapisan API. Kalau Al lebih suka
-pecahan, yang harus berubah adalah seluruh field `Pct` lain, bukan hanya yang ini.
+The consequence is that the internal variable name and the API value are on
+different scales, and the conversion has to happen in one obvious place in the API
+layer. If Al prefers fractions, then every other `Pct` field has to change too, not
+only this one.
 
-`spreadPct` bernilai null kalau salah satu sisi buku kosong atau `priceSource`
-bukan `book`. Spread tidak terdefinisi tanpa dua sisi buku.
+`spreadPct` is null when either side of the book is empty or when `priceSource` is
+not `book`. Spread is undefined without two sides of a book.
 
 ### 2.5 `oracleResistance`
 
-Metodologi menulisnya sebagai `MC(kritis) + volume asli dalam jendela oracle`.
-Dituangkan sebagai objek dengan lima field wajib: `criticalDelta`,
-`manipulationCost`, `reachable`, `genuineVolume`, `windowSeconds`, ditambah
-`ratio` yang boleh null.
+The methodology writes it as `MC(critical) + genuine volume in the oracle window`.
+It is expressed here as an object with five required fields: `criticalDelta`,
+`manipulationCost`, `reachable`, `genuineVolume`, `windowSeconds`, plus a `ratio`
+that may be null.
 
-**Alternatif yang ditolak:** satu skalar hasil bagi. Ditolak karena rasio menyembunyikan
-dua keadaan yang harus terlihat. Pertama, `genuineVolume` nol membuat rasio tidak
-terdefinisi, dan aset yang tidak diperdagangkan sama sekali dalam jendela oracle
-adalah temuan penting, bukan data hilang. Kedua, rasio yang dihitung dari
-`manipulationCost` dengan `reachable: false` adalah angka tanpa arti. Dengan bentuk
-objek, kedua keadaan itu terbaca dan `ratio` cukup diisi null.
+**The rejected alternative:** a single scalar quotient. Rejected because a ratio
+hides two states that have to be visible. First, a `genuineVolume` of zero makes the
+ratio undefined, and an asset with no trading at all inside the oracle window is an
+important finding, not missing data. Second, a ratio computed from a
+`manipulationCost` whose `reachable` is false is a meaningless number. In object
+form both states are readable and `ratio` is simply set to null.
 
-`windowSeconds` diulang di dalam objek meskipun sudah ada di `/methodology`, supaya
-respons aset dapat dibaca dan diarsipkan tanpa memanggil endpoint lain.
+`windowSeconds` is repeated inside the object even though it is also at
+`/methodology`, so that an asset response can be read and archived without calling
+another endpoint.
 
-`criticalDelta` default 0.5 dan selalu sama dengan salah satu nilai `delta` pada
+`criticalDelta` defaults to 0.5 and is always equal to one of the `delta` values in
 `manipulationCost`.
 
-### 2.6 `dataSource` menerima `trades-implied`
+### 2.6 `dataSource` accepts `trades-implied`
 
-Dipakai ketika state orderbook pada ledger yang diminta tidak tersedia dan harga
-serta likuiditas direkonstruksi dari catatan trade yang benar-benar tereksekusi.
+Used when the orderbook state at the requested ledger is unavailable and the price
+and liquidity were reconstructed from trades that actually executed.
 
-Nilai ini diberlakukan pada `AssetRisk` dan juga pada `HistoryResponse`, lewat satu
-skema `DataSource` bersama. Keduanya disatukan karena justru jalur historis yang
-paling sering kehilangan snapshot, dan itu persis jalur yang dipakai studi kasus
-Blend.
+This value applies to `AssetRisk` and to `HistoryResponse` alike, through one shared
+`DataSource` schema. They are unified because it is the historical path that most
+often lacks a snapshot, and that is exactly the path the Blend case study uses.
 
-Trade membuktikan likuiditas yang terpakai, bukan likuiditas yang tersedia. Depth
-hasil `trades-implied` adalah batas bawah dan wajib disertai warning. Frontend tidak
-boleh menampilkannya setara hasil `horizon`.
+A trade proves the liquidity that was used, not the liquidity that was available.
+Depth from `trades-implied` is a lower bound and must carry a warning. The frontend
+must not display it as equivalent to a `horizon` result.
 
-Contoh `assetBrokenBook` memakai nilai ini, karena buku USTRY/USDC pada ledger
-61340263 memang diturunkan dari operasi on-chain, bukan dari snapshot orderbook.
-Jadi nilai baru ini punya satu contoh nyata, bukan hanya entri enum.
+The `assetBrokenBook` example uses this value, because the USTRY/USDC book at ledger
+61340263 really was derived from on-chain operations rather than from an orderbook
+snapshot. So this new value has one real example, not merely an enum entry.
 
-### 2.7 `/methodology` menambah dua ambang
+### 2.7 `/methodology` gains two thresholds
 
-`spreadExtremePct: '20.0'` dan `oracleWindowSeconds: 300`.
+`spreadExtremePct: '20.0'` and `oracleWindowSeconds: 300`.
 
-`thresholds` tetap `additionalProperties: true`. Konsumen wajib membaca lewat nama
-kunci, bukan posisi, sehingga penambahan ambang berikutnya tidak memutus siapa pun.
+`thresholds` remains `additionalProperties: true`. Consumers are required to read by
+key name rather than by position, so adding the next threshold breaks nobody.
 
-`oracleWindowSeconds` adalah asumsi Keel, bukan bacaan dari oracle mana pun. Tiap
-oracle punya jendela sendiri. Nilainya dilaporkan supaya konsumen dapat mengganti
-dengan jendela oracle yang benar-benar mereka pakai.
+`oracleWindowSeconds` is Keel's assumption, not a reading from any oracle. Every
+oracle has its own window. The value is reported so that a consumer can substitute
+the window their oracle actually uses.
 
 ---
 
-## 3. Contoh `assetBrokenBook`
+## 3. The `assetBrokenBook` example
 
-Ditambahkan sebagai `components.examples.AssetBrokenBook`, terhubung ke
-`GET /asset/{assetId}/depth` dengan kunci `bukuRusak`.
+Added as `components.examples.AssetBrokenBook`, wired to
+`GET /asset/{assetId}/depth` under the key `bukuRusak`.
 
-Ini keadaan ketiga yang harus dibedakan frontend, di samping aset sehat dan aset
-tanpa harga. USTRY/USDC sesaat sebelum ledger 61340263 punya tepat satu ask pada
-106.7372828 dan tepat satu bid pada 1.0570000. Titik tengahnya 53.8971414 untuk
-aset yang bernilai sekitar 1.06. Spread 196 persen. HTTP 200, bukan error, dan
-bukan kondisi normal.
+This is the third state the frontend has to distinguish, alongside a healthy asset
+and an asset with no price. USTRY/USDC moments before ledger 61340263 held exactly
+one ask at 106.7372828 and exactly one bid at 1.0570000. The midpoint is 53.8971414
+for an asset worth about 1.06. A spread of 196 percent. HTTP 200, not an error, and
+not a normal condition.
 
-Tuntutan tampilan, sudah ditulis di `description` contohnya:
+What the display has to do, already written into the example's `description`:
 
-1. Jangan tampilkan `midPrice` sebagai harga tanpa penanda.
-2. Redam tangga depth 2/5/10 persen. Ketiganya diturunkan dari `midPrice` yang
-   sudah tidak bermakna dan tetap dilaporkan hanya karena dijanjikan di SOW.
-3. Naikkan tangga manipulasi delta 10 dan 100 beserta `maxReachablePrice`.
-4. Bedakan `cost: "0"` dengan `reachable: false` dari `cost: "0"` dengan
+1. Do not show `midPrice` as a price without a marker.
+2. Damp down the 2/5/10 percent depth ladder. All three are derived from a
+   `midPrice` that no longer means anything, and they are reported only because the
+   SOW promised them.
+3. Promote the manipulation rungs at delta 10 and 100 along with
+   `maxReachablePrice`.
+4. Distinguish `cost: "0"` with `reachable: false` from `cost: "0"` with
    `reachable: true`.
 
-**Contoh ini belum lengkap dan itu disengaja.** Lihat bagian 4.
+**This example is incomplete and that is deliberate.** See section 4.
 
 ---
 
-## 4. Angka yang sengaja belum diisi
+## 4. The numbers deliberately left blank
 
-`docs/internal/memo-pra-development.md` bagian 3 mensyaratkan tabel golden fixture diisi
-dengan tangan sebelum satu baris implementasi ditulis, dan menyatakan alasannya:
-tabel yang diisi setelah kodenya ada hanya mengonfirmasi apa pun yang kode itu
-lakukan.
+`docs/internal/memo-pra-development.md` section 3 requires the golden fixture table
+to be filled in by hand before a single line of implementation is written, and it
+states the reason: a table filled in after the code exists merely confirms whatever
+that code did.
 
-Alasan yang sama berlaku untuk contoh API. Menurunkan `depth`, `cost`, `reachable`,
-dan `maxReachablePrice` di sini sama saja menyerahkan jawaban lembar kerjanya, dan
-pengaman metodologi itu hilang.
+The same reason applies to the API examples. Deriving `depth`, `cost`, `reachable`,
+and `maxReachablePrice` here would be handing over the answers to the worksheet, and
+that safeguard on the methodology would be gone.
 
-Yang sudah diisi, karena sudah tertulis di dokumen metodologi:
+What is filled in, because it is already written in the methodology document:
 
-| Field | Nilai | Asal |
+| Field | Value | Origin |
 |---|---|---|
-| `midPrice` | `53.8971414` | bagian 1.2 |
-| `spreadPct` | `196.0777141` | (106.7372828 - 1.057) / 53.8971414 x 100, angka 196 persen disebut di bagian 2 |
-| `targetPrice` seluruh tangga | 80.8457121, 107.7942828, 592.8685554, 5443.6112814 | `midPrice x (1 + delta)`, rumus dan satu contoh diberikan di bagian 3 |
-| `MC(delta=1)` cost dan reachable | `130.0627093`, `true` | contoh yang sudah dikerjakan di bagian 3 |
-| `flags` | `[SPREAD_EXTREME]` | pasti terpicu pada spread 196 persen |
-| `band` | `HIGH` | konsekuensi SPREAD_EXTREME menurut bagian 1.2 |
+| `midPrice` | `53.8971414` | section 1.2 |
+| `spreadPct` | `196.0777141` | (106.7372828 - 1.057) / 53.8971414 x 100, the 196 percent figure is named in section 2 |
+| `targetPrice` for the whole ladder | 80.8457121, 107.7942828, 592.8685554, 5443.6112814 | `midPrice x (1 + delta)`, the formula and one worked example are given in section 3 |
+| `MC(delta=1)` cost and reachable | `130.0627093`, `true` | the example already worked through in section 3 |
+| `flags` | `[SPREAD_EXTREME]` | certain to trigger at a spread of 196 percent |
+| `band` | `HIGH` | the consequence of SPREAD_EXTREME per section 1.2 |
 
-Yang menunggu Sesi 1, ditandai `TODO-FIXTURE` atau `reachable: null`: seluruh
-`depth`, `cost` pada delta 0.5, 10, dan 100, `reachable` pada ketiganya,
-`maxReachablePrice`, isi `oracleResistance`, `maxSafeCollateral`, dan metrik holder.
+Awaiting session 1, marked `TODO-FIXTURE` or `reachable: null`: all of `depth`,
+`cost` at delta 0.5, 10, and 100, `reachable` on those three, `maxReachablePrice`,
+the contents of `oracleResistance`, `maxSafeCollateral`, and the holder metrics.
 
-`flags` dan `band` pada contoh itu adalah batas bawah. Flag lain kemungkinan besar
-ikut terpicu setelah fixture diisi, dan band dapat naik ke CRITICAL.
+The `flags` and `band` in that example are a lower bound. Other flags will most
+likely also fire once the fixture is filled in, and the band may rise to CRITICAL.
 
-Penanda `TODO-FIXTURE` melanggar pola skema `Decimal`, dan `reachable: null`
-melanggar tipe boolean. Itu disengaja: validator OpenAPI akan menolak berkas ini
-sampai penandanya diganti, sehingga kontrak tidak dapat dibekukan secara tidak
-sengaja.
+The `TODO-FIXTURE` marker violates the `Decimal` schema pattern, and
+`reachable: null` violates the boolean type. That is deliberate: an OpenAPI
+validator will reject the file until those markers are replaced, so the contract
+cannot be frozen by accident.
 
 ---
 
-## 5. Yang tidak diubah, dan alasannya
+## 5. What is not changing, and why
 
-| Tidak diubah | Alasan |
+| Not changed | Reason |
 |---|---|
-| `AssetSummary` tidak menerima `spreadPct` | Tidak diminta di bagian 2. Halaman daftar sudah menerima `SPREAD_EXTREME` lewat `flags`, yang cukup untuk memberi penanda pada baris. Lihat pertanyaan terbuka di bagian 6 |
-| `HistoryPoint.manipulationCost50Pct` tetap satu tangga | Deret waktu empat tangga membuat muatan respons membengkak tanpa permintaan konkret dari dashboard |
-| Tangga depth tetap 2/5/10 persen | Dijanjikan di SOW. Bagian 1.4 metodologi sudah menyatakan tangga ini bukan metrik keamanan oracle, dan itu kini tertulis di deskripsi API |
-| `Band` tetap flag terburuk, bukan pembobotan | Di luar cakupan perubahan ini |
+| `AssetSummary` does not gain `spreadPct` | Not requested in section 2. The list page already receives `SPREAD_EXTREME` through `flags`, which is enough to mark the row. See the open question in section 6 |
+| `HistoryPoint.manipulationCost50Pct` stays a single rung | A four rung time series inflates the response payload with no concrete request from the dashboard |
+| The depth ladder stays 2/5/10 percent | Promised in the SOW. Methodology section 1.4 already states this ladder is not an oracle safety metric, and that is now written into the API description |
+| `Band` remains the worst triggered flag, not a weighting | Out of scope for this change |
 
 ---
 
-## 6. Pertanyaan terbuka untuk builder frontend
+## 6. Open questions for the frontend builder
 
-1. Apakah halaman daftar butuh `spreadPct` di `AssetSummary`, atau cukup flag
-   `SPREAD_EXTREME` untuk memberi penanda baris?
-2. `criticalDelta` dipatok 0.5 untuk semua aset. Apakah dashboard butuh memilih
-   delta kritis sendiri lewat parameter query?
-3. Belum ada contoh respons dengan `oracleResistance.ratio` di bawah 1, yaitu
-   keadaan paling berbahaya, karena tidak ada aset contoh yang punya volume asli
-   nonzero dalam jendela 300 detik sekaligus biaya manipulasi rendah. Perlu
-   contoh sintetis khusus untuk merancang tampilannya, atau tunggu data nyata?
-4. Nilai `dataSource: trades-implied` perlu tampilan pembeda seperti apa? Depth-nya
-   batas bawah, bukan pengukuran.
+1. Does the list page need `spreadPct` on `AssetSummary`, or is the
+   `SPREAD_EXTREME` flag enough to mark the row?
+2. `criticalDelta` is pinned to 0.5 for every asset. Does the dashboard need to
+   choose its own critical delta through a query parameter?
+3. There is no example response with `oracleResistance.ratio` below 1, which is the
+   most dangerous state, because no sample asset has both non-zero genuine volume
+   inside a 300 second window and a low manipulation cost. Do we need a purpose
+   built synthetic example to design that display, or do we wait for real data?
+4. What kind of distinguishing display does `dataSource: trades-implied` need? Its
+   depth is a lower bound, not a measurement.
 
 ---
 
-## 7. Syarat pembekuan
+## 7. Freeze conditions
 
-Kontrak baru boleh dibekukan setelah keempatnya selesai:
+The new contract may be frozen once all four are done:
 
-- [ ] Tabel golden fixture bagian 3 diisi dengan tangan, disimpan sebagai
-      `testdata/fixtures/ustry_pre_exploit.md` beserta alasan tiap angka
-- [ ] Seluruh penanda `TODO-FIXTURE` dan `reachable: null` pada `AssetBrokenBook`
-      diganti angka fixture, dan `flags` serta `band` dilengkapi
-- [ ] Skala `spreadPct` disepakati, lihat bagian 2.4. Kalau pecahan yang dipilih,
-      metodologi tetap dan seluruh field `Pct` lain ikut berubah
-- [ ] Empat pertanyaan bagian 6 dijawab builder frontend
+- [ ] The golden fixture table in section 3 is filled in by hand and saved as
+      `testdata/fixtures/ustry_pre_exploit.md` with a reason for every number
+- [ ] Every `TODO-FIXTURE` marker and `reachable: null` in `AssetBrokenBook` is
+      replaced with fixture numbers, and `flags` and `band` are completed
+- [ ] The scale of `spreadPct` is agreed, see section 2.4. If fractions are chosen,
+      the methodology stays and every other `Pct` field changes with it
+- [ ] The four questions in section 6 are answered by the frontend builder
 
-Setelah itu `MethodologyVersion` naik ke 1.0.1 di implementasi, bukan hanya di
-contoh respons.
+After that, `MethodologyVersion` rises to 1.0.1 in the implementation, not only in
+the example responses.

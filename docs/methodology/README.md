@@ -1,91 +1,94 @@
-# Metodologi Keel: indeks dan status
+# Keel methodology: index and status
 
-**Versi metodologi berlaku:** `1.0.2-draft`
-**Sinkron dengan:** `internal/domain.MethodologyVersion`
+**Methodology version in force:** `1.0.2-draft`
+**In sync with:** `internal/domain.MethodologyVersion`
 
-Berkas ini adalah peta. Ia tidak memuat definisi apa pun, supaya tidak menjadi
-tempat kedua yang menyimpang dari yang pertama.
-
----
-
-## 1. Sumber kebenaran
-
-| Berkas | Isi | Berlaku untuk |
-|---|---|---|
-| `keel-methodology-core.md` | besaran yang dihitung: `P0`, `spreadPct`, depth SDEX dan AMM, penggabungan, biaya manipulasi, `Reachable`, `MaxReachablePrice`, ketahanan oracle, `C_max`, validasi empiris, keterbatasan | `internal/depth` |
-| `09-flag-dan-band.md` | definisi flag, tiga keadaan flag, penurunan band, `bandConfidence`, seluruh nilai ambang | `internal/depth` |
-
-Kalau keduanya berbeda soal flag, band, atau ambang, `09-flag-dan-band.md` yang
-berlaku. Kalau berbeda soal besaran yang dihitung, `keel-methodology-core.md`
-yang berlaku.
-
-Golden fixture beserta seluruh nilai harapannya ada di
-`testdata/fixtures/ustry_pre_exploit.md`, dihitung dengan tangan sebelum
-implementasi ada, dan diterjemahkan ke Go di `internal/conformance/`.
+This file is a map. It contains no definitions of its own, so that it cannot
+become a second place that diverges from the first.
 
 ---
 
-## 2. Konvensi satuan
+## 1. Sources of truth
 
-Dua konvensi berbeda hidup berdampingan dengan sengaja. Mencampurnya adalah
-sumber bug diam yang tidak menggagalkan apa pun.
+| File | Contents | Applies to |
+| --- | --- | --- |
+| `keel-methodology-core.md` | the computed quantities: `P0`, `spreadPct`, SDEX and AMM depth, the combination, manipulation cost, `Reachable`, `MaxReachablePrice`, oracle resistance, `C_max`, empirical validation, limitations | `internal/depth` |
+| `09-flag-dan-band.md` | flag definitions, the three flag states, band derivation, `bandConfidence`, every threshold value | `internal/depth` |
 
-| Bentuk | Contoh | Arti |
-|---|---|---|
-| `δ`, masukan rumus | `δ = 0,02` | pecahan, berarti 2 persen |
-| berakhiran `Pct`, besaran yang dilaporkan | `spreadPct = 196,0777141` | persen, berarti 196 persen |
+Where the two disagree about flags, bands, or thresholds, `09-flag-dan-band.md`
+wins. Where they disagree about a computed quantity, `keel-methodology-core.md`
+wins.
 
-`SpreadExtremePct` bernilai `20,0` dan dibandingkan langsung dengan `spreadPct`.
-Arsip `docs/internal/memo-pra-development.md` bagian 1.2 menulisnya `0,20`
-sebagai pecahan. Itu salah dan sudah dikoreksi di sana.
-
----
-
-## 3. Terhadap Definition of Done Deliverable 1
-
-DoD di `docs/internal/Keel_Deliverable_1_Rencana_Eksekusi.md` bagian 6 menjanjikan
-**sebelas berkas** di folder ini dengan penomoran `00` sampai `10`. Struktur yang
-sekarang berbeda, dan perbedaannya harus diputuskan, bukan dibiarkan.
-
-| Dijanjikan DoD | Ada sekarang | Status |
-|---|---|---|
-| `00-ikhtisar.md` | `keel-methodology-core.md` bagian 1 dan 2 | isi ada, nama berbeda |
-| `01-sumber-data.md` | tersebar di TDD bagian 3 dan `DEC-002` | **belum ditulis** sebagai metodologi |
-| `02-harga-acuan.md` | `keel-methodology-core.md` bagian 3 dan 3a | isi ada, nama berbeda |
-| `03-depth-sdex.md` | `keel-methodology-core.md` bagian 4 | isi ada, nama berbeda |
-| `04-depth-amm.md` | `keel-methodology-core.md` bagian 5 | isi ada, nama berbeda |
-| `05-penggabungan.md` | `keel-methodology-core.md` bagian 6 | isi ada, nama berbeda |
-| `06-pemilihan-pasangan.md` | keputusan D-1 di rencana eksekusi | **belum ditulis** sebagai metodologi |
-| `07-metrik-pendukung.md` | keputusan D-4 sampai D-6 di rencana eksekusi | **belum ditulis** sebagai metodologi |
-| `08-collateral.md` | `keel-methodology-core.md` bagian 9 | isi ada, tetapi asal parameter default belum dirujuk ke parameter Blend yang sebenarnya |
-| `09-validasi.md` | belum ada, dan nomor 09 sudah dipakai `09-flag-dan-band.md` | **belum ditulis**, dan **nomornya bentrok** |
-| `10-keterbatasan.md` | `keel-methodology-core.md` bagian 12 | isi ada, nama berbeda |
-
-Tidak ada berkas untuk flag dan band di daftar DoD, padahal `09-flag-dan-band.md`
-ada dan berisi definisi yang mengikat. Penomoran DoD sudah tidak menggambarkan
-kenyataan.
-
-### Keputusan yang harus diambil
-
-Ada dua jalan dan keduanya sah. Yang tidak sah adalah membiarkannya seperti
-sekarang, karena DoD ini yang akan dibaca reviewer SCF Build.
-
-1. **Pecah mengikuti DoD.** `keel-methodology-core.md` dibelah menjadi sepuluh
-   berkas bernomor, `09-flag-dan-band.md` dinomori ulang, dan tiga berkas yang
-   belum ada ditulis. Biayanya besar dan `09-flag-dan-band.md` sudah dirujuk dari
-   enam tempat.
-2. **Amandemen DoD.** Struktur sekarang dipertahankan, DoD bagian 6 diubah agar
-   menyebut struktur yang benar, dan tiga isi yang belum ada tetap wajib ditulis
-   di mana pun tempatnya.
-
-Rekomendasi: jalan 2. Reviewer membaca isi, bukan nama berkas, dan tiga
-kekurangan nyata (sumber data, pemilihan pasangan, metrik pendukung, ditambah
-protokol validasi) tetap harus diisi pada jalan mana pun. Memecah berkas tidak
-mengurangi satu pun dari kekurangan itu, hanya menambah pekerjaan penomoran.
+The golden fixture and all of its expected values live in
+`testdata/fixtures/ustry_pre_exploit.md`, computed by hand before any
+implementation existed, and translated into Go in `internal/conformance/`.
 
 ---
 
-## 4. Riwayat versi
+## 2. Unit conventions
 
-Ada di `keel-methodology-core.md` bagian 13 dan `09-flag-dan-band.md` bagian 9.
-Keduanya wajib naik bersama.
+Two different conventions live side by side on purpose. Mixing them is a source of
+silent bugs that fail nothing.
+
+| Form | Example | Meaning |
+| --- | --- | --- |
+| `δ`, an input to a formula | `δ = 0.02` | a fraction, meaning 2 percent |
+| ending in `Pct`, a reported quantity | `spreadPct = 196.0777141` | percent, meaning 196 percent |
+
+`SpreadExtremePct` is 20.0 and is compared directly against `spreadPct`. The
+archived `docs/internal/memo-pra-development.md` section 1.2 writes it as 0.20, a
+fraction. That is wrong and has been corrected there.
+
+---
+
+## 3. Against the Deliverable 1 Definition of Done
+
+The DoD in `docs/internal/Keel_Deliverable_1_Rencana_Eksekusi.md` section 6
+promises **eleven files** in this folder, numbered `00` through `10`. The current
+structure differs, and that difference has to be decided rather than left alone.
+
+| Promised by the DoD | What exists now | Status |
+| --- | --- | --- |
+| `00-ikhtisar.md` | `keel-methodology-core.md` sections 1 and 2 | content exists, different name |
+| `01-sumber-data.md` | spread across TDD section 3 and `DEC-002` | **not written** as methodology |
+| `02-harga-acuan.md` | `keel-methodology-core.md` sections 3 and 3a | content exists, different name |
+| `03-depth-sdex.md` | `keel-methodology-core.md` section 4 | content exists, different name |
+| `04-depth-amm.md` | `keel-methodology-core.md` section 5 | content exists, different name |
+| `05-penggabungan.md` | `keel-methodology-core.md` section 6 | content exists, different name |
+| `06-pemilihan-pasangan.md` | decision D-1 in the execution plan | **not written** as methodology |
+| `07-metrik-pendukung.md` | decisions D-4 through D-6 in the execution plan | **not written** as methodology |
+| `08-collateral.md` | `keel-methodology-core.md` section 9 | content exists, but the origin of the default parameters is not yet traced to Blend's real parameters |
+| `09-validasi.md` | does not exist, and the number 09 is already taken by `09-flag-dan-band.md` | **not written**, and the **number collides** |
+| `10-keterbatasan.md` | `keel-methodology-core.md` section 12 | content exists, different name |
+
+There is no file for flags and bands in the DoD list at all, even though
+`09-flag-dan-band.md` exists and holds binding definitions. The DoD numbering no
+longer describes reality.
+
+### The decision that has to be made
+
+There are two valid roads. What is not valid is leaving it as it is, because this
+DoD is what an SCF Build reviewer will read.
+
+1. **Split to match the DoD.** `keel-methodology-core.md` is broken into ten
+   numbered files, `09-flag-dan-band.md` is renumbered, and the three missing
+   files are written. This is expensive and `09-flag-dan-band.md` is already
+   referenced from six places.
+2. **Amend the DoD.** The current structure is kept, DoD section 6 is rewritten to
+   describe the real structure, and the three missing pieces of content are still
+   required wherever they end up living.
+
+Recommendation: road 2. A reviewer reads content, not file names, and the four real
+gaps (data sources, pair selection, supporting metrics, and the validation
+protocol) still have to be filled on either road. Splitting files removes none of
+them and only adds renumbering work.
+
+Note that file names are not being translated under DEC-005 either, for the same
+reason: `09-flag-dan-band.md` is referenced by path from six documents.
+
+---
+
+## 4. Version history
+
+It lives in `keel-methodology-core.md` section 13 and `09-flag-dan-band.md`
+section 9. Both must be raised together.
