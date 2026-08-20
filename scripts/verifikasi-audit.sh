@@ -38,9 +38,26 @@ adapter_mati()   { ! grep -rq "internal/adapter" --include='*.go' .; }
 metrics_hilang() { ! grep -riq "create table.*metrics" migrations/; }
 kontrak_tanpa()  { ! grep -qE "^ +$1:" docs/api/keel-openapi.yaml; }
 ikhtisar_hilang(){ [ ! -f docs/methodology/00-ikhtisar.md ]; }
-learning_hilang(){ [ ! -d docs/learning ]; }
-api_kosong()     { [ -z "$(ls -A api 2>/dev/null)" ]; }
 spike_satu_hal() { [ "$(grep -c ledger_close_time docs/evidences/spike_results_1.txt)" = 200 ]; }
+
+learning_ditunjuk_tapi_hilang(){ grep -q "docs/learning" README.md && [ ! -d docs/learning ]; }
+readme_menjanjikan_record(){ grep -qF "make record      # jalankan snapshot recorder" README.md; }
+folder_kosong_ikut_hilang(){
+  for d in api internal/api internal/store; do
+    [ -d "$d" ] && [ -z "$(ls -A "$d" 2>/dev/null)" ] && return 0
+  done
+  return 1
+}
+# Bocor kalau hook penjaga tidak ada, atau ada tetapi tidak menolak mutasi.
+# Butuh jq, sama seperti hook-nya sendiri.
+zona_merah_bocor(){
+  [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+  ! printf '%s' 'sed -i "" s/a/b/ internal/depth/x.go' \
+    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
+    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
+    | grep -q '"deny"'
+}
 
 bagian "P0  Yang menghalangi segalanya"
 cek P0-1 "Belum ada satu commit pun, padahal remote origin sudah terpasang" tanpa_commit
@@ -110,14 +127,10 @@ cek P1-33 "padahal kontrak menandai buku yang sama trades-implied" \
 bagian "P2  Kebersihan yang murah"
 cek P2-1 "CLAUDE.md memuat paksa keel-openapi.yaml ke konteks setiap sesi" \
   grep -qF "@docs/api/keel-openapi.yaml" CLAUDE.md
-cek P2-2 "README menunjuk docs/learning yang tidak ada" \
-  bash -c 'grep -q "docs/learning" README.md' 
-cek P2-3 "dan direktori itu memang tidak ada" learning_hilang
-cek P2-4 "README menjanjikan make record jalan, padahal keluar dengan kode 3" \
-  grep -q "belumSiap = 3" cmd/keel/main.go
-cek P2-5 "direktori api di akar repo kosong dan tidak disebut dokumen mana pun" api_kosong
-cek P2-6 "kunci zona merah hanya menutup Edit dan Write, tidak Bash" \
-  bash -c 'grep -q "Write(internal/depth/\*\*)" .claude/settings.json && ! grep -q "Bash(sed" .claude/settings.json'
+cek P2-2 "README menunjuk docs/learning, dan direktori itu tidak ada" learning_ditunjuk_tapi_hilang
+cek P2-4 "README menjanjikan make record jalan, padahal keluar dengan kode 3" readme_menjanjikan_record
+cek P2-5 "ada direktori kosong yang akan hilang saat orang lain clone" folder_kosong_ikut_hilang
+cek P2-6 "kunci zona merah bocor lewat Bash, tidak tertutup deny Edit dan Write" zona_merah_bocor
 cek P2-7 "keputusan struktur berkas metodologi masih terbuka di README metodologi" \
   grep -q "Keputusan yang harus diambil" docs/methodology/README.md
 cek P2-8 "fixture menulis Keempatnya untuk daftar yang berisi enam flag" \

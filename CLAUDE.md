@@ -26,8 +26,11 @@ ditopang harga itu".
 Repo ini dipakai untuk belajar backend Go, bukan hanya untuk menghasilkan kode.
 Tiga zona:
 
-- **HIJAU** (`internal/store`, `internal/api`, `migrations/`, `scripts/`,
-  `docker-compose.yml`, Makefile): tulis bebas. Ini plumbing.
+- **HIJAU** (`internal/store`, `internal/api`, `internal/conformance`,
+  `migrations/`, `scripts/`, `docker-compose.yml`, Makefile): tulis bebas. Ini
+  plumbing. Satu batas di `internal/conformance`: angka harapan di sana berasal
+  dari golden fixture yang dihitung dengan tangan. Jangan pernah menyesuaikan
+  angka itu agar cocok dengan kode. Sesuaikan kode agar cocok dengan angka itu.
 - **KUNING** (`internal/horizon`, `internal/hubble`, `internal/domain`):
   boleh tulis, tapi setelah selesai jelaskan setiap keputusan desain dalam
   3 kalimat. Sebutkan satu alternatif yang kamu tolak dan alasannya.
@@ -46,6 +49,13 @@ atau `/review-mine` sebagai gantinya.
 
 ## Referensi (baca saat dibutuhkan, jangan dimuat semua)
 
-- Kontrak API: @docs/api/keel-openapi.yaml
+- Kontrak API: docs/api/keel-openapi.yaml
 - Metodologi (deliverable berbayar): docs/methodology/
 - Keputusan arsitektur: docs/decisions/
+- Audit repo dan alat pembantahnya: docs/internal/audit-2026-08-20.md,
+  dijalankan dengan `bash scripts/verifikasi-audit.sh`
+
+Perhatikan tidak ada `@` di depan jalur mana pun di daftar ini. Itu disengaja.
+Awalan `@` memuat berkasnya ke konteks setiap sesi, dan kontrak OpenAPI sendirian
+berukuran 1.500 baris. Judul bagian ini menulis "baca saat dibutuhkan, jangan
+dimuat semua", dan `@` melakukan kebalikannya.

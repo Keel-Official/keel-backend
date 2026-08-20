@@ -64,9 +64,18 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      - uses: golangci/golangci-lint-action@v6
+      # Action v6 memasang biner golangci-lint v1 (1.64.8) TERLEPAS dari
+      # `version: latest`, dan biner v1 menolak .golangci.yml yang ditulis untuk
+      # v2 dengan pesan "additional properties 'version', 'formatters' not
+      # allowed". Terbukti di run pertama repo ini, 20 Agustus 2026. Action v9
+      # adalah action era v2. Lihat docs/internal/audit-2026-08-20.md bagian 7.
+      #
+      # Versi biner DIPATOK, bukan `latest`. Linter yang naik versi sendiri
+      # membuat CI merah tanpa ada satu baris kode pun yang berubah, dan itu
+      # membuat kegagalan CI kehilangan arti.
+      - uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          version: v2.13.0
 
   conformance:
     name: conformance (metodologi belum diimplementasikan)

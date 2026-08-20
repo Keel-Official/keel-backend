@@ -31,5 +31,20 @@
       "Bash(sudo:*)",
       "Bash(gcloud:*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/lindungi-zona-merah.sh\"",
+            "timeout": 10,
+            "statusMessage": "memeriksa zona merah"
+          }
+        ]
+      }
+    ]
   }
 }
