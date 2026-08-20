@@ -123,6 +123,31 @@ cek P2-7 "keputusan struktur berkas metodologi masih terbuka di README metodolog
 cek P2-8 "fixture menulis Keempatnya untuk daftar yang berisi enam flag" \
   grep -q "Keempatnya harus dilaporkan" testdata/fixtures/ustry_pre_exploit.md
 
+bagian "Syarat visibilitas repo, lihat DEC-004"
+# Bagian ini butuh jaringan dan gh. Dilewati kalau salah satunya tidak ada, karena
+# skrip ini harus tetap berguna saat offline.
+if ! command -v gh >/dev/null 2>&1; then
+  echo "       gh tidak terpasang, pemeriksaan visibilitas dilewati"
+elif ! privat=$(gh repo view Keel-Official/keel --json isPrivate --jq '.isPrivate' 2>/dev/null); then
+  echo "       tidak bisa menghubungi GitHub, pemeriksaan visibilitas dilewati"
+elif [ "$privat" = "true" ]; then
+  printf "       repo masih PRIVAT. Syarat DEC-004 belum berlaku.\n"
+  echo "       Pemicu membuka: make conformance lolos tanpa build tag"
+else
+  sisa=0
+  for berkas in docs/context/Keel_SoW.pdf docs/internal; do
+    if git ls-files --error-unmatch "$berkas" >/dev/null 2>&1 || [ -d "$berkas" ]; then
+      printf "%s  PELANGGARAN DEC-004  %s masih ada padahal repo sudah PUBLIK%s\n" "$merah" "$berkas" "$nol"
+      sisa=$((sisa + 1))
+    fi
+  done
+  if [ "$sisa" = 0 ]; then
+    printf "%s       repo publik dan kedua berkas sudah keluar. Syarat DEC-004 terpenuhi%s\n" "$hijau" "$nol"
+  else
+    echo "       Lihat DEC-004 bagian 2. git rm saja tidak cukup, keduanya sudah ada di riwayat"
+  fi
+fi
+
 bagian "Aritmetika golden fixture, dihitung ulang dari nol"
 python3 - <<'PY'
 from decimal import Decimal, getcontext
