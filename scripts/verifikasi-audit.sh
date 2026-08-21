@@ -166,8 +166,11 @@ check P1-23 "The curl in DEC-001 makes the same mistake" \
 check P1-24 "although the evidence states USTRY is credit_alphanum12" \
   grep -qF '"counter_asset_type": "credit_alphanum12"' docs/evidences/spike_result_2.txt
 check P1-25 "The DEC-002 spike DoD has no recorded answer" spike_dod_unanswered
-check P1-26 "DEC-003 still lists MC delta 1 as reachable true" \
-  grep -qF '`130.0627093`, `true`' docs/decisions/DEC-003-api-contract-v1-1.md
+# Anchored on the correction being recorded, not on the wrong table being gone.
+# Section 4 keeps its original wrong claim on purpose, as a record of what the
+# document said at the time; what matters is that a reader is told it is wrong.
+check P1-26 "DEC-003 carries the wrong reachable value with no correction recorded" \
+  bash -c 'grep -qF "\`130.0627093\`, \`true\`" docs/decisions/DEC-003-api-contract-v1-1.md && ! grep -qF "Note on section 4" docs/decisions/DEC-003-api-contract-v1-1.md'
 check P1-27 "although the fixture and the contract already corrected it to false" \
   grep -qF 'The delta 1.0 entry previously' docs/api/keel-openapi.yaml
 check P1-28 "documentUrl points at the ciganytry org, not Keel-Official" \
