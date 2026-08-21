@@ -1,0 +1,349 @@
+# Trade yang menyentuh akun burner. Jumlahnya sedikit, langsung ketemu
+
+{
+  "_links": {
+    "self": {
+      "href": ""
+    },
+    "base": {
+      "href": "https://horizon.stellar.org/accounts/GALEEOJ545RUOTNFK5ILTD4LOIC4FLL5FTFHUQ3CAIMMQF7KFPG54EXR"
+    },
+    "counter": {
+      "href": "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB"
+    },
+    "operation": {
+      "href": "https://horizon.stellar.org/operations/263452928864530433"
+    }
+  },
+  "id": "263452928864530433-0",
+  "paging_token": "263452928864530433-0",
+  "ledger_close_time": "2026-02-21T23:36:28Z",
+  "trade_type": "orderbook",
+  "base_offer_id": "1824787086",
+  "base_account": "GALEEOJ545RUOTNFK5ILTD4LOIC4FLL5FTFHUQ3CAIMMQF7KFPG54EXR",
+  "base_amount": "0.1612003",
+  "base_asset_type": "credit_alphanum4",
+  "base_asset_code": "USDC",
+  "base_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "counter_offer_id": "4875138947291918337",
+  "counter_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "counter_amount": "1.0000000",
+  "counter_asset_type": "native",
+  "base_is_seller": true,
+  "price": {
+    "n": "62034623",
+    "d": "10000000"
+  }
+}
+{
+  "_links": {
+    "self": {
+      "href": ""
+    },
+    "base": {
+      "href": "https://horizon.stellar.org/accounts/GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3"
+    },
+    "counter": {
+      "href": "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB"
+    },
+    "operation": {
+      "href": "https://horizon.stellar.org/operations/263454423513071617"
+    }
+  },
+  "id": "263454423513071617-0",
+  "paging_token": "263454423513071617-0",
+  "ledger_close_time": "2026-02-22T00:10:21Z",
+  "trade_type": "orderbook",
+  "base_offer_id": "4875140441940459521",
+  "base_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "base_amount": "5.3475699",
+  "base_asset_type": "credit_alphanum4",
+  "base_asset_code": "USDC",
+  "base_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "counter_offer_id": "1824788980",
+  "counter_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "counter_amount": "0.0501003",
+  "counter_asset_type": "credit_alphanum12",
+  "counter_asset_code": "USTRY",
+  "counter_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+  "base_is_seller": false,
+  "price": {
+    "n": "2500000",
+    "d": "266843207"
+  }
+}
+{
+  "_links": {
+    "self": {
+      "href": ""
+    },
+    "base": {
+      "href": "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB"
+    },
+    "counter": {
+      "href": "https://horizon.stellar.org/accounts/GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3"
+    },
+    "operation": {
+      "href": "https://horizon.stellar.org/operations/263454449283014657"
+    }
+  },
+  "id": "263454449283014657-0",
+  "paging_token": "263454449283014657-0",
+  "ledger_close_time": "2026-02-22T00:10:57Z",
+  "trade_type": "orderbook",
+  "base_offer_id": "1824789082",
+  "base_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "base_amount": "0.0000084",
+  "base_asset_type": "credit_alphanum4",
+  "base_asset_code": "USDC",
+  "base_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "counter_offer_id": "4875140467710402561",
+  "counter_account": "GDHRCQNC64UVL27EXSC6OG6I2FCT4NWM72KNHLHKEB3LK4MEEYYWETN3",
+  "counter_amount": "0.0000080",
+  "counter_asset_type": "credit_alphanum12",
+  "counter_asset_code": "USTRY",
+  "counter_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+  "base_is_seller": true,
+  "price": {
+    "n": "1000",
+    "d": "1057"
+  }
+}
+{
+  "_links": {
+    "self": {
+      "href": ""
+    },
+    "base": {
+      "href": "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB"
+    },
+    "counter": {
+      "href": "https://horizon.stellar.org/accounts/GCZFGQOZBTJH7DD2VR24RBLPV554SGDC7F33WU5MJ54HTJZGAUDB44ZA"
+    },
+    "operation": {
+      "href": "https://horizon.stellar.org/operations/264910138253852673"
+    }
+  },
+  "id": "264910138253852673-0",
+  "paging_token": "264910138253852673-0",
+  "ledger_close_time": "2026-03-16T14:26:40Z",
+  "trade_type": "orderbook",
+  "base_offer_id": "4876596156681240577",
+  "base_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "base_amount": "5.4152411",
+  "base_asset_type": "credit_alphanum4",
+  "base_asset_code": "USDC",
+  "base_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "counter_offer_id": "1828243049",
+  "counter_account": "GCZFGQOZBTJH7DD2VR24RBLPV554SGDC7F33WU5MJ54HTJZGAUDB44ZA",
+  "counter_amount": "31.1670395",
+  "counter_asset_type": "native",
+  "base_is_seller": false,
+  "price": {
+    "n": "1639690847",
+    "d": "284894600"
+  }
+}
+
+
+# Amount asli offer, untuk memverifikasi angka 1,2185 dari Rekt
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/operations/263452928864530433"
+    },
+    "transaction": {
+      "href": "https://horizon.stellar.org/transactions/fe40fc21ac441bcade857ccfdc56e2a9696985d581c378be55bff6e2e3adc9e8"
+    },
+    "effects": {
+      "href": "https://horizon.stellar.org/operations/263452928864530433/effects"
+    },
+    "succeeds": {
+      "href": "https://horizon.stellar.org/effects?order=desc&cursor=263452928864530433"
+    },
+    "precedes": {
+      "href": "https://horizon.stellar.org/effects?order=asc&cursor=263452928864530433"
+    }
+  },
+  "id": "263452928864530433",
+  "paging_token": "263452928864530433",
+  "transaction_successful": true,
+  "source_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "type": "manage_sell_offer",
+  "type_i": 3,
+  "created_at": "2026-02-21T23:36:28Z",
+  "transaction_hash": "fe40fc21ac441bcade857ccfdc56e2a9696985d581c378be55bff6e2e3adc9e8",
+  "amount": "1.0000000",
+  "price": "0.1610000",
+  "price_r": {
+    "n": 161,
+    "d": 1000
+  },
+  "buying_asset_type": "credit_alphanum4",
+  "buying_asset_code": "USDC",
+  "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "selling_asset_type": "native",
+  "offer_id": "0"
+}
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/operations/263453036239003649"
+    },
+    "transaction": {
+      "href": "https://horizon.stellar.org/transactions/09e1a9d1197c9bf0af4e87da328c4f2d5eb49b487630aa61991fb5c1c4637cdb"
+    },
+    "effects": {
+      "href": "https://horizon.stellar.org/operations/263453036239003649/effects"
+    },
+    "succeeds": {
+      "href": "https://horizon.stellar.org/effects?order=desc&cursor=263453036239003649"
+    },
+    "precedes": {
+      "href": "https://horizon.stellar.org/effects?order=asc&cursor=263453036239003649"
+    }
+  },
+  "id": "263453036239003649",
+  "paging_token": "263453036239003649",
+  "transaction_successful": true,
+  "source_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "type": "manage_sell_offer",
+  "type_i": 3,
+  "created_at": "2026-02-21T23:38:51Z",
+  "transaction_hash": "09e1a9d1197c9bf0af4e87da328c4f2d5eb49b487630aa61991fb5c1c4637cdb",
+  "amount": "1.2185312",
+  "price": "106.7372828",
+  "price_r": {
+    "n": 266843207,
+    "d": 2500000
+  },
+  "buying_asset_type": "credit_alphanum4",
+  "buying_asset_code": "USDC",
+  "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "selling_asset_type": "credit_alphanum12",
+  "selling_asset_code": "USTRY",
+  "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+  "offer_id": "0"
+}
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/operations/263453066303434753"
+    },
+    "transaction": {
+      "href": "https://horizon.stellar.org/transactions/3b504c319bdadf1e3ec49cc9d186083b1ef84c84af219bc0d4bab2bc700c3aa4"
+    },
+    "effects": {
+      "href": "https://horizon.stellar.org/operations/263453066303434753/effects"
+    },
+    "succeeds": {
+      "href": "https://horizon.stellar.org/effects?order=desc&cursor=263453066303434753"
+    },
+    "precedes": {
+      "href": "https://horizon.stellar.org/effects?order=asc&cursor=263453066303434753"
+    }
+  },
+  "id": "263453066303434753",
+  "paging_token": "263453066303434753",
+  "transaction_successful": true,
+  "source_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "type": "manage_buy_offer",
+  "type_i": 12,
+  "created_at": "2026-02-21T23:39:31Z",
+  "transaction_hash": "3b504c319bdadf1e3ec49cc9d186083b1ef84c84af219bc0d4bab2bc700c3aa4",
+  "amount": "0.0001000",
+  "price": "1.0570000",
+  "price_r": {
+    "n": 1057,
+    "d": 1000
+  },
+  "buying_asset_type": "credit_alphanum12",
+  "buying_asset_code": "USTRY",
+  "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+  "selling_asset_type": "credit_alphanum4",
+  "selling_asset_code": "USDC",
+  "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "offer_id": "0"
+}
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/operations/263454462168100865"
+    },
+    "transaction": {
+      "href": "https://horizon.stellar.org/transactions/16215fc1daa3bab99b0039d8eb37942a8db4a391c48768fb8cc81ccd8c1e2c9b"
+    },
+    "effects": {
+      "href": "https://horizon.stellar.org/operations/263454462168100865/effects"
+    },
+    "succeeds": {
+      "href": "https://horizon.stellar.org/effects?order=desc&cursor=263454462168100865"
+    },
+    "precedes": {
+      "href": "https://horizon.stellar.org/effects?order=asc&cursor=263454462168100865"
+    }
+  },
+  "id": "263454462168100865",
+  "paging_token": "263454462168100865",
+  "transaction_successful": true,
+  "source_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "type": "manage_buy_offer",
+  "type_i": 12,
+  "created_at": "2026-02-22T00:11:16Z",
+  "transaction_hash": "16215fc1daa3bab99b0039d8eb37942a8db4a391c48768fb8cc81ccd8c1e2c9b",
+  "amount": "0.0000000",
+  "price": "1.0570000",
+  "price_r": {
+    "n": 1057,
+    "d": 1000
+  },
+  "buying_asset_type": "credit_alphanum12",
+  "buying_asset_code": "USTRY",
+  "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+  "selling_asset_type": "credit_alphanum4",
+  "selling_asset_code": "USDC",
+  "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "offer_id": "1824789082"
+}
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/operations/264910138253852673"
+    },
+    "transaction": {
+      "href": "https://horizon.stellar.org/transactions/1753a7546d889833a8536ec85ad05343ce3a0d255bede6b7aab77bf9f43674b5"
+    },
+    "effects": {
+      "href": "https://horizon.stellar.org/operations/264910138253852673/effects"
+    },
+    "succeeds": {
+      "href": "https://horizon.stellar.org/effects?order=desc&cursor=264910138253852673"
+    },
+    "precedes": {
+      "href": "https://horizon.stellar.org/effects?order=asc&cursor=264910138253852673"
+    }
+  },
+  "id": "264910138253852673",
+  "paging_token": "264910138253852673",
+  "transaction_successful": true,
+  "source_account": "GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB",
+  "type": "manage_buy_offer",
+  "type_i": 12,
+  "created_at": "2026-03-16T14:26:40Z",
+  "transaction_hash": "1753a7546d889833a8536ec85ad05343ce3a0d255bede6b7aab77bf9f43674b5",
+  "amount": "31.1670397",
+  "price": "0.1767496",
+  "price_r": {
+    "n": 220937,
+    "d": 1250000
+  },
+  "buying_asset_type": "native",
+  "selling_asset_type": "credit_alphanum4",
+  "selling_asset_code": "USDC",
+  "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "offer_id": "0"
+}
+
+# Seluruh trade pasar USTRY/USDC di sekitar ledger 61340263.
+# Inilah yang memberi angka biaya manipulasi sebenarnya
+

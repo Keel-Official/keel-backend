@@ -84,7 +84,20 @@ documenturl_dangling() {
   [ "$path" != "$url" ] || return 1
   [ ! -f "$path" ]
 }
-spike_one_page()   { [ "$(grep -c ledger_close_time docs/evidences/spike_results_1.txt)" = 200 ]; }
+# Proven while the DEC-002 spike DoD has no recorded answer. Matched on the answer
+# existing, not on the raw evidence file, because the evidence file legitimately
+# stays one page long forever; what was missing was the table it was supposed to
+# produce.
+spike_dod_unanswered(){ ! grep -qF 'The spike result, 21 August 2026' docs/decisions/DEC-002-hold-bigquery.md; }
+# The golden fixture omits a pool that demonstrably held reserves at its ledger.
+# Gated on the evidence existing, so the finding cannot be raised without it.
+fixture_omits_pool(){
+  [ -f docs/evidences/pool_ustry_usdc_2026-02.txt ] &&
+    grep -qE 'Pools:[[:space:]]+nil' internal/conformance/fixture.go
+}
+# The methodology still states the manipulation cost was zero, which holds only if
+# the pool is excluded.
+methodology_claims_zero(){ grep -qF 'Not thin. Zero.' docs/methodology/keel-methodology-core.md; }
 
 learning_pointed_but_missing(){ grep -q "docs/learning" README.md && [ ! -d docs/learning ]; }
 readme_promises_record(){ grep -qF "make record      # jalankan snapshot recorder" README.md; }
@@ -138,8 +151,12 @@ check P1-16 "internal/adapter uses float64" adapter_uses_float
 check P1-17 "The float ban stops at the pure packages instead of covering the repository" float_ban_partial
 check P1-18 "internal/adapter is imported by no package" adapter_unused
 check P1-19 "internal/adapter does not appear in the CLAUDE.md zone map" adapter_unzoned
-check P1-20 "DEC-001 still uses the 0.50 dollar report and a ratio of 1 to 22 million" \
-  grep -qF "1 to 22 million" docs/decisions/DEC-001-ustry-identity.md
+# Anchored on the CORRECTED figure being absent, not on the wrong one being
+# present. The first version matched the sentence that explains the old error, so it
+# stayed PROVEN after the correction was made. Third time this class of bug appeared
+# in this file: a check that reads prose about the data instead of the data.
+check P1-20 "DEC-001 has not adopted the on-chain ratio of about 1 to 2.05 million" \
+  bash -c '! grep -qF "1 to 2.05 million" docs/decisions/DEC-001-ustry-identity.md'
 check P1-21 "although evidence in the repo shows the executing trade was 5.3475699 USDC" \
   grep -qF '"base_amount": "5.3475699"' docs/evidences/spike_result_2.txt
 check P1-22 "The curl in DEC-002 types USTRY as credit_alphanum4" \
@@ -148,7 +165,7 @@ check P1-23 "The curl in DEC-001 makes the same mistake" \
   grep -q "credit_alphanum4&base_asset_code=USTRY" docs/decisions/DEC-001-ustry-identity.md
 check P1-24 "although the evidence states USTRY is credit_alphanum12" \
   grep -qF '"counter_asset_type": "credit_alphanum12"' docs/evidences/spike_result_2.txt
-check P1-25 "The spike evidence stops at exactly 200 records, one Horizon page" spike_one_page
+check P1-25 "The DEC-002 spike DoD has no recorded answer" spike_dod_unanswered
 check P1-26 "DEC-003 still lists MC delta 1 as reachable true" \
   grep -qF '`130.0627093`, `true`' docs/decisions/DEC-003-api-contract-v1-1.md
 check P1-27 "although the fixture and the contract already corrected it to false" \
@@ -164,6 +181,8 @@ check P1-32 "GoldenSnapshot labels itself horizon" \
   grep -q "Source: domain.DataSourceHorizon" internal/conformance/fixture.go
 check P1-33 "although the contract labels the same book trades-implied" \
   grep -q "dataSource: trades-implied" docs/api/keel-openapi.yaml
+check P1-34 "The golden fixture records Pools nil although a pool held reserves at that ledger" fixture_omits_pool
+check P1-35 "and the methodology still states the manipulation cost was zero" methodology_claims_zero
 
 section "P2  Cheap hygiene"
 check P2-1 "CLAUDE.md force-loads keel-openapi.yaml into every session" \

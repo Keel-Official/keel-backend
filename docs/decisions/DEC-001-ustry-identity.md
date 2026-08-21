@@ -1,14 +1,15 @@
 # DEC-001: USTRY Asset Identity and the Incident Ledger Range
 
-**Status:** PARTIALLY CONFIRMED. Two items remain open; the procedure for closing them is in section 5.
-**Date:** August 2026
+**Status:** The two items that were open in section 3 are now CONFIRMED from
+primary sources. Items 3 to 5 remain open. Section 7 records what was closed, how,
+and one thing that turned out worse than expected.
+**Date:** August 2026, corrected 21 August 2026
 **Impact:** all of Deliverable 2, the Hubble query range, and two corrections to the SOW
 
-> **Translation note.** This document was translated to English under DEC-005 with
-> its content unchanged, including the claims that the repository audit has since
-> disputed. Two of them are known to be wrong and are fixed under task T5, not
-> here: the manipulation ratio in section 2, and the asset type in the curl
-> commands in section 5.2. See findings P1-20 through P1-23 in
+> **Corrected 21 August 2026.** Two claims this document made were wrong: the
+> manipulation ratio in section 2, and the asset type in its own curl command in
+> section 5.2. Both are fixed in place, and section 7 records what the ledger
+> actually says. Findings P1-20 through P1-23 in
 > `docs/internal/audit-2026-08-20.md`.
 
 ---
@@ -79,11 +80,16 @@ A more accurate phrasing: "the YieldBlox DAO pool incident on Blend V2".
 | 22 Feb around 00:10 | A third account executes a trade so that the oracle reads that price |
 | 22 Feb 00:25 | Two loan transactions: 1,000,196 USDC then 61,249,278 XLM |
 
-**The number that matters most to Keel:** that manipulation offer was only 1.2185
-USTRY. One source states the trade that executed it was worth about $0.50. If that
-figure is verified on-chain, the ratio of manipulation cost to value stolen is
-roughly 1 to 22 million. That is the single number that sells Keel's entire
-premise.
+**The number that matters most to Keel**, corrected from the ledger on 21 August
+2026: the manipulation offer was 1.2185312 USTRY, and the trade that executed
+against it was **5.3475699 USDC** for 0.0501003 USTRY. It was not the $0.50 a
+secondary source reported. Against roughly $10.87 million borrowed, the ratio of
+what the attacker paid to what they took is about **1 to 2.05 million**.
+
+That is still the single number that sells Keel's premise, and it is now a number
+that survives being checked. The old 1 to 22 million came from a news figure and was
+off by a factor of ten. See section 7, and note its caveat: 5.3475699 USDC is what
+the attacker paid, which is not the same quantity as Keel's manipulation cost.
 
 ---
 
@@ -175,7 +181,10 @@ seconds, so roughly 17,280 ledgers per day and about 480 thousand ledgers for th
 month. Do not compute this from an estimate; take the bounds from the data:
 
 ```bash
-curl -s "https://horizon.stellar.org/trades?base_asset_type=credit_alphanum4&base_asset_code=USTRY&base_asset_issuer=<ISSUER>&counter_asset_type=credit_alphanum4&counter_asset_code=USDC&counter_asset_issuer=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&order=asc&limit=200" | jq '._embedded.records[] | {ledger_close_time, base_amount, counter_amount, price}'
+# USTRY is credit_alphanum12, not credit_alphanum4: its code is five characters.
+# The wrong type returns an empty result and NO error, the silent failure that
+# internal/domain/types.go warns about. This command used to carry that mistake.
+curl -s "https://horizon.stellar.org/trades?base_asset_type=credit_alphanum12&base_asset_code=USTRY&base_asset_issuer=GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC&counter_asset_type=credit_alphanum4&counter_asset_code=USDC&counter_asset_issuer=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&order=asc&limit=200" | jq '._embedded.records[] | {ledger_close_time, base_amount, counter_amount, price}'
 ```
 
 That endpoint is historical and free. It hands you the full trade history of that
@@ -212,3 +221,79 @@ ledger, never a fact to cite.
    plan, and the checklist
 4. Set the Hubble spike range to February 2026
 5. Fix USDC as USTRY's primary quote pair for backtest purposes
+
+---
+
+## 7. What was closed on 21 August 2026, and how
+
+Section 3 listed five unconfirmed items. Two are now closed from primary sources,
+using the procedures section 5 prescribes rather than a shortcut.
+
+### 7.1 Item 1, the USTRY issuer: CONFIRMED
+
+```
+GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC   credit_alphanum12
+```
+
+Section 5.1 said: if more than one issuer appears, do not guess, disambiguate
+against the burner account. That turned out to matter more than expected.
+`/assets?asset_code=USTRY` returns **seven** distinct issuers, every one of them
+`credit_alphanum12`. The name "USTRY" alone is ambiguous seven ways.
+
+The burner account `GCNF5GNRIT...` holds `1.1869077 USTRY` issued by
+`GCRYUGD5...`, which settles it from the ledger rather than from an article. That is
+also the issuer the golden fixture already used, so the fixture was right, and it is
+now right for a reason that can be shown.
+
+**Consequence for the demonstration set:** an asset row keyed on code alone is
+wrong seven times over for this asset. `assets` in `migrations/0001_core.sql` keys
+on `(code, issuer, quote_code, quote_issuer)`, which is correct, and this is the
+concrete reason it has to stay that way.
+
+### 7.2 Item 2, the ledger sequences: CONFIRMED
+
+| Event | Ledger | Time |
+|---|---|---|
+| Manipulation offer placed, op 263453036239003649 | derived from tx `09e1a9d1...` | 2026-02-21T23:38:51Z |
+| Manipulation trade, trade 263454423513071617-0 | **61340263** | 2026-02-22T00:10:21Z |
+| The 1.057 bid cancelled, op 263454462168100865 | **61340272** | 2026-02-22T00:11:16Z |
+
+### 7.3 A methodology claim checked against the live ledger
+
+Methodology section 10.3 asserts `1.2185312 - 0.0501003 = 1.1684309 USTRY` and says
+it matches the offer remainder today. It does, exactly:
+
+```
+$ curl -s ".../accounts/GCNF5GNRIT.../offers"
+  id     = 1824788980
+  amount = 1.1684309 USTRY
+  price_r = {n: 266843207, d: 2500000}   = 106.7372828
+```
+
+Difference from the claim: zero. Six months after the incident that offer is still
+open, at the same price, and the fixture's `price_r` is confirmed byte for byte
+against the live ledger. The arithmetic consistency argument in section 10.3 holds.
+
+It also means the broken book state has never been repaired.
+
+### 7.4 The ratio, corrected
+
+The old text derived 1 to 22 million from a news report of "$0.50". The ledger says
+5.3475699 USDC, so the ratio against roughly $10.87 million borrowed is about
+**1 to 2.05 million**.
+
+**The caveat that has to travel with that number.** 5.3475699 USDC is what the
+attacker paid, and methodology section 7.2 is explicit that the manipulation cost is
+the notional paid to **other parties**. This payment went to an offer the attacker
+owned, so it came back. What the number measures is the trade size needed to move
+the oracle's reading, which is capital an attacker must be able to **move**, not
+capital they must **spend**. Both quantities belong in the report under different
+names, and DEC-006 adds a third: what it would have cost to move the combined
+orderbook and pool price, which is 127.03 USDC at the critical delta.
+
+### 7.5 Still open
+
+Items 3, 4, and 5 of section 3 are untouched: the exact collateral amount, the
+Reflector VWAP window length, and the YieldBlox pool risk parameters. All three need
+sources this repository does not have, and two of them are what DEC-003 section 8.6
+and methodology section 9 are waiting on.

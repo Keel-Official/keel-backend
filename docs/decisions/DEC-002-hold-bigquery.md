@@ -3,11 +3,11 @@
 **Decision:** BigQuery is deferred until it is proven to be genuinely needed.
 **Supersedes:** the Day 0 ordering in the Readiness Checklist, which put the Hubble spike on the critical path.
 
-> **Translation note.** Translated to English under DEC-005 with its content
-> unchanged. One known error is left in place and fixed under task T5: the curl
-> command in section 3 gives USTRY the type `credit_alphanum4`, and USTRY is
-> `credit_alphanum12`. See finding P1-22 in
-> `docs/internal/audit-2026-08-20.md`.
+> **The section 3 spike was finally run on 21 August 2026, and its answer is not
+> the one this document expected.** Section 7 holds the result. The premise of the
+> spike, that the USTRY/USDC trade history is thin, is false on trade count and true
+> only on value. The curl in section 3 also gave USTRY the wrong asset type, which is
+> fixed in place.
 
 ---
 
@@ -114,9 +114,10 @@ in 30 minutes.
 curl -s "https://horizon.stellar.org/accounts/GCNF5GNRIT6VWYZ7LXUZ33Q3SR2NUGO32F5X65VVKAEWWIQCKGYN75HB" \
   | jq '.balances'
 
-# 2. Pull the full USTRY/USDC trade history
+# 2. Pull the full USTRY/USDC trade history.
+#    USTRY is credit_alphanum12; the wrong type returns an empty result and no error.
 curl -s "https://horizon.stellar.org/trades\
-?base_asset_type=credit_alphanum4&base_asset_code=USTRY&base_asset_issuer=<ISSUER_USTRY>\
+?base_asset_type=credit_alphanum12&base_asset_code=USTRY&base_asset_issuer=<ISSUER_USTRY>\
 &counter_asset_type=credit_alphanum4&counter_asset_code=USDC&counter_asset_issuer=<ISSUER_USDC>\
 &order=asc&limit=200" \
   | jq '._embedded.records[] | {ledger_close_time, base_amount, counter_amount, price, base_account, counter_account}'
@@ -185,3 +186,86 @@ Activate Phase 3 if any of these happens:
 If none of those happens, finish the sprint without BigQuery at all. That is a valid
 outcome and in fact easier for someone else to reproduce, because a third party can
 verify every one of your numbers with curl alone.
+
+---
+
+## 7. The spike result, 21 August 2026
+
+The DoD in section 3 asked for one table: trade count, unique account count, and the
+size of the manipulation trade. Here it is, and two of the three answers change what
+this document concluded.
+
+| Question | Answer |
+|---|---|
+| Total trades in this market | **at least 12,000, and the count is unfinished** |
+| Pages pulled before stopping | 60 at `limit=200`, a self-imposed cap |
+| Time span those 60 pages covered | 2025-06-28 to 2025-07-01, **four days** |
+| Unique accounts | **89** |
+| Trade types | 11,545 orderbook, **455 liquidity pool** |
+| Size of the manipulating trade | **5.3475699 USDC** for 0.0501003 USTRY, `trade_type: orderbook` |
+
+### 7.1 The premise was wrong, and in an interesting way
+
+Section 3 asked "how thin is the USTRY/USDC trade history?" and set the bar at "if it
+is under a few thousand, the whole backtest can be done from Horizon alone".
+
+Twelve thousand trades fit into four days of 2025. The full history is far larger and
+this exercise did not reach the end of it. On **trade count** this market is not thin
+at all; it is one of the busiest thin markets imaginable.
+
+On **value** it is exactly as thin as reported. The amounts are dust: individual
+trades of 0.0096631 and 0.0148813 USTRY, fractions of a cent. That is entirely
+consistent with the "under $1 per hour" figure in DEC-001.
+
+So the market is thick in count and negligible in value. Two accounts account for
+almost all of it: `GB37DH4CM64RFUJ4LVNGTECDITMYELOBFUW7CR36644JZMFYZA3UBHQW` appears
+on 11,670 trade sides and `GBMMYPWILFTPY5GCZ5Z63DP6Q72SUKB46E3VORXUDN2WI267O43LKF6O`
+on 10,364, out of 24,000 sides in the sample. Two accounts trading dust with each
+other thousands of times is the shape wash trading has.
+
+That makes three things concrete rather than theoretical:
+
+- **Counting trades is the wrong measure of liquidity**, which is the whole reason
+  the genuine trade rules in the execution plan D-4 exist.
+- **`WASH_TRADE_SUSPECTED` has a real subject.** This is not a hypothetical flag.
+- **"Time since the last genuine trade" is the metric that matters here**, because
+  time since the last *trade* would read "seconds ago" on a market that is dead.
+
+### 7.2 Revisit condition 1 of section 6 may now be triggered
+
+Section 6 says to activate Phase 3 if "the spike shows the USTRY/USDC trade history
+is too large to pull through Horizon in reasonable time". On raw count it is: 60
+requests covered four days out of a history spanning at least fourteen months.
+
+But Phase 3 is about *precise historical depth*, and the trade count does not decide
+that. The backtest needs the trades in a window around February 2026, not the whole
+history, and Horizon's cursor is a TOID so a ledger range can be addressed directly
+rather than walked from the beginning. Section 5.2 of DEC-001 shows how.
+
+Recommendation: **do not activate Phase 3 on this evidence.** Bound the pull by
+ledger range instead of pulling everything, and record the bound in the report. The
+condition was written expecting a small history; the real situation is a large history
+that can be sliced cheaply.
+
+### 7.3 The finding that outweighs the DoD
+
+455 of the 12,000 trades in the sample were `liquidity_pool` trades. That means a
+USTRY/USDC AMM pool exists, and the golden fixture records `Pools: []`.
+
+That is now `docs/decisions/DEC-006-amm-pool-in-the-fixture.md`, and it matters more
+than anything else in this section. Section 1 of this document lists
+`/liquidity_pools/{id}/operations` as available and says historical pool reserves are
+"cleaner" than offers. That was right, and nobody had used it.
+
+### 7.4 One caveat on the headline number
+
+5.3475699 USDC is what the attacker **paid**. It is not the same quantity as Keel's
+manipulation cost, and the two must not be conflated in the report.
+
+Methodology section 7.2 is explicit: the cost is the notional paid to **other
+parties**, and this payment went to an offer the attacker owned, so it returned to
+them. What 5.3475699 USDC measures is the size of the trade needed to move the
+oracle's reading, which is a different and also useful quantity, because it is the
+capital an attacker has to be able to move rather than to spend.
+
+Both belong in the report, labelled differently.

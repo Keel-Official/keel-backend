@@ -1,0 +1,96 @@
+# Evidence: a USTRY/USDC liquidity pool existed and held reserves at ledger 61340263
+#
+# Collected 21 August 2026 from Horizon mainnet. Every command below is free, needs
+# no account, and can be re-run by anyone. The golden fixture states Pools: [] for
+# this ledger; this file is the evidence that it did not.
+#
+# The chain of reasoning, so a reader can check each link separately:
+#   1. a pool for exactly this asset pair exists
+#   2. the last transaction to touch it before the incident ledger was 12 days earlier
+#   3. pool reserves change ONLY through a transaction touching the pool
+#   4. therefore the reserves at ledger 61340263 are the reserves left by that
+#      transaction, and they were not zero
+
+# ---------------------------------------------------------------- 1. the pool
+
+$ curl -s "https://horizon.stellar.org/liquidity_pools/27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb"
+
+  id           : 27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb
+  fee_bp       : 30
+  total_shares : 15.8497241
+  total_trustlines : 2
+  reserves     : 16.5589290  USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+                 15.4742594  USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC
+
+  Note the USTRY issuer: GCRYUGD5..., the same issuer the golden fixture uses.
+
+# ------------------------------------- 2. the last pool event before the incident
+#
+# The cursor is a TOID: ledger sequence shifted left 32 bits. 61340264 << 32 gives
+# 263454427808006144, so order=desc from that cursor returns what happened
+# immediately BEFORE the fixture's ledger.
+
+$ curl -s "https://horizon.stellar.org/liquidity_pools/27480d.../transactions?cursor=263454427808006144&order=desc&limit=1"
+
+  hash       : fa012177007df029feb49d9c62c922d92a1f4ebd90e69269a593778f585ab7bb
+  ledger     : 61172481
+  created_at : 2026-02-10T16:59:35Z
+
+  That is 12 days before the incident. Nothing touched this pool between then and
+  ledger 61340264.
+
+# ------------------------------------------------- 3. the reserves that transaction left
+
+$ curl -s "https://horizon.stellar.org/transactions/fa012177007df029feb49d9c62c922d92a1f4ebd90e69269a593778f585ab7bb/effects"
+
+  type=liquidity_pool_trade, reserves AFTER the operation:
+      16.3389179  USDC
+      15.4791416  USTRY
+
+  (the same transaction also traded two unrelated pools, Vol/USTRY and native/Vol,
+  which are listed in the raw response and are not this pair)
+
+# ---------------------------------------------------------------- 4. what follows
+#
+# Reserves at ledger 61340263, the fixture's ledger:
+#
+#     ReserveQuote (USDC)  = 16.3389179
+#     ReserveBase  (USTRY) = 15.4791416
+#     FeeBP                = 30
+#     spot price           = 16.3389179 / 15.4791416 = 1.0555441847 USDC per USTRY
+#
+# The pool was quoting 1.0555, which is the price USTRY is actually worth. The
+# orderbook at the same ledger held one ask at 106.7372828 and one bid at 1.0570000.
+#
+# The fixture records Pools: nil. That is wrong.
+
+# ------------------------------------- 4b. the same gap checked from the other side
+#
+# Walking FORWARD from just after ledger 61172481, to prove nothing sits between it
+# and the incident ledger.
+
+$ curl -s "https://horizon.stellar.org/liquidity_pools/27480d.../transactions?cursor=262773851403354112&order=asc&limit=4"
+  (cursor is 61172482 << 32)
+
+  ledger 61351813  2026-02-22T18:48:02Z
+  ledger 61351814  2026-02-22T18:48:08Z
+  ledger 61351814  2026-02-22T18:48:08Z
+  ledger 61351814  2026-02-22T18:48:08Z
+
+  The nearest entry forward is ledger 61351813, which is AFTER the incident ledger
+  61340263. Backwards it was 61172481. The incident ledger sits inside a gap where
+  nothing touched the pool, from both directions.
+
+# ---------------------------------------------- 5. and yet the attack cost 5.35 USDC
+#
+# From docs/evidences/spike_result_2.txt, the manipulating trade:
+#
+#     trade 263454423513071617-0, ledger 61340263, 2026-02-22T00:10:21Z
+#     5.3475699 USDC for 0.0501003 USTRY
+#     "trade_type": "orderbook"
+#
+# trade_type orderbook means it matched offers only. Stellar reaches pool liquidity
+# through path payments, not through an orderbook match, so this trade never touched
+# the pool and never paid the pool's liquidity providers.
+#
+# See docs/decisions/DEC-006-amm-pool-in-the-fixture.md for what this means.
