@@ -1,6 +1,7 @@
 # Binaries
-# Jangkar / wajib. Tanpa itu pola ini juga mencocokkan direktori cmd/keel,
-# sehingga entrypoint satu-satunya proyek ini hilang dari repo tanpa peringatan.
+# The leading slash is REQUIRED. Without it this pattern also matches the
+# cmd/keel directory, and the only entrypoint this project has disappears from
+# the repository with no warning.
 /bin/
 /keel
 
@@ -11,8 +12,15 @@
 # Claude Code personal settings
 .claude/settings.local.json
 
-# Spike sekali pakai
+# One-off spike output
 /scripts/spike/out/
+
+# Stray copies of evidence files at the repository root. One of these was
+# committed by accident on 21 August 2026: a 349 line truncated copy of
+# docs/evidences/spike_result_2.txt, still carrying the pre-translation header.
+# The evidence lives in docs/evidences/ and nowhere else.
+/spike_result*.txt
+/spike_results*.txt
 
 # OS
 .DS_Store
