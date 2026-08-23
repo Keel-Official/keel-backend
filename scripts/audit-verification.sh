@@ -68,6 +68,35 @@ adapter_exists()   { [ -d internal/adapter ]; }
 adapter_uses_float(){ adapter_exists && grep -rq "float64" internal/adapter/; }
 adapter_unused()   { adapter_exists && ! grep -rq "internal/adapter" --include='*.go' .; }
 adapter_unzoned()  { adapter_exists && ! grep -q "internal/adapter" CLAUDE.md; }
+# GENERALISED FROM adapter_unzoned, which is P1-19 above. That check asked whether
+# ONE directory was in the zone map, and it retired itself when the directory was
+# deleted, taking the question with it. The question outlived the directory: on 24
+# August 2026 fourteen paths had no row in the map, including the whole of docs/
+# except docs/methodology/, and .claude/ itself, so the file defining the zones sat
+# outside the zones.
+#
+# A path counts as MAPPED when CLAUDE.md holds a line naming it in backticks
+# alongside a zone word. Requiring the zone word is what stops a passing mention in
+# prose from satisfying it.
+#
+# WHAT THIS CANNOT PROVE, stated because the limit is structural and not an
+# oversight: it reads the document that the fix edits, so adding a row without
+# thinking about the row satisfies it completely. It proves a path is named and
+# zoned, never that the zone is right. Fifth time this class of limit has come up
+# here, and the honest response is to write it down rather than pretend the check
+# is stronger than it is.
+mapped_dirs(){
+  find . -type f \
+    -not -path './.git/*' -not -path './recordings/*' -not -name '.DS_Store' \
+    -exec dirname {} \; 2>/dev/null | sort -u | sed 's|^\./||' | grep -v '^\.$'
+}
+unmapped_dirs(){
+  local d
+  mapped_dirs | while IFS= read -r d; do
+    grep -qE "\`$d/?\`.*(GREEN|YELLOW|RED)" CLAUDE.md || printf '%s\n' "$d"
+  done
+}
+zones_incomplete(){ [ -n "$(unmapped_dirs)" ]; }
 # Proven while the float ban still stops at the pure packages.
 float_ban_partial(){ ! grep -q "TestArchTanpaFloatDiSeluruhRepo" internal/domain/arch_test.go; }
 metrics_missing()  { ! grep -riq "create table.*metrics" migrations/; }
@@ -331,6 +360,15 @@ check P2-6 "The red zone lock leaks through Bash, uncovered by the Edit and Writ
 check P2-6b "or the same hook refuses a yellow file next door, which gets it switched off" red_zone_over_refuses
 check P2-6c "or a directory-wide or tree-wide mutation reaches it without naming it at all" red_zone_dir_bypass
 check P2-6d "The same hook reads prose as a command, so a commit message quoting the zone is refused" red_zone_refuses_prose
+check P2-9 "A directory holding files has no row in the CLAUDE.md zone map, so it has no owner" zones_incomplete
+# A PROVEN line that does not say WHICH path is missing is a chore rather than a
+# finding, so the paths are printed here. Nothing is printed when the map is
+# complete, which is the normal state and does not need announcing.
+if zones_incomplete; then
+  unmapped_dirs | while IFS= read -r d; do
+    printf "        %sno row in the zone map:%s %s\n" "$dim" "$off" "$d"
+  done
+fi
 check P2-7 "The methodology file structure decision is still open in the methodology README" \
   grep -qF "The decision that has to be made" docs/methodology/README.md
 check P2-8 "The fixture writes 'All four' for a list holding six flags" \
