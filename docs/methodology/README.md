@@ -1,7 +1,11 @@
 # Keel methodology: index and status
 
-**Methodology version in force:** `1.0.2-draft`
+**Methodology version in force:** `1.0.3-draft`
 **In sync with:** `internal/domain.MethodologyVersion`
+
+The rest of this file still describes the structure as it was before 1.0.3, and the
+road 1 decision changes it. Section 3 is the part that goes: four of the documents it
+calls missing now exist, and the file names it argues about are being renumbered.
 
 This file is a map. It contains no definitions of its own, so that it cannot
 become a second place that diverges from the first.
