@@ -143,10 +143,58 @@ empty_dirs_vanish(){
 }
 # Leaking when the guard hook is absent, or present but does not refuse a mutation.
 # Needs jq, exactly like the hook itself.
+#
+# The probe path was internal/depth/x.go until 24 August 2026. That directory was
+# removed on the 23rd, and the check would have stayed green for as long as the
+# hook kept the dead path in its alternation, then flipped to PROVEN once it was
+# tidied, reporting a leak that did not exist. Worse in the other direction: while
+# it passed, it was proving that the hook defends a path nobody can write to. It
+# probes the file that is actually the zone now.
+#
+# The negative half matters as much as the positive one. A hook that refused
+# everything would pass this check while making the repository unworkable, so the
+# probe next door confirms that a sibling file in the same package still passes.
 red_zone_leaks(){
   [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 0
   command -v jq >/dev/null 2>&1 || return 0
-  ! printf '%s' 'sed -i "" s/a/b/ internal/depth/x.go' \
+  ! printf '%s' 'sed -i "" s/a/b/ internal/domain/compute.go' \
+    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
+    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
+    | grep -q '"deny"'
+}
+# PROVEN while a command that mutates the DIRECTORY, without naming the file,
+# walks through. The hook matches internal/domain/compute.go and a directory-wide
+# formatter never mentions it, so `gofmt -w internal/domain/` is allowed and
+# rewrites the red zone. `make fmt` is the reachable form: it runs `gofmt -l -w .`
+# and Bash(make:*) is on the allow list.
+#
+# This is the guarantee QUIETLY WEAKENING when the zone moved from a directory to
+# a file. While the zone WAS internal/depth, a directory-wide command named the
+# zone by definition and was refused, and the hook's header listed
+# `gofmt -w internal/depth/` as an example of exactly that. The example survived
+# the move and stopped being true, which is the seventh time this repository has
+# found a check or a claim measuring the old shape of something.
+#
+# It is left OPEN rather than patched, because both fixes are Al's call and each
+# one costs something. Widening the pattern to internal/domain refuses ordinary
+# work on types.go and gets the hook switched off. Special casing the recursive
+# formatters refuses `make fmt`, which is a legitimate command that has never yet
+# had anything to change in compute.go. Deciding it needs one sentence.
+red_zone_dir_bypass(){
+  [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+  ! printf '%s' 'gofmt -w internal/domain/' \
+    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
+    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
+    | grep -q '"deny"'
+}
+# Over-refusing when the hook denies a mutation of a YELLOW file in the same
+# package. types.go is Claude's to write, and a hook that blocked it would be
+# switched off within a day, which is a leak on a longer timescale.
+red_zone_over_refuses(){
+  [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+  printf '%s' 'sed -i "" s/a/b/ internal/domain/types.go' \
     | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
     | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
     | grep -q '"deny"'
@@ -233,6 +281,8 @@ check P2-2 "README points at docs/learning, and that directory does not exist" l
 check P2-4 "README promises make record works, though it exits with code 3" readme_promises_record
 check P2-5 "An empty directory exists that will vanish when somebody else clones" empty_dirs_vanish
 check P2-6 "The red zone lock leaks through Bash, uncovered by the Edit and Write denials" red_zone_leaks
+check P2-6b "or the same hook refuses a yellow file next door, which gets it switched off" red_zone_over_refuses
+check P2-6c "A directory-wide mutation reaches the red zone without naming it, and make fmt is that command" red_zone_dir_bypass
 check P2-7 "The methodology file structure decision is still open in the methodology README" \
   grep -qF "The decision that has to be made" docs/methodology/README.md
 check P2-8 "The fixture writes 'All four' for a list holding six flags" \

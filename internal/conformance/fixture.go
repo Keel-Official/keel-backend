@@ -1,6 +1,6 @@
 // Package conformance holds Keel's golden fixture and its expected values.
 //
-// This package is deliberately SEPARATE from internal/depth. It may only call
+// This package is deliberately SEPARATE from internal/domain. It may only call
 // exported API, which makes the conformance test black-box structurally rather
 // than by its author's discipline alone. Another deliberate consequence: the red
 // zone does not have to be touched in order to maintain these tests.

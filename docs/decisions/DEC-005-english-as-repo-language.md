@@ -85,9 +85,16 @@ count was sixteen references across eleven files rather than six.
 The general rule stands for file names outside `docs/methodology/`: they are not renamed
 for language alone.
 
-**One file cannot be translated by Claude.** `internal/depth/CLAUDE.md` sits in the
-red zone, where Claude has no write permission by design. Al translates that one
-by hand, or it stays in Indonesian as the single exception.
+**One file could not be translated by Claude, and it no longer exists.**
+`internal/depth/CLAUDE.md` sat in the red zone, where Claude has no write
+permission by design, so it was recorded here as the single exception: Al
+translates it by hand or it stays in Indonesian.
+
+It was resolved by deletion rather than by translation. Al removed the directory on
+23 August 2026, once `internal/domain/CLAUDE.md` had replaced it in English, and the
+exception went with the file. There is no untranslated document left in the
+repository. The Indonesian identifier names listed earlier in this section are
+unaffected; they are a separate exception and they stay.
 
 ---
 

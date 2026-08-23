@@ -408,8 +408,8 @@ correct conservative answer for an asset in that state.
 
 **Why this is not settled here.** Changing it means changing
 `08-collateral.md` and raising `MethodologyVersion`. The
-methodology is the paid deliverable and `internal/depth` is the red zone, so the
-value is Al's to set, not Claude's. The contract is deliberately left at 0.5 and
+methodology is the paid deliverable and `internal/domain/compute.go` is the red
+zone, so the value is Al's to set, not Claude's. The contract is deliberately left at 0.5 and
 the disagreement is recorded rather than papered over.
 
 Until it is settled, `docs/api/mocks/README.md` tells the frontend to read

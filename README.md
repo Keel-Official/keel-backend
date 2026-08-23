@@ -11,7 +11,8 @@ This repository is under construction and **the core of the methodology is not
 implemented yet.** What exists: the methodology definitions, the API contract, a
 golden fixture computed by hand from real on-chain data, the shared types, and
 architecture tests that enforce package purity. What does not exist yet: the
-formulas in `internal/depth`, the data adapters, storage, and the API.
+formulas in `internal/domain/compute.go`, which are declared and panic, plus the
+data adapters, storage, and the API.
 
 What that means for the commands you can run:
 
@@ -19,9 +20,9 @@ What that means for the commands you can run:
 |---|---|
 | `make test` | works, and must be green |
 | `make ci` | works, and must be green |
-| `make arch` | works, enforces purity of `internal/domain` and `internal/depth` |
+| `make arch` | works, enforces purity of `internal/domain` |
 | `make up` | works, starts local Postgres |
-| `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and `internal/depth` is still empty |
+| `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and every function in `compute.go` panics |
 | `make record` | **no body yet**, exits with code 3 |
 | `make scan` | **no body yet**, exits with code 3 |
 | `make serve` | **no body yet**, exits with code 3 |
@@ -62,9 +63,8 @@ raw `price_r` values, outside Go, as a cross-check.
 | Directory | Contents | State |
 |---|---|---|
 | `cmd/keel` | single entrypoint, several subcommands | skeleton |
-| `internal/domain` | shared types, chiefly `Snapshot`, no computation | present |
-| `internal/conformance` | golden fixture and conformance tests, black-box against `internal/depth` | present, waiting on `internal/depth` |
-| `internal/depth` | the core methodology, written by hand | **empty** |
+| `internal/domain` | shared types in `types.go`, the methodology in `compute.go` | types present, `compute.go` declared and panicking |
+| `internal/conformance` | golden fixture and conformance tests, black-box against `internal/domain` | present, waiting on `compute.go` |
 | `internal/horizon` | live data adapter | empty |
 | `internal/hubble` | historical data adapter, deferred, see DEC-002 | empty |
 | `internal/store` | persistence | empty |

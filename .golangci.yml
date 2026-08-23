@@ -20,8 +20,15 @@ linters:
   exclusions:
     rules:
       # Stubs that panic on purpose until the methodology is written. Remove this
-      # exclusion once internal/depth has a body.
-      - path: internal/depth/
+      # exclusion once compute.go has a body.
+      #
+      # The path was internal/depth/ until 24 August 2026. Methodology 1.0.3 moved
+      # the computations into internal/domain and the directory was removed on 23
+      # August, so this exclusion spent a day matching nothing. An exclusion that
+      # matches nothing is indistinguishable from one that is working, which is
+      # why it is pinned to the file rather than to the package: internal/domain
+      # also holds types.go, and a panic appearing there is a real finding.
+      - path: internal/domain/compute.go
         text: "not implemented"
 
 formatters:

@@ -32,25 +32,27 @@ jobs:
             exit 1
           fi
 
-      # Uses -e because internal/conformance/golden_test.go (behind the
-      # conformance build tag) imports internal/depth, which does not exist yet,
-      # and tidy without -e fails hard on that.
-      #
-      # CONDITION FOR REMOVING -e: once internal/depth has a body, go back to a
-      # plain `go mod tidy` so that dangling dependencies are caught again.
+      # This step carried -e until 23 August 2026, because
+      # internal/conformance/golden_test.go imported internal/depth, a package
+      # with no .go file in it, and tidy without -e fails hard on an import it
+      # cannot resolve. The condition written here for removing it named the wrong
+      # event: it said "once internal/depth has a body", when what actually
+      # mattered was only that the import resolves. Methodology 1.0.3 moved those
+      # functions into internal/domain, so the import resolved from that moment on
+      # and -e was suppressing nothing but the check itself. Plain tidy again, so a
+      # dangling dependency is caught.
       - name: go mod tidy changes nothing
         run: |
-          go mod tidy -e
+          go mod tidy
           git diff --exit-code go.mod go.sum
 
       - run: go build ./...
 
       - run: go vet ./...
 
-      # Purity of internal/domain and internal/depth. Split into its own step so
-      # that a failure reads clearly in the step list instead of drowning among
-      # the other tests.
-      - name: arch (purity of the domain and depth packages)
+      # Purity of internal/domain. Split into its own step so that a failure reads
+      # clearly in the step list instead of drowning among the other tests.
+      - name: arch (purity of the domain package)
         run: go test ./internal/domain/ -run TestArch -count=1 -v
 
       - run: go test ./... -race -count=1
@@ -81,10 +83,11 @@ jobs:
     name: conformance (methodology not implemented yet)
     runs-on: ubuntu-latest
     # DELIBERATELY allowed to fail. The USTRY golden fixture is a specification
-    # waiting to be met, and internal/depth is still empty, so this job stays red
-    # until the methodology is written. That is an honest state.
+    # waiting to be met, and every function in internal/domain/compute.go panics,
+    # so this job stays red until the methodology is written. That is an honest
+    # state.
     #
-    # CONDITION FOR REMOVAL: once internal/depth passes the fixture, delete the
+    # CONDITION FOR REMOVAL: once compute.go passes the fixture, delete the
     # continue-on-error line, delete the build tag in golden_test.go, and fold
     # this job into the build job.
     continue-on-error: true

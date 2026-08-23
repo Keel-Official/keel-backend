@@ -40,7 +40,7 @@ func main() {
 		belum(perintah, "internal/horizon + a recorder writing to recordings/")
 
 	case "scan":
-		belum(perintah, "internal/horizon + internal/depth + internal/store")
+		belum(perintah, "internal/horizon + internal/domain + internal/store")
 
 	case "serve":
 		belum(perintah, "internal/api + internal/store")

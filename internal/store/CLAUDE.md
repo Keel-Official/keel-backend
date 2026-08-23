@@ -4,7 +4,7 @@ Postgres persistence. Write freely, this is plumbing.
 
 This package is **deliberately dumb**. It stores and it reads; it computes
 nothing. If a formula starts appearing here it is in the wrong place and belongs
-in `internal/depth`.
+in `internal/domain/compute.go`, which is the red zone and not yours to write.
 
 ## Rules
 
@@ -15,26 +15,43 @@ in `internal/depth`.
 3. Every result row carries `ledger_seq` and `methodology_version`. Results from
    different methodology versions are different rows, not overwrites of each
    other. That is what makes cross-validation a single query.
-4. The `data_source` column accepts three values: `horizon`, `hubble`, and
-   `trades-implied`. The third is easy to forget, and a constraint that rejects it
-   will fail on exactly the historical path the Blend case study depends on.
+4. The `data_source` column accepts four values: `horizon`, `hubble`,
+   `offers-implied`, and `trades-implied`. The two implied ones are easy to
+   forget, and a constraint that rejects them will fail on exactly the historical
+   path the Blend case study depends on. They are not interchangeable:
+   `offers-implied` means the book was rebuilt from offer operations, which proves
+   liquidity that was POSTED, and `trades-implied` means it was rebuilt from
+   trades, which proves only liquidity that was CONSUMED.
 
 ## The schema you are writing against
 
-`migrations/0001_core.sql`, reconciled with TDD section 5 on 20 August 2026. It
-holds `assets`, `metrics`, and `runs`. Raw snapshots are not in the database; the
-cross-validation recordings go to `recordings/` as gzipped JSON.
+All three migration files, applied in order:
 
-Two things about it that are decisions rather than gaps:
+- `0001_core.sql`, reconciled with TDD section 5 on 20 August 2026. It holds
+  `assets`, `metrics`, and `runs`.
+- `0002_methodology_103.sql`, which added `pool_spot_price`,
+  `price_divergence_pct`, and the two `C_max` terms.
+- `0003_venue_split_and_offers_implied.sql`, which renamed `manipulation_cost` to
+  `manipulation_cost_combined`, added `manipulation_cost_orderbook_only`, and
+  widened the `data_source` CHECK to the four values in rule 4.
 
-- `oracle_resistance` is JSONB, not a numeric column, because `types.go` holds it
-  as a scalar while the API contract defines an object and that conflict is not
-  resolved yet. JSONB holds either shape, so the schema does not prejudge it.
-  Finding P1-6.
-- There are no columns for the two `C_max` terms. Methodology section 9 requires
-  both to be reported rather than only their minimum, but `domain.AssetRisk`
-  carries only the minimum today. Closing that needs the type to change first,
-  then a migration. Finding P1-15.
+Raw snapshots are not in the database; the cross-validation recordings go to
+`recordings/` as gzipped JSON.
+
+Three things about it that are decisions rather than gaps:
+
+- `oracle_resistance` is JSONB, not a numeric column. It was JSONB originally
+  because `types.go` held a scalar and the contract defined an object, and the
+  column deliberately did not prejudge which one won. The object won, in contract
+  1.3.0 and in `types.go`, so JSONB is now the shape rather than a hedge, and it
+  stays JSONB because that object has two fields. Finding P1-6, closed.
+- `manipulation_cost_orderbook_only` is a stored column and not a view derived
+  from the combined ladder, because the two are computed from different venue
+  sets and neither can be recovered from the other. The GAP between them is the
+  signal: a large combined cost beside a small orderbook-only cost is an asset
+  that looks defended and is not.
+- Read `0003`'s header before adding a migration. It contains this schema's one
+  statement with no `IF NOT EXISTS`, and the reason that is deliberate.
 
 Apply it with `make migrate`, never by mounting it into initdb. The reason is in
 the comment at the top of `scripts/migrate.sh`.

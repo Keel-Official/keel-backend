@@ -15,8 +15,8 @@
 > |---|---|---|
 > | 2.1 | dependency-cruiser or the ESLint `import/no-restricted-paths` rule | `internal/domain/arch_test.go`, run through `make arch` in CI |
 > | 3.3 | `decimal.js` or `big.js` | `github.com/shopspring/decimal`, decision T4 closed |
-> | 4 | `.ts` modules under `domain/` | Go packages: types in `internal/domain`, formulas in `internal/depth`, conformance tests in `internal/conformance` |
-> | 5 | the `assets`, `metrics`, `runs` schema | not present in `migrations/` yet; all that exists is `0001_snapshots.sql`. The schema here also lacks the v1.0.2 columns (`unevaluated_flags`, `band_confidence`, `spread_pct`, `max_reachable_price`) |
+> | 4 | `.ts` modules under `domain/` | Go packages: types in `internal/domain/types.go`, formulas in `internal/domain/compute.go`, conformance tests in `internal/conformance` |
+> | 5 | the `assets`, `metrics`, `runs` schema | present as `migrations/0001_core.sql`, reconciled with this section on 20 August 2026, and extended by `0002_methodology_103.sql` and `0003_venue_split_and_offers_implied.sql`. The schema in this document predates the v1.0.2 columns (`unevaluated_flags`, `band_confidence`, `spread_pct`, `max_reachable_price`); the migrations carry them |
 > | 7 | Fastify or Hono | not decided for Go yet, see the open decisions |
 > | 9 item 6 | the JSON determinism test | exists, `TestInvarianDeterminisme` in `internal/conformance` |
 > | 11 and 13 T1/T2 | the fallback plan and the BigQuery budget | deferred entirely, see `docs/decisions/DEC-002-hold-bigquery.md` |
@@ -150,11 +150,17 @@ and you will chase a bug that does not exist.
 > **TYPESCRIPT LEFTOVER.** The list of `.ts` files below does not apply. The real
 > split is:
 >
-> | Go package | Contents | Zone |
+> | Go file or package | Contents | Zone |
 > |---|---|---|
-> | `internal/domain` | shared types only, no computation | yellow |
-> | `internal/depth` | every formula: reference price, SDEX and AMM depth, the combination, manipulation cost, flags, bands, C_max | red |
-> | `internal/conformance` | the golden fixture and conformance tests, black-box against `internal/depth` | green |
+> | `internal/domain/types.go` | shared types only, no computation | yellow |
+> | `internal/domain/compute.go` | every formula: reference price, SDEX and AMM depth, the combination, manipulation cost, flags, bands, C_max | red |
+> | `internal/conformance` | the golden fixture and conformance tests, black-box against `internal/domain` | green |
+>
+> The split is by FILE and not by package, and it was by package until methodology
+> 1.0.3. The formulas lived in `internal/depth`, that directory was emptied by 1.0.3
+> and removed on 23 August 2026. A type is a shape and a formula is a claim, and only
+> the second one has to be defended to a funder, which is why the two sit side by side
+> in one package under different owners.
 >
 > The purity rules in the final paragraph of this section still apply in full, and
 > are now enforced mechanically by `internal/domain/arch_test.go`.

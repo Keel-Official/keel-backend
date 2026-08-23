@@ -5,34 +5,47 @@
 # A PreToolUse hook for Bash. It refuses commands that would MUTATE a red zone
 # path, the code only Al may write.
 #
-# THE ZONE MOVED. Methodology 1.0.3 moved the computations out of internal/depth
-# and into internal/domain/compute.go, so the pattern below covers both: the file
-# that is now the zone, and the directory that was, which still holds its own
-# CLAUDE.md and cannot be removed from Claude's side.
+# THE ZONE IS ONE FILE: internal/domain/compute.go. It was the internal/depth
+# directory until methodology 1.0.3 moved the computations out, and this pattern
+# covered both paths for as long as the empty directory survived. Al removed the
+# directory on 23 August 2026 and the second path came out of this pattern on the
+# 24th, because a lock on a path that cannot exist is not distinguishable from a
+# lock that works.
 #
-# The zone is a FILE now, not a directory, and the pattern has to stay that
-# narrow. internal/domain also holds types.go and arch_test.go, which Claude
-# maintains, so matching on the directory would refuse most ordinary work in the
-# package and the hook would be turned off within a day.
+# The pattern has to stay this narrow. internal/domain also holds types.go and
+# arch_test.go, which Claude maintains, so matching on the directory would refuse
+# most ordinary work in the package and the hook would be turned off within a day.
+# Both directions are checked by scripts/audit-verification.sh: P2-6 proves a
+# mutation of compute.go is refused, P2-6b proves the same command against
+# types.go is not.
 #
 # Why a hook rather than just permissions. .claude/settings.json already denies
-# Edit and Write on these paths, but Bash is untouched by those rules.
+# Edit and Write on this path, but Bash is untouched by those rules.
 # `sed -i internal/domain/compute.go` walks straight past the lock. Finding P2-6
 # in docs/internal/audit-2026-08-20.md.
 #
 # What STAYS allowed, because the red zone is not a secret zone:
-#   cat internal/depth/CLAUDE.md
-#   ls internal/depth/
-#   go test ./internal/depth/ -run TestX -v
-#   grep -rn ComputeDepth internal/depth/
-#   go test ./internal/depth/ 2>&1 | tail -5      (the redirect is NOT into the zone)
+#   cat internal/domain/compute.go
+#   go test ./internal/domain/ -run TestX -v
+#   grep -rn ComputeDepth internal/domain/
+#   go test ./internal/domain/ 2>&1 | tail -5   (the redirect is NOT into the zone)
 #
 # What gets refused:
-#   sed -i ... internal/depth/depth.go
-#   echo x > internal/depth/depth.go
-#   cp /tmp/a.go internal/depth/
-#   gofmt -w internal/depth/
-#   python3 - <<PY ... internal/depth ... PY
+#   sed -i ... internal/domain/compute.go
+#   echo x > internal/domain/compute.go
+#   cp /tmp/a.go internal/domain/compute.go
+#   gofmt -w internal/domain/compute.go
+#   python3 - <<PY ... internal/domain/compute.go ... PY
+#
+# WHAT IS NOT REFUSED, AND IT IS A HOLE, NOT A DESIGN CHOICE. A command that
+# mutates the DIRECTORY without naming the file walks straight through, because
+# the pattern below is the file:
+#   gofmt -w internal/domain/
+#   gofmt -l -w .              which is what `make fmt` runs, and make is allowed
+# This coverage existed while the zone WAS a directory and was lost when the zone
+# became a file. Finding P2-6c in scripts/audit-verification.sh, which probes it
+# on every run and states the two candidate fixes and what each one costs. Al
+# decides which; both of them refuse something that is currently allowed.
 #
 # This is a guardrail, not a sandbox. It closes the accidental path, not the
 # deliberate one. Its purpose is to remind, and a reminder that refuses is more
@@ -55,10 +68,12 @@ fi
 
 command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 
-# Every red zone path, as one alternation. Add here when the zone moves again, and
-# add the same path to the deny list in .claude/settings.json, because neither one
-# closes the other's route.
-zone='internal/domain/compute\.go|internal/depth'
+# Every red zone path, as one alternation. It holds one entry today. Add here when
+# the zone moves again, add the same path to the deny list in
+# .claude/settings.json, because neither one closes the other's route, and REMOVE
+# the old path in the same commit: an alternation branch that can no longer match
+# reports success forever.
+zone='internal/domain/compute\.go'
 
 # Does not touch the red zone at all, nothing to check.
 if ! printf '%s' "$command_line" | grep -Eq "$zone"; then
@@ -76,8 +91,7 @@ refuse() {
   exit 0
 }
 
-message="internal/domain/compute.go is the RED ZONE. Al writes it, not you. The
-old zone path internal/depth is still covered, for as long as it exists.
+message="internal/domain/compute.go is the RED ZONE. Al writes it, not you.
 
 This command is refused because it would mutate a file in that zone, and Bash is
 the path that the Edit and Write denials in .claude/settings.json do not close.

@@ -1,7 +1,7 @@
 # DEC-004: Repository Visibility and the Conditions for Opening It
 
 **Decision:** The repository `Keel-Official/keel-backend` stays **private** until
-`internal/depth` passes the golden fixture. Before its visibility is changed to
+the methodology code passes the golden fixture. Before its visibility is changed to
 public, two files must be taken out first.
 **Status:** IN FORCE from 20 August 2026, the first commit.
 **Related:** the Deliverable 1 DoD section 6 requires a public repository as
@@ -12,8 +12,8 @@ evidence.
 ## 1. Why not public immediately
 
 The DoD promises a public repository, so visibility is not a question of whether
-but of when. What weighed on the timing: at the first commit `internal/depth` is
-still empty, the `conformance` job is red because of that, and the `golangci-lint`
+but of when. What weighed on the timing: at the first commit the methodology code
+is still empty, the `conformance` job is red because of that, and the `golangci-lint`
 job was red because of an action version. A first-time reader arriving from an SCF
 link would see two red jobs and an empty core package, with no context for knowing
 that both are deliberate.
@@ -74,6 +74,21 @@ still present. A rule that lives only in a document gets broken within two weeks
 ## 4. What would change this decision
 
 - The Ambassador Chapter Lead or an SCF reviewer asks for a public repository link
-  before `internal/depth` is finished. If that happens, open it early and add a
+  before the methodology code is finished. If that happens, open it early and add a
   paragraph to the README explaining which red jobs are deliberate and why.
 - A external collaborator appears who cannot be given private access.
+
+---
+
+## 5. One amendment, 24 August 2026
+
+Where this record said `internal/depth`, it now says "the methodology code". The
+package it named was emptied by methodology 1.0.3, which moved the computations to
+`internal/domain/compute.go`, and removed on 23 August 2026.
+
+The decision itself does not change, and the reason it does not is worth stating:
+the trigger in section 1 was already written as an observable event, `make
+conformance` passing without a build tag, and not as a property of a directory.
+That is why a package being renamed and then deleted underneath this record left
+the condition intact and only made the prose wrong. A condition phrased as "when
+package X is done" would have had to be renegotiated here.

@@ -14,20 +14,27 @@ import (
 //
 // Two scopes, deliberately different in size:
 //
-//	PURE PACKAGE scope (internal/domain, internal/depth): no forbidden imports,
-//	no float, no time.Now, no goroutines. These packages must not know where the
-//	data came from.
+//	PURE PACKAGE scope (internal/domain): no forbidden imports, no float, no
+//	time.Now, no goroutines. This package must not know where the data came from.
 //
 //	WHOLE REPOSITORY scope: no float, anywhere. Non-negotiable rule number 1 in
 //	CLAUDE.md says monetary values never use float64, with no exception carved
 //	out for adapters. Until 20 August 2026 that rule was only enforced inside the
-//	two pure packages, and the gap was not theoretical: internal/adapter sat
-//	outside the scan using float64 in two places for months, and nothing caught
-//	it. See finding P1-16 in docs/internal/audit-2026-08-20.md.
+//	pure packages, and the gap was not theoretical: internal/adapter sat outside
+//	the scan using float64 in two places for months, and nothing caught it. See
+//	finding P1-16 in docs/internal/audit-2026-08-20.md.
 //
-// The purity rules are stated in both pure packages' doc comments. A rule that
+// The purity rules are stated in the pure package's doc comment. A rule that
 // lives only in a document gets broken within two weeks, so they are enforced
 // here.
+//
+// THE PURE SCOPE WAS TWO PACKAGES UNTIL 24 AUGUST 2026. The second was
+// internal/depth, removed on 23 August once methodology 1.0.3 had moved the
+// computations into this package. Its entry here outlived the directory, pointing
+// at a path that did not exist, and berkasGo below tolerated that by design.
+// Both are gone now, and the tolerance went with the entry rather than being left
+// behind: an entry in paketMurni that resolves to nothing is a scope that has
+// quietly shrunk, which is the one failure this file exists to prevent.
 //
 // WHAT IS NOT ENFORCED HERE: iterating a map without sorting first. Detecting
 // that statically needs full type information and the cost is not worth it. The
@@ -40,8 +47,8 @@ import (
 // not grow.
 
 // paketMurni lists the directories subject to the pure package rules, relative
-// to internal/domain.
-var paketMurni = []string{".", "../depth"}
+// to internal/domain. Every entry must exist; see berkasGo.
+var paketMurni = []string{"."}
 
 // akarRepo is the repository root, relative to internal/domain. The whole
 // repository float scan starts here.
@@ -94,11 +101,10 @@ func berkasGo(t *testing.T, dir string) []string {
 	t.Helper()
 	entri, err := os.ReadDir(dir)
 	if err != nil {
-		if os.IsNotExist(err) {
-			// internal/depth is allowed not to exist yet. Once it does, it must
-			// comply.
-			return nil
-		}
+		// A missing directory is a FAILURE, not a skip. This used to return nil
+		// on os.IsNotExist so that the unwritten internal/depth could be listed
+		// in paketMurni before it had files. That package is gone, and with it
+		// the only reason to tolerate an entry that resolves to nothing.
 		t.Fatalf("read directory %s: %v", dir, err)
 	}
 	var out []string

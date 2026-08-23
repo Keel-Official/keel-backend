@@ -53,9 +53,13 @@ zones:
 map.** It was `internal/depth` until methodology 1.0.3 moved the computations into
 `internal/domain`. For a while the lock still pointed at the old directory, which
 by then held nothing, so the red zone existed in this document and nowhere else.
-The zone follows the code, not the name. `internal/depth/` has not been removed
-yet, and both the lock and the hook still cover it, because the lock that makes a
-zone real also makes it unremovable from Claude's side. Al removes it.
+The zone follows the code, not the name. Al removed the empty directory on 23
+August 2026, and the references to it were retired one at a time afterwards: two
+deny rules, a path in the hook, a linter exclusion, an entry in the architecture
+test's pure package list, and a check in `scripts/audit-verification.sh` that was
+still proving the hook worked by testing a path nobody could write to any more.
+None of those five would have failed. That is the lesson worth keeping from this
+move rather than the move itself.
 
 **A directory that is not in this map has no owner, and that is a bug in the map
 rather than a licence to write freely.** `internal/adapter` lived outside it for

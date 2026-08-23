@@ -13,7 +13,9 @@ This directory holds two things with different owners, and the split is by file.
 It used to be a directory, `internal/depth`. Methodology 1.0.3 moved the
 computations into this package and left the lock pointing at a directory that no
 longer held anything, so for a while the red zone existed in `CLAUDE.md` and
-nowhere else. The zone follows the code, not the name.
+nowhere else. The zone follows the code, not the name. The empty directory was
+removed on 23 August 2026 and this file is the only zone document for the
+methodology code now.
 
 `compute.go` is the core of Keel's methodology and it is the paid deliverable. Al
 has to be able to defend every number in it to a reviewer or a funder. If Claude
@@ -51,11 +53,25 @@ Refuse, then ask one question that points at the thing being decided. For exampl
 - Reading `Cost` without reading `Reachable`. The two are computed from disjoint
   sets of asks and a cost to an unreachable target is not a cost.
 
-## One piece of cleanup Claude cannot do
+## The cleanup Claude could not do, done
 
-`internal/depth/` still exists, holding nothing but its own `CLAUDE.md` in
-Indonesian, and both the directory lock and the Bash hook still cover it. Claude
-cannot remove it, because the lock that makes the zone real also makes it
-unremovable from this side. Al removes it with `git rm -r internal/depth` once he
-is satisfied that this file replaces it. DEC-005 names that Indonesian file as its
-single untranslatable exception, and removing it retires that exception too.
+Al ran `git rm -r internal/depth` on 23 August 2026. The directory held nothing
+but its own `CLAUDE.md` in Indonesian, and Claude could not remove it, because the
+lock that makes a zone real also makes it unremovable from this side.
+
+Three things went with it, and each one had to be retired by hand rather than
+disappearing along with the directory:
+
+- The `internal/depth/**` denials in `.claude/settings.json` and the path in
+  `.claude/hooks/lindungi-zona-merah.sh`. A lock on a path that does not exist
+  cannot be distinguished from a lock that is working.
+- The `../depth` entry in `paketMurni` in `arch_test.go`, and the
+  `os.IsNotExist` tolerance that existed only to let that entry point at nothing.
+- The single untranslatable exception DEC-005 recorded, which was that Indonesian
+  file. DEC-005 section 2 records it as retired by deletion rather than by
+  translation.
+
+That list is the point. A directory is deleted in one command and the things that
+referred to it are not, and every one of them fails silently rather than loudly:
+a deny rule matching no path, a linter exclusion matching no file, and a purity
+scan over a directory that is not there all report success.
