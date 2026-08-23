@@ -27,6 +27,31 @@ both terms were zero or near zero at the same time.
 occurred within 15 minutes before the manipulation. That figure is **not confirmed** as
 Reflector's actual window and is marked as an assumption.
 
+### Two quantities, and why both are reported
+
+`MR` above is a SUM, and it is reported as `oracleResistance.totalAttackCost`. Beside it
+the same object reports a RATIO, `MC_orderbookOnly(δ_critical) / V_genuine(W)`. They are
+not two forms of one number and neither replaces the other.
+
+| Quantity | Question | Unit |
+|---|---|---|
+| ratio | is the attack cheap relative to the market it has to hide inside | dimensionless, so it can rank many assets |
+| sum | how much capital does the attack need in total | quote asset, so it reads against one pair only |
+
+**The sum is a LOWER BOUND, and this is an assumption rather than an identity.** Needing
+exactly `V_genuine(W)` of additional volume to dominate a volume weighted average is an
+approximation. What is really required depends on the weighting the oracle applies and on
+where inside the window the attack lands. A tighter form needs Reflector's actual
+weighting, which is the same missing fact as `W` itself.
+
+**Why the ratio is kept in object form and not flattened.** Two states have to stay
+readable and a single number cannot carry either. A `V_genuine` of zero makes the ratio
+undefined, and an asset with no genuine trading at all inside the oracle window is a
+high-value finding rather than missing data. And a ratio built on an `MC` whose
+`Reachable` is false is meaningless, because the cost of reaching an unreachable target is
+not the cost of anything. In object form both are visible and the ratio is simply null.
+Null means undefined, not zero.
+
 ---
 
 ## 2. Arbitrage asymmetry

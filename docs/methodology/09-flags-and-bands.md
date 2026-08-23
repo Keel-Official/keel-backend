@@ -305,7 +305,7 @@ fired, so the incomplete data does not change the conclusion in this case.
 | File                       | Change                                                                                                                               |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `internal/domain/types.go` | add `UnevaluatedFlags []Flag`, `BandConfidence`, `PriceDivergencePct`, `PoolSpotPrice` to `AssetRisk`; add `FlagPriceSourceConflict` |
-| `docs/api/openapi.yaml`    | add `unevaluatedFlags`, `bandConfidence`, `spreadPct`, `poolSpotPrice`, `priceDivergencePct`, `PRICE_SOURCE_CONFLICT`                |
+| `docs/api/keel-openapi.yaml` | add `unevaluatedFlags`, `bandConfidence`, `spreadPct`, `poolSpotPrice`, `priceDivergencePct`, `PRICE_SOURCE_CONFLICT`. Landed in contract 1.3.0 |
 | PRD section 5              | replace its contents with a pointer to this document                                                                                 |
 | `/methodology`             | add `spreadExtremePct` and `priceDivergencePct` to `thresholds`                                                                      |
 
