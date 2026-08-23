@@ -141,8 +141,26 @@ empty_dirs_vanish(){
   done
   return 1
 }
-# Leaking when the guard hook is absent, or present but does not refuse a mutation.
-# Needs jq, exactly like the hook itself.
+# THE RED ZONE HOOK, PROBED IN THREE DIRECTIONS. There are three ways a Bash
+# command can reach the red zone: naming the file, naming the DIRECTORY that holds
+# it, or sweeping a whole tree without naming either. P2-6, P2-6c and P2-6b below
+# probe the first two for leaks and then probe the hook for over-refusal, which is
+# a leak on a longer timescale, because a hook that refuses ordinary work gets
+# switched off within a day.
+#
+# Runs the hook the way Claude Code does, and needs jq exactly like the hook does.
+# Returns 0 when the hook REFUSES the command.
+hook_refuses(){
+  printf '%s' "$1" \
+    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
+    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
+    | grep -q '"deny"'
+}
+hook_absent(){
+  [ ! -f .claude/hooks/lindungi-zona-merah.sh ] || ! command -v jq >/dev/null 2>&1
+}
+# Leaking when the guard hook is absent, or present but does not refuse a mutation
+# that names the red zone file.
 #
 # The probe path was internal/depth/x.go until 24 August 2026. That directory was
 # removed on the 23rd, and the check would have stayed green for as long as the
@@ -150,54 +168,83 @@ empty_dirs_vanish(){
 # tidied, reporting a leak that did not exist. Worse in the other direction: while
 # it passed, it was proving that the hook defends a path nobody can write to. It
 # probes the file that is actually the zone now.
-#
-# The negative half matters as much as the positive one. A hook that refused
-# everything would pass this check while making the repository unworkable, so the
-# probe next door confirms that a sibling file in the same package still passes.
 red_zone_leaks(){
-  [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 0
-  command -v jq >/dev/null 2>&1 || return 0
-  ! printf '%s' 'sed -i "" s/a/b/ internal/domain/compute.go' \
-    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
-    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
-    | grep -q '"deny"'
+  hook_absent && return 0
+  ! hook_refuses 'sed -i "" s/a/b/ internal/domain/compute.go'
 }
-# PROVEN while a command that mutates the DIRECTORY, without naming the file,
-# walks through. The hook matches internal/domain/compute.go and a directory-wide
-# formatter never mentions it, so `gofmt -w internal/domain/` is allowed and
-# rewrites the red zone. `make fmt` is the reachable form: it runs `gofmt -l -w .`
-# and Bash(make:*) is on the allow list.
+# PROVEN while a command that never names the red zone file reaches it anyway,
+# either by naming the directory or by sweeping a tree that contains it.
 #
-# This is the guarantee QUIETLY WEAKENING when the zone moved from a directory to
-# a file. While the zone WAS internal/depth, a directory-wide command named the
-# zone by definition and was refused, and the hook's header listed
+# This was the guarantee QUIETLY WEAKENING when the zone moved from a directory to
+# a file, and it was open for one day. While the zone WAS internal/depth, any
+# command broad enough to reach the code named the zone by definition, so both
+# routes were closed for free, and the hook's header listed
 # `gofmt -w internal/depth/` as an example of exactly that. The example survived
 # the move and stopped being true, which is the seventh time this repository has
 # found a check or a claim measuring the old shape of something.
 #
-# It is left OPEN rather than patched, because both fixes are Al's call and each
-# one costs something. Widening the pattern to internal/domain refuses ordinary
-# work on types.go and gets the hook switched off. Special casing the recursive
-# formatters refuses `make fmt`, which is a legitimate command that has never yet
-# had anything to change in compute.go. Deciding it needs one sentence.
+# CLOSED 24 AUGUST 2026, both routes, in the order Al chose. The sweep first: an
+# in-place formatter with no .go file named is refused, and `make fmt` is named
+# explicitly because a hook cannot see inside a recipe. Then the directory: matched
+# in directory form only, so `internal/domain/` is refused and
+# `internal/domain/types.go` is not, which is what keeps P2-6b below at NOT.
+#
+# Five probes and not one, because each closed route has its own way of reopening.
 red_zone_dir_bypass(){
-  [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 1
-  command -v jq >/dev/null 2>&1 || return 1
-  ! printf '%s' 'gofmt -w internal/domain/' \
-    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
-    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
-    | grep -q '"deny"'
+  hook_absent && return 1
+  ! hook_refuses 'gofmt -w internal/domain/'  && return 0
+  ! hook_refuses 'rm -rf internal/domain'     && return 0
+  ! hook_refuses 'gofmt -l -w .'              && return 0
+  ! hook_refuses 'goimports -w ./...'         && return 0
+  ! hook_refuses 'make fmt'                   && return 0
+  return 1
 }
-# Over-refusing when the hook denies a mutation of a YELLOW file in the same
-# package. types.go is Claude's to write, and a hook that blocked it would be
-# switched off within a day, which is a leak on a longer timescale.
+# Over-refusing when the hook denies work it has no business denying. types.go and
+# arch_test.go are Claude's to write and they sit in the same package as the zone,
+# so the directory rule above is one careless character away from refusing them.
+# Reading and running are allowed too: the red zone is not a secret zone.
 red_zone_over_refuses(){
-  [ -f .claude/hooks/lindungi-zona-merah.sh ] || return 1
-  command -v jq >/dev/null 2>&1 || return 1
-  printf '%s' 'sed -i "" s/a/b/ internal/domain/types.go' \
-    | jq -Rs '{tool_name:"Bash", tool_input:{command:.}}' \
-    | bash .claude/hooks/lindungi-zona-merah.sh 2>/dev/null \
-    | grep -q '"deny"'
+  hook_absent && return 1
+  hook_refuses 'sed -i "" s/a/b/ internal/domain/types.go' && return 0
+  hook_refuses 'gofmt -w internal/domain/types.go'         && return 0
+  hook_refuses 'cat internal/domain/compute.go'            && return 0
+  hook_refuses 'go test ./internal/domain/ -run TestArch'   && return 0
+  hook_refuses 'go test ./internal/domain/ 2>&1 | tail -5' && return 0
+  hook_refuses 'gofmt -l .'                                && return 0
+  hook_refuses 'make ci'                                   && return 0
+  return 1
+}
+# PROVEN while the hook reads PROSE as a command. Closing routes two and three
+# bought this: the hook now refuses `git commit` when the message merely QUOTES a
+# zone path beside a mutating word, or mentions `make fmt`. In this repository that
+# is most commit messages, including the one that closed P2-6c, which had to be
+# passed through a file to land.
+#
+# It is the failure the hook's own header names as the worst one. A guardrail that
+# refuses the work it protects gets switched off, and then the zone has no lock at
+# all. It is P2-6d and not part of P2-6b because the fix is different: P2-6b is
+# about which PATHS are matched, this is about what counts as a COMMAND.
+#
+# THE FIX IS AL'S, and not because it is hard. Claude is blocked from loosening the
+# guardrail Claude is subject to, which is the correct arrangement and the reason
+# this line is a finding rather than a patch. Two parts, both in this hook:
+#
+#   1. A heredoc body is DATA. Scan `git commit -F - <<MSG` up to the `<<` and no
+#      further. Keep scanning the full command when the thing being fed is an
+#      interpreter or a writer, so `python3 - <<PY` writing to compute.go stays
+#      refused, which is what the fifth probe in P2-6 guards.
+#   2. Anchor every rule to COMMAND POSITION, the start of the line or just after a
+#      shell separator, so a verb inside a quoted string is not a verb. This loses
+#      `find . -exec rm {} + internal/domain`, which is the deliberate path rather
+#      than the accidental one.
+#
+# Until then the workaround is `git commit -F <file>`, which keeps the prose off
+# the command line. That works and it is not a fix: it depends on remembering.
+red_zone_refuses_prose(){
+  hook_absent && return 1
+  hook_refuses 'git commit -m "rm -rf internal/domain is refused"' && return 0
+  hook_refuses 'echo "make fmt is refused"'                        && return 0
+  return 1
 }
 
 section "P0  What blocks everything else"
@@ -282,7 +329,8 @@ check P2-4 "README promises make record works, though it exits with code 3" read
 check P2-5 "An empty directory exists that will vanish when somebody else clones" empty_dirs_vanish
 check P2-6 "The red zone lock leaks through Bash, uncovered by the Edit and Write denials" red_zone_leaks
 check P2-6b "or the same hook refuses a yellow file next door, which gets it switched off" red_zone_over_refuses
-check P2-6c "A directory-wide mutation reaches the red zone without naming it, and make fmt is that command" red_zone_dir_bypass
+check P2-6c "or a directory-wide or tree-wide mutation reaches it without naming it at all" red_zone_dir_bypass
+check P2-6d "The same hook reads prose as a command, so a commit message quoting the zone is refused" red_zone_refuses_prose
 check P2-7 "The methodology file structure decision is still open in the methodology README" \
   grep -qF "The decision that has to be made" docs/methodology/README.md
 check P2-8 "The fixture writes 'All four' for a list holding six flags" \

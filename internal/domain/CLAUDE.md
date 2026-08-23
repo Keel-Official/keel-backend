@@ -26,6 +26,20 @@ Enforced rather than agreed: `Edit` and `Write` are denied on `compute.go` in
 `.claude/settings.json`, and the Bash path is closed by
 `.claude/hooks/lindungi-zona-merah.sh`.
 
+**Three routes, all closed, and the third one caught Claude out.** A Bash command
+reaches this file by naming it, by naming this directory, or by sweeping a tree that
+contains it. Only the first was closed until 24 August 2026, and the last is the one
+worth knowing about in daily work:
+
+| Want to | Do this | Not this |
+| --- | --- | --- |
+| format | `gofmt -w internal/domain/types.go` | `gofmt -w internal/domain/` |
+| check formatting | `gofmt -l .`, which is read only | `make fmt`, which writes |
+
+`make fmt` is refused for Claude and unchanged for Al, whose terminal this hook does
+not sit in. So CI's gofmt check still has an owner and a one command fix, and Claude
+formats by naming files. Finding P2-6c.
+
 ## Claude's role in compute.go
 
 Allowed: read the code, run the tests, point out an edge case that is not handled,
