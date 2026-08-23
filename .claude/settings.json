@@ -23,6 +23,8 @@
       "WebFetch"
     ],
     "deny": [
+      "Edit(internal/domain/compute.go)",
+      "Write(internal/domain/compute.go)",
       "Edit(internal/depth/**)",
       "Write(internal/depth/**)",
       "Read(.env)",

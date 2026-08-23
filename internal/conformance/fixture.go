@@ -49,6 +49,13 @@ var (
 	}
 )
 
+var PoolUSTRYUSDC = domain.PoolReserves{
+	PoolID:       "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+	ReserveBase:  dec("15.4791416"), // USTRY
+	ReserveQuote: dec("16.3389179"), // USDC
+	FeeBP:        30,
+}
+
 // ---------------------------------------------------------------- Input
 
 // GoldenSnapshot is the state of the USTRY/USDC book that genuinely existed
@@ -73,8 +80,15 @@ func GoldenSnapshot() domain.Snapshot {
 				{Price: domain.Price{N: 1057, D: 1000}, Amount: dec("0.0001000")},
 			},
 		},
-		Pools:  nil,
-		Source: domain.DataSourceHorizon,
+		Pools: []domain.PoolReserves{PoolUSTRYUSDC},
+
+		// offers-implied, not horizon, decided as handoff item 5b. This book was
+		// not read from /order_book, because Horizon serves no historical order
+		// book state. It was reconstructed by replaying manage_sell_offer and
+		// manage_buy_offer operations, so it proves liquidity that was POSTED.
+		// That is a stronger claim than trades-implied, which proves only what was
+		// consumed, and a different claim from horizon, which means read directly.
+		Source: domain.DataSourceOffersImplied,
 	}
 }
 
@@ -88,30 +102,19 @@ func GoldenSnapshot() domain.Snapshot {
 // fraction would be the single exception and a source of silent bugs.
 //
 // Every one of these values is CHOSEN, not calibrated against a set of incidents.
-func DefaultParams() domain.Params {
-	return domain.Params{
-		MarketDeltas:       []decimal.Decimal{dec("0.02"), dec("0.05"), dec("0.10")},
-		ManipulationDeltas: []decimal.Decimal{dec("0.5"), dec("1"), dec("10"), dec("100")},
+func FixtureParams() domain.Params {
+	return domain.DefaultParams()
+}
 
-		LiquidationDelta:          dec("0.10"),
-		LiquidationHaircut:        dec("0.5"),
-		ManipulationCriticalDelta: dec("1.0"),
-		ManipulationMargin:        dec("0.25"),
-
-		// 15 minutes is an ASSUMPTION and has not been confirmed as Reflector's
-		// actual window.
-		OracleWindow: 15 * time.Minute,
-
-		Thresholds: domain.Thresholds{
-			ManipulationCheapAbsolute: dec("10000"),
-			ManipulationRatioLowPct:   dec("1.0"),
-			ThinDepth5PctAbsolute:     dec("50000"),
-			SpreadExtremePct:          dec("20.0"),
-			HolderTop1ExtremePct:      dec("50.0"),
-			HolderTop10HighPct:        dec("80.0"),
-			WashTradeSuspectedPct:     dec("50.0"),
-			GenuineTradeStaleDays:     30,
-			GenuineTradeWarnDays:      7,
-		},
-	}
+// BookOnlySnapshot is SYNTHETIC. It reuses the real book state from ledger
+// 61340263 but deliberately omits the pool that existed at the time.
+//
+// Its purpose is to exercise the pure-order-book paths: Reachable=false and a
+// non-null MaxReachablePrice, neither of which can occur once an active pool is
+// present. It must never be presented as the actual market state on
+// 22 February 2026.
+func BookOnlySnapshot() domain.Snapshot {
+	s := GoldenSnapshot()
+	s.Pools = nil
+	return s
 }

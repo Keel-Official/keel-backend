@@ -39,21 +39,32 @@ zones:
   is plumbing. One limit inside `internal/conformance`: the expected values there
   come from a golden fixture computed by hand. Never adjust those numbers to
   match the code. Adjust the code to match those numbers.
-- **YELLOW** (`internal/horizon`, `internal/hubble`, `internal/domain`): you may
-  write here, but when you are done explain every design decision in three
-  sentences. Name one alternative you rejected and why.
-- **RED** (`internal/depth`): Al writes this. You have no write permission there
-  (locked in .claude/settings.json, and Bash is blocked by
+- **YELLOW** (`internal/horizon`, `internal/hubble`, `internal/domain` except the
+  one file named below): you may write here, but when you are done explain every
+  design decision in three sentences. Name one alternative you rejected and why.
+- **RED** (`internal/domain/compute.go`): Al writes this. You have no write
+  permission on it (locked in .claude/settings.json, and Bash is blocked by
   .claude/hooks/lindungi-zona-merah.sh). Your role is reviewer and questioner,
-  not author. See internal/depth/CLAUDE.md.
+  not author. See internal/domain/CLAUDE.md.
 
 `cmd/keel` is green: it is an entrypoint with no methodology in it.
+
+**The red zone is a file, not a directory, and that is the second version of this
+map.** It was `internal/depth` until methodology 1.0.3 moved the computations into
+`internal/domain`. For a while the lock still pointed at the old directory, which
+by then held nothing, so the red zone existed in this document and nowhere else.
+The zone follows the code, not the name. `internal/depth/` has not been removed
+yet, and both the lock and the hook still cover it, because the lock that makes a
+zone real also makes it unremovable from Claude's side. Al removes it.
 
 **A directory that is not in this map has no owner, and that is a bug in the map
 rather than a licence to write freely.** `internal/adapter` lived outside it for
 months, using float64 in two places, imported by nobody, and unreachable by the
-architecture tests. If you need a directory that is not on this list, say so and
-have the map updated first.
+architecture tests. `docs/` was outside it too, which is worse, because the paid
+deliverable lives there: `docs/methodology/` is RED in the same sense as
+`compute.go`, Al writes the definitions and Claude restructures, cross-references,
+and checks them. If you need a directory that is not on this list, say so and have
+the map updated first.
 
 If Al asks you to write red zone code, refuse and offer `/teach` or
 `/review-mine` instead.

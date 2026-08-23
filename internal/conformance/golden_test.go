@@ -2,17 +2,33 @@
 
 // Methodology conformance test against the USTRY/USDC golden fixture.
 //
-// WHY THE BUILD TAG. This file imports internal/depth, which currently has no
-// body. Without the tag the whole repository fails to build and CI loses its
-// meaning. The tag is TEMPORARY.
+// WHY THE BUILD TAG. The functions this file calls are declared in
+// internal/domain/compute.go and every one of them panics: the red zone has no
+// body yet. Without the tag, `make test` and CI would be red on committed work,
+// and a suite that is always red stops being read.
 //
-// CONDITION FOR REMOVAL: once internal/depth contains an implementation that
-// passes, delete the //go:build line above and delete the separate `conformance`
-// target in the Makefile. This test belongs in a plain `make test`, not on a
-// special path that is easy to forget.
+// The tag's reason CHANGED and is worth recording. It used to exist because the
+// functions lived in a package with no .go file at all, so the repository would
+// not build. Now it builds and the calls panic instead. That is a better kind of
+// broken: the shape of the API is checked by the compiler today, and only the
+// arithmetic is missing.
+//
+// CONDITION FOR REMOVAL: once compute.go has an implementation that passes,
+// delete the //go:build line above, delete the separate `conformance` target in
+// the Makefile, and delete continue-on-error from the conformance job in CI. All
+// three exist only because that file is empty.
 //
 // For now, run it with: make conformance
-
+//
+// WHICH SNAPSHOT EACH TEST USES, and this is the part to read before adding one.
+// Every expected value in expected.go was computed by hand for a market with NO
+// pool. GoldenSnapshot now carries the pool that genuinely existed at that ledger,
+// so those numbers describe BookOnlySnapshot, not GoldenSnapshot. They are pointed
+// at the snapshot they actually describe rather than adjusted, which is the rule in
+// fixture.go's header read in the only direction it can be read.
+//
+// The pool case is covered here only by the invariants 1.0.3 states about it, which
+// need no hand computation. Its expected VALUES are Al's to derive.
 package conformance
 
 import (
@@ -22,7 +38,6 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/Keel-Official/keel-backend/internal/depth"
 	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
@@ -36,9 +51,9 @@ func eqDec(t *testing.T, label string, got, want decimal.Decimal) {
 	}
 }
 
-func mustRisk(t *testing.T) domain.AssetRisk {
+func mustRisk(t *testing.T, s domain.Snapshot) domain.AssetRisk {
 	t.Helper()
-	r, err := depth.ComputeAssetRisk(GoldenSnapshot(), DefaultParams())
+	r, err := domain.ComputeAssetRisk(s, FixtureParams())
 	if err != nil {
 		t.Fatalf("ComputeAssetRisk: %v", err)
 	}
@@ -48,15 +63,23 @@ func mustRisk(t *testing.T) domain.AssetRisk {
 // ---------------------------------------------------------------- Price
 
 func TestMidPrice(t *testing.T) {
-	got, src := depth.MidPrice(GoldenSnapshot())
+	got, src, poolSpot, divergence := domain.MidPrice(BookOnlySnapshot(), FixtureParams())
 	eqDec(t, "P0", got, ExpectedP0)
 	if src != ExpectedPriceSource {
 		t.Errorf("priceSource = %q, want %q", src, ExpectedPriceSource)
 	}
+	// No pool in this snapshot, so there is nothing to compare P0 against. Nil
+	// means undefined here, and zero would claim the two sources agree.
+	if poolSpot != nil {
+		t.Errorf("poolSpotPrice = %v, want nil: this snapshot has no pool", *poolSpot)
+	}
+	if divergence != nil {
+		t.Errorf("priceDivergencePct = %v, want nil: this snapshot has no pool", *divergence)
+	}
 }
 
 func TestSpreadPct(t *testing.T) {
-	r := mustRisk(t)
+	r := mustRisk(t, BookOnlySnapshot())
 	if r.SpreadPct == nil {
 		t.Fatal("spreadPct is nil, want 196.0777141; nil means unknown and both sides of the book are populated")
 	}
@@ -66,8 +89,8 @@ func TestSpreadPct(t *testing.T) {
 // ---------------------------------------------------------------- Depth
 
 func TestComputeDepth(t *testing.T) {
-	p := DefaultParams()
-	got, err := depth.ComputeDepth(GoldenSnapshot(), ExpectedP0, p.MarketDeltas)
+	p := FixtureParams()
+	got, err := domain.ComputeDepth(BookOnlySnapshot(), ExpectedP0, p.MarketDeltas)
 	if err != nil {
 		t.Fatalf("ComputeDepth: %v", err)
 	}
@@ -80,15 +103,18 @@ func TestComputeDepth(t *testing.T) {
 		eqDec(t, "depth("+want.Delta.String()+").BuySide  "+want.Reason, g.BuySide, want.BuySide)
 		eqDec(t, "depth("+want.Delta.String()+").SellSide "+want.Reason, g.SellSide, want.SellSide)
 		eqDec(t, "depth("+want.Delta.String()+").FromSdex", g.FromSdex, want.FromSdex)
-		eqDec(t, "depth("+want.Delta.String()+").FromAmm (Pools is empty)", g.FromAmm, want.FromAmm)
+		eqDec(t, "depth("+want.Delta.String()+").FromAmm (this snapshot has no pool)", g.FromAmm, want.FromAmm)
 	}
 }
 
 // ---------------------------------------------------------------- Manipulation
 
 func TestComputeManipulationCost(t *testing.T) {
-	p := DefaultParams()
-	got, err := depth.ComputeManipulationCost(GoldenSnapshot(), ExpectedP0, p.ManipulationDeltas)
+	p := FixtureParams()
+	// includeAMM is false and the snapshot has no pool either, so combined and
+	// orderbookOnly are the same ladder here. That is what makes these hand
+	// computed numbers usable on both.
+	got, err := domain.ComputeManipulationCost(BookOnlySnapshot(), ExpectedP0, p.ManipulationDeltas, false)
 	if err != nil {
 		t.Fatalf("ComputeManipulationCost: %v", err)
 	}
@@ -109,7 +135,7 @@ func TestComputeManipulationCost(t *testing.T) {
 }
 
 func TestMaxReachablePrice(t *testing.T) {
-	r := mustRisk(t)
+	r := mustRisk(t, BookOnlySnapshot())
 	if r.MaxReachablePrice == nil {
 		t.Fatal("maxReachablePrice is nil, want 106.7372828; the book has an ask so the value is defined")
 	}
@@ -120,6 +146,79 @@ func TestMaxReachablePrice(t *testing.T) {
 	}
 	eqDec(t, "costToMaxReachablePrice (free, no cheaper ask exists)",
 		*r.CostToMaxReachablePrice, ExpectedCostToMaxReachablePrice)
+}
+
+// ---------------------------------------------------------------- The pool case
+//
+// Invariants only. Every assertion below is something 1.0.3 states about a market
+// with an active pool, and none of them needs a number computed by hand, which is
+// why they can live here while the expected values cannot.
+
+// A pool priced 50 times away from the book mid is the whole reason the P0 rule
+// changed in 1.0.3. docs/methodology/03-reference-price.md section 1.
+func TestPoolPresentSwitchesPriceSource(t *testing.T) {
+	_, src, poolSpot, divergence := domain.MidPrice(GoldenSnapshot(), FixtureParams())
+
+	if src != domain.PriceSourcePool {
+		t.Errorf("priceSource = %q, want %q: the book mid is 50x the pool spot, far past PriceDivergencePct",
+			src, domain.PriceSourcePool)
+	}
+	if poolSpot == nil {
+		t.Error("poolSpotPrice is nil although this snapshot has an active pool")
+	}
+	if divergence == nil {
+		t.Error("priceDivergencePct is nil although this snapshot has an active pool")
+	}
+
+	r := mustRisk(t, GoldenSnapshot())
+	var found bool
+	for _, f := range r.Flags {
+		if f == domain.FlagPriceSourceConflict {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("PRICE_SOURCE_CONFLICT is not among the triggered flags %v, although the two sources disagree by a factor of 50", flagSet(r.Flags))
+	}
+}
+
+// Under a constant product curve the price tends to infinity as the base reserve
+// tends to zero, so "the highest reachable price" has no meaning once a pool is
+// active. docs/methodology/05-manipulation-cost.md section 5.
+func TestPoolPresentNullsMaxReachable(t *testing.T) {
+	r := mustRisk(t, GoldenSnapshot())
+	if r.MaxReachablePrice != nil {
+		t.Errorf("maxReachablePrice = %v, want nil: an active pool makes every target reachable", *r.MaxReachablePrice)
+	}
+	if r.CostToMaxReachablePrice != nil {
+		t.Errorf("costToMaxReachablePrice = %v, want nil for the same reason", *r.CostToMaxReachablePrice)
+	}
+	if len(r.Warnings) == 0 {
+		t.Error("both fields are null and no warning was emitted; a null without a stated reason is indistinguishable from a bug")
+	}
+}
+
+// orderbookOnly <= combined always holds, because combined adds the AMM term to
+// the same book. An attacker takes the cheapest path, so the smaller figure is the
+// binding one. docs/methodology/05-manipulation-cost.md section 3.
+func TestOrderbookOnlyNeverExceedsCombined(t *testing.T) {
+	r := mustRisk(t, GoldenSnapshot())
+
+	if len(r.ManipulationCostCombined) != len(r.ManipulationCostOrderbookOnly) {
+		t.Fatalf("the two ladders have different lengths, %d and %d; they are indexed by the same deltas",
+			len(r.ManipulationCostCombined), len(r.ManipulationCostOrderbookOnly))
+	}
+	for i := range r.ManipulationCostCombined {
+		c, o := r.ManipulationCostCombined[i], r.ManipulationCostOrderbookOnly[i]
+		if c.Delta.Cmp(o.Delta) != 0 {
+			t.Errorf("row %d: the ladders disagree on delta, %s against %s", i, c.Delta, o.Delta)
+			continue
+		}
+		if o.Cost.GreaterThan(c.Cost) {
+			t.Errorf("MC_orderbookOnly(%s) = %s exceeds MC_combined(%s) = %s, which is impossible: combined is the same book plus an AMM term",
+				o.Delta, o.Cost, c.Delta, c.Cost)
+		}
+	}
 }
 
 // ---------------------------------------------------------------- Flags
@@ -149,7 +248,7 @@ func compareFlags(t *testing.T, label string, got, want []domain.Flag) {
 }
 
 func TestFlagsAndBand(t *testing.T) {
-	r := mustRisk(t)
+	r := mustRisk(t, BookOnlySnapshot())
 	compareFlags(t, "flags", r.Flags, ExpectedFlags)
 	compareFlags(t, "unevaluatedFlags", r.UnevaluatedFlags, ExpectedUnevaluatedFlags)
 
@@ -164,7 +263,7 @@ func TestFlagsAndBand(t *testing.T) {
 // TestClearFlagsTidakIkutUnevaluated guards the distinction that version 1.0.2
 // exists for: clear and unevaluated must never be swapped.
 func TestClearFlagsTidakIkutUnevaluated(t *testing.T) {
-	r := mustRisk(t)
+	r := mustRisk(t, BookOnlySnapshot())
 	for _, clear := range ExpectedClearFlags {
 		for _, u := range r.UnevaluatedFlags {
 			if u == clear {
@@ -182,10 +281,13 @@ func TestClearFlagsTidakIkutUnevaluated(t *testing.T) {
 // ---------------------------------------------------------------- Invariants
 
 // Invariants 1 and 2 in testdata/fixtures/ustry_pre_exploit.md.
+//
+// Monotonicity holds on either snapshot, so this runs on GoldenSnapshot, the real
+// market state. It needs no expected values, only an ordering.
 func TestInvarianMonotonisitas(t *testing.T) {
-	p := DefaultParams()
+	p := FixtureParams()
 
-	d, err := depth.ComputeDepth(GoldenSnapshot(), ExpectedP0, p.MarketDeltas)
+	d, err := domain.ComputeDepth(GoldenSnapshot(), ExpectedP0, p.MarketDeltas)
 	if err != nil {
 		t.Fatalf("ComputeDepth: %v", err)
 	}
@@ -200,7 +302,7 @@ func TestInvarianMonotonisitas(t *testing.T) {
 		}
 	}
 
-	mc, err := depth.ComputeManipulationCost(GoldenSnapshot(), ExpectedP0, p.ManipulationDeltas)
+	mc, err := domain.ComputeManipulationCost(GoldenSnapshot(), ExpectedP0, p.ManipulationDeltas, true)
 	if err != nil {
 		t.Fatalf("ComputeManipulationCost: %v", err)
 	}
@@ -213,8 +315,9 @@ func TestInvarianMonotonisitas(t *testing.T) {
 }
 
 // Invariant 3: maxReachablePrice equals exactly the highest ask price on the book.
+// Only meaningful without a pool, which is what BookOnlySnapshot is for.
 func TestInvarianMaxReachableAdalahAskTertinggi(t *testing.T) {
-	s := GoldenSnapshot()
+	s := BookOnlySnapshot()
 	if len(s.Book.Asks) == 0 {
 		t.Skip("fixture has no ask")
 	}
@@ -224,9 +327,9 @@ func TestInvarianMaxReachableAdalahAskTertinggi(t *testing.T) {
 			tertinggi = a.Price
 		}
 	}
-	r := mustRisk(t)
+	r := mustRisk(t, s)
 	if r.MaxReachablePrice == nil {
-		t.Fatal("maxReachablePrice is nil although the book has an ask")
+		t.Fatal("maxReachablePrice is nil although the book has an ask and there is no pool")
 	}
 	eqDec(t, "maxReachablePrice vs the highest ask on the book",
 		*r.MaxReachablePrice, tertinggi.Decimal())
@@ -237,13 +340,14 @@ func TestInvarianMaxReachableAdalahAskTertinggi(t *testing.T) {
 //
 // This test is cheap and it catches violations of the bans on time.Now,
 // math/rand, and unsorted map iteration automatically, without anyone having to
-// read the code.
+// read the code. It runs on GoldenSnapshot because the pool path adds map and
+// slice traversal that the book-only path does not exercise.
 func TestInvarianDeterminisme(t *testing.T) {
-	a, err := depth.ComputeAssetRisk(GoldenSnapshot(), DefaultParams())
+	a, err := domain.ComputeAssetRisk(GoldenSnapshot(), FixtureParams())
 	if err != nil {
 		t.Fatalf("first run: %v", err)
 	}
-	b, err := depth.ComputeAssetRisk(GoldenSnapshot(), DefaultParams())
+	b, err := domain.ComputeAssetRisk(GoldenSnapshot(), FixtureParams())
 	if err != nil {
 		t.Fatalf("second run: %v", err)
 	}
@@ -264,9 +368,14 @@ func TestInvarianDeterminisme(t *testing.T) {
 // ---------------------------------------------------------------- Metadata
 
 // Every output is required to carry LedgerSeq and MethodologyVersion.
+//
+// This is the test handoff item 5b said would lock in whichever DataSource label
+// the fixture chose. The label is now offers-implied: the book was reconstructed
+// from manage_sell_offer and manage_buy_offer operations, which is neither a
+// Horizon snapshot nor a reconstruction from trades.
 func TestMetadataWajib(t *testing.T) {
-	r := mustRisk(t)
 	s := GoldenSnapshot()
+	r := mustRisk(t, s)
 
 	if r.LedgerSeq != s.LedgerSeq {
 		t.Errorf("ledgerSeq = %d, want %d", r.LedgerSeq, s.LedgerSeq)
@@ -276,6 +385,10 @@ func TestMetadataWajib(t *testing.T) {
 	}
 	if r.DataSource != s.Source {
 		t.Errorf("dataSource = %q, want %q", r.DataSource, s.Source)
+	}
+	if s.Source != domain.DataSourceOffersImplied {
+		t.Errorf("the fixture labels itself %q; an offer-derived book is %q",
+			s.Source, domain.DataSourceOffersImplied)
 	}
 	if !r.LedgerClosedAt.Equal(s.LedgerClosedAt) {
 		t.Errorf("ledgerClosedAt = %v, want %v", r.LedgerClosedAt, s.LedgerClosedAt)

@@ -45,8 +45,20 @@ check() {
 section() { printf "\n%s%s%s\n" "$bold" "$1" "$off"; }
 
 no_commit()        { ! git rev-parse HEAD; }
-depth_empty()      { [ -z "$(ls internal/depth/*.go 2>/dev/null)" ]; }
-conformance_dead() { ! go vet -tags conformance ./internal/conformance/; }
+
+# P0-2 and P0-3 are the same defect seen from two sides: the methodology code has
+# no body, so the golden fixture proves nothing. Both checks were re-anchored on
+# 23 August 2026 when methodology 1.0.3 moved the computations out of the
+# internal/depth directory and into internal/domain/compute.go.
+#
+# The old anchors would both have lied. "internal/depth holds no .go file" stayed
+# true and stopped being relevant, a PROVEN line pointing at the wrong place. And
+# `go vet -tags conformance` now succeeds, because the functions exist and panic
+# instead of being absent, so P0-3 would have flipped to NOT while the fixture
+# still tested nothing. A check that measures the old shape of a defect reports the
+# defect gone the moment it changes shape.
+methodology_unwritten() { grep -q 'panic("not implemented")' internal/domain/compute.go; }
+conformance_dead()      { ! go test -tags conformance ./internal/conformance/ >/dev/null 2>&1; }
 # The four internal/adapter findings are all gated on the directory still
 # existing. Without the gate they would read as PROVEN once it was deleted,
 # because "no package imports it" and "it is not in the zone map" are both
@@ -142,8 +154,8 @@ red_zone_leaks(){
 
 section "P0  What blocks everything else"
 check P0-1 "There is not a single commit, though the origin remote is configured" no_commit
-check P0-2 "internal/depth holds no .go file" depth_empty
-check P0-3 "The conformance test fails to build, so the golden fixture tests nothing" conformance_dead
+check P0-2 "The methodology computations are declared and panic, so nothing is implemented" methodology_unwritten
+check P0-3 "The conformance test cannot pass, so the golden fixture tests nothing" conformance_dead
 
 section "P1  Forked specification"
 check P1-1 "The TDD and the migrations contradict each other on storing raw snapshots" tdd_versus_migrations

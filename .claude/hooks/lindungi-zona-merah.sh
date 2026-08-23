@@ -2,13 +2,23 @@
 #
 # lindungi-zona-merah.sh
 #
-# A PreToolUse hook for Bash. It refuses commands that would MUTATE files under
-# internal/depth, the red zone that only Al may write in.
+# A PreToolUse hook for Bash. It refuses commands that would MUTATE a red zone
+# path, the code only Al may write.
+#
+# THE ZONE MOVED. Methodology 1.0.3 moved the computations out of internal/depth
+# and into internal/domain/compute.go, so the pattern below covers both: the file
+# that is now the zone, and the directory that was, which still holds its own
+# CLAUDE.md and cannot be removed from Claude's side.
+#
+# The zone is a FILE now, not a directory, and the pattern has to stay that
+# narrow. internal/domain also holds types.go and arch_test.go, which Claude
+# maintains, so matching on the directory would refuse most ordinary work in the
+# package and the hook would be turned off within a day.
 #
 # Why a hook rather than just permissions. .claude/settings.json already denies
-# Edit and Write on internal/depth/**, but Bash is untouched by those rules.
-# `sed -i internal/depth/x.go` walks straight past the lock. Finding P2-6 in
-# docs/internal/audit-2026-08-20.md.
+# Edit and Write on these paths, but Bash is untouched by those rules.
+# `sed -i internal/domain/compute.go` walks straight past the lock. Finding P2-6
+# in docs/internal/audit-2026-08-20.md.
 #
 # What STAYS allowed, because the red zone is not a secret zone:
 #   cat internal/depth/CLAUDE.md
@@ -45,8 +55,13 @@ fi
 
 command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 
+# Every red zone path, as one alternation. Add here when the zone moves again, and
+# add the same path to the deny list in .claude/settings.json, because neither one
+# closes the other's route.
+zone='internal/domain/compute\.go|internal/depth'
+
 # Does not touch the red zone at all, nothing to check.
-if ! printf '%s' "$command_line" | grep -q 'internal/depth'; then
+if ! printf '%s' "$command_line" | grep -Eq "$zone"; then
   exit 0
 fi
 
@@ -61,21 +76,27 @@ refuse() {
   exit 0
 }
 
-message="internal/depth is the RED ZONE. Al writes there, not you.
+message="internal/domain/compute.go is the RED ZONE. Al writes it, not you. The
+old zone path internal/depth is still covered, for as long as it exists.
+
 This command is refused because it would mutate a file in that zone, and Bash is
 the path that the Edit and Write denials in .claude/settings.json do not close.
 
 What you may do there: read, run tests, point out edge cases that are not handled
 yet, and ask questions. Offer /teach for the concept or /review-mine once Al has
-written it. See internal/depth/CLAUDE.md."
+written it. See internal/domain/CLAUDE.md.
+
+If your real target is a file OUTSIDE the zone and this command only MENTIONS the
+zone, that is this hook being deliberately blunt. Use the Edit or Write tool for
+that file; permissions govern it separately."
 
 # 1. A redirect whose target sits inside the red zone. Checked separately so that
-#    `go test ./internal/depth/ 2>&1 | tail` still passes: it contains a > but its
+#    `go test ./internal/domain/ 2>&1 | tail` still passes: it contains a > but its
 #    target is not a file in the zone.
-if printf '%s' "$command_line" | grep -Eq '>>?[[:space:]]*"?'"'"'?[^|;&<>]*internal/depth'; then
+if printf '%s' "$command_line" | grep -Eq '>>?[[:space:]]*"?'"'"'?[^|;&<>]*('"$zone"')'; then
   refuse "$message
 
-Detected: output redirected into internal/depth."
+Detected: output redirected into the red zone."
 fi
 
 # 2. Commands whose job is to mutate files, mentioning the red zone.
@@ -83,7 +104,7 @@ mutating='(\bsed\b[^|;]*-i|\bperl\b[^|;]*-[a-zA-Z]*i|\btee\b|\bcp\b|\bmv\b|\brm\
 if printf '%s' "$command_line" | grep -Eq "$mutating"; then
   refuse "$message
 
-Detected: a file-mutating command that mentions internal/depth."
+Detected: a file-mutating command that mentions the red zone."
 fi
 
 # Mentions the red zone but appears to only read. Allowed.

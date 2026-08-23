@@ -1,4 +1,10 @@
-// Package domain contains all of Keel's liquidity risk computations.
+// Package domain holds Keel's shared types and its methodology computations.
+//
+// The two are in separate files on purpose. This file is the shapes: assets,
+// prices, books, pools, snapshots, and the shape of a result. compute.go is the
+// formulas, and compute.go is the RED ZONE, written by Al alone and locked in
+// .claude/settings.json. A type is a shape and a formula is a claim, and only the
+// second one has to be defended to a reviewer.
 //
 // THIS PACKAGE IS PURE. It must never contain:
 //   - any I/O (net/http, database/sql, os, the Stellar SDK, BigQuery)
@@ -157,9 +163,28 @@ const (
 
 type DataSource string
 
+// The four data sources. Two name WHERE the data came from and two name HOW it was
+// reconstructed, and that they share one enum is a design smell recorded in handoff
+// item 5b: the accurate shape is two fields, a source and a derivation. Adding the
+// fourth value does not close that door.
+//
+// The confidence ordering, which is the part that matters when reading a result:
+//
+//	horizon         read directly from a live endpoint
+//	hubble          read directly from the historical warehouse
+//	offers-implied  reconstructed from manage_sell_offer and manage_buy_offer
+//	                operations. An offer proves liquidity that was POSTED
+//	trades-implied  reconstructed from trades that executed. A trade proves only
+//	                liquidity that was CONSUMED, so this is a lower bound
+//
+// The distinction between the last two is not pedantry. It is the same
+// posted-against-executed distinction that
+// docs/methodology/06-oracle-resilience.md section 2 builds its entire argument on,
+// and collapsing it here while leaning on it there would be incoherent.
 const (
 	DataSourceHorizon       DataSource = "horizon"
 	DataSourceHubble        DataSource = "hubble"
+	DataSourceOffersImplied DataSource = "offers-implied"
 	DataSourceTradesImplied DataSource = "trades-implied"
 )
 
@@ -363,6 +388,61 @@ type SupportingMetrics struct {
 	GenuineVolumeInWindow *decimal.Decimal
 }
 
+// OracleResistance answers one question: is moving the price to a critical level
+// cheaper than the genuine trading volume that actually occurred inside the
+// window an oracle averages over.
+//
+// It is an object rather than a single ratio on purpose. A ratio would hide two
+// states that have to stay visible. A GenuineVolume of zero makes the ratio
+// undefined, and an asset with no trading at all inside the oracle window is an
+// important finding rather than missing data. And a ratio computed from a
+// ManipulationCost whose Reachable is false is a meaningless number. In object
+// form both states are readable and Ratio is simply nil. See DEC-003 section 2.5.
+type OracleResistance struct {
+	// CriticalDelta is the delta treated as the critical threshold for this
+	// asset. It always equals one of the Delta values in ManipulationCost.
+	CriticalDelta decimal.Decimal
+
+	// ManipulationCost and Reachable are copied from the ManipulationCost entry
+	// at CriticalDelta, so a reader never has to match them up by hand.
+	ManipulationCost decimal.Decimal
+	Reachable        bool
+
+	// GenuineVolume is the genuine trade volume in the quote asset over the last
+	// WindowSeconds, after the genuine trade filtering rules are applied. This is
+	// the comparison baseline, and it is the defense an attacker has to outweigh.
+	GenuineVolume decimal.Decimal
+
+	// WindowSeconds is repeated here even though it is also a threshold, so that
+	// a response can be read and archived without consulting anything else.
+	WindowSeconds int
+
+	// Ratio is ManipulationCost divided by GenuineVolume. Below 1 means moving
+	// the price to the critical level is cheaper than all the genuine trading
+	// across the window. Nil when GenuineVolume is zero or Reachable is false,
+	// because the division is then meaningless. Nil means undefined, not zero.
+	Ratio *decimal.Decimal
+	// TotalAttackCost is MC_orderbookOnly(CriticalDelta) + GenuineVolume, the
+	// quantity methodology 1.0.3 introduced. It answers a different question from
+	// Ratio: not "is the attack cheap relative to the market it has to hide in"
+	// but "how much capital does an attack on an averaging oracle need in total",
+	// because the attacker has to pay the book AND outweigh the genuine volume
+	// inside the window.
+	//
+	// Both are kept because they are not interchangeable. The ratio is
+	// dimensionless and can rank fifty assets. The sum is in the quote asset and
+	// can only be read against one pair, which is open question Q7 again.
+	//
+	// It is a LOWER BOUND and it carries an assumption. Needing exactly
+	// GenuineVolume of extra volume to dominate a VWAP is an approximation; what
+	// is really required depends on the weighting and on where in the window the
+	// attack lands. See docs/methodology/06-oracle-resilience.md section 1.
+	//
+	// Nil when Reachable is false, for the same reason Ratio is: the cost of
+	// reaching an unreachable target is not the cost of anything. Nil is not zero.
+	TotalAttackCost *decimal.Decimal
+}
+
 type TradeRef struct {
 	LedgerSeq uint32
 	At        time.Time
@@ -413,7 +493,7 @@ type AssetRisk struct {
 	MaxReachablePrice       *decimal.Decimal
 	CostToMaxReachablePrice *decimal.Decimal
 
-	OracleResistance  *decimal.Decimal // MC_orderbookOnly(critical) + genuine volume in window
+	OracleResistance  *OracleResistance
 	MaxSafeCollateral *decimal.Decimal
 
 	// The two terms behind MaxSafeCollateral, reported separately as required by
@@ -447,54 +527,4 @@ type AssetRisk struct {
 	BandConfidence BandConfidence
 
 	Warnings []string
-}
-
-// ---------------------------------------------------------------- Contract
-
-// ComputeAssetRisk is the only entry point into this package.
-//
-// Note the absence of context.Context. That is deliberate and serves as a signal: if a
-// function in this package ever seems to need a ctx, some I/O has leaked in and belongs
-// in an adapter instead.
-//
-// The wiring the body owes its caller, recorded here because the fragment that stated
-// it did not compile and the compiler cannot hold a note:
-//
-//	cmax, liquidationLimit, manipulationLimit, warnings := ComputeMaxSafeCollateral(...)
-//	risk.MaxSafeCollateral             = cmax
-//	risk.MaxSafeCollateralLiquidation  = liquidationLimit
-//	risk.MaxSafeCollateralManipulation = manipulationLimit
-func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
-	panic("not implemented")
-}
-
-// MidPrice applies the fallback order in docs/methodology/03-reference-price.md section 1.
-// It also returns the pool spot price and their divergence when a pool is available.
-func MidPrice(s Snapshot, p Params) (p0 decimal.Decimal, src PriceSource, poolSpot, divergence *decimal.Decimal) {
-	panic("not implemented")
-}
-
-// ComputeDepth computes the market quality ladder, merging SDEX and AMM at the same
-// final marginal price. See methodology section 6.
-func ComputeDepth(s Snapshot, p0 decimal.Decimal, deltas []decimal.Decimal) ([]DepthPoint, error) {
-	panic("not implemented")
-}
-
-// ComputeManipulationCost computes the manipulation cost ladder.
-// Passing includeAMM=false produces the OrderbookOnly variant.
-func ComputeManipulationCost(s Snapshot, p0 decimal.Decimal, deltas []decimal.Decimal, includeAMM bool) ([]ManipulationPoint, error) {
-	panic("not implemented")
-}
-
-// ComputeMaxSafeCollateral applies methodology section 9.
-//
-//	if Reachable_orderbookOnly(critical):
-//	    C_max = min( D_sell(liquidation) * h , MC_orderbookOnly(critical) * m )
-//	else:
-//	    C_max = D_sell(liquidation) * h,  with a warning
-//
-// The Reachable guard is mandatory: when the target is unreachable, Cost is not the
-// cost of reaching anything, and multiplying it by m yields a meaningless number.
-func ComputeMaxSafeCollateral(depth []DepthPoint, mc []ManipulationPoint, p Params) (cmax, liquidationLimit, manipulationLimit *decimal.Decimal, warnings []string) {
-	panic("not implemented")
 }
