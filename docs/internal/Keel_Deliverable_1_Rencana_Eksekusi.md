@@ -274,23 +274,36 @@ table. Its design is described in section 4.
 
 ### D1.7 The methodology document (12 hours)
 
-The suggested structure, one file per section under `docs/methodology/`:
+**AMENDED 23 August 2026.** The structure below is what exists, not what was
+suggested. Three things about the original list did not survive contact with the
+content: the names are English under DEC-005, `09` is flags and bands rather than
+validation because the flag document already held binding definitions and was
+referenced by path from sixteen places, and eleven files were one short, because
+limitations earned its own file rather than a section. The original list is kept in
+the git history. The reasoning behind each change is in
+`docs/methodology/README.md` section 3, along with a mapping from the pre-split
+core file.
 
 ```
-00-ikhtisar.md              what is measured and why
-01-sumber-data.md           Horizon versus Hubble, the limits of each
-02-harga-acuan.md           the definition of P0 and the fallback order (D-2)
-03-depth-sdex.md            walking the book, treatment of the last level (D-3)
-04-depth-amm.md             the full derivation, treatment of the fee
-05-penggabungan.md          why they are not summed directly
-06-pemilihan-pasangan.md    numeraire and the primary pair (D-1)
-07-metrik-pendukung.md      genuine trades, concentration, volume-supply (D-4 to D-6)
+00-overview.md              what is measured and why, notation, units, the index
+01-data-sources.md          Horizon versus Hubble, the limits of each, trade-implied bounds
+02-pair-selection.md        numeraire and the primary pair (D-1)
+03-reference-price.md       P0, the fallback ladder (D-2), divergence, spreadPct
+04-depth.md                 walking the book (D-3), the AMM derivation, why they are not summed
+05-manipulation-cost.md     MC, Reachable, the two venue forms, MaxReachablePrice
+06-oracle-resilience.md     the VWAP window term, and why arbitrage does not correct quotes
+07-supporting-metrics.md    genuine trades, concentration, volume-supply (D-4 to D-6)
 08-collateral.md            the C_max formula and where its defaults come from
-09-validasi.md              the cross-validation protocol and its results
-10-keterbatasan.md          what this method does not catch
+09-flags-and-bands.md       every flag, every band, every threshold value
+10-validation.md            the cross-validation protocol, its results, and the case study
+11-limitations.md           what this method does not catch
 ```
 
-`10-keterbatasan.md` is the file with the largest effect on your credibility. The
+One file that was not in the original list at all is `09-flags-and-bands.md`, even
+though flags and bands are what the API actually returns. That is why the numbering
+had to move rather than be followed.
+
+`11-limitations.md` is the file with the largest effect on your credibility. The
 minimum contents: posted liquidity is not executable liquidity (an offer can be
 withdrawn instantly), path payments through intermediate assets are not counted,
 off-chain liquidity on centralized exchanges is invisible, and the safe thresholds
@@ -341,7 +354,7 @@ Starting Day 16 (once Hubble has caught up):
 
 Two weeks of recording 8 assets every 30 minutes produces thousands of pairs. You
 choose 50 as the reported sample, but you hold all of them in reserve. The results
-go into `docs/methodology/09-validasi.md` as a table: asset, ledger, result,
+go into `docs/methodology/10-validation.md` as a table: asset, ledger, result,
 difference.
 
 If something does not match, that is not a failure. A difference explained

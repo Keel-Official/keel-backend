@@ -7,7 +7,7 @@
 >
 > | Section | Where its contents went |
 > |---|---|
-> | 1. Methodology v1.0.1 | merged into `docs/methodology/keel-methodology-core.md`, now at v1.0.2-draft |
+> | 1. Methodology v1.0.1 | merged into `docs/methodology/`, now at v1.0.3-draft and split under road 1 |
 > | 2. API contract changes | replaced by `docs/decisions/DEC-003-api-contract-v1-1.md` |
 > | 3. The golden fixture worksheet | filled in, now at `testdata/fixtures/ustry_pre_exploit.md` |
 > | 4. The first three sessions | done |
@@ -15,7 +15,7 @@
 >
 > One correction to the contents below: section 1.2 writes the `SpreadExtremePct`
 > default as **0.20**, a fraction. That is WRONG. The convention in force is
-> percent, so the default is **20.0**. See `09-flag-dan-band.md` section 6.
+> percent, so the default is **20.0**. See `09-flags-and-bands.md` section 6.
 >
 > **Translation note.** Translated to English under DEC-005 with its content
 > unchanged, including the error named above, which is left in place because this
@@ -30,7 +30,8 @@ writing any implementation.
 
 ## 1. Methodology v1.0.1
 
-Already merged into `docs/methodology/keel-methodology-core.md` on 20 August 2026.
+Already merged into `docs/methodology/` on 20 August 2026, and split into numbered
+files on 23 August 2026.
 Section 1 below is therefore ARCHIVE, not a source of truth.
 
 ### 1.1 Section 10.4 is promoted
@@ -215,7 +216,7 @@ ask:
 ```
 Implement MidPrice and ComputeDepth in internal/domain.
 The signatures already exist in types.go, do not change them.
-The definitions are in docs/methodology/keel-methodology-core.md sections 3 to 6.
+The definitions are in docs/methodology/03-reference-price.md and 04-depth.md.
 
 Before writing code, show me the step by step derivation for the fixture in
 depth_test.go so I can check it against my hand calculation.

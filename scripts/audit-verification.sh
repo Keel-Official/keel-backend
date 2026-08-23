@@ -106,8 +106,8 @@ fixture_omits_pool(){
 # methodology in 1.0.3, and the check flipped to NOT on the rewrite rather than on
 # the correction. Anchoring on prose that the fix itself rewrites cannot work.
 methodology_claims_zero(){
-  grep -qiE 'cost (was|is) zero' docs/methodology/keel-methodology-core.md \
-    && ! grep -qF 'orderbookOnly' docs/methodology/keel-methodology-core.md
+  grep -rqiE 'cost (was|is) zero' docs/methodology/ \
+    && ! grep -rqF 'orderbookOnly' docs/methodology/
 }
 
 # P1-15 is a pair of conditions, and only the methodology half was ever checked.
@@ -117,7 +117,7 @@ methodology_claims_zero(){
 # must be reported separately' in 1.0.3, which is the same requirement worded
 # differently, so the grep is loose on wording and strict on the type.
 cmax_terms_missing(){
-  grep -qiE 'both (terms )?(must|have to) be reported' docs/methodology/keel-methodology-core.md \
+  grep -rqiE 'both (terms )?(must|have to) be reported' docs/methodology/ \
     && ! grep -q 'MaxSafeCollateralLiquidation' internal/domain/types.go
 }
 
@@ -166,8 +166,8 @@ check P1-8 "CostToMaxReachablePrice exists in the code" \
 check P1-9 "but is absent from the API contract" contract_lacks costToMaxReachablePrice
 check P1-10 "unevaluatedFlags is absent as a contract field" contract_lacks unevaluatedFlags
 check P1-11 "bandConfidence is absent as a contract field" contract_lacks bandConfidence
-check P1-12 "although 09-flag-dan-band requires both in the openapi file" \
-  grep -qF 'add `unevaluatedFlags`, `bandConfidence`' docs/methodology/09-flag-dan-band.md
+check P1-12 "although 09-flags-and-bands requires both in the openapi file" \
+  grep -qF 'add `unevaluatedFlags`, `bandConfidence`' docs/methodology/09-flags-and-bands.md
 check P1-13 "The contract uses criticalDelta 0.5" \
   grep -q "criticalDelta: 0.5" docs/api/keel-openapi.yaml
 check P1-14 "while DefaultParams uses a critical delta of 1.0" \

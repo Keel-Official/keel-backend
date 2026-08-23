@@ -1,6 +1,6 @@
 {
   "version": "1.0.2-draft",
-  "documentUrl": "https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/keel-methodology-core.md",
+  "documentUrl": "https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/00-overview.md",
   "calibrated": false,
   "calibrationNote": "The thresholds were chosen based on the magnitude of the Blend incident of May 2026 and on conservative judgement, not calibrated against a set of incidents. Every flag is reported separately so that consumers can apply their own thresholds.",
   "thresholds": {

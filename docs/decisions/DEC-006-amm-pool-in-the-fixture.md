@@ -75,7 +75,8 @@ So the conclusion of the fixture survives. Two of its headline numbers do not.
 
 ## 3. The claim this breaks
 
-`keel-methodology-core.md` section 10.4 states:
+Section 10.4 of the pre-split core file, whose content is now in `10-validation.md`,
+stated:
 
 > `MC(100 × P0) for USTRY/USDC on 21 February 2026 = 0 USDC`
 >

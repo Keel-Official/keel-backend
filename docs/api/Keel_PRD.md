@@ -11,7 +11,7 @@ definition for the builders: who the users are, what gets built, and how we know
 is right.
 
 > **Translation and staleness note.** Translated to English under DEC-005 with its
-> content unchanged. Section 5 is stale: `09-flag-dan-band.md` states that it
+> content unchanged. Section 5 is stale: `09-flags-and-bands.md` states that it
 > supersedes PRD sections 5.1 and 5.2 and that the PRD now only points to it, but
 > sections 5.1 and 5.2 below still carry full definitions, and they predate
 > `SPREAD_EXTREME` and the three-state flag model. Two homes for one definition

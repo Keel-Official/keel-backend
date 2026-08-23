@@ -74,7 +74,7 @@ Its bias runs in the right direction: it can never make an asset look more dange
 than reality, only potentially less. That is a bias you can defend in front of a
 reviewer.
 
-Document it as `docs/methodology/11-depth-tersirat-dari-trade.md`, including the
+Document it in `docs/methodology/01-data-sources.md` section 6, including the
 statement that this is an upper bound and not a direct measurement.
 
 ### 2.3 Full offer reconstruction from account operations

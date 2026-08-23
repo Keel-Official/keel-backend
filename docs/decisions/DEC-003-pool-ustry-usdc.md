@@ -170,8 +170,8 @@ Tambahkan, dengan bukti dari data ini:
 | Berkas | Perubahan |
 |---|---|
 | `testdata/fixtures/ustry_pre_exploit.md` | tambahkan pool, hitung ulang seluruh tabel dengan `P0 = 1,0555442`, naikkan ke v1.0.3 |
-| `docs/methodology/00-inti.md` | bagian 3 aturan `P0`, bagian 7 pemecahan biaya manipulasi, bagian 12 keterbatasan, bagian baru tentang asimetri arbitrase |
-| `docs/methodology/09-flag-dan-band.md` | tambah `PRICE_SOURCE_CONFLICT` tingkat HIGH |
+| `docs/methodology/03-reference-price.md`, `05-manipulation-cost.md`, `06-oracle-resilience.md`, `11-limitations.md` | aturan `P0`, pemecahan biaya manipulasi, asimetri arbitrase, keterbatasan |
+| `docs/methodology/09-flags-and-bands.md` | tambah `PRICE_SOURCE_CONFLICT` tingkat HIGH |
 | `internal/domain/types.go` | `ManipulationCostCombined`, `ManipulationCostOrderbookOnly`, `PoolSpotPrice`, `PriceDivergencePct` |
 | `docs/api/openapi.yaml` | field yang sama, plus contoh respons `assetPriceConflict` |
 | `CLAUDE.md` | tiga gotcha gagal-diam, plus larangan konversi ledger ke waktu |

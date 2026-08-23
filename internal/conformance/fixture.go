@@ -79,7 +79,7 @@ func GoldenSnapshot() domain.Snapshot {
 }
 
 // DefaultParams holds the default thresholds from
-// docs/methodology/09-flag-dan-band.md section 6.
+// docs/methodology/09-flags-and-bands.md section 6.
 //
 // UNITS: every field ending in Pct is expressed in PERCENT, not as a fraction.
 // SpreadExtremePct set to 20 means 20 percent, and it is compared against a

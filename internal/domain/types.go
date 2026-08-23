@@ -7,8 +7,8 @@
 //   - map iteration without sorting the keys first
 //
 // Enforced by arch_test.go, not by convention alone.
-// Definitions of every quantity: docs/methodology/keel-methodology-core.md
-// Flag and band definitions:     docs/methodology/09-flag-dan-band.md
+// Definitions of every quantity: docs/methodology/, indexed by 00-overview.md
+// Flag and band definitions:     docs/methodology/09-flags-and-bands.md
 package domain
 
 import (
@@ -468,7 +468,7 @@ func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
 	panic("not implemented")
 }
 
-// MidPrice applies the fallback order in docs/methodology/keel-methodology-core.md section 3.
+// MidPrice applies the fallback order in docs/methodology/03-reference-price.md section 1.
 // It also returns the pool spot price and their divergence when a pool is available.
 func MidPrice(s Snapshot, p Params) (p0 decimal.Decimal, src PriceSource, poolSpot, divergence *decimal.Decimal) {
 	panic("not implemented")

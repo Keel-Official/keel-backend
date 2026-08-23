@@ -311,7 +311,7 @@ Findings P1-8 through P1-12.
 `bandConfidence` also goes on `AssetSummary`, which section 5 of this document had
 previously decided against for `spreadPct`. The reasoning differs: the list page is
 where a band is read fastest and with the least context, and
-`09-flag-dan-band.md` section 2 states the dashboard is *required* to display
+`09-flags-and-bands.md` section 2 states the dashboard is *required* to display
 confidence. A row reading `LOW` with no confidence marker is the exact display the
 methodology forbids. `spreadPct` stays off the summary, because the
 `SPREAD_EXTREME` flag already marks that row.
@@ -336,7 +336,7 @@ ratio meaningless.
 ### 8.3 Corrections to the examples
 
 - `documentUrl` pointed at `github.com/ciganytry/keel` and at
-  `docs/methodology/00-ikhtisar.md`. The org is `Keel-Official/keel-backend` and
+  `docs/methodology/00-overview.md`. The org is `Keel-Official/keel-backend` and
   that file does not exist, so the link in the `/methodology` response was broken
   twice over. Findings P1-28 and P1-29.
 - `assetBrokenBook.ledgerClosedAt` read `2026-02-21T23:39:00Z`. Ledger 61340263
@@ -392,7 +392,7 @@ English. A generator plus a drift check is the only version that stays true.
 | Source | Value |
 |---|---|
 | This contract, and every example | 0.5 |
-| `keel-methodology-core.md` section 9: `P_critical = 2 x P0` | 1.0 |
+| `08-collateral.md`, section 9 of the pre-split core file: `P_critical = 2 x P0` | 1.0 |
 | `DefaultParams()` in `internal/conformance` | 1.0 |
 
 It is not cosmetic. On the golden fixture, delta 0.5 gives `Cost 0` with
@@ -407,7 +407,7 @@ the target is reachable at zero cost, `C_max` comes out zero, and zero is the
 correct conservative answer for an asset in that state.
 
 **Why this is not settled here.** Changing it means changing
-`keel-methodology-core.md` section 9 and raising `MethodologyVersion`. The
+`08-collateral.md` and raising `MethodologyVersion`. The
 methodology is the paid deliverable and `internal/depth` is the red zone, so the
 value is Al's to set, not Claude's. The contract is deliberately left at 0.5 and
 the disagreement is recorded rather than papered over.

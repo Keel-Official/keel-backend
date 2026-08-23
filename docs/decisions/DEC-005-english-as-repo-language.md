@@ -70,10 +70,20 @@ buys a reader of the methodology nothing. Decide it on its own terms; until then
 the repository has English prose and a handful of Indonesian identifiers, and that
 inconsistency is visible on purpose rather than hidden.
 
-**File names are deliberately not renamed.** `09-flag-dan-band.md` keeps its name
-even though its contents are now English, because six documents cross-reference it
-by path and renaming multiplies the blast radius of this change for no gain to a
-reader. Renaming is a separate decision if it is ever worth taking.
+**File names were deliberately not renamed, and that was reversed on 23 August 2026.**
+The original position: `09-flag-dan-band.md` keeps its name even though its contents are
+now English, because six documents cross-reference it by path and renaming multiplies the
+blast radius of this change for no gain to a reader.
+
+What changed is that the rename stopped being a rename. Road 1 in
+`docs/methodology/README.md` section 3 split the core methodology file into numbered
+documents, so every path in that folder moved at once and the flag document had to be
+renumbered whether or not it was translated. Once the blast radius is being paid anyway,
+paying it in English costs nothing extra. It is now `09-flags-and-bands.md`, and the
+count was sixteen references across eleven files rather than six.
+
+The general rule stands for file names outside `docs/methodology/`: they are not renamed
+for language alone.
 
 **One file cannot be translated by Claude.** `internal/depth/CLAUDE.md` sits in the
 red zone, where Claude has no write permission by design. Al translates that one

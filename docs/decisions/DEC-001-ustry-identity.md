@@ -119,7 +119,7 @@ Reflector oracle is VWAP based, so what an attacker needs to move is not the
 instantaneous price but a volume weighted average over some window. In a market
 with no other trades, one trade dominates that average entirely, and that is what
 made this attack cheap. Record it in
-`docs/methodology/07-metrik-pendukung.md` either as a limitation or as an extension
+`docs/methodology/07-supporting-metrics.md` either as a limitation or as an extension
 of the metric.
 
 **The metric "time since the last genuine trade" is proven relevant.** Volume under
