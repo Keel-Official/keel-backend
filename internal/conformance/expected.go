@@ -3,7 +3,7 @@ package conformance
 import (
 	"github.com/shopspring/decimal"
 
-	"github.com/Keel-Official/keel/internal/domain"
+	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
 // Expected values for GoldenSnapshot. Source: testdata/fixtures/ustry_pre_exploit.md.

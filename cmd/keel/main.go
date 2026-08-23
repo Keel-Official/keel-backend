@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Keel-Official/keel/internal/domain"
+	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
 // belumSiap is the exit code for a subcommand that has a place but no body yet.

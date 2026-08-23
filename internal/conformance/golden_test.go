@@ -22,8 +22,8 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/Keel-Official/keel/internal/depth"
-	"github.com/Keel-Official/keel/internal/domain"
+	"github.com/Keel-Official/keel-backend/internal/depth"
+	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
 // eqDec compares in the decimal domain, not in float64, and not through

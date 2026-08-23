@@ -53,6 +53,11 @@ one definition, guaranteed to drift. It has already drifted. An archive header i
 English was added at the top of the file explaining this, and the recommendation is
 to delete the file, which is Al's call rather than Claude's.
 
+**Deleted on 23 August 2026.** Al took the recommendation, so this exemption no longer
+has a subject. The row above is kept rather than removed, because the reasoning is the
+part worth keeping: an embedded copy of a file is a second home for it, and a second
+home drifts. The git history holds the file if it is ever needed again.
+
 **Identifier names are left for a separate decision, and this is a deliberate
 limit, not an oversight.** Several identifiers are Indonesian: `belumSiap`,
 `paketMurni`, `cocokTerlarang`, and the test names `TestArchTanpaImportTerlarang`,

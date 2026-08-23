@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Keel-Official/keel/internal/domain"
+	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
 // The two JSON shapes Horizon really sends, taken from the endpoints named in

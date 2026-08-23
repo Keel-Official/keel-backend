@@ -9,9 +9,9 @@
 # WHY GENERATED AND NOT HAND WRITTEN. A hand copied mock is a second home for the
 # same data, and a second home drifts. This repository has been bitten by that
 # repeatedly: the PRD still carries flag definitions the methodology superseded,
-# and keel-bootstrap.sh still carries a CLAUDE.md from before the repository was
-# in English. A generator plus a drift check is the only version of this that
-# stays true.
+# and keel-bootstrap.sh carried a CLAUDE.md from before the repository was in
+# English right up until it was deleted for that reason. A generator plus a drift
+# check is the only version of this that stays true.
 #
 # THE DRIFT CHECK. `make api-mocks-check` regenerates into a temporary directory
 # and diffs. A non-empty diff means the contract moved and the mocks did not, and

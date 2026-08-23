@@ -1,4 +1,4 @@
-module github.com/Keel-Official/keel
+module github.com/Keel-Official/keel-backend
 
 go 1.23
 
