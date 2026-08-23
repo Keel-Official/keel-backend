@@ -12,10 +12,12 @@
   "ledgerSeq": 61340263,
   "ledgerClosedAt": "2026-02-22T00:10:21Z",
   "computedAt": "2026-08-19T04:15:08Z",
-  "methodologyVersion": "1.0.2-draft",
-  "dataSource": "trades-implied",
+  "methodologyVersion": "1.0.3-draft",
+  "dataSource": "offers-implied",
   "midPrice": "53.8971414",
   "priceSource": "book",
+  "poolSpotPrice": null,
+  "priceDivergencePct": null,
   "spreadPct": "196.0777141",
   "depth": [
     {
@@ -40,7 +42,33 @@
       "fromAmm": "0.0000000"
     }
   ],
-  "manipulationCost": [
+  "manipulationCostCombined": [
+    {
+      "delta": 0.5,
+      "targetPrice": "80.8457121",
+      "cost": "0.0000000",
+      "reachable": true
+    },
+    {
+      "delta": 1,
+      "targetPrice": "107.7942828",
+      "cost": "130.0627093",
+      "reachable": false
+    },
+    {
+      "delta": 10,
+      "targetPrice": "592.8685554",
+      "cost": "130.0627093",
+      "reachable": false
+    },
+    {
+      "delta": 100,
+      "targetPrice": "5443.6112814",
+      "cost": "130.0627093",
+      "reachable": false
+    }
+  ],
+  "manipulationCostOrderbookOnly": [
     {
       "delta": 0.5,
       "targetPrice": "80.8457121",
@@ -70,6 +98,8 @@
   "costToMaxReachablePrice": "0.0000000",
   "oracleResistance": null,
   "maxSafeCollateral": "0.0000000",
+  "maxSafeCollateralLiquidation": "0.0000000",
+  "maxSafeCollateralManipulation": "0.0000000",
   "holderTop1Pct": null,
   "holderTop10Pct": null,
   "holderHhi": null,
@@ -95,7 +125,7 @@
   "warnings": [
     "A spread of 196.0777141 percent exceeds the spreadExtremePct threshold. The midPrice of 53.8971414 is the midpoint of an ask at 106.7372828 and a bid at 1.0570000, two prices unrelated to each other. Every metric derived from midPrice, including the 2/5/10 percent depth ladder, is meaningless in this response.",
     "There is no AMM pool for this pair, so every fromAmm value is zero and maxReachablePrice is determined entirely by the orderbook.",
-    "dataSource is trades-implied. The orderbook snapshot at this ledger was unavailable, so both sides of the book were reconstructed from operations that actually executed on the ledger. The depth figures in this response are lower bounds, not full measurements.",
+    "dataSource is offers-implied. The orderbook snapshot at this ledger was unavailable, so both sides of the book were reconstructed by replaying manage_sell_offer and manage_buy_offer operations. That is a reconstruction, so the depth figures are not a direct measurement, but it is a stronger source than trades-implied would be: an offer proves liquidity that was posted, while a trade proves only liquidity that was consumed.",
     "A cost of 0.0000000 at delta 0.5 with reachable true is the most dangerous condition Keel can report: the price 80.8457121 is attainable without paying anything to a third party. Compare that with delta 1.0, 10, and 100, whose cost is 130.0627093 but whose reachable is false; there the book runs out before the target and that cost figure does not mean the target is expensive to reach.",
     "maxSafeCollateral is 0.0000000 because the sell side depth at the liquidation delta is zero, so the first term of C_max is zero and the minimum is zero with it.",
     "Six flags could not be assessed from this snapshot because they require supply data, trade history, or trustline distribution. They are listed in unevaluatedFlags, and bandConfidence is partial as a result. The band still reads CRITICAL because two CRITICAL flags are already triggered, so the missing data does not change the conclusion here. That is a coincidence of this case and not a guarantee: partial means the band is a floor, and it can only be worse than reported.",

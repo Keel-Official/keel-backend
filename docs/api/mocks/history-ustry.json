@@ -12,7 +12,7 @@
   "from": 60890000,
   "to": 60950000,
   "resolution": "day",
-  "methodologyVersion": "1.0.2-draft",
+  "methodologyVersion": "1.0.3-draft",
   "dataSource": "hubble",
   "gaps": [
     {

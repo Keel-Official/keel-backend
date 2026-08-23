@@ -12,10 +12,12 @@
   "ledgerSeq": 61234567,
   "ledgerClosedAt": "2026-08-19T04:12:31Z",
   "computedAt": "2026-08-19T04:15:04Z",
-  "methodologyVersion": "1.0.2-draft",
+  "methodologyVersion": "1.0.3-draft",
   "dataSource": "horizon",
   "midPrice": "0.4410000",
   "priceSource": "pool",
+  "poolSpotPrice": "0.4410000",
+  "priceDivergencePct": null,
   "spreadPct": null,
   "depth": [
     {
@@ -40,7 +42,33 @@
       "fromAmm": "5355.8800000"
     }
   ],
-  "manipulationCost": [
+  "manipulationCostCombined": [
+    {
+      "delta": 0.5,
+      "targetPrice": "0.6615000",
+      "cost": "24418.0900000",
+      "reachable": true
+    },
+    {
+      "delta": 1,
+      "targetPrice": "0.8820000",
+      "cost": "45441.7700000",
+      "reachable": true
+    },
+    {
+      "delta": 10,
+      "targetPrice": "4.8510000",
+      "cost": "218044.1100000",
+      "reachable": true
+    },
+    {
+      "delta": 100,
+      "targetPrice": "44.5410000",
+      "cost": "1010288.4400000",
+      "reachable": true
+    }
+  ],
+  "manipulationCostOrderbookOnly": [
     {
       "delta": 0.5,
       "targetPrice": "0.6615000",
@@ -74,9 +102,12 @@
     "reachable": true,
     "genuineVolume": "0.0000000",
     "windowSeconds": 300,
-    "ratio": null
+    "ratio": null,
+    "totalAttackCost": "24418.0900000"
   },
   "maxSafeCollateral": "2677.9400000",
+  "maxSafeCollateralLiquidation": "2677.9400000",
+  "maxSafeCollateralManipulation": null,
   "holderTop1Pct": "61.8800000",
   "holderTop10Pct": "92.4100000",
   "holderHhi": "0.4128000",

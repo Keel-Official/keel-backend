@@ -414,3 +414,49 @@ the disagreement is recorded rather than papered over.
 
 Until it is settled, `docs/api/mocks/README.md` tells the frontend to read
 `criticalDelta` from the response and hardcode neither value.
+
+---
+
+## 9. What v1.3.0 changed, 23 August 2026
+
+Methodology 1.0.3 changed what is computed, so the contract had to follow. One
+minor version, one pass, mocks regenerated.
+
+### 9.1 Additive, so nothing breaks
+
+| Added | Why |
+|---|---|
+| `poolSpotPrice`, `priceDivergencePct` | the `P0` rule now compares two sources; a consumer needs both numbers, not only the one that won |
+| `PRICE_SOURCE_CONFLICT` in the flag enum | the disagreement is reported rather than hidden |
+| `maxSafeCollateralLiquidation`, `maxSafeCollateralManipulation` | methodology section 9 requires both terms, not only their minimum. Finding P1-15 |
+| `offers-implied` in the data source enum | handoff item 5b. An offer proves POSTED liquidity, a trade proves only CONSUMED liquidity |
+| `oracleResistance.totalAttackCost` | the 1.0.3 sum, kept alongside the ratio because they answer different questions |
+| `priceDivergencePct` in `/methodology` thresholds | every threshold is readable from the API |
+
+### 9.2 One breaking change, and why it is not kept as an alias
+
+`manipulationCost` is renamed to `manipulationCostCombined`, and
+`manipulationCostOrderbookOnly` is added beside it.
+
+A deprecated alias was considered and rejected. This repository's recurring defect
+is two homes for one thing, and an alias is exactly that: two names for one field,
+one of which is a lie about what it contains once the split exists. The API is not
+implemented yet and the only consumer is reading mocks, so the rename costs one
+message today and nothing later.
+
+**That message is now part of freeze condition 4.** Whoever is told the five
+questions in section 6 has to be told this rename in the same message, because a
+frontend built against the mocks before 23 August has the old field name in it.
+
+### 9.3 Section 8.2 reversed, then reversed back
+
+Section 8.2 resolved `oracleResistance` in favour of the contract's object form
+over the code's scalar. Methodology 1.0.3 reintroduced the scalar, which reversed
+that decision without recording it, and the audit check that should have caught it
+matched the exact whitespace of the old struct and went quietly green.
+
+The object is restored, and the 1.0.3 sum lives inside it as `totalAttackCost`, so
+both quantities survive and the contract does not move. The full reasoning is
+handoff item 13. The short version is that a ratio has two undefined states, a
+`genuineVolume` of zero and an unreachable target, and a scalar has nowhere to put
+either one.

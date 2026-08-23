@@ -12,10 +12,12 @@
   "ledgerSeq": 61234567,
   "ledgerClosedAt": "2026-08-19T04:12:31Z",
   "computedAt": "2026-08-19T04:15:06Z",
-  "methodologyVersion": "1.0.2-draft",
+  "methodologyVersion": "1.0.3-draft",
   "dataSource": "horizon",
   "midPrice": null,
   "priceSource": "none",
+  "poolSpotPrice": null,
+  "priceDivergencePct": null,
   "spreadPct": null,
   "depth": [
     {
@@ -40,11 +42,14 @@
       "fromAmm": "0.0000000"
     }
   ],
-  "manipulationCost": [],
+  "manipulationCostCombined": [],
+  "manipulationCostOrderbookOnly": [],
   "maxReachablePrice": null,
   "costToMaxReachablePrice": null,
   "oracleResistance": null,
   "maxSafeCollateral": null,
+  "maxSafeCollateralLiquidation": null,
+  "maxSafeCollateralManipulation": null,
   "holderTop1Pct": "88.2100000",
   "holderTop10Pct": "99.1400000",
   "holderHhi": "0.7821000",

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
-  version: 1.2.0
+  version: 1.3.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -92,7 +92,7 @@ paths:
                 latestScanAt: '2026-08-19T04:15:00Z'
                 latestScanLedgerSeq: 61234567
                 assetsMonitored: 53
-                methodologyVersion: 1.0.2-draft
+                methodologyVersion: 1.0.3-draft
                 historicalAvailable: true
         '429':
           $ref: '#/components/responses/RateLimited'
@@ -415,13 +415,27 @@ components:
 
         `horizon` a live scan of the current orderbook and pools.
         `hubble` a replay of historical state from a snapshot.
-        `trades-implied` the orderbook state at that ledger was unavailable, so
-        price and liquidity were reconstructed from trades that actually executed.
-        This value always comes with `warnings`, and every depth figure it produces
-        is a lower bound rather than a full measurement: a trade proves the
-        liquidity that was used, not the liquidity that was available. Do not
-        display a `trades-implied` result as equivalent to a `horizon` result.
-      enum: [horizon, hubble, trades-implied]
+        `offers-implied` the orderbook state at that ledger was unavailable, so the
+        book was reconstructed by replaying `manage_sell_offer` and
+        `manage_buy_offer` operations. This is a reconstruction and it carries
+        `warnings`, but it is a STRONGER source than `trades-implied`, because an
+        offer proves liquidity that was POSTED.
+
+        `trades-implied` the orderbook state was unavailable and no offer history
+        was usable either, so price and liquidity were reconstructed from trades
+        that actually executed. Every depth figure it produces is a lower bound
+        rather than a measurement: a trade proves only the liquidity that was
+        CONSUMED, not the liquidity that was available. Do not display a
+        `trades-implied` result as equivalent to a `horizon` result.
+
+        Confidence order, highest first: `horizon` and `hubble` are read directly,
+        then `offers-implied`, then `trades-implied`.
+
+        Known limitation of this field: it squashes two different questions into one
+        enum, where the data came from and how it was reconstructed. The accurate
+        shape is two fields, a source and a derivation, and that is deferred rather
+        than forgotten.
+      enum: [horizon, hubble, offers-implied, trades-implied]
 
     Flag:
       type: string
@@ -440,6 +454,7 @@ components:
         - THIN_DEPTH_5PCT
         - WASH_TRADE_SUSPECTED
         - SPREAD_EXTREME
+        - PRICE_SOURCE_CONFLICT
 
     Band:
       type: string
@@ -545,19 +560,21 @@ components:
           type: number
           description: |
             The delta treated as the critical threshold for this asset. Equal to
-            one of the `delta` values in `manipulationCost`.
+            one of the `delta` values in `manipulationCostOrderbookOnly`.
           example: 0.5
         manipulationCost:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
-            The `cost` of the `manipulationCost` entry at `criticalDelta`, copied
-            here so consumers do not have to match it up themselves.
+            The `cost` of the `manipulationCostOrderbookOnly` entry at
+            `criticalDelta`, copied here so consumers do not have to match it up
+            themselves. The orderbook-only variant, because an attacker takes the
+            cheapest path.
         reachable:
           type: boolean
           description: |
             The `reachable` value of the same entry. When false, the
             `manipulationCost` above does not state the cost of reaching the
-            target, and `ratio` is null.
+            target, and both `ratio` and `totalAttackCost` are null.
         genuineVolume:
           allOf: [$ref: '#/components/schemas/Decimal']
           description: |
@@ -578,6 +595,25 @@ components:
             that moving the price to the critical level is cheaper than all of the
             genuine trading across the oracle window. Null when `genuineVolume` is
             zero or `reachable` is false, because the division is then meaningless.
+        totalAttackCost:
+          oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
+          description: |
+            `manipulationCost` PLUS `genuineVolume`, added in methodology 1.0.3.
+
+            It answers a different question from `ratio`. The ratio asks whether the
+            attack is cheap relative to the market it has to hide inside, and being
+            dimensionless it can rank many assets against each other. This asks how
+            much capital an attack on an averaging oracle needs in TOTAL, because
+            the attacker has to pay the book and also outweigh the genuine volume
+            inside the window. Being in the quote asset, it can only be read against
+            one pair.
+
+            It is a LOWER BOUND. Needing exactly `genuineVolume` of extra volume to
+            dominate a volume weighted average is an approximation; what is really
+            required depends on the weighting and on where in the window the attack
+            lands.
+
+            Null when `reachable` is false, for the same reason `ratio` is.
 
     VolumeToSupply:
       type: object
@@ -611,7 +647,8 @@ components:
         - priceSource
         - spreadPct
         - depth
-        - manipulationCost
+        - manipulationCostCombined
+        - manipulationCostOrderbookOnly
         - maxReachablePrice
         - costToMaxReachablePrice
         - flags
@@ -648,9 +685,17 @@ components:
           type: string
           enum: [book, pool, none]
           description: |
-            `book` means the orderbook mid, `pool` means the pool spot price
-            because the orderbook is empty or one sided, `none` means the asset has
-            no executable price at all. The value `none` is not an error.
+            `book` means the orderbook mid, `pool` means the pool spot price,
+            `none` means the asset has no executable price at all. The value `none`
+            is not an error.
+
+            Changed in methodology 1.0.3. `pool` no longer means only that the book
+            was empty or one sided. When both a book and a pool exist and they
+            disagree by more than `priceDivergencePct`, the pool wins, because it is
+            backed by executable liquidity in both directions, and
+            `PRICE_SOURCE_CONFLICT` fires. Read `poolSpotPrice` and
+            `priceDivergencePct` to see the disagreement rather than only its
+            outcome.
         spreadPct:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
@@ -665,16 +710,62 @@ components:
             A value above `spreadExtremePct` triggers `SPREAD_EXTREME`. Above that
             threshold, `midPrice` and every metric derived from it, including the
             2/5/10 percent depth ladder, lose their meaning.
+        poolSpotPrice:
+          oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
+          description: |
+            The marginal price of the AMM pool with the largest quote reserve,
+            reported whenever an active pool exists, whichever source `priceSource`
+            ended up naming. A consumer comparing two price sources needs both
+            numbers and not only the one that won.
+
+            Null when there is no active pool.
+        priceDivergencePct:
+          oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
+          description: |
+            The distance between the orderbook mid and `poolSpotPrice`, in PERCENT.
+            Above `priceDivergencePct` at GET /methodology, `priceSource` becomes
+            `pool` and `PRICE_SOURCE_CONFLICT` fires.
+
+            Null when there is no active pool. Null means undefined here and not
+            zero: an asset with no pool has no divergence, while a zero would claim
+            the two sources agree.
         depth:
           type: array
           items: { $ref: '#/components/schemas/DepthPoint' }
           minItems: 3
           maxItems: 3
-        manipulationCost:
+        manipulationCostCombined:
           type: array
           description: |
-            The 0.5, 1, 10, 100 ladder in ascending delta order. An empty array
-            when there is no executable price.
+            The 0.5, 1, 10, 100 ladder in ascending delta order, counting BOTH the
+            orderbook and every active AMM pool. An empty array when there is no
+            executable price.
+
+            RENAMED in contract 1.3.0, from `manipulationCost`. Methodology 1.0.3
+            split this metric in two because they answer different questions, and a
+            single name could only have meant one of them.
+          items: { $ref: '#/components/schemas/ManipulationCost' }
+          maxItems: 4
+        manipulationCostOrderbookOnly:
+          type: array
+          description: |
+            The same ladder counting the ORDERBOOK ONLY.
+
+            `manipulationCostOrderbookOnly[i].cost` is always less than or equal to
+            `manipulationCostCombined[i].cost`, because combined is the same book
+            plus an AMM term. An attacker takes the cheapest path, so this is the
+            binding figure and it is the one used in `maxSafeCollateral`.
+
+            **The gap between the two is itself the signal.** An asset with a large
+            combined cost and a small orderbook-only cost looks defended and is not,
+            and that is exactly what happened on 22 February 2026: an honest pool
+            held the price at 1.0555 throughout, moving the real market price to
+            106.74 would have cost about 147.96 USDC, and the attacker paid zero by
+            using the orderbook alone. A display that shows only one of these two
+            numbers should show this one.
+
+            That an oracle reads only SDEX trades is an INFERENCE from that
+            incident, not a confirmed fact about any oracle.
           items: { $ref: '#/components/schemas/ManipulationCost' }
           maxItems: 4
         costToMaxReachablePrice:
@@ -702,7 +793,7 @@ components:
             The highest price still attainable by absorbing every available ask.
             This is the real upper bound on price movement through the orderbook.
 
-            Every `manipulationCost` entry whose `targetPrice` sits above this
+            Every `manipulationCostOrderbookOnly` entry whose `targetPrice` sits above this
             value is necessarily `reachable: false`.
 
             Null in two situations: there is no ask at all on this pair, or all the
@@ -718,9 +809,28 @@ components:
             - $ref: '#/components/schemas/Decimal'
             - type: 'null'
           description: |
-            The recommended maximum collateral size in the quote asset. Null when
-            it cannot be computed, for example because there is no executable
-            price.
+            The recommended maximum collateral size in the quote asset, the MINIMUM
+            of the two terms below. Null when it cannot be computed, for example
+            because there is no executable price.
+        maxSafeCollateralLiquidation:
+          oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
+          description: |
+            The liquidation term, `depth.sellSide` at the liquidation delta times
+            the haircut. Always present when `maxSafeCollateral` is.
+
+            Reported separately because the minimum alone hides WHICH limit binds,
+            and that is the part a lender acts on. A position limited by liquidation
+            depth and one limited by manipulation cost call for different responses.
+        maxSafeCollateralManipulation:
+          oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
+          description: |
+            The manipulation term, `manipulationCostOrderbookOnly` at the critical
+            delta times the safety margin.
+
+            Null when the critical target is UNREACHABLE through the orderbook. The
+            term is then not applied at all, `maxSafeCollateral` falls back to the
+            liquidation term alone, and a `warnings` entry says so. Null here means
+            not applicable, and it is not zero: zero would claim the attack is free.
         holderTop1Pct:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
         holderTop10Pct:
@@ -930,6 +1040,13 @@ components:
                 The threshold that triggers SPREAD_EXTREME, in percent. Above this
                 threshold the reference price is considered meaningless and the
                 asset enters band HIGH.
+            priceDivergencePct:
+              allOf: [$ref: '#/components/schemas/Decimal']
+              description: |
+                How far the orderbook mid may sit from the pool spot price before
+                the pool is preferred as the reference price, in percent. Crossing
+                it sets `priceSource` to `pool` and fires
+                `PRICE_SOURCE_CONFLICT`. Added in methodology 1.0.3.
             oracleWindowSeconds:
               type: integer
               description: |
@@ -1054,10 +1171,12 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:02Z'
-        methodologyVersion: 1.0.2-draft
+        methodologyVersion: 1.0.3-draft
         dataSource: horizon
         midPrice: '2.8419300'
         priceSource: book
+        poolSpotPrice: '2.8390000'
+        priceDivergencePct: '0.1030000'
         spreadPct: '0.0844000'
         depth:
           - delta: 0.02
@@ -1075,7 +1194,24 @@ components:
             sellSide: '839004.5512800'
             fromSdex: '648221.9014000'
             fromAmm: '203897.8700000'
-        manipulationCost:
+        manipulationCostCombined:
+          - delta: 0.5
+            targetPrice: '4.2628950'
+            cost: '3910442.1180000'
+            reachable: true
+          - delta: 1.0
+            targetPrice: '5.6838600'
+            cost: '8422018.7710000'
+            reachable: true
+          - delta: 10
+            targetPrice: '31.2612300'
+            cost: '48210559.4400000'
+            reachable: true
+          - delta: 100
+            targetPrice: '287.0349300'
+            cost: '61044180.2200000'
+            reachable: false
+        manipulationCostOrderbookOnly:
           - delta: 0.5
             targetPrice: '4.2628950'
             cost: '3910442.1180000'
@@ -1101,7 +1237,10 @@ components:
           genuineVolume: '184402.9100000'
           windowSeconds: 300
           ratio: '21.2060000'
+          totalAttackCost: '4094845.0280000'
         maxSafeCollateral: '419502.2756400'
+        maxSafeCollateralLiquidation: '419502.2756400'
+        maxSafeCollateralManipulation: '512300.0000000'
         holderTop1Pct: '11.4200000'
         holderTop10Pct: '38.9100000'
         holderHhi: '0.0412000'
@@ -1136,10 +1275,12 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:04Z'
-        methodologyVersion: 1.0.2-draft
+        methodologyVersion: 1.0.3-draft
         dataSource: horizon
         midPrice: '0.4410000'
         priceSource: pool
+        poolSpotPrice: '0.4410000'
+        priceDivergencePct: null
         spreadPct: null
         depth:
           - delta: 0.02
@@ -1157,7 +1298,24 @@ components:
             sellSide: '5631.0210000'
             fromSdex: '0.0000000'
             fromAmm: '5355.8800000'
-        manipulationCost:
+        manipulationCostCombined:
+          - delta: 0.5
+            targetPrice: '0.6615000'
+            cost: '24418.0900000'
+            reachable: true
+          - delta: 1.0
+            targetPrice: '0.8820000'
+            cost: '45441.7700000'
+            reachable: true
+          - delta: 10
+            targetPrice: '4.8510000'
+            cost: '218044.1100000'
+            reachable: true
+          - delta: 100
+            targetPrice: '44.5410000'
+            cost: '1010288.4400000'
+            reachable: true
+        manipulationCostOrderbookOnly:
           - delta: 0.5
             targetPrice: '0.6615000'
             cost: '24418.0900000'
@@ -1183,7 +1341,10 @@ components:
           genuineVolume: '0.0000000'
           windowSeconds: 300
           ratio: null
+          totalAttackCost: '24418.0900000'
         maxSafeCollateral: '2677.9400000'
+        maxSafeCollateralLiquidation: '2677.9400000'
+        maxSafeCollateralManipulation: null
         holderTop1Pct: '61.8800000'
         holderTop10Pct: '92.4100000'
         holderHhi: '0.4128000'
@@ -1228,10 +1389,12 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:06Z'
-        methodologyVersion: 1.0.2-draft
+        methodologyVersion: 1.0.3-draft
         dataSource: horizon
         midPrice: null
         priceSource: none
+        poolSpotPrice: null
+        priceDivergencePct: null
         spreadPct: null
         depth:
           - delta: 0.02
@@ -1249,11 +1412,14 @@ components:
             sellSide: '0.0000000'
             fromSdex: '0.0000000'
             fromAmm: '0.0000000'
-        manipulationCost: []
+        manipulationCostCombined: []
+        manipulationCostOrderbookOnly: []
         maxReachablePrice: null
         costToMaxReachablePrice: null
         oracleResistance: null
         maxSafeCollateral: null
+        maxSafeCollateralLiquidation: null
+        maxSafeCollateralManipulation: null
         holderTop1Pct: '88.2100000'
         holderTop10Pct: '99.1400000'
         holderHhi: '0.7821000'
@@ -1293,10 +1459,12 @@ components:
         ledgerSeq: 60912345
         ledgerClosedAt: '2026-05-19T11:02:44Z'
         computedAt: '2026-08-19T02:40:11Z'
-        methodologyVersion: 1.0.2-draft
+        methodologyVersion: 1.0.3-draft
         dataSource: hubble
         midPrice: '0.0104200'
         priceSource: book
+        poolSpotPrice: null
+        priceDivergencePct: null
         spreadPct: '3.4100000'
         depth:
           - delta: 0.02
@@ -1314,7 +1482,24 @@ components:
             sellSide: '190.2200000'
             fromSdex: '211.0400000'
             fromAmm: '0.0000000'
-        manipulationCost:
+        manipulationCostCombined:
+          - delta: 0.5
+            targetPrice: '0.0156300'
+            cost: '892.4100000'
+            reachable: true
+          - delta: 1.0
+            targetPrice: '0.0208400'
+            cost: '1544.8800000'
+            reachable: true
+          - delta: 10
+            targetPrice: '0.1146200'
+            cost: '2210.4400000'
+            reachable: false
+          - delta: 100
+            targetPrice: '1.0524200'
+            cost: '2210.4400000'
+            reachable: false
+        manipulationCostOrderbookOnly:
           - delta: 0.5
             targetPrice: '0.0156300'
             cost: '892.4100000'
@@ -1340,7 +1525,10 @@ components:
           genuineVolume: '0.0000000'
           windowSeconds: 300
           ratio: null
+          totalAttackCost: '892.4100000'
         maxSafeCollateral: '95.1100000'
+        maxSafeCollateralLiquidation: '95.1100000'
+        maxSafeCollateralManipulation: '118.4000000'
         holderTop1Pct: '79.4400000'
         holderTop10Pct: '96.8800000'
         holderHhi: '0.6412000'
@@ -1429,10 +1617,12 @@ components:
         ledgerSeq: 61340263
         ledgerClosedAt: '2026-02-22T00:10:21Z'
         computedAt: '2026-08-19T04:15:08Z'
-        methodologyVersion: 1.0.2-draft
-        dataSource: trades-implied
+        methodologyVersion: 1.0.3-draft
+        dataSource: offers-implied
         midPrice: '53.8971414'
         priceSource: book
+        poolSpotPrice: null
+        priceDivergencePct: null
         spreadPct: '196.0777141'
         depth:
           - delta: 0.02
@@ -1450,7 +1640,24 @@ components:
             sellSide: '0.0000000'
             fromSdex: '0.0000000'
             fromAmm: '0.0000000'
-        manipulationCost:
+        manipulationCostCombined:
+          - delta: 0.5
+            targetPrice: '80.8457121'
+            cost: '0.0000000'
+            reachable: true
+          - delta: 1.0
+            targetPrice: '107.7942828'
+            cost: '130.0627093'
+            reachable: false
+          - delta: 10
+            targetPrice: '592.8685554'
+            cost: '130.0627093'
+            reachable: false
+          - delta: 100
+            targetPrice: '5443.6112814'
+            cost: '130.0627093'
+            reachable: false
+        manipulationCostOrderbookOnly:
           - delta: 0.5
             targetPrice: '80.8457121'
             cost: '0.0000000'
@@ -1471,6 +1678,8 @@ components:
         costToMaxReachablePrice: '0.0000000'
         oracleResistance: null
         maxSafeCollateral: '0.0000000'
+        maxSafeCollateralLiquidation: '0.0000000'
+        maxSafeCollateralManipulation: '0.0000000'
         holderTop1Pct: null
         holderTop10Pct: null
         holderHhi: null
@@ -1502,10 +1711,13 @@ components:
             There is no AMM pool for this pair, so every fromAmm value is zero and
             maxReachablePrice is determined entirely by the orderbook.
           - >-
-            dataSource is trades-implied. The orderbook snapshot at this ledger was
-            unavailable, so both sides of the book were reconstructed from
-            operations that actually executed on the ledger. The depth figures in
-            this response are lower bounds, not full measurements.
+            dataSource is offers-implied. The orderbook snapshot at this ledger was
+            unavailable, so both sides of the book were reconstructed by replaying
+            manage_sell_offer and manage_buy_offer operations. That is a
+            reconstruction, so the depth figures are not a direct measurement, but
+            it is a stronger source than trades-implied would be: an offer proves
+            liquidity that was posted, while a trade proves only liquidity that was
+            consumed.
           - >-
             A cost of 0.0000000 at delta 0.5 with reachable true is the most
             dangerous condition Keel can report: the price 80.8457121 is attainable
@@ -1541,7 +1753,7 @@ components:
         total: 53
         limit: 3
         offset: 0
-        methodologyVersion: 1.0.2-draft
+        methodologyVersion: 1.0.3-draft
         items:
           - asset:
               code: USDC
@@ -1604,7 +1816,7 @@ components:
         from: 60890000
         to: 60950000
         resolution: day
-        methodologyVersion: 1.0.2-draft
+        methodologyVersion: 1.0.3-draft
         dataSource: hubble
         gaps:
           - from: 60901000
