@@ -122,7 +122,7 @@ a secondary source is "evidence" or "a report".
 
 ## 4. What this breaks, and how it is caught
 
-`scripts/verifikasi-audit.sh` verifies audit claims by grepping for Indonesian
+`scripts/audit-verification.sh` verifies audit claims by grepping for Indonesian
 sentences in the documents. Translating those sentences makes every such check
 fail, and a failing check prints `NOT`, which reads as "this finding was fixed".
 It would not be fixed. It would be invisible.
@@ -149,7 +149,7 @@ depends on them:
 4. `docs/methodology/`, the paid deliverable and the most delicate prose
 5. `docs/decisions/` and `docs/api/keel-openapi.yaml`
 6. `docs/internal/`, `docs/learning/`, `testdata/fixtures/`
-7. `scripts/verifikasi-audit.sh` anchors, then confirm the totals still read 36 and 7
+7. `scripts/audit-verification.sh` anchors, then confirm the totals still read 36 and 7
 
 ---
 

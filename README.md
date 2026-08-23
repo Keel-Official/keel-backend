@@ -50,7 +50,7 @@ and silently ignores every file after it.
 To see what is still unsettled in this repository before contributing:
 
 ```bash
-bash scripts/verifikasi-audit.sh
+bash scripts/audit-verification.sh
 ```
 
 That script re-runs every claim in `docs/internal/audit-2026-08-20.md` and prints
@@ -74,7 +74,6 @@ raw `price_r` values, outside Go, as a cross-check.
 | `docs/decisions` | decision records | present |
 | `docs/api` | OpenAPI contract | present |
 | `docs/evidences` | raw on-chain evidence from Horizon | present |
-| `docs/learning` | learning journal | present |
 | `testdata/fixtures` | golden fixture, computed by hand | present |
 | `scripts` | one-off tools and verification | present |
 

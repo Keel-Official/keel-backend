@@ -246,7 +246,7 @@ cannot be frozen by accident.
 answer is only complete when that line names the date and what changed, even when
 the answer is "no change needed". An answer that leaves no trace is
 indistinguishable from a question that was never asked, and
-`scripts/verifikasi-audit.sh` checks these lines mechanically rather than trusting
+`scripts/audit-verification.sh` checks these lines mechanically rather than trusting
 anyone's memory.
 
 1. Does the list page need `spreadPct` on `AssetSummary`, or is the
@@ -286,7 +286,7 @@ anyone's memory.
       the only remaining condition, and it is not something this repository can
       close on its own.**
 
-Each of these is checked mechanically by `scripts/verifikasi-audit.sh`, in the
+Each of these is checked mechanically by `scripts/audit-verification.sh`, in the
 section headed "DEC-003 freeze conditions". The checklist above is a summary of
 those checks and not a substitute for them: a tick typed by hand is a claim, and a
 passing check is evidence.

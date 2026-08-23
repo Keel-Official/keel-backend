@@ -1,0 +1,130 @@
+# The command
+# ➜  evidences git:(main) ✗ curl -s "https://horizon.stellar.org/liquidity_pools/$POOL_ID/effects?limit=20&order=desc" \
+#   | jq '[._embedded.records[] | select(.type=="liquidity_pool_trade")][0] | keys, .liquidity_pool.id'
+
+# The result
+[
+  "_links",
+  "account",
+  "bought",
+  "created_at",
+  "id",
+  "liquidity_pool",
+  "paging_token",
+  "sold",
+  "type",
+  "type_i"
+]
+"43fd97b82a68ddba7171e4a2d14bc2453ac1c0d359175fa80097a9c2df911a71"
+
+# The command
+# POOL_ID="27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb"
+# TARGET="2026-02-22T00:10:21Z"
+# CURSOR=""
+
+# while :; do
+#  URL="https://horizon.stellar.org/liquidity_pools/$POOL_ID/effects?order=desc&limit=200"
+#  [ -n "$CURSOR" ] && URL="$URL&cursor=$CURSOR"
+#  RESP=$(curl -s "$URL")
+#  N=$(echo "$RESP" | jq '._embedded.records | length')
+#  [ "$N" -eq 0 ] && { echo "riwayat habis sebelum target"; break; }
+
+#   HIT=$(echo "$RESP" | jq -c --arg t "$TARGET" --arg p "$POOL_ID" \
+#     '[ ._embedded.records[]
+#        | select(.created_at < $t)
+#        | select(.liquidity_pool.id? == $p) ][0] // empty')
+
+#   if [ -n "$HIT" ]; then
+#     echo "$HIT" | jq '{created_at, type, id: .liquidity_pool.id, reserves: .liquidity_pool.reserves}'
+#     break
+#   fi
+
+#   echo "mundur melewati $(echo "$RESP" | jq -r '._embedded.records[-1].created_at')"
+#   CURSOR=$(echo "$RESP" | jq -r '._embedded.records[-1].paging_token')
+#   sleep 0.4
+# done
+
+# The result
+mundur melewati 2026-08-22T12:33:32Z
+mundur melewati 2026-08-19T15:21:53Z
+mundur melewati 2026-08-19T01:40:15Z
+mundur melewati 2026-08-18T22:07:36Z
+mundur melewati 2026-08-18T20:56:32Z
+mundur melewati 2026-08-18T09:19:09Z
+mundur melewati 2026-08-04T09:14:47Z
+mundur melewati 2026-07-29T19:07:09Z
+mundur melewati 2026-07-29T14:29:34Z
+mundur melewati 2026-07-29T13:09:54Z
+mundur melewati 2026-07-29T11:42:38Z
+mundur melewati 2026-07-29T00:30:40Z
+mundur melewati 2026-07-27T15:27:39Z
+mundur melewati 2026-07-27T11:47:02Z
+mundur melewati 2026-07-27T06:46:14Z
+mundur melewati 2026-07-27T06:41:34Z
+mundur melewati 2026-07-27T06:36:28Z
+mundur melewati 2026-07-27T06:31:27Z
+mundur melewati 2026-07-22T20:11:04Z
+mundur melewati 2026-07-22T14:07:46Z
+mundur melewati 2026-07-22T13:37:34Z
+mundur melewati 2026-07-22T12:24:37Z
+mundur melewati 2026-07-22T12:20:41Z
+mundur melewati 2026-07-22T11:45:30Z
+mundur melewati 2026-07-22T11:40:44Z
+mundur melewati 2026-07-22T11:32:07Z
+mundur melewati 2026-07-22T11:29:46Z
+mundur melewati 2026-07-22T11:26:47Z
+mundur melewati 2026-07-22T11:22:08Z
+mundur melewati 2026-07-22T11:19:14Z
+mundur melewati 2026-07-22T10:58:11Z
+mundur melewati 2026-07-22T09:56:16Z
+mundur melewati 2026-07-22T09:52:47Z
+mundur melewati 2026-07-22T09:50:16Z
+mundur melewati 2026-07-22T09:41:07Z
+mundur melewati 2026-07-22T09:39:03Z
+mundur melewati 2026-07-22T09:36:10Z
+mundur melewati 2026-07-22T08:59:45Z
+mundur melewati 2026-07-22T08:56:02Z
+mundur melewati 2026-07-22T08:50:10Z
+mundur melewati 2026-07-22T07:43:23Z
+mundur melewati 2026-07-22T07:37:12Z
+mundur melewati 2026-07-22T07:33:23Z
+mundur melewati 2026-07-22T07:30:46Z
+mundur melewati 2026-07-22T07:23:52Z
+mundur melewati 2026-07-22T06:42:33Z
+mundur melewati 2026-07-22T06:29:29Z
+mundur melewati 2026-07-22T04:27:49Z
+mundur melewati 2026-07-21T10:05:14Z
+mundur melewati 2026-07-20T11:17:33Z
+mundur melewati 2026-07-17T01:26:01Z
+mundur melewati 2026-07-16T04:24:09Z
+mundur melewati 2026-07-12T05:08:29Z
+mundur melewati 2026-07-07T05:50:35Z
+mundur melewati 2026-07-03T07:44:37Z
+mundur melewati 2026-06-15T10:36:38Z
+mundur melewati 2026-06-06T03:09:30Z
+mundur melewati 2026-05-31T20:12:42Z
+mundur melewati 2026-05-31T00:24:10Z
+mundur melewati 2026-05-30T20:11:30Z
+mundur melewati 2026-05-26T20:10:29Z
+mundur melewati 2026-05-26T14:29:28Z
+mundur melewati 2026-05-26T10:23:47Z
+mundur melewati 2026-05-25T20:10:16Z
+mundur melewati 2026-05-24T07:10:18Z
+mundur melewati 2026-04-17T10:03:33Z
+mundur melewati 2026-02-24T16:01:06Z
+mundur melewati 2026-02-22T22:08:33Z
+{
+  "created_at": "2026-02-10T16:59:35Z",
+  "type": "liquidity_pool_trade",
+  "id": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+  "reserves": [
+    {
+      "asset": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "amount": "16.3389179"
+    },
+    {
+      "asset": "USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "amount": "15.4791416"
+    }
+  ]
+}

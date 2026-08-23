@@ -1,20 +1,14 @@
-// Package domain holds Keel's shared types: assets, prices, books, pools,
-// snapshots, and the shape of a liquidity risk result.
+// Package domain contains all of Keel's liquidity risk computations.
 //
-// This package contains NO computation. Every methodology formula lives in
-// internal/depth, which imports this package. The split is deliberate: domain is
-// open to anyone, depth is a paid deliverable whose author has to be able to
-// defend it.
-//
-// THIS PACKAGE IS PURE. None of the following is allowed:
+// THIS PACKAGE IS PURE. It must never contain:
 //   - any I/O (net/http, database/sql, os, the Stellar SDK, BigQuery)
 //   - time.Now(), math/rand, goroutines
-//   - float64 or float32, including as an intermediate value
-//   - iterating a map without sorting its keys first
+//   - float64 or float32, not even as an intermediate value
+//   - map iteration without sorting the keys first
 //
-// These rules are enforced by arch_test.go. They are not merely a convention.
-// See docs/methodology/keel-methodology-core.md for the definition of every
-// quantity declared here.
+// Enforced by arch_test.go, not by convention alone.
+// Definitions of every quantity: docs/methodology/keel-methodology-core.md
+// Flag and band definitions:     docs/methodology/09-flag-dan-band.md
 package domain
 
 import (
@@ -24,38 +18,31 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// MethodologyVersion must be raised whenever a definition or a threshold
-// changes. Results produced by different versions cannot be compared directly.
-const MethodologyVersion = "1.0.2-draft"
+// MethodologyVersion must be bumped whenever a definition or threshold changes.
+// Results produced under different versions are not directly comparable.
+const MethodologyVersion = "1.0.3-draft"
 
-// ---------------------------------------------------------------- Asset
+// ---------------------------------------------------------------- Assets
 
-// AssetType is the asset type as the Stellar XDR defines it. It is carried
-// explicitly rather than derived, because Horizon reports whatever the issuer
-// chose, and a five character code such as USTRY is alphanum12.
 type AssetType string
 
-// The three asset types Stellar has. A query using the wrong one returns an
-// empty result and no error, so these values are never guessed.
 const (
 	AssetTypeNative     AssetType = "native"
 	AssetTypeAlphanum4  AssetType = "credit_alphanum4"
 	AssetTypeAlphanum12 AssetType = "credit_alphanum12"
 )
 
-// Asset identifies one Stellar asset.
+// Asset identifies a single Stellar asset.
 //
-// Type must be explicit and must never be inferred from the length of Code at
-// runtime. Querying Horizon with the wrong type returns an empty result and no
-// error, which is the most dangerous silent failure in this integration. USTRY
-// has a five character code and is therefore an alphanum12 asset.
+// Type must be explicit and must never be inferred from len(Code) at runtime.
+// Querying Horizon with the wrong type returns an empty result with no error.
+// USTRY has a 5-character code and is therefore alphanum12.
 type Asset struct {
 	Code   string
 	Issuer string // empty for the native asset
 	Type   AssetType
 }
 
-// IsNative reports whether this is XLM, the only asset with no issuer.
 func (a Asset) IsNative() bool { return a.Type == AssetTypeNative }
 
 func (a Asset) String() string {
@@ -65,47 +52,36 @@ func (a Asset) String() string {
 	return a.Code + ":" + a.Issuer
 }
 
-// Equal compares all three fields. Code alone is not an identity: two different
-// issuers can each mint an asset called USDC.
 func (a Asset) Equal(o Asset) bool {
 	return a.Code == o.Code && a.Issuer == o.Issuer && a.Type == o.Type
 }
 
-// ---------------------------------------------------------------- Price
+// ---------------------------------------------------------------- Prices
 
 // Price is an exact rational, always expressed as quote per base.
 //
-// Horizon sends prices in two inconsistent shapes:
+// Horizon returns prices in two inconsistent shapes:
 //
-//	/offers  -> "price_r": {"n": 266843207, "d": 2500000}   JSON numbers
+//	/offers  -> "price_r": {"n": 266843207, "d": 2500000}     JSON numbers
 //	/trades  -> "price":   {"n": "2500000", "d": "266843207"} JSON strings
 //
-// and on /trades the direction of price depends on which asset is the base. The
-// adapter is responsible for normalizing both into quote per base before
-// anything reaches this package. Never use Horizon's string "price" field for a
-// computation; it is already rounded.
+// and the direction of price on /trades depends on which asset is the base.
+// Adapters must normalise both into quote-per-base before anything reaches this
+// package. Never use Horizon's "price" string for computation; it is rounded.
 type Price struct {
 	N int64
 	D int64
 }
 
-// Valid reports whether this fraction is usable. A zero denominator is undefined
-// and a non-positive numerator is not a price.
 func (p Price) Valid() bool { return p.D != 0 && p.N > 0 }
 
-// Decimal divides the fraction out. Use it for reporting, not for comparison:
-// Cmp compares without dividing and loses nothing.
 func (p Price) Decimal() decimal.Decimal {
 	return decimal.NewFromInt(p.N).Div(decimal.NewFromInt(p.D))
 }
 
-// Invert flips the direction of the price exactly, by swapping numerator and
-// denominator. Inverting twice returns the original bit for bit, which a
-// reciprocal computed by division would not guarantee.
 func (p Price) Invert() Price { return Price{N: p.D, D: p.N} }
 
 // Cmp compares without dividing, so no precision is lost.
-// It returns -1, 0, or 1.
 func (p Price) Cmp(o Price) int {
 	left := decimal.NewFromInt(p.N).Mul(decimal.NewFromInt(o.D))
 	right := decimal.NewFromInt(o.N).Mul(decimal.NewFromInt(p.D))
@@ -114,28 +90,23 @@ func (p Price) Cmp(o Price) int {
 
 func (p Price) String() string { return fmt.Sprintf("%d/%d", p.N, p.D) }
 
-// ---------------------------------------------------------------- Book
+// ---------------------------------------------------------------- Order book
 
-// Level is one price level on the orderbook.
-// Amount is expressed in units of the base asset.
 type Level struct {
 	Price  Price
-	Amount decimal.Decimal
+	Amount decimal.Decimal // in base asset units
 }
 
 // Notional returns the value of this level in the quote asset.
 func (l Level) Notional() decimal.Decimal { return l.Price.Decimal().Mul(l.Amount) }
 
-// OrderBook holds the buy and sell sides.
-// Bids are ordered by descending price, Asks by ascending price.
-// Whichever adapter fills this struct is responsible for that ordering.
+// OrderBook: Bids sorted by descending price, Asks by ascending price.
+// The adapter guarantees the ordering.
 type OrderBook struct {
 	Bids []Level
 	Asks []Level
 }
 
-// BestBid returns the highest bid. The boolean is false when the buy side is
-// empty, which is an ordinary state on a thin asset rather than an error.
 func (b OrderBook) BestBid() (Level, bool) {
 	if len(b.Bids) == 0 {
 		return Level{}, false
@@ -143,8 +114,6 @@ func (b OrderBook) BestBid() (Level, bool) {
 	return b.Bids[0], true
 }
 
-// BestAsk returns the lowest ask. The boolean is false when the sell side is
-// empty, which is an ordinary state on a thin asset rather than an error.
 func (b OrderBook) BestAsk() (Level, bool) {
 	if len(b.Asks) == 0 {
 		return Level{}, false
@@ -152,10 +121,12 @@ func (b OrderBook) BestAsk() (Level, bool) {
 	return b.Asks[0], true
 }
 
-// ---------------------------------------------------------------- Pool
+// ---------------------------------------------------------------- Pools
 
-// PoolReserves is one constant product pool.
-// FeeBP is in basis points, 30 on Stellar.
+// PoolReserves is a single constant product pool.
+//
+// FeeBP is read from the Horizon response. Do NOT hardcode 30. Stellar permits
+// other values and a hardcoded fee will be silently wrong on a different pool.
 type PoolReserves struct {
 	PoolID       string
 	ReserveBase  decimal.Decimal
@@ -163,9 +134,6 @@ type PoolReserves struct {
 	FeeBP        int32
 }
 
-// SpotPrice is the pool's marginal price, Y over X. It returns zero when the base
-// reserve is zero, and a caller must check IsEmpty rather than reading that zero
-// as a price.
 func (p PoolReserves) SpotPrice() decimal.Decimal {
 	if p.ReserveBase.IsZero() {
 		return decimal.Zero
@@ -173,44 +141,32 @@ func (p PoolReserves) SpotPrice() decimal.Decimal {
 	return p.ReserveQuote.Div(p.ReserveBase)
 }
 
-// IsEmpty reports whether either reserve is zero. Such a pool quotes no usable
-// price and contributes no depth.
 func (p PoolReserves) IsEmpty() bool {
 	return p.ReserveBase.IsZero() || p.ReserveQuote.IsZero()
 }
 
 // ---------------------------------------------------------------- Snapshot
 
-// PriceSource records where the reference price came from. It is reported to the
-// consumer because a price taken from a pool and a price taken from a two sided
-// book carry very different confidence.
 type PriceSource string
 
-// The three price sources. none is a legitimate result rather than an error: an
-// asset with no executable price is the highest-value finding Keel can produce.
 const (
 	PriceSourceBook PriceSource = "book"
 	PriceSourcePool PriceSource = "pool"
 	PriceSourceNone PriceSource = "none"
 )
 
-// DataSource records how the underlying data was obtained. It is part of the
-// output because a number reconstructed from trades is a lower bound and must
-// never be displayed as equivalent to a measurement.
 type DataSource string
 
-// The three data sources. trades-implied always carries a warning, because a
-// trade proves the liquidity that was used, not the liquidity that was available.
 const (
 	DataSourceHorizon       DataSource = "horizon"
 	DataSourceHubble        DataSource = "hubble"
 	DataSourceTradesImplied DataSource = "trades-implied"
 )
 
-// Snapshot is the ONLY input to a depth computation.
-// Its shape is identical whether it came from Horizon (live) or Hubble
-// (historical), so swapping the data source does not touch a single line in
-// this package.
+// Snapshot is the ONLY input to the depth computation.
+//
+// Its shape is identical whether it came from Horizon (live) or Hubble (historical),
+// so swapping the data source touches no line in this package.
 type Snapshot struct {
 	Base           Asset
 	Quote          Asset
@@ -221,13 +177,24 @@ type Snapshot struct {
 	Source         DataSource
 }
 
+// ActivePools returns the non-empty pools.
+// The presence of an active pool changes the semantics of MaxReachablePrice;
+// see AssetRisk.
+func (s Snapshot) ActivePools() []PoolReserves {
+	out := make([]PoolReserves, 0, len(s.Pools))
+	for _, p := range s.Pools {
+		if !p.IsEmpty() {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
 // ---------------------------------------------------------------- Results
 
-// DepthPoint is the depth at one delta level.
-// Every value is a notional in the quote asset.
-//
-// FromSdex and FromAmm are reported separately so that a third party can verify
-// the combination without reading the code. Both refer to the buy side.
+// DepthPoint is depth at one delta level, as notional in the quote asset.
+// FromSdex and FromAmm are reported separately so third parties can verify the
+// combination without reading the code. Both refer to the buy side.
 type DepthPoint struct {
 	Delta    decimal.Decimal
 	BuySide  decimal.Decimal
@@ -236,28 +203,30 @@ type DepthPoint struct {
 	FromAmm  decimal.Decimal
 }
 
-// ManipulationPoint is the cost of pushing the price up to one target.
+// ManipulationPoint is the cost of raising the price to one target.
 //
-// The rules:
+// Rules:
 //
-//	Cost(P_target)      = sum of ask notionals with price <  P_target
-//	Reachable(P_target) = an ask exists with price >= P_target
+//	Cost(P_target)      = Σ notional of asks with price <  P_target
+//	Reachable(P_target) = there exists an ask with price >= P_target
 //
-// The attacker has to consume every ask CHEAPER than the target, then touch
-// only a sliver of the first ask ABOVE it. That final touch is what sets the
-// price the oracle reads, and it can cost arbitrarily little.
+// An attacker consumes every ask CHEAPER than the target, then barely touches the
+// first ask ABOVE it. That final touch sets the price the oracle reads, and it can
+// cost arbitrarily little.
 //
-// Reading the result:
+// Interpretation:
 //
-//	small Cost, Reachable=true   cheap and achievable. MOST DANGEROUS.
-//	large Cost, Reachable=true   expensive; the market has a defense.
-//	Reachable=false              the target cannot be reached at any price,
-//	                             because the book runs out before it. That is
-//	                             not bad news.
+//	Cost small, Reachable=true   cheap and achievable. MOST DANGEROUS.
+//	Cost large, Reachable=true   expensive; the market has a defence.
+//	Reachable=false              the target cannot be reached at any capital.
+//	                             This is not bad news.
 //
-// Cost is an UPPER BOUND. Keel cannot know which orders the attacker already
-// owns ahead of the event, so it does not filter them out. That bias errs on
-// the safe side.
+// When an active pool is present, Reachable on the Combined variant is always true,
+// because under a constant product curve the price tends to infinity as the base
+// reserve tends to zero.
+//
+// Cost is an UPPER BOUND. Keel cannot know which orders belong to the attacker
+// ahead of time, so it does not filter them. This bias points in the safe direction.
 type ManipulationPoint struct {
 	Delta       decimal.Decimal
 	TargetPrice decimal.Decimal
@@ -267,19 +236,14 @@ type ManipulationPoint struct {
 
 // ---------------------------------------------------------------- Flags
 
-// Flag is one risk condition. Flags are reported individually rather than only as
-// a band, so a consumer who disagrees with Keel's thresholds can still apply
-// their own policy.
 type Flag string
 
-// The eleven flags. Their definitions and thresholds live in
-// docs/methodology/09-flag-dan-band.md, which is the single source of truth for
-// them; this list is only the vocabulary.
 const (
 	FlagNoExecutablePrice          Flag = "NO_EXECUTABLE_PRICE"
 	FlagZeroDepth2Pct              Flag = "ZERO_DEPTH_2PCT"
 	FlagManipulationCheap          Flag = "MANIPULATION_CHEAP"
 	FlagManipulationRatioLow       Flag = "MANIPULATION_RATIO_LOW"
+	FlagPriceSourceConflict        Flag = "PRICE_SOURCE_CONFLICT"
 	FlagSpreadExtreme              Flag = "SPREAD_EXTREME"
 	FlagNoGenuineTrade30D          Flag = "NO_GENUINE_TRADE_30D"
 	FlagNoGenuineTrade7D           Flag = "NO_GENUINE_TRADE_7D"
@@ -289,12 +253,8 @@ const (
 	FlagWashTradeSuspected         Flag = "WASH_TRADE_SUSPECTED"
 )
 
-// Band is the risk level of an asset: the highest level among the triggered
-// flags. There is no weighting, no averaging, and no composite score.
 type Band string
 
-// The four bands. LOW means no flag fired, which is not the same as an asset
-// having been fully checked, so read BandConfidence alongside it.
 const (
 	BandLow      Band = "LOW"
 	BandMedium   Band = "MEDIUM"
@@ -302,16 +262,24 @@ const (
 	BandCritical Band = "CRITICAL"
 )
 
+type BandConfidence string
+
+const (
+	BandConfidenceFull    BandConfidence = "full"
+	BandConfidencePartial BandConfidence = "partial"
+)
+
 // ---------------------------------------------------------------- Parameters
 
 // Thresholds holds EVERY threshold in one place.
-// These values are CHOSEN, not calibrated against a set of incidents.
-// Changing one requires raising MethodologyVersion.
+// These values are CHOSEN, not calibrated against a body of incidents.
+// Changing any of them requires bumping MethodologyVersion.
 type Thresholds struct {
 	ManipulationCheapAbsolute decimal.Decimal // in the quote asset
 	ManipulationRatioLowPct   decimal.Decimal
 	ThinDepth5PctAbsolute     decimal.Decimal
 	SpreadExtremePct          decimal.Decimal
+	PriceDivergencePct        decimal.Decimal // threshold for switching P0 to the pool
 	HolderTop1ExtremePct      decimal.Decimal
 	HolderTop10HighPct        decimal.Decimal
 	WashTradeSuspectedPct     decimal.Decimal
@@ -319,33 +287,70 @@ type Thresholds struct {
 	GenuineTradeWarnDays      int
 }
 
-// Params is the complete configuration input to a computation.
-// No default is hidden inside a function; everything arrives through here.
+// Params carries all configuration input.
+// No function in this package holds a hidden default; everything arrives here.
 type Params struct {
-	// The market quality ladder, mandated by the SOW: 0.02, 0.05, 0.10
+	// Market quality ladder, required by the SOW: 0.02, 0.05, 0.10
 	MarketDeltas []decimal.Decimal
 
-	// The manipulation resistance ladder: 0.5, 1, 10, 100
-	// Needed because an attacker does not move a price by 10 percent, they
-	// move it by a factor of 100.
+	// Manipulation resilience ladder: 0.5, 1, 10, 100
+	// Required because the attacker moved the price by a factor of 100, not by
+	// 10 percent.
 	ManipulationDeltas []decimal.Decimal
 
-	LiquidationDelta          decimal.Decimal // default 0.10
-	LiquidationHaircut        decimal.Decimal // default 0.5
-	ManipulationCriticalDelta decimal.Decimal // default 1.0
-	ManipulationMargin        decimal.Decimal // default 0.25
+	LiquidationDelta   decimal.Decimal // 0.10
+	LiquidationHaircut decimal.Decimal // 0.5
 
-	// The oracle VWAP window. The 15 minute default is an ASSUMPTION and has
-	// not been confirmed as Reflector's actual window.
+	// ManipulationCriticalDelta is fixed at 0.5 rather than 1.0.
+	//
+	// Cost is monotonically increasing in delta and Reachable is monotonically
+	// decreasing, so a lower value always yields a tighter bound while relying less
+	// often on an unreachable target. On the USTRY fixture, delta=1 gives
+	// Reachable=false with Cost=130.0627093, so the manipulation term would produce a
+	// positive collateral allowance derived from an IMPOSSIBLE attack. At delta=0.5
+	// the result is zero, which is correct.
+	ManipulationCriticalDelta decimal.Decimal // 0.5
+	ManipulationMargin        decimal.Decimal // 0.25
+
+	// Oracle VWAP window. The 15-minute default is an ASSUMPTION and has not been
+	// confirmed as Reflector's actual window.
 	OracleWindow time.Duration
 
 	Thresholds Thresholds
 }
 
+func dec(s string) decimal.Decimal { return decimal.RequireFromString(s) }
+
+// DefaultParams returns the default parameters for methodology 1.0.3.
+// Every value here is CHOSEN, not calibrated.
+func DefaultParams() Params {
+	return Params{
+		MarketDeltas:              []decimal.Decimal{dec("0.02"), dec("0.05"), dec("0.10")},
+		ManipulationDeltas:        []decimal.Decimal{dec("0.5"), dec("1"), dec("10"), dec("100")},
+		LiquidationDelta:          dec("0.10"),
+		LiquidationHaircut:        dec("0.5"),
+		ManipulationCriticalDelta: dec("0.5"),
+		ManipulationMargin:        dec("0.25"),
+		OracleWindow:              15 * time.Minute,
+		Thresholds: Thresholds{
+			ManipulationCheapAbsolute: dec("10000"),
+			ManipulationRatioLowPct:   dec("1.0"),
+			ThinDepth5PctAbsolute:     dec("50000"),
+			SpreadExtremePct:          dec("20.0"),
+			PriceDivergencePct:        dec("10.0"),
+			HolderTop1ExtremePct:      dec("50.0"),
+			HolderTop10HighPct:        dec("80.0"),
+			WashTradeSuspectedPct:     dec("50.0"),
+			GenuineTradeStaleDays:     30,
+			GenuineTradeWarnDays:      7,
+		},
+	}
+}
+
 // ---------------------------------------------------------------- Output
 
 // SupportingMetrics fields are nil when they cannot be computed.
-// Nil means "unknown", not zero.
+// Nil means "unknown", NOT zero.
 type SupportingMetrics struct {
 	HolderTop1Pct         *decimal.Decimal
 	HolderTop10Pct        *decimal.Decimal
@@ -358,44 +363,6 @@ type SupportingMetrics struct {
 	GenuineVolumeInWindow *decimal.Decimal
 }
 
-// OracleResistance answers one question: is moving the price to a critical level
-// cheaper than the genuine trading volume that actually occurred inside the
-// window an oracle averages over.
-//
-// It is an object rather than a single ratio on purpose. A ratio would hide two
-// states that have to stay visible. A GenuineVolume of zero makes the ratio
-// undefined, and an asset with no trading at all inside the oracle window is an
-// important finding rather than missing data. And a ratio computed from a
-// ManipulationCost whose Reachable is false is a meaningless number. In object
-// form both states are readable and Ratio is simply nil. See DEC-003 section 2.5.
-type OracleResistance struct {
-	// CriticalDelta is the delta treated as the critical threshold for this
-	// asset. It always equals one of the Delta values in ManipulationCost.
-	CriticalDelta decimal.Decimal
-
-	// ManipulationCost and Reachable are copied from the ManipulationCost entry
-	// at CriticalDelta, so a reader never has to match them up by hand.
-	ManipulationCost decimal.Decimal
-	Reachable        bool
-
-	// GenuineVolume is the genuine trade volume in the quote asset over the last
-	// WindowSeconds, after the genuine trade filtering rules are applied. This is
-	// the comparison baseline, and it is the defense an attacker has to outweigh.
-	GenuineVolume decimal.Decimal
-
-	// WindowSeconds is repeated here even though it is also a threshold, so that
-	// a response can be read and archived without consulting anything else.
-	WindowSeconds int
-
-	// Ratio is ManipulationCost divided by GenuineVolume. Below 1 means moving
-	// the price to the critical level is cheaper than all the genuine trading
-	// across the window. Nil when GenuineVolume is zero or Reachable is false,
-	// because the division is then meaningless. Nil means undefined, not zero.
-	Ratio *decimal.Decimal
-}
-
-// TradeRef points at one trade on the ledger. Both fields are carried so a reader
-// can verify the claim against Horizon without a second lookup.
 type TradeRef struct {
 	LedgerSeq uint32
 	At        time.Time
@@ -414,47 +381,120 @@ type AssetRisk struct {
 	PriceSource PriceSource
 	SpreadPct   *decimal.Decimal
 
-	Depth            []DepthPoint
-	ManipulationCost []ManipulationPoint
-	// MaxReachablePrice is the highest ask price on the book, which is the
-	// highest price an attacker can reach. CostToMaxReachablePrice is what
-	// reaching it costs.
+	// PoolSpotPrice and PriceDivergencePct are always populated when an active pool
+	// exists, regardless of which branch the P0 rule took. A large divergence raises
+	// PRICE_SOURCE_CONFLICT and causes P0 to be taken from the pool.
+	PoolSpotPrice      *decimal.Decimal
+	PriceDivergencePct *decimal.Decimal
+
+	Depth []DepthPoint
+
+	// Two forms of manipulation cost, answering two different questions.
 	//
-	// This pair of numbers catches the attack that slips between two discrete
-	// rungs of the delta ladder. On USTRY, 21 February 2026, the values were
-	// 106.7372828 at a cost of zero, and the real attack landed in the gap
-	// between delta 0.5 and delta 1.
+	//	Combined      cost of moving the actual market price (SDEX + AMM)
+	//	OrderbookOnly cost of fooling an oracle that reads SDEX trades
+	//
+	// OrderbookOnly <= Combined always holds. An attacker takes the cheapest path, so
+	// OrderbookOnly is the binding figure and the one used in C_max.
+	// The gap between them is itself a signal: a large Combined with a small
+	// OrderbookOnly means the asset looks safe while it is not.
+	ManipulationCostCombined      []ManipulationPoint
+	ManipulationCostOrderbookOnly []ManipulationPoint
+
+	// MaxReachablePrice is the highest ask price in the book, and
+	// CostToMaxReachablePrice is the cost of getting there.
+	//
+	// BOTH are nil when an active pool is present, accompanied by a warning: under a
+	// constant product curve every target is reachable, so "highest" loses meaning.
+	//
+	// This pair captures attacks that fall between two rungs of the delta ladder. On
+	// the USTRY fixture the values are 106.7372828 at zero cost, while the actual
+	// attack landed between delta 0.5 and 1.
 	MaxReachablePrice       *decimal.Decimal
 	CostToMaxReachablePrice *decimal.Decimal
-	OracleResistance        *OracleResistance // nil when there is no executable price
-	MaxSafeCollateral       *decimal.Decimal
+
+	OracleResistance  *decimal.Decimal // MC_orderbookOnly(critical) + genuine volume in window
+	MaxSafeCollateral *decimal.Decimal
+
+	// The two terms behind MaxSafeCollateral, reported separately as required by
+	// methodology section 9 ("Both terms must be reported separately, not only their
+	// minimum").
+	//
+	//	MaxSafeCollateralLiquidation  = D_sell(δ_liquidation) × h      always present
+	//	MaxSafeCollateralManipulation = MC_orderbookOnly(δ_critical) × m
+	//
+	// MaxSafeCollateralManipulation is nil when the critical target is UNREACHABLE
+	// through the order book. Per section 9 the manipulation term is then not applied,
+	// C_max falls back to the liquidation term alone, and a warning is emitted. Nil
+	// here means "not applicable", consistent with the nil convention elsewhere.
+	MaxSafeCollateralLiquidation  *decimal.Decimal
+	MaxSafeCollateralManipulation *decimal.Decimal
 
 	Supporting SupportingMetrics
 
-	Flags    []Flag
-	Band     Band
-	Warnings []string
+	Flags []Flag
 
-	// Flags that could not be checked because the data they need is absent.
-	// unevaluated is NOT a synonym for clear. An asset with no trustline data
-	// must not look identical to an asset whose holder distribution was
-	// actually examined.
+	// UnevaluatedFlags holds flags that could not be checked because the required
+	// data was absent. Unevaluated is NOT a synonym for clear. An asset with no
+	// trustline data must not look identical to one that was checked and found safe.
 	UnevaluatedFlags []Flag
 
-	// partial when any flag at the CRITICAL or HIGH level is unevaluated, full
-	// when every flag at those levels could be checked. The dashboard is
-	// required to display this.
+	Band Band
+
+	// BandConfidence is partial when any CRITICAL or HIGH tier flag is unevaluated.
+	// It must be surfaced on the dashboard: a LOW band with partial confidence is a
+	// far weaker statement than LOW with full confidence.
 	BandConfidence BandConfidence
+
+	Warnings []string
 }
 
-// BandConfidence states whether the band rests on a complete check. It exists
-// because an asset with missing data must not look identical to an asset that was
-// examined and found safe.
-type BandConfidence string
+// ---------------------------------------------------------------- Contract
 
-// The two confidence values. partial means at least one flag at the CRITICAL or
-// HIGH level could not be evaluated at all.
-const (
-	BandConfidenceFull    BandConfidence = "full"
-	BandConfidencePartial BandConfidence = "partial"
-)
+// ComputeAssetRisk is the only entry point into this package.
+//
+// Note the absence of context.Context. That is deliberate and serves as a signal: if a
+// function in this package ever seems to need a ctx, some I/O has leaked in and belongs
+// in an adapter instead.
+//
+// The wiring the body owes its caller, recorded here because the fragment that stated
+// it did not compile and the compiler cannot hold a note:
+//
+//	cmax, liquidationLimit, manipulationLimit, warnings := ComputeMaxSafeCollateral(...)
+//	risk.MaxSafeCollateral             = cmax
+//	risk.MaxSafeCollateralLiquidation  = liquidationLimit
+//	risk.MaxSafeCollateralManipulation = manipulationLimit
+func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
+	panic("not implemented")
+}
+
+// MidPrice applies the fallback order in docs/methodology/keel-methodology-core.md section 3.
+// It also returns the pool spot price and their divergence when a pool is available.
+func MidPrice(s Snapshot, p Params) (p0 decimal.Decimal, src PriceSource, poolSpot, divergence *decimal.Decimal) {
+	panic("not implemented")
+}
+
+// ComputeDepth computes the market quality ladder, merging SDEX and AMM at the same
+// final marginal price. See methodology section 6.
+func ComputeDepth(s Snapshot, p0 decimal.Decimal, deltas []decimal.Decimal) ([]DepthPoint, error) {
+	panic("not implemented")
+}
+
+// ComputeManipulationCost computes the manipulation cost ladder.
+// Passing includeAMM=false produces the OrderbookOnly variant.
+func ComputeManipulationCost(s Snapshot, p0 decimal.Decimal, deltas []decimal.Decimal, includeAMM bool) ([]ManipulationPoint, error) {
+	panic("not implemented")
+}
+
+// ComputeMaxSafeCollateral applies methodology section 9.
+//
+//	if Reachable_orderbookOnly(critical):
+//	    C_max = min( D_sell(liquidation) * h , MC_orderbookOnly(critical) * m )
+//	else:
+//	    C_max = D_sell(liquidation) * h,  with a warning
+//
+// The Reachable guard is mandatory: when the target is unreachable, Cost is not the
+// cost of reaching anything, and multiplying it by m yields a meaningless number.
+func ComputeMaxSafeCollateral(depth []DepthPoint, mc []ManipulationPoint, p Params) (cmax, liquidationLimit, manipulationLimit *decimal.Decimal, warnings []string) {
+	panic("not implemented")
+}

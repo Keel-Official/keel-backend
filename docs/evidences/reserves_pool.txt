@@ -1,0 +1,25 @@
+
+# first execution result command (curl -s "https://horizon.stellar.org/liquidity_pools?reserves=USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC,USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN" | jq '._embedded.records[] | {id, fee_bp, total_shares, reserves, last_modified_ledger}')
+{
+  "id": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+  "fee_bp": 30,
+  "total_shares": "15.8497241",
+  "reserves": [
+    {
+      "asset": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "amount": "16.5589417"
+    },
+    {
+      "asset": "USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "amount": "15.4742476"
+    }
+  ],
+  "last_modified_ledger": 64063312
+}
+
+# second execution result command (curl -s "https://horizon.stellar.org/liquidity_pools/$POOL_ID/operations?order=asc&limit=1" | jq '._embedded.records[] | {type, created_at, transaction_hash}')
+{
+  "type": "path_payment_strict_send",
+  "created_at": "2025-07-01T01:08:47Z",
+  "transaction_hash": "8cd747f7cd34a00be5af260433a9ca52ddb7481c8bb63b065883d9adba3443b4"
+}

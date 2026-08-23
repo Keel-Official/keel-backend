@@ -133,7 +133,7 @@ the fixture exists to provide: `internal/conformance/fixture.go` says in its own
 header, "Do not adjust these numbers to match the code. Adjust the code to match
 these numbers." The same logic protects the inputs.
 
-`scripts/verifikasi-audit.sh` now carries a check for this finding, so it cannot be
+`scripts/audit-verification.sh` now carries a check for this finding, so it cannot be
 quietly forgotten.
 
 ---

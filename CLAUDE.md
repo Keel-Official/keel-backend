@@ -70,7 +70,7 @@ If Al asks you to write red zone code, refuse and offer `/teach` or
 - Methodology (the paid deliverable): docs/methodology/
 - Architecture decisions: docs/decisions/
 - Repository audit and the tool that disputes it: docs/internal/audit-2026-08-20.md,
-  run with `bash scripts/verifikasi-audit.sh`
+  run with `bash scripts/audit-verification.sh`
 
 Note that no path in this list carries an `@` prefix. That is deliberate. An `@`
 loads the file into context on every session, and the OpenAPI contract alone runs

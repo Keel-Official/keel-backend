@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# verifikasi-audit.sh
+# audit-verification.sh
 #
 # Re-runs every claim in docs/internal/audit-2026-08-20.md.
 # The point is to make that audit disputable rather than believed.
@@ -23,7 +23,7 @@
 # a finding is about file contents, the check matches the content rather than the
 # filename, so a rename cannot make it disappear either.
 #
-# Usage: bash scripts/verifikasi-audit.sh
+# Usage: bash scripts/audit-verification.sh
 # Exit code: always 0. This file reports, it does not judge.
 
 cd "$(dirname "$0")/.." || exit 1
@@ -95,9 +95,31 @@ fixture_omits_pool(){
   [ -f docs/evidences/pool_ustry_usdc_2026-02.txt ] &&
     grep -qE 'Pools:[[:space:]]+nil' internal/conformance/fixture.go
 }
-# The methodology still states the manipulation cost was zero, which holds only if
-# the pool is excluded.
-methodology_claims_zero(){ grep -qF 'Not thin. Zero.' docs/methodology/keel-methodology-core.md; }
+# The methodology still states the manipulation cost was zero without saying which
+# venue it was zero through, which is the half of the claim that was wrong. Zero
+# through the order book is TRUE and directly observed. Zero through the combined
+# market is false, because the pool held an honest price the whole time. So the
+# check is on the distinction being drawn, not on a phrase: the finding is fixed
+# once the document separates the two venues.
+#
+# The phrase this used to grep, 'Not thin. Zero.', was rewritten out of the
+# methodology in 1.0.3, and the check flipped to NOT on the rewrite rather than on
+# the correction. Anchoring on prose that the fix itself rewrites cannot work.
+methodology_claims_zero(){
+  grep -qiE 'cost (was|is) zero' docs/methodology/keel-methodology-core.md \
+    && ! grep -qF 'orderbookOnly' docs/methodology/keel-methodology-core.md
+}
+
+# P1-15 is a pair of conditions, and only the methodology half was ever checked.
+# The finding is that the methodology demands both C_max terms while the output
+# type carries only their minimum, so it is fixed when the type carries both. The
+# sentence in the methodology moved from 'both have to be reported' to 'Both terms
+# must be reported separately' in 1.0.3, which is the same requirement worded
+# differently, so the grep is loose on wording and strict on the type.
+cmax_terms_missing(){
+  grep -qiE 'both (terms )?(must|have to) be reported' docs/methodology/keel-methodology-core.md \
+    && ! grep -q 'MaxSafeCollateralLiquidation' internal/domain/types.go
+}
 
 learning_pointed_but_missing(){ grep -q "docs/learning" README.md && [ ! -d docs/learning ]; }
 readme_promises_record(){ grep -qF "make record      # jalankan snapshot recorder" README.md; }
@@ -130,8 +152,13 @@ check P1-3 "and the metrics table the API reads is absent from migrations" metri
 check P1-4 "A data source CHECK rejects trades-implied" check_rejects_trades_implied
 check P1-5 "although the domain already has DataSourceTradesImplied" \
   grep -q "DataSourceTradesImplied" internal/domain/types.go
+# WHITESPACE, not content. The first version of this check matched the exact
+# column alignment of the old struct field. When the scalar form came back with a
+# different number of spaces the check went quietly green, which is the worst
+# failure mode a check has: it reported the defect gone while the defect was
+# there. Match the declaration, not its layout.
 check P1-6 "types.go holds OracleResistance as a scalar" \
-  grep -qF "OracleResistance        *decimal.Decimal" internal/domain/types.go
+  grep -qE '^[[:space:]]*OracleResistance[[:space:]]+\*decimal\.Decimal' internal/domain/types.go
 check P1-7 "although DEC-003 rejects the scalar form explicitly" \
   grep -qF "a single scalar quotient" docs/decisions/DEC-003-api-contract-v1-1.md
 check P1-8 "CostToMaxReachablePrice exists in the code" \
@@ -146,7 +173,7 @@ check P1-13 "The contract uses criticalDelta 0.5" \
 check P1-14 "while DefaultParams uses a critical delta of 1.0" \
   grep -qF 'ManipulationCriticalDelta: dec("1.0")' internal/conformance/fixture.go
 check P1-15 "The methodology requires both C_max terms reported, not only the minimum" \
-  grep -qF 'both have to be reported' docs/methodology/keel-methodology-core.md
+  cmax_terms_missing
 check P1-16 "internal/adapter uses float64" adapter_uses_float
 check P1-17 "The float ban stops at the pure packages instead of covering the repository" float_ban_partial
 check P1-18 "internal/adapter is imported by no package" adapter_unused

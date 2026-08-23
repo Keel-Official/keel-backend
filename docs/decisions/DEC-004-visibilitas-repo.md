@@ -65,7 +65,7 @@ here is not forgetting to open the repository; it is opening it next month in a
 rush before a deadline, with nobody remembering that the SoW went along with it.
 
 So the condition is also enforced mechanically rather than only written: the
-"Repository visibility" section of `scripts/verifikasi-audit.sh` checks visibility
+"Repository visibility" section of `scripts/audit-verification.sh` checks visibility
 through `gh` and shouts if the repository is already public while either file is
 still present. A rule that lives only in a document gets broken within two weeks.
 

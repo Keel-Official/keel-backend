@@ -1,0 +1,104 @@
+POOL_ID="27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb"
+TARGET="2026-02-22T00:10:21Z"
+CURSOR=""
+
+while :; do
+  URL="https://horizon.stellar.org/liquidity_pools/$POOL_ID/effects?order=desc&limit=200"
+  [ -n "$CURSOR" ] && URL="$URL&cursor=$CURSOR"
+  RESP=$(curl -s "$URL")
+  N=$(echo "$RESP" | jq '._embedded.records | length')
+  [ "$N" -eq 0 ] && { echo "riwayat habis sebelum target"; break; }
+
+  HIT=$(echo "$RESP" | jq -c --arg t "$TARGET" \
+    '[._embedded.records[] | select(.created_at < $t)][0] // empty')
+
+  if [ -n "$HIT" ]; then
+    echo "$HIT" | jq '{created_at, type, reserves: .liquidity_pool.reserves}'
+    break
+  fi
+
+  echo "mundur melewati $(echo "$RESP" | jq -r '._embedded.records[-1].created_at')"
+  CURSOR=$(echo "$RESP" | jq -r '._embedded.records[-1].paging_token')
+  sleep 0.4
+done
+mundur melewati 2026-08-19T11:07:16Z
+mundur melewati 2026-08-18T23:31:09Z
+mundur melewati 2026-08-18T20:56:49Z
+mundur melewati 2026-08-18T16:59:15Z
+mundur melewati 2026-08-18T08:22:11Z
+mundur melewati 2026-07-31T03:22:03Z
+mundur melewati 2026-07-29T18:23:51Z
+mundur melewati 2026-07-29T13:54:08Z
+mundur melewati 2026-07-29T12:14:58Z
+mundur melewati 2026-07-29T11:21:12Z
+mundur melewati 2026-07-27T22:10:20Z
+mundur melewati 2026-07-27T15:26:31Z
+mundur melewati 2026-07-27T07:37:30Z
+mundur melewati 2026-07-27T06:44:49Z
+mundur melewati 2026-07-27T06:39:42Z
+mundur melewati 2026-07-27T06:34:42Z
+mundur melewati 2026-07-27T06:30:14Z
+mundur melewati 2026-07-22T14:44:38Z
+mundur melewati 2026-07-22T14:02:26Z
+mundur melewati 2026-07-22T12:57:37Z
+mundur melewati 2026-07-22T12:23:13Z
+mundur melewati 2026-07-22T12:18:41Z
+mundur melewati 2026-07-22T11:44:07Z
+mundur melewati 2026-07-22T11:39:41Z
+mundur melewati 2026-07-22T11:31:39Z
+mundur melewati 2026-07-22T11:29:29Z
+mundur melewati 2026-07-22T11:25:39Z
+mundur melewati 2026-07-22T11:20:26Z
+mundur melewati 2026-07-22T11:19:03Z
+mundur melewati 2026-07-22T10:29:23Z
+mundur melewati 2026-07-22T09:55:37Z
+mundur melewati 2026-07-22T09:52:14Z
+mundur melewati 2026-07-22T09:49:37Z
+mundur melewati 2026-07-22T09:40:33Z
+mundur melewati 2026-07-22T09:38:24Z
+mundur melewati 2026-07-22T09:34:07Z
+mundur melewati 2026-07-22T08:58:10Z
+mundur melewati 2026-07-22T08:54:10Z
+mundur melewati 2026-07-22T08:31:44Z
+mundur melewati 2026-07-22T07:40:06Z
+mundur melewati 2026-07-22T07:36:28Z
+mundur melewati 2026-07-22T07:32:50Z
+mundur melewati 2026-07-22T07:29:40Z
+mundur melewati 2026-07-22T07:05:02Z
+mundur melewati 2026-07-22T06:39:31Z
+mundur melewati 2026-07-22T06:26:25Z
+mundur melewati 2026-07-22T04:14:50Z
+mundur melewati 2026-07-20T11:56:44Z
+mundur melewati 2026-07-20T11:06:42Z
+mundur melewati 2026-07-16T16:20:25Z
+mundur melewati 2026-07-15T22:28:51Z
+mundur melewati 2026-07-12T02:56:44Z
+mundur melewati 2026-07-04T15:19:16Z
+mundur melewati 2026-07-01T14:12:42Z
+mundur melewati 2026-06-15T05:39:30Z
+mundur melewati 2026-06-05T21:17:57Z
+mundur melewati 2026-05-31T20:10:37Z
+mundur melewati 2026-05-30T20:31:40Z
+mundur melewati 2026-05-30T20:11:19Z
+mundur melewati 2026-05-26T17:15:40Z
+mundur melewati 2026-05-26T12:02:25Z
+mundur melewati 2026-05-25T20:12:41Z
+mundur melewati 2026-05-25T11:12:16Z
+mundur melewati 2026-05-14T20:10:21Z
+mundur melewati 2026-03-18T16:53:57Z
+mundur melewati 2026-02-24T00:40:15Z
+mundur melewati 2026-02-22T18:48:14Z
+{
+  "created_at": "2026-02-10T16:59:35Z",
+  "type": "liquidity_pool_trade",
+  "reserves": [
+    {
+      "asset": "native",
+      "amount": "15.8839472"
+    },
+    {
+      "asset": "Vol:GAUZ24CWEUNVIOWD6K7SXEQ6FQT6K6LLDJJEBRS7QHUDJORQB7SMSQ7O",
+      "amount": "638608.3556230"
+    }
+  ]
+}

@@ -185,7 +185,7 @@ func TestArchTanpaFloatDiSeluruhRepo(t *testing.T) {
 		}
 		if d.IsDir() {
 			// Nothing to scan inside version control metadata or a temporary
-			// clone left by scripts/verifikasi-audit.sh.
+			// clone left by scripts/audit-verification.sh.
 			switch d.Name() {
 			case ".git", "node_modules", "recordings":
 				return filepath.SkipDir
