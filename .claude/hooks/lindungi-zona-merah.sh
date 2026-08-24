@@ -82,6 +82,16 @@ command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 # refuse MORE, never less, which is the safe direction for a guardrail.
 line=$(printf '%s ' "$command_line" | tr '\n' ' ')
 
+# P2-6d fix, part 1: a heredoc body is DATA. Truncate the line at the <<
+# marker unless the thing being fed is an interpreter, because the heredoc
+# body IS the program in that case and it may write to the zone.
+if printf '%s' "$line" | grep -Eq "<<-?[[:space:]]*['\"\]?[A-Za-z_]"; then
+  if ! printf '%s' "$line" | grep -Eq '\b(python3?|node|ruby|perl|awk)\b.*<<'; then
+    line=$(printf '%s' "$line" | sed -E "s/<<-?[[:space:]]*['\"\]?[A-Za-z_][A-Za-z_0-9]*.*//")
+    line="$line "
+  fi
+fi
+
 # 1. The red zone FILE. Add here when the zone moves again, add the same path to
 #    the deny list in .claude/settings.json, because neither one closes the other's
 #    route, and REMOVE the old path in the same commit: an alternation branch that
@@ -95,17 +105,23 @@ zone_dir='(internal/domain[^/[:alnum:]_]|internal/domain/[^[:alnum:]_])'
 
 zone_any="$zone|$zone_dir"
 
+# P2-6d fix, part 2: command position anchor. A verb is only a verb at the
+# start of the line or after a shell separator (|, ;, &, &&, ||). A verb
+# inside a quoted string is prose, not a command. This is approximate and
+# loses `find . -exec rm {} +`, the deliberate path, not the accidental one.
+cmd='(^|[|;&]+)[[:space:]]*'
+
 # 3. A formatter rewriting in place with no file named. `gofmt -l -w .` and
 #    `goimports -w ./...` reach compute.go while mentioning neither it nor its
 #    directory, which is how P2-6c stayed open. A named .go file is the escape.
-formatter_in_place='\b(gofmt|goimports)\b[^|;&]*-[a-zA-Z]*w'
+formatter_in_place="$cmd"'\b(gofmt|goimports)\b[^|;&]*-[a-zA-Z]*w'
 names_go_file='\.go[^a-zA-Z0-9_]'
 
 # `make fmt` is that same sweep wearing a different name: the recipe is
 # `gofmt -l -w .`. A hook cannot see inside a recipe, so the target is named here.
 # ADDING A FORMATTING TARGET TO THE MAKEFILE MEANS ADDING IT HERE TOO. That is a
 # second home for one fact and it is the weakest line in this file.
-make_fmt='\bmake\b[^|;&]*\bfmt\b'
+make_fmt="$cmd"'\bmake\b[^|;&]*\bfmt\b'
 
 touches_zone=0
 if printf '%s' "$line" | grep -Eq "$zone_any"; then
@@ -170,7 +186,7 @@ Detected: output redirected into the red zone."
 fi
 
 # C. Commands whose job is to mutate files, naming the zone or its directory.
-mutating='(\bsed\b[^|;]*-i|\bperl\b[^|;]*-[a-zA-Z]*i|\btee\b|\bcp\b|\bmv\b|\brm\b|\bln\b|\binstall\b|\btruncate\b|\bdd\b|\bpatch\b|\btouch\b|\bmkdir\b|git[[:space:]]+(apply|checkout|restore|stash|rm|mv)|\b(gofmt|goimports)\b[^|;]*-w|\bpython3?\b|\bnode\b|\bruby\b|\bperl\b|\bawk\b[^|;]*-i)'
+mutating="$cmd"'(\bsed\b[^|;]*-i|\bperl\b[^|;]*-[a-zA-Z]*i|\btee\b|\bcp\b|\bmv\b|\brm\b|\bln\b|\binstall\b|\btruncate\b|\bdd\b|\bpatch\b|\btouch\b|\bmkdir\b|git[[:space:]]+(apply|checkout|restore|stash|rm|mv)|\b(gofmt|goimports)\b[^|;]*-w|\bpython3?\b|\bnode\b|\bruby\b|\bperl\b|\bawk\b[^|;]*-i)'
 if printf '%s' "$line" | grep -Eq "$mutating"; then
   refuse "$message
 
