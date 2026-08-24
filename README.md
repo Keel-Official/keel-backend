@@ -9,10 +9,17 @@ actually support".
 
 This repository is under construction and **the core of the methodology is not
 implemented yet.** What exists: the methodology definitions, the API contract, a
-golden fixture computed by hand from real on-chain data, the shared types, and
-architecture tests that enforce package purity. What does not exist yet: the
-formulas in `internal/domain/compute.go`, which are declared and panic, plus the
-data adapters, storage, and the API.
+golden fixture computed by hand from real on-chain data, the shared types,
+architecture tests that enforce package purity, the live Horizon adapter with the
+cross-validation recorder, the Postgres persistence layer, and the read-only API.
+What does not exist yet: the formulas in `internal/domain/compute.go`, which are
+declared and panic, plus the historical adapter, which DEC-002 defers.
+
+**Every layer around the engine is now built, and the engine is the gap.** `keel
+serve` answers all five endpoints today; what it has no rows to return is metrics,
+and `keel scan` cannot produce one, because every function in the red zone panics.
+That makes the API worth running before the engine exists: the frontend can build
+against real 404s, real 503s and real headers rather than against mocks.
 
 What that means for the commands you can run:
 
@@ -23,9 +30,12 @@ What that means for the commands you can run:
 | `make arch` | works, enforces purity of `internal/domain` |
 | `make up` | works, starts local Postgres |
 | `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and every function in `compute.go` panics |
-| `make record` | **no body yet**, exits with code 3 |
-| `make scan` | **no body yet**, exits with code 3 |
-| `make serve` | **no body yet**, exits with code 3 |
+| `make record-once` | works, records one round of live Horizon snapshots and exits |
+| `make record` | works, records every 30 minutes until stopped. Needs `PAIRS` |
+| `make assets` | works, declares the demonstration set. Needs the database |
+| `make serve` | works, serves every endpoint in the contract. Needs the database |
+| `make store-test` | works, the `internal/store` integration tests. Needs the database |
+| `make scan` | **no body yet**, exits with code 3. Blocked on the red zone, not on plumbing |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
 built yet" apart from "failed".
@@ -48,6 +58,54 @@ mounted into Postgres's `docker-entrypoint-initdb.d`, because that directory run
 only when the data directory is empty: it applies the first file on a fresh volume
 and silently ignores every file after it.
 
+## Recording cross-validation evidence, and why it starts before anything else
+
+```bash
+make record-once                       # one round, into recordings/
+cp scripts/record-pairs.example.json my-pairs.json   # then edit it
+make record PAIRS=my-pairs.json        # every 30 minutes, Ctrl-C to stop
+```
+
+Layer 3 of `docs/methodology/10-validation.md` compares a live Horizon reading of
+a ledger against a reconstruction of that same ledger, and that is what satisfies
+the SOW promise of cross-validation over 50 or more sample ledgers. The live half
+has to be taken while the ledger is current. **It is the only work in this
+repository that cannot be caught up later**, so the recorder was written before
+the storage layer and before the API.
+
+Each file is `recordings/{pair}/{ledgerSeq}.json.gz` and holds both the parsed
+conclusions and the raw response bodies. Existing files are never overwritten.
+The raw stream is not tracked by git; `recordings/sample/` is the exception,
+because the schema's own header promises 60 recordings as committed evidence. See
+the reason in `.gitignore`.
+
+Which assets to record is decision D-1 and
+`docs/methodology/02-pair-selection.md` is still a worksheet, so no asset list is
+compiled into the binary. The `-pairs` file is data, and the shipped one is an
+example rather than a selection.
+
+## The database
+
+```bash
+make up && make migrate                  # start Postgres, apply migrations/
+make assets PAIRS=my-pairs.json          # declare the demonstration set
+make store-test                          # the integration tests, needs the above
+```
+
+`keel assets` is the only command that writes to the database today. `scan` will
+be the second, once there is a result to store.
+
+**If a connection fails with `role "keel" does not exist`**, port 5432 is being
+answered by a Postgres that is not this project's container. A server already
+running on the host takes the port first, and `make migrate` will not notice
+because it goes through `docker compose exec`. Point the client at the container
+explicitly:
+
+```bash
+make store-test KEEL_TEST_DSN="postgres://keel:keel_dev_only@<container-address>:5432/keel?sslmode=disable"
+KEEL_DSN="..." make assets
+```
+
 To see what is still unsettled in this repository before contributing:
 
 ```bash
@@ -65,10 +123,10 @@ raw `price_r` values, outside Go, as a cross-check.
 | `cmd/keel` | single entrypoint, several subcommands | skeleton |
 | `internal/domain` | shared types in `types.go`, the methodology in `compute.go` | types present, `compute.go` declared and panicking |
 | `internal/conformance` | golden fixture and conformance tests, black-box against `internal/domain` | present, waiting on `compute.go` |
-| `internal/horizon` | live data adapter | empty |
+| `internal/horizon` | live data adapter and the cross-validation recorder | present |
 | `internal/hubble` | historical data adapter, deferred, see DEC-002 | empty |
-| `internal/store` | persistence | empty |
-| `internal/api` | read-only HTTP handlers | empty |
+| `internal/store` | Postgres persistence for assets, metrics and runs | present |
+| `internal/api` | read-only HTTP handlers, five endpoints | present |
 | `migrations` | Postgres schema, applied with `make migrate` | present, reconciled with TDD section 5 |
 | `docs/methodology` | the methodology deliverable | present |
 | `docs/decisions` | decision records | present |

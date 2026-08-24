@@ -164,6 +164,37 @@ cmax_terms_missing(){
 
 learning_pointed_but_missing(){ grep -q "docs/learning" README.md && [ ! -d docs/learning ]; }
 readme_promises_record(){ grep -qF "make record      # jalankan snapshot recorder" README.md; }
+
+# P2-10 generalises P2-4 the way P2-9 generalised P1-19. P2-4 is anchored on one
+# pre-translation Indonesian line that cannot come back, so it can no longer
+# fail, and a check that cannot fail is not a check. It is left exactly as it is,
+# because the audit is a DATED document and its claim P2-4 has to keep matching
+# the line that carries its id.
+#
+# This asks the question P2-4 was really asking, in a form that can fail in both
+# directions: does the README's command table agree with the entrypoint about
+# which subcommands have a body. `belum` is the stub helper in cmd/keel/main.go
+# and "no body yet" is the README's phrase for the same state, so a subcommand
+# that gains an implementation without the README noticing is PROVEN, and so is a
+# README claiming an implementation that does not exist.
+#
+# WHAT IT CANNOT PROVE: that the body works. It reads a dispatch arm and a table
+# row. `make record-once` is what proves the body.
+subcommand_stubbed(){
+  awk -v c="$1" '$0 ~ "case \""c"\":" {f=1; next} /^\tcase / {f=0} f' cmd/keel/main.go | grep -q 'belum('
+}
+readme_calls_stubbed(){ grep -qE '`make '"$1"'`[^|]*\|[^|]*no body yet' README.md; }
+readme_disagrees_with_code(){
+  local c
+  for c in record scan serve; do
+    if subcommand_stubbed "$c"; then
+      readme_calls_stubbed "$c" || return 0
+    else
+      readme_calls_stubbed "$c" && return 0
+    fi
+  done
+  return 1
+}
 empty_dirs_vanish(){
   for d in api internal/api internal/store; do
     [ -d "$d" ] && [ -z "$(ls -A "$d" 2>/dev/null)" ] && return 0
@@ -369,6 +400,8 @@ if zones_incomplete; then
     printf "        %sno row in the zone map:%s %s\n" "$dim" "$off" "$d"
   done
 fi
+check P2-10 "The README's command table and cmd/keel disagree about which subcommands have a body" \
+  readme_disagrees_with_code
 check P2-7 "The methodology file structure decision is still open in the methodology README" \
   grep -qF "The decision that has to be made" docs/methodology/README.md
 check P2-8 "The fixture writes 'All four' for a list holding six flags" \
