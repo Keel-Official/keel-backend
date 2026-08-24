@@ -147,9 +147,24 @@ documenturl_dangling() {
 spike_dod_unanswered(){ ! grep -qF 'The spike result, 21 August 2026' docs/decisions/DEC-002-hold-bigquery.md; }
 # The golden fixture omits a pool that demonstrably held reserves at its ledger.
 # Gated on the evidence existing, so the finding cannot be raised without it.
+#
+# IT PROBED THE WRONG FILE UNTIL 25 AUGUST 2026, and the way it went wrong is the
+# one this repository keeps meeting. The fixture has two halves: the hand document
+# in testdata/fixtures/, which DEC-006 section 1 names, and the Go fixture that
+# feeds the conformance test. This checked the Go half for `Pools: nil`. The pool
+# went into GoldenSnapshot on 23 August, so the check flipped to NOT and reported
+# the finding closed while the document DEC-006 is about had not moved, and while
+# DEC-006 itself still said OPEN.
+#
+# Both halves are checked now. Either one omitting the pool is the finding, because
+# a fixture whose two halves disagree about their own INPUT is worse than one that
+# is wrong in both: the hand numbers stop describing the snapshot they are compared
+# against, and nothing in a test run says so.
 fixture_omits_pool(){
-  [ -f docs/evidences/pool_ustry_usdc_2026-02.txt ] &&
-    grep -qE 'Pools:[[:space:]]+nil' internal/conformance/fixture.go
+  [ -f docs/evidences/pool_ustry_usdc_2026-02.txt ] || return 1
+  grep -qE 'Pools:[[:space:]]+nil' internal/conformance/fixture.go && return 0
+  grep -qE 'Pools:[[:space:]]*\[\]' testdata/fixtures/ustry_pre_exploit.md && return 0
+  return 1
 }
 # The methodology still states the manipulation cost was zero without saying which
 # venue it was zero through, which is the half of the claim that was wrong. Zero

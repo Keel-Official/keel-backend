@@ -1,8 +1,9 @@
 # DEC-006: The golden fixture is missing an AMM pool, and what that costs
 
-**Status:** OPEN. This document records a finding and its consequences. The decision
-is Al's, because closing it means editing the methodology and the golden fixture,
-and both are the paid deliverable.
+**Status:** DECIDED 25 August 2026, options A and C together, by Al. See section 8,
+which also records that most of both had already been executed on 23 August without
+this document noticing. What remains is in that section and it is smaller than
+section 6 suggests.
 **Found:** 21 August 2026, while closing the DEC-002 spike DoD.
 **Evidence:** `docs/evidences/pool_ustry_usdc_2026-02.txt`, reproducible with curl
 and no account.
@@ -190,3 +191,69 @@ What would still overturn this: a class of reserve-changing event that does not
 produce a transaction associated with the pool. None is known, and Stellar has no
 mechanism for changing a pool's reserves without an operation against it, but that is
 an argument from the protocol rather than from this data.
+
+---
+
+## 8. Decided 25 August 2026: A and C, and most of both was already done
+
+Al chose **A and C together**, which is what section 6 recommends. This section records
+the decision and one thing that had to be checked before executing it: how much of A
+and C already existed.
+
+**Most of both landed on 23 August, and this document did not notice.** DEC-006 was
+found on the 21st. Methodology 1.0.3, contract 1.3.0 and migration 0003 all answered
+it on the 23rd, and none of them amended this file, so it went on saying OPEN and went
+on saying the fixture is missing a pool for two days after it stopped being true.
+
+| Piece | Where it is | Landed |
+|---|---|---|
+| The pool in the fixture INPUT | `GoldenSnapshot()` carries `PoolUSTRYUSDC`, reserves 16.3389179 USDC | `d0d461e`, 23 Aug |
+| The two-venue manipulation split | `05-manipulation-cost.md` section 3, written as a 1.0.3 addition and naming this finding as its cause | 1.0.3 |
+| Its storage | `manipulation_cost_combined` and `manipulation_cost_orderbook_only` | migration `0003`, 23 Aug |
+| Its contract fields | `manipulationCostCombined`, `manipulationCostOrderbookOnly` | contract 1.3.0, `7011e1c`, 23 Aug |
+| Its type | `AssetRisk.ManipulationCostCombined` and `.ManipulationCostOrderbookOnly` | types.go |
+| Its signature | `ComputeManipulationCost(s, p0, deltas, includeAMM)` | compute.go |
+| Per-venue DEPTH | `DepthPoint.FromSdex` and `.FromAmm` | types.go |
+| The "zero" claim, corrected | `05-manipulation-cost.md` section 3 separates the venues explicitly | 1.0.3 |
+
+The expected values were NOT adjusted to fit that new input, which is the part worth
+recording as correct rather than as an omission. `expected.go` was hand computed for a
+market with no pool, so the assertions using it were pointed at `BookOnlySnapshot()`
+instead, and the pool case is covered by invariants that need no hand computation. The
+hand numbers were kept and the tests were moved. That is the right way round.
+
+### What is left of A
+
+1. **`testdata/fixtures/ustry_pre_exploit.md` still records `Pools: []`.** The hand
+   document and the Go fixture now disagree about the input, and the hand document is
+   the one that is wrong. Al's, and the fixture is locked as of 25 August.
+2. **The with-pool depth and manipulation tables, computed by hand.** Section 2 of this
+   document already carries those figures, and they are an ILLUSTRATION of the finding,
+   not fixture inputs. Section 5 of this same document is why: numbers Claude produced
+   cannot be the numbers the conformance test proves the code against. Recompute them,
+   then compare against section 2. Agreement is a free confirmation and disagreement is
+   a second finding; copying is neither.
+
+### What is left of C, and one question inside it
+
+Option C names three venues: the orderbook alone, the pool alone, and combined. Two of
+the three exist. The third does not, and before it is built there is a question.
+
+**Is the pool-only figure a stored quantity or an arithmetic identity?** On this
+document's own table in section 2, combined is exactly orderbook plus AMM at every
+rung: 130.0627 + 149.2224 = 279.2851, and 130.0627 + 372.0029 = 502.0656. If that
+holds generally, then a `manipulationCostPoolOnly` ladder is `combined` minus
+`orderbookOnly` point by point, and storing it is a second home for a fact already
+stored twice. Handoff item 17 is that same mistake in a smaller shape.
+
+Note that this does NOT contradict non-negotiable rule 4. Rule 4 governs DEPTH, where
+the venues compete at a shared marginal price and do not add, which is why the
+discriminating test exists and why `FromAmm` must be exactly zero for a pool priced
+above the target. Manipulation COST to reach a target price is a different quantity:
+both venues have to be moved to the same target for the market price to arrive there,
+so the two amounts are independent and they do add.
+
+Whether that identity is a definition or a coincidence of this one fixture is a
+methodology question and it is Al's. If it is a definition, C is finished by saying so
+in `05-manipulation-cost.md` and in the contract, and no column, field or migration is
+needed. If it is not, the third ladder needs its own formula in `compute.go`.
