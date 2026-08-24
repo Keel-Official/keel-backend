@@ -6,6 +6,7 @@
 //
 //	keel version    print the methodology version and exit
 //	keel record     record raw Horizon snapshots for cross-validation
+//	keel assets     declare and inspect the demonstration set
 //	keel scan       compute metrics for every active asset, store them in Postgres
 //	keel serve      run the read API
 //	keel replay     replay a ledger range through the historical adapter
@@ -43,6 +44,15 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "assets":
+		// The demonstration set. This one has a body because `scan` has nothing
+		// to scan until the assets table is populated, and because a package
+		// with no caller drifts; see the header of assets.go.
+		if err := runAssets(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel assets: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "scan":
 		belum(perintah, "internal/horizon + internal/domain + internal/store")
 
@@ -76,6 +86,7 @@ Usage:
 Subcommands:
   version   print the methodology version
   record    record raw Horizon snapshots for cross-validation ("keel record -h")
+  assets    declare and inspect the demonstration set ("keel assets -h")
   scan      compute metrics for every active asset, store them in Postgres
   serve     run the read API
   replay    replay a ledger range through the historical adapter
