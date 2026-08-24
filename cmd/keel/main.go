@@ -34,10 +34,14 @@ func main() {
 		fmt.Printf("keel methodology %s\n", domain.MethodologyVersion)
 
 	case "record":
-		// The cross-validation recorder. This one must start running BEFORE the
-		// historical path, because a comparison baseline cannot be created
-		// retroactively. Every day of delay is evidence lost permanently.
-		belum(perintah, "internal/horizon + a recorder writing to recordings/")
+		// The cross-validation recorder, and the first subcommand with a body.
+		// It had to be first for the reason recorded here while it was still
+		// empty: a comparison baseline cannot be created retroactively, so
+		// every day of delay is evidence lost permanently. See record.go.
+		if err := runRecord(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel record: %v\n", err)
+			os.Exit(1)
+		}
 
 	case "scan":
 		belum(perintah, "internal/horizon + internal/domain + internal/store")
@@ -71,7 +75,7 @@ Usage:
 
 Subcommands:
   version   print the methodology version
-  record    record raw Horizon snapshots for cross-validation
+  record    record raw Horizon snapshots for cross-validation ("keel record -h")
   scan      compute metrics for every active asset, store them in Postgres
   serve     run the read API
   replay    replay a ledger range through the historical adapter

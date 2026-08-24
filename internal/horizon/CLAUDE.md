@@ -9,8 +9,10 @@ produces. If the two adapters produce different types the design has failed and
 ## Endpoints
 
 - `GET /order_book` with the selling_asset_* and buying_asset_* parameters
-- `GET /liquidity_pools`
+- `GET /liquidity_pools` with the `reserves=A,B` filter
 - `GET /assets?asset_code=...` to verify asset identity
+- `GET /ledgers/{sequence}` for the ledger close time, which `/order_book` does
+  not carry at all
 
 ## Traps that keep happening
 
@@ -29,3 +31,42 @@ produces. If the two adapters produce different types the design has failed and
 
 Explain in three sentences: what design decision you took, one alternative you
 rejected, and why.
+
+## Two more traps, both found by running against live Horizon
+
+5. **The two sides of `/order_book` are not denominated in the same asset.** An
+   ask's `amount` is in the base asset. A bid's `amount` is in the QUOTE asset,
+   because Horizon inverts the bid price into quote-per-base but leaves the
+   amount as the underlying offer's selling amount, and a bid is an offer selling
+   the quote asset. `domain.Level.Amount` is defined in base units, so a bid has
+   to be converted. Reading it as base overstates sell-side depth by the price
+   factor, and sell-side depth is the liquidation term of `C_max`. Measured, not
+   assumed: `docs/evidences/order_book_amount_units_2026-08-24.txt`.
+6. **`Latest-Ledger` is not on every response.** The collection endpoints send
+   it, `/ledgers/{sequence}` does not, and it does not need to because it carries
+   its own sequence in the body. The first version of this client required the
+   header everywhere and failed on its first real request. `/order_book` carries
+   no ledger sequence at all, so that header is the only honest stamp for a
+   snapshot and a guess is not an acceptable substitute.
+
+## What exists here now
+
+`client.go` is the read side: `GetSnapshot` assembles one `domain.Snapshot` from
+`/order_book`, `/liquidity_pools`, and `/ledgers/{seq}`, and `VerifyAsset` closes
+trap 4 once per asset rather than once per snapshot. `decode.go` holds the wire
+shapes. `recorder.go` is the cross-validation recorder, one file per pair per
+ledger, never overwritten. Each file's own header lists the design decisions and
+the alternative rejected, which is what this zone asks for; the three that matter
+most across all of them are below.
+
+## The three sentences this zone asks for
+
+The decision: Horizon is read with `net/http` and hand-written response structs,
+every snapshot keeps the raw bytes it was parsed from, and the recorder writes one
+never-overwritten file per ledger. The alternative rejected: using
+`horizonclient` from the Stellar SDK and recording only the parsed
+`domain.Snapshot`, which is less code today. Why it was rejected: the SDK returns
+its own structs that would need converting into `domain.Snapshot` anyway, so it
+buys a dependency and saves no layer, and recording only the parsed form would
+bake one reading of the order book into weeks of evidence, which is exactly the
+reading that turned out to be wrong for bids until it was measured.

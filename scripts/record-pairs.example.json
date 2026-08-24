@@ -1,0 +1,18 @@
+{
+  "note": "EXAMPLE, not a pair selection. Which assets Keel measures is decision D-1 and docs/methodology/02-pair-selection.md is still a worksheet, so nothing in this file is a methodology claim. It holds the one pair the deliverable is already about, USTRY against USDC, whose identity is fixed by DEC-001 and whose issuer matches testdata/fixtures/ustry_pre_exploit.md. Copy it, extend it, and keep the working list out of version control. Every asset type is written out and never inferred from the code length: USTRY has five characters and is credit_alphanum12, and asking Horizon for it as credit_alphanum4 returns an empty book with no error.",
+  "pairs": [
+    {
+      "base": {
+        "code": "USTRY",
+        "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "The asset of the 22 February 2026 Blend incident, and the subject of DEC-001 and the golden fixture. Present because the deliverable is checked against it, not because it was selected by a rule."
+    }
+  ]
+}
