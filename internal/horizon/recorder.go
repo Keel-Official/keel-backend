@@ -41,6 +41,16 @@
 //     methodology decision that belongs to its author. Rejected alternative: a
 //     hardcoded list of the eight obvious Stellar assets, which is convenient
 //     and would be cited later as if it had been chosen.
+//
+//  5. HOLDERS ARE RECORDED PER BASE ASSET, NOT PER PAIR, AND ONLY WHEN ASKED.
+//     A holder reading belongs to an asset rather than to a market, so recording
+//     it once per pair would write the same USDC holder set under every pair
+//     that quotes in USDC. Only BASE assets are read: the base is the asset being
+//     measured, and a quote asset like USDC has hundreds of thousands of
+//     trustlines that would eat the hourly budget to answer a question nothing
+//     asks. It is off by default because it is the one reading here whose cost
+//     grows with the asset rather than staying at three requests. See
+//     holders.go for why it has to be recorded at all rather than fetched later.
 package horizon
 
 import (
@@ -96,6 +106,13 @@ type RecorderConfig struct {
 	Client *Client
 	Root   string
 	Pairs  []Pair
+
+	// Holders turns on the holder distribution reading, one file per BASE asset
+	// per ledger under {Root}/holders. It is off by default and that is a
+	// budget decision rather than a preference: a holder reading costs one
+	// request per two hundred accounts, where a pair snapshot costs three
+	// regardless of how deep the book is. See decision 5.
+	Holders bool
 
 	Now  func() time.Time
 	Logf func(format string, args ...any)
@@ -228,6 +245,137 @@ func (r *Recorder) record(ctx context.Context, p Pair) Result {
 // repeated three times is how they stop agreeing.
 const recordingSuffix = ".json.gz"
 
+// holdersDir is the subdirectory holder readings live under. It sits beside the
+// pair directories rather than inside one, because a holder reading belongs to
+// an asset and not to a market. See decision 5.
+const holdersDir = "holders"
+
+// HolderResult is the outcome for one asset in one holder round.
+type HolderResult struct {
+	Asset     domain.Asset
+	Path      string
+	LedgerSeq uint32
+	// Holders is how many accounts were read, which is NOT the holder count when
+	// Truncated is true.
+	Holders   int
+	Truncated bool
+	// Atomic is false when the pages came from different ledgers.
+	Atomic bool
+	// Skipped means this ledger was already on disk for this asset.
+	Skipped bool
+	Err     error
+}
+
+// HolderAssets is the list this recorder reads holders for: every distinct
+// non-native BASE asset in the pair list, in sorted order.
+//
+// It is exported because the answer is not obvious from the pair file and a
+// caller about to spend a request budget should be able to see it first. Sorted
+// for the same reason the verification order is: non-negotiable rule 2.
+func (r *Recorder) HolderAssets() []domain.Asset {
+	seen := map[string]bool{}
+	var out []domain.Asset
+	for _, p := range r.cfg.Pairs {
+		if p.Base.IsNative() {
+			continue
+		}
+		key := string(p.Base.Type) + "|" + p.Base.Code + "|" + p.Base.Issuer
+		if !seen[key] {
+			seen[key] = true
+			out = append(out, p.Base)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].String() < out[j].String() })
+	return out
+}
+
+// RecordHoldersOnce reads the holder distribution for every base asset once.
+// One asset failing does not stop the rest, for the reason RecordOnce gives.
+//
+// It returns nil when Holders is off, rather than an empty slice, so a caller
+// can tell "not asked for" apart from "asked for and nothing to do".
+func (r *Recorder) RecordHoldersOnce(ctx context.Context) []HolderResult {
+	if !r.cfg.Holders {
+		return nil
+	}
+	assets := r.HolderAssets()
+	out := make([]HolderResult, 0, len(assets))
+	for _, a := range assets {
+		if err := ctx.Err(); err != nil {
+			out = append(out, HolderResult{Asset: a, Err: err})
+			return out
+		}
+		out = append(out, r.recordHolders(ctx, a))
+	}
+	return out
+}
+
+func (r *Recorder) recordHolders(ctx context.Context, a domain.Asset) HolderResult {
+	res := HolderResult{Asset: a}
+
+	obs, err := r.cfg.Client.GetHolders(ctx, a)
+	if err != nil {
+		res.Err = err
+		return res
+	}
+	res.LedgerSeq = obs.Raw.FirstLedger
+	res.Holders = len(obs.Holders)
+	res.Truncated = obs.Truncated()
+	res.Atomic = obs.Raw.Atomic
+
+	dir := filepath.Join(r.cfg.Root, holdersDir, assetSlug(a))
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		res.Err = err
+		return res
+	}
+	res.Path = filepath.Join(dir, strconv.FormatUint(uint64(res.LedgerSeq), 10)+recordingSuffix)
+
+	if _, err := os.Stat(res.Path); err == nil {
+		res.Skipped = true
+		return res
+	} else if !errors.Is(err, os.ErrNotExist) {
+		res.Err = err
+		return res
+	}
+
+	body, err := json.MarshalIndent(obs.Raw, "", "  ")
+	if err != nil {
+		res.Err = err
+		return res
+	}
+	packed, err := gzipBytes(append(body, '\n'))
+	if err != nil {
+		res.Err = err
+		return res
+	}
+	if err := writeAtomic(res.Path, packed); err != nil {
+		res.Err = err
+	}
+	return res
+}
+
+// ReadHolderRecording reads one holder recording back, and exists for the same
+// reason ReadRecording does: one reader and one writer for a format.
+func ReadHolderRecording(path string) (RawHolders, error) {
+	var raw RawHolders
+	f, err := os.Open(path)
+	if err != nil {
+		return raw, err
+	}
+	defer f.Close()
+
+	zr, err := gzip.NewReader(f)
+	if err != nil {
+		return raw, fmt.Errorf("%s: %w", path, err)
+	}
+	defer zr.Close()
+
+	if err := json.NewDecoder(zr).Decode(&raw); err != nil {
+		return raw, fmt.Errorf("%s: %w", path, err)
+	}
+	return raw, nil
+}
+
 // gzipBytes compresses in memory rather than streaming into the file, so that a
 // compression failure happens before the file exists. writeAtomic can then keep
 // its promise that a file which exists is a complete recording.
@@ -302,6 +450,7 @@ func (r *Recorder) Run(ctx context.Context, interval time.Duration) error {
 
 	for {
 		r.Report(r.RecordOnce(ctx))
+		r.ReportHolders(r.RecordHoldersOnce(ctx))
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -334,6 +483,45 @@ func (r *Recorder) Report(results []Result) int {
 	}
 	r.cfg.Logf("round: %d written, %d skipped, %d failed, %d straddled a ledger boundary, %d requests this window",
 		written, skipped, failed, straddled, r.cfg.Client.Requests())
+	return failed
+}
+
+// ReportHolders logs one holder round and returns how many assets failed.
+// Nothing is logged when holder recording is off, which is what a nil slice
+// from RecordHoldersOnce means.
+//
+// A TRUNCATED reading is logged as loudly as a failure without being counted as
+// one, because it is a recording that was written and cannot answer the question
+// it was taken for. Counting it as a failure would make a run of a large asset
+// look broken; logging it quietly would let a concentration figure be computed
+// later from a subset nobody remembers was a subset.
+func (r *Recorder) ReportHolders(results []HolderResult) int {
+	if results == nil {
+		return 0
+	}
+	var written, skipped, failed, truncated int
+	for _, res := range results {
+		switch {
+		case res.Err != nil:
+			failed++
+			r.cfg.Logf("FAIL  holders %s: %v", res.Asset, res.Err)
+		case res.Skipped:
+			skipped++
+			r.cfg.Logf("skip  holders %s ledger %d, already recorded", res.Asset, res.LedgerSeq)
+		default:
+			written++
+			r.cfg.Logf("write holders %s ledger %d holders=%d atomic=%t -> %s",
+				res.Asset, res.LedgerSeq, res.Holders, res.Atomic, res.Path)
+		}
+		if res.Truncated {
+			truncated++
+			r.cfg.Logf("TRUNCATED holders %s: the page cap stopped at %d accounts, so this reading "+
+				"is a lower bound on the holder count and answers no concentration question",
+				res.Asset, res.Holders)
+		}
+	}
+	r.cfg.Logf("holder round: %d written, %d skipped, %d failed, %d truncated, %d requests this window",
+		written, skipped, failed, truncated, r.cfg.Client.Requests())
 	return failed
 }
 

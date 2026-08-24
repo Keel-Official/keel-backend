@@ -32,6 +32,7 @@ What that means for the commands you can run:
 | `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and every function in `compute.go` panics |
 | `make record-once` | works, records one round of live Horizon snapshots and exits |
 | `make record` | works, records every 30 minutes until stopped. Needs `PAIRS` |
+| `make record-holders` | works, one round of pairs plus the trustline holder distribution of every base asset |
 | `make assets` | works, declares the demonstration set. Needs the database |
 | `make serve` | works, serves every endpoint in the contract. Needs the database |
 | `make store-test` | works, the `internal/store` integration tests. Needs the database |
@@ -83,6 +84,40 @@ Which assets to record is decision D-1 and
 `docs/methodology/02-pair-selection.md` is still a worksheet, so no asset list is
 compiled into the binary. The `-pairs` file is data, and the shipped one is an
 example rather than a selection.
+
+### The holder distribution, which is worse than the order book in one way
+
+```bash
+make record-holders PAIRS=my-pairs.json     # one round of pairs AND holders
+```
+
+`-holders` adds `recordings/holders/{asset}/{ledgerSeq}.json.gz`, one file per
+ledger per BASE asset, holding every trustline holder, the issuer among them and
+flagged, and the issued supply. `07-supporting-metrics.md` promises holder
+concentration and a volume-to-supply ratio, and both are computed from exactly
+this.
+
+**The order book can be reconstructed from history and a trustline balance
+cannot.** That is why the golden fixture's book is labelled `offers-implied`: it
+was rebuilt from the operations that posted it. Horizon serves no historical
+balance at all, by any route, so a holder concentration figure for a past ledger
+is not recoverable from Horizon once the moment has passed. Hubble can answer it
+and DEC-002 defers Hubble.
+
+It is off by default, and that is a budget decision. A pair snapshot is three
+requests whatever the market looks like; a holder reading is one request per two
+hundred accounts, so a large asset can spend an hourly budget on its own. The cap
+is `-holder-pages`, 25 pages or 5000 accounts by default, and a reading that hits
+the cap says so in the file and in the log rather than quietly returning a
+subset. A truncated reading is a lower bound on the holder count and answers no
+concentration question at all, because the holder it is missing may be the
+largest one.
+
+Nothing computes these numbers yet. What counts as a holder is decision D-5 and
+which supply the ratio uses is D-6, both in a worksheet that says of itself that
+no definitions are recorded in it. The adapter therefore excludes nothing and
+ranks nothing: it records what is there, so the decision can be applied later,
+and applied both ways, against the same evidence.
 
 ## The database
 

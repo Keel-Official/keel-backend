@@ -258,3 +258,125 @@ func TestTheShippedExamplePairFileLoads(t *testing.T) {
 		t.Fatal("the shipped example holds no pairs")
 	}
 }
+
+// ---------------------------------------------------------------- Holders
+
+// holderRecorder is testRecorder with the holder reading turned on. It is a
+// separate helper rather than a parameter because every existing recorder test
+// asserts that nothing but pair snapshots gets written, and that assertion is
+// worth keeping exactly as it is.
+func holderRecorder(t *testing.T, f *fakeHorizon, pairs ...Pair) (*Recorder, string) {
+	t.Helper()
+	if len(pairs) == 0 {
+		pairs = []Pair{{Base: testUSTRY, Quote: testUSDC}}
+	}
+	c, _ := f.client()
+	root := t.TempDir()
+	r, err := NewRecorder(RecorderConfig{Client: c, Root: root, Pairs: pairs, Holders: true})
+	if err != nil {
+		t.Fatalf("NewRecorder: %v", err)
+	}
+	return r, root
+}
+
+func TestRecordHoldersWritesOneFilePerAssetPerLedger(t *testing.T) {
+	f := newFakeHorizon(t)
+	f.withHolders(assetSummary("1000.0000000", 2, true), []string{accountsPage(0, 2, "500.0000000")})
+	r, root := holderRecorder(t, f)
+
+	results := r.RecordHoldersOnce(context.Background())
+	if len(results) != 1 {
+		t.Fatalf("got %d results, want 1: only the BASE asset is read", len(results))
+	}
+	res := results[0]
+	if res.Err != nil {
+		t.Fatalf("recordHolders: %v", res.Err)
+	}
+	want := filepath.Join(root, "holders", "USTRY.GCRYUGD5", "61340263.json.gz")
+	if res.Path != want {
+		t.Errorf("path = %s, want %s", res.Path, want)
+	}
+	if res.Holders != 2 {
+		t.Errorf("Holders = %d, want 2", res.Holders)
+	}
+
+	raw, err := ReadHolderRecording(res.Path)
+	if err != nil {
+		t.Fatalf("ReadHolderRecording: %v", err)
+	}
+	if raw.RequestedAsset != testUSTRY.String() {
+		t.Errorf("RequestedAsset = %q, want %q", raw.RequestedAsset, testUSTRY.String())
+	}
+	if raw.HoldersRead != 2 || raw.HolderCount != 2 {
+		t.Errorf("HoldersRead = %d and HolderCount = %d, want 2 and 2", raw.HoldersRead, raw.HolderCount)
+	}
+	if len(raw.Accounts) != 1 || len(raw.AssetSummary) == 0 {
+		t.Error("the raw bytes did not survive the round trip, which is the point of the file")
+	}
+	if raw.MethodologyVersion != domain.MethodologyVersion {
+		t.Errorf("MethodologyVersion = %q, want %q", raw.MethodologyVersion, domain.MethodologyVersion)
+	}
+}
+
+// The quote asset is NOT read. USDC has hundreds of thousands of trustlines and
+// nothing in the methodology asks about them. See decision 5.
+func TestRecordHoldersReadsOnlyBaseAssets(t *testing.T) {
+	f := newFakeHorizon(t)
+	f.withHolders(assetSummary("1000.0000000", 1, true), []string{accountsPage(0, 1, "1.0000000")})
+	r, _ := holderRecorder(t, f, Pair{Base: testUSTRY, Quote: testUSDC}, Pair{Base: testUSTRY, Quote: domain.Asset{Type: domain.AssetTypeNative}})
+
+	assets := r.HolderAssets()
+	if len(assets) != 1 || !assets[0].Equal(testUSTRY) {
+		t.Fatalf("HolderAssets = %v, want only %s", assets, testUSTRY)
+	}
+}
+
+// A native BASE asset is skipped rather than failed: XLM has no trustlines, and
+// a pair list holding XLM/USDC is legitimate.
+func TestRecordHoldersSkipsANativeBaseAsset(t *testing.T) {
+	f := newFakeHorizon(t)
+	r, _ := holderRecorder(t, f, Pair{Base: domain.Asset{Type: domain.AssetTypeNative}, Quote: testUSDC})
+
+	if got := r.HolderAssets(); len(got) != 0 {
+		t.Fatalf("HolderAssets = %v, want none", got)
+	}
+	if results := r.RecordHoldersOnce(context.Background()); len(results) != 0 {
+		t.Fatalf("got %d results, want none", len(results))
+	}
+}
+
+func TestRecordHoldersNeverOverwrites(t *testing.T) {
+	f := newFakeHorizon(t)
+	f.withHolders(assetSummary("1000.0000000", 1, true), []string{accountsPage(0, 1, "1.0000000")})
+	r, _ := holderRecorder(t, f)
+
+	first := r.RecordHoldersOnce(context.Background())
+	if first[0].Err != nil || first[0].Skipped {
+		t.Fatalf("first round: err=%v skipped=%t", first[0].Err, first[0].Skipped)
+	}
+	second := r.RecordHoldersOnce(context.Background())
+	if second[0].Err != nil {
+		t.Fatalf("second round: %v", second[0].Err)
+	}
+	if !second[0].Skipped {
+		t.Error("the same ledger was recorded twice, so an existing recording was overwritten")
+	}
+}
+
+// Off by default, and nil rather than empty, so a caller can tell "not asked
+// for" apart from "nothing to do".
+func TestRecordHoldersIsOffByDefault(t *testing.T) {
+	f := newFakeHorizon(t)
+	f.withHolders(assetSummary("1000.0000000", 1, true), []string{accountsPage(0, 1, "1.0000000")})
+	r, root := testRecorder(t, f)
+
+	if results := r.RecordHoldersOnce(context.Background()); results != nil {
+		t.Fatalf("got %v, want nil when holder recording is off", results)
+	}
+	if f.hits["/accounts"] != 0 {
+		t.Error("a holder request was made although holder recording is off")
+	}
+	if _, err := os.Stat(filepath.Join(root, "holders")); !errors.Is(err, os.ErrNotExist) {
+		t.Error("a holders directory was created although holder recording is off")
+	}
+}

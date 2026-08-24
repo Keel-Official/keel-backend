@@ -10,9 +10,13 @@ produces. If the two adapters produce different types the design has failed and
 
 - `GET /order_book` with the selling_asset_* and buying_asset_* parameters
 - `GET /liquidity_pools` with the `reserves=A,B` filter
-- `GET /assets?asset_code=...` to verify asset identity
+- `GET /assets?asset_code=...` to verify asset identity, and to read the issued
+  supply and Horizon's own holder count
 - `GET /ledgers/{sequence}` for the ledger close time, which `/order_book` does
   not carry at all
+- `GET /accounts?asset=CODE:ISSUER` for the trustline holders, paged. This is the
+  only endpoint here that pages, and the only one whose request cost grows with
+  the asset rather than being fixed. See `holders.go`
 
 ## Traps that keep happening
 
@@ -21,7 +25,12 @@ produces. If the two adapters produce different types the design has failed and
 2. Reading the `price` string field. The correct one is `price_r`, shaped
    `{"n": 1, "d": 10}`. The string field has already lost precision.
 3. Horizon does NOT serve historical data. If you need the past, that is
-   internal/hubble's job. Never invent a historical endpoint.
+   internal/hubble's job. Never invent a historical endpoint. The trustline
+   balance is the sharpest form of this: an order book can at least be
+   reconstructed from the operations that posted it, which is what
+   `offers-implied` means in the golden fixture, and a balance at a past ledger
+   cannot be reconstructed from anything Horizon exposes. That is why
+   `holders.go` exists as a recorder rather than as something `scan` calls.
 4. Asset type must be passed explicitly and never inferred from code length.
    USTRY has a five character code and is `credit_alphanum12`; querying it as
    `credit_alphanum4` returns an empty result and no error. Two decision records

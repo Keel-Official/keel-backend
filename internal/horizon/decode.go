@@ -231,10 +231,104 @@ func addAsset(q url.Values, prefix string, a domain.Asset) {
 // GET /assets?asset_code=&asset_issuer=, used only by VerifyAsset.
 type assetsResponse struct {
 	Embedded struct {
-		Records []struct {
-			AssetType   string `json:"asset_type"`
-			AssetCode   string `json:"asset_code"`
-			AssetIssuer string `json:"asset_issuer"`
-		} `json:"records"`
+		Records []assetRecord `json:"records"`
 	} `json:"_embedded"`
+}
+
+// assetRecord carries the supply fields as well as the identity ones, because
+// /assets answers two different questions in one response and this adapter asks
+// both: VerifyAsset asks what type the asset is, and GetHolders asks how much of
+// it exists.
+//
+// Amount and NumAccounts are Horizon's older fields and Balances and Accounts
+// its newer ones, and both are still served. Both are read, the newer preferred,
+// because an adapter that reads only the deprecated pair goes silently zero on
+// the day they are removed, and a supply of zero is a division by zero in the
+// volume-to-supply ratio rather than an obvious failure.
+type assetRecord struct {
+	AssetType   string `json:"asset_type"`
+	AssetCode   string `json:"asset_code"`
+	AssetIssuer string `json:"asset_issuer"`
+
+	Amount      string `json:"amount"`
+	NumAccounts int    `json:"num_accounts"`
+
+	Balances struct {
+		Authorized                     string `json:"authorized"`
+		AuthorizedToMaintainLiabilties string `json:"authorized_to_maintain_liabilities"`
+		Unauthorized                   string `json:"unauthorized"`
+	} `json:"balances"`
+	Accounts struct {
+		Authorized                     int `json:"authorized"`
+		AuthorizedToMaintainLiabilties int `json:"authorized_to_maintain_liabilities"`
+		Unauthorized                   int `json:"unauthorized"`
+	} `json:"accounts"`
+}
+
+// supply is the issued amount as a string, newer field first.
+//
+// It is the AUTHORIZED balance only. Whether unauthorized and
+// authorized-to-maintain-liabilities balances belong in a supply figure is
+// decision D-6 and docs/methodology/07-supporting-metrics.md is still a
+// worksheet, so both of the other two are carried in the raw bytes and neither
+// is folded in here.
+func (r assetRecord) supply() string {
+	if r.Balances.Authorized != "" {
+		return r.Balances.Authorized
+	}
+	return r.Amount
+}
+
+// holderCount is Horizon's own count of accounts holding the asset, which is not
+// the same number as len(Holders) once a reading is truncated. Keeping both is
+// what makes a truncated reading detectable from the file alone.
+func (r assetRecord) holderCount() int {
+	if r.Accounts.Authorized != 0 {
+		return r.Accounts.Authorized
+	}
+	return r.NumAccounts
+}
+
+// ---------------------------------------------------------------- Accounts
+
+// GET /accounts?asset=CODE:ISSUER
+//
+// One record per account holding a trustline to the asset. The balance for the
+// asset that was asked about has to be picked out of the account's balances
+// array, which also holds every other asset that account carries.
+type accountsResponse struct {
+	Embedded struct {
+		Records []accountRecord `json:"records"`
+	} `json:"_embedded"`
+}
+
+type accountRecord struct {
+	ID          string `json:"id"`
+	PagingToken string `json:"paging_token"`
+	Balances    []struct {
+		Balance     string `json:"balance"`
+		AssetType   string `json:"asset_type"`
+		AssetCode   string `json:"asset_code"`
+		AssetIssuer string `json:"asset_issuer"`
+	} `json:"balances"`
+}
+
+// balanceOf returns the account's balance in one asset.
+//
+// A miss is an error at the call site rather than a skip. Horizon returned this
+// account BECAUSE it holds the asset, so a missing balance means the response
+// is not the shape this code believes it is, and silently skipping the account
+// would shrink the denominator of every concentration figure with nothing
+// anywhere to say it happened.
+func (r accountRecord) balanceOf(a domain.Asset) (decimal.Decimal, bool) {
+	for _, b := range r.Balances {
+		if b.AssetType == string(a.Type) && b.AssetCode == a.Code && b.AssetIssuer == a.Issuer {
+			d, err := decimal.NewFromString(b.Balance)
+			if err != nil {
+				return decimal.Zero, false
+			}
+			return d, true
+		}
+	}
+	return decimal.Zero, false
 }

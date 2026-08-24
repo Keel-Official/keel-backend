@@ -99,6 +99,13 @@ record:
 record-once:
 	go run ./cmd/keel record -pairs $(PAIRS) -once
 
+# record-holders adds the trustline holder distribution of every BASE asset to
+# one round. Separate from record-once rather than a flag on it, because it is
+# the one reading here whose request cost grows with the asset: one request per
+# 200 accounts, against an hourly budget shared with everything else.
+record-holders:
+	go run ./cmd/keel record -pairs $(PAIRS) -once -holders
+
 # assets declares the demonstration set from the same pair file the recorder
 # reads, then lists what is in the table. Needs the database.
 assets:

@@ -155,6 +155,11 @@ type Config struct {
 	// wants.
 	CacheTTL time.Duration
 
+	// MaxHolderPages caps one holder reading at this many pages of 200 accounts.
+	// Zero means defaultMaxHolderPages. See decision 2 in holders.go: the cap is
+	// what stops one large asset from spending an entire hourly budget.
+	MaxHolderPages int
+
 	BidAmountUnit BidAmountUnit
 
 	// Now and Sleep are injected so the tests never wait on a real clock.
@@ -187,6 +192,9 @@ func (c Config) withDefaults() Config {
 	}
 	if c.BidAmountUnit == "" {
 		c.BidAmountUnit = BidAmountUnitQuote
+	}
+	if c.MaxHolderPages <= 0 {
+		c.MaxHolderPages = defaultMaxHolderPages
 	}
 	if c.Now == nil {
 		c.Now = time.Now
