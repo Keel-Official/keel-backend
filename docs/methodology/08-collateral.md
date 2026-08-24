@@ -31,11 +31,8 @@ else:
 
 **Why `δ_critical = 0.5`, changed in 1.0.3.** Because `MC` is monotonically increasing in
 δ and `Reachable` is monotonically decreasing, a lower value always yields a tighter bound
-while relying less often on an unreachable target. On the USTRY fixture, δ=1 produces
-`Reachable = false` with `Cost = 130.0627093`, so the manipulation term would yield a
-positive collateral allowance derived from an **impossible** attack. At δ=0.5 the result
-is zero, which is correct. A 50 percent price inflation is already more than enough to
-push a position under water at any sane LTV.
+while relying less often on an unreachable target. A 50 percent price inflation is already 
+more than enough to push a position under water at any sane LTV.
 
 **Why the `Reachable` guard.** When the target is unreachable, `MC` is not the cost of
 reaching anything, and multiplying it by `m` produces a meaningless number.

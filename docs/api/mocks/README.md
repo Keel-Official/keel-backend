@@ -103,11 +103,17 @@ first, and the code is made to match it.
 ## What is still open
 
 Read `docs/decisions/DEC-003-api-contract-v1-1.md` section 6 before starting. Field
-names, types, and nullability are settled and safe. Two things are not:
+names, types, and nullability are settled and safe. One thing is not:
 
-- **`criticalDelta`.** Every example uses 0.5. Methodology section 9 implies 1.0.
-  Until that is settled, read the value from the response and do not hardcode
-  either.
 - **No list example holds a `partial` row.** `asset-list-mixed.json` is all `full`.
   The partial case is real on that endpoint; design for it using
   `asset-broken-book.json`.
+
+**`criticalDelta` is settled, as of 25 August 2026.** This entry used to say the
+methodology implied 1.0 while every example used 0.5. It is 0.5, the value these files
+already carried, so nothing here changed and no mock was regenerated.
+
+Keep reading it from the response anyway. It is a caller-configurable parameter that
+the API reports precisely so a consumer does not have to know it, and a UI that
+hardcodes 0.5 will silently mislabel every response the day somebody runs Keel with a
+different one.

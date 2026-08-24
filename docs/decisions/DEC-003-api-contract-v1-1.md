@@ -3,9 +3,10 @@
 **Decision:** The API contract moved to 1.1.0 to carry methodology v1.0.1, then to
 **1.2.0** to carry v1.0.2-draft and to become handoff-ready for the frontend.
 **Status:** NOT FROZEN, but no longer blocking a frontend. Three of the four freeze
-conditions in section 7 are met; the fourth needs the frontend builder. One
-methodology question, `criticalDelta`, is open and is Al's to settle. See sections
-7 and 8.
+conditions in section 7 are met; the fourth needs the frontend builder. The
+`criticalDelta` question this document carried as open was SETTLED at 0.5, the value
+this contract already used, so no contract change followed. See section 8.6 and its
+dated note. See sections 7 and 8.
 **Source of the changes:** `docs/internal/memo-pra-development.md` sections 1 and 2,
 then the audit findings P1-6 through P1-13 and P1-28 through P1-31.
 **Affected files:** `docs/api/keel-openapi.yaml`, `docs/api/mocks/`,
@@ -414,6 +415,31 @@ the disagreement is recorded rather than papered over.
 
 Until it is settled, `docs/api/mocks/README.md` tells the frontend to read
 `criticalDelta` from the response and hardcode neither value.
+
+#### Settled 25 August 2026: 0.5, and the contract does not move
+
+Everything above this line is left as written, because it records a disagreement that
+was real when it was written. What follows is what happened to it.
+
+Al confirmed 0.5 on 25 August, and no contract change follows, because 0.5 is what
+this contract and every example already carried. The disagreement had in fact ended on
+23 August: methodology 1.0.3 moved `08-collateral.md` and `DefaultParams()` to 0.5 and
+said so in the document, so two of the three rows in the table above were already out
+of date when they were read again. The table describes 21 August.
+
+**The argument reproduced above does not survive, though the conclusion does.** It
+says that at delta 1 the manipulation term multiplies a meaningless number. The
+`Reachable` guard prevents that by construction: when the target is unreachable the
+term is not evaluated at all, and `C_max` falls back to the liquidation limit with a
+warning. So the cost of delta 1 is a constraint that goes missing, not a wrong number.
+`08-collateral.md` was corrected on 25 August and `internal/domain/types.go`, which
+carried the same claim word for word, was corrected with it.
+
+**What this does NOT do to the freeze.** Condition 4 in section 7 is unchanged and
+still open: it needs the frontend builder to answer section 6, and it never depended
+on this question. The line above about `docs/api/mocks/README.md` is superseded; that
+file now tells the frontend the value is settled at 0.5 and still says to read it from
+the response, because a caller-configurable parameter is reported for a reason.
 
 ---
 
