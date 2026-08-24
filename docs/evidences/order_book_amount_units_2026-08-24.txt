@@ -1,0 +1,149 @@
+# Evidence: which asset an order book level's `amount` is denominated in
+#
+# Collected 24 August 2026 from Horizon mainnet. Every command is free, needs no
+# account, and can be re-run by anyone. It answers a question internal/horizon
+# had to answer before it could put a bid into a domain.Level, because
+# domain.Level.Amount is defined in BASE units and docs/methodology/04-depth.md
+# section 1 computes depth as price times amount.
+#
+# THE ANSWER: the two sides are NOT denominated in the same asset.
+#   asks -> amount is in the BASE asset,  price_r as the offer posted it
+#   bids -> amount is in the QUOTE asset, price_r INVERTED from the offer
+#
+# The method, and it is the reason this is evidence rather than an opinion: an
+# entry on /offers has no ambiguity at all, because an offer's amount is the
+# amount of the asset it SELLS. So each side of /order_book is matched against
+# the offers behind it. A bid is an offer selling the quote asset; an ask is an
+# offer selling the base asset.
+
+USTRY_I=GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC
+USDC_I=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+
+# ---------------------------------------------------------------- 1. the book
+
+$ curl -s "https://horizon.stellar.org/order_book?selling_asset_type=credit_alphanum12&selling_asset_code=USTRY&selling_asset_issuer=$USTRY_I&buying_asset_type=credit_alphanum4&buying_asset_code=USDC&buying_asset_issuer=$USDC_I&limit=20"
+
+  Served from Latest-Ledger: 64091840
+
+  bids, as jq '.bids[] | "amount=\(.amount)  price=\(.price)"'
+    amount=1.0632229  price=1.0725041
+    amount=5464.4640894  price=1.0725038
+    amount=52456.1449581  price=1.0722137
+    amount=100.0000000  price=1.0721777
+    amount=216178.3600767  price=1.0711948
+    amount=450.0000000  price=1.0711585
+    amount=61.4870392  price=1.0600000
+    amount=67.3578000  price=0.8800000
+
+  asks, as jq '.asks[] | "amount=\(.amount)  price=\(.price)"'
+    amount=4867.0823928  price=1.0730402
+    amount=47700.2581949  price=1.0732864
+    amount=194409.8266589  price=1.0743058
+    amount=88.5084729  price=1.0900000
+    amount=87.4930682  price=1.1300000
+    amount=0.0100677  price=2.0000000
+    amount=99.9999962  price=77.0584670
+    amount=1.1684309  price=106.7372828
+
+# ------------------------------------------- 2. the offers behind each side
+#
+# BIDS. Offers SELLING USDC and BUYING USTRY. The amount of one of these is an
+# amount of USDC, which is the QUOTE asset, with no room for interpretation.
+
+$ curl -s "https://horizon.stellar.org/offers?selling_asset_type=credit_alphanum4&selling_asset_code=USDC&selling_asset_issuer=$USDC_I&buying_asset_type=credit_alphanum12&buying_asset_code=USTRY&buying_asset_issuer=$USTRY_I&limit=20&order=desc"
+    amount=5464.4640894  price=0.9323976  price_r=428369451/459427867
+    amount=1.0632229  price=0.9323974  price_r=428369351/459427867
+    amount=216178.3600767  price=0.9335370  price_r=12782065/13692082
+    amount=52456.1449581  price=0.9326499  price_r=498425963/534419142
+    amount=450.0000000  price=0.9335687  price_r=2000000/2142317
+    amount=100.0000000  price=0.9326812  price_r=10000000/10721777
+    amount=61.4870392  price=0.9433962  price_r=50/53
+    amount=67.3578000  price=1.1363636  price_r=25/22
+
+# ASKS. Offers SELLING USTRY and BUYING USDC, so the amount is USTRY, the BASE.
+
+$ curl -s "https://horizon.stellar.org/offers?selling_asset_type=credit_alphanum12&selling_asset_code=USTRY&selling_asset_issuer=$USTRY_I&buying_asset_type=credit_alphanum4&buying_asset_code=USDC&buying_asset_issuer=$USDC_I&limit=10"
+    amount=1.1684309  price=106.7372828  price_r=266843207/2500000
+    amount=99.9999962  price=77.0584670  price_r=77058467/1000000
+    amount=113.5163207  price=400.0584670  price_r=400058467/1000000
+    amount=0.0000001  price=2147483647.0000000  price_r=2147483647/1
+    amount=0.0000001  price=2147483647.0000000  price_r=2147483647/1
+    amount=87.4930682  price=1.1300000  price_r=113/100
+    amount=0.0100677  price=2.0000000  price_r=2/1
+    amount=0.0000001  price=2147483647.0000000  price_r=2147483647/1
+    amount=88.5084729  price=1.0900000  price_r=109/100
+    amount=47700.2581949  price=1.0732864  price_r=1590658102/1482044345
+
+# ------------------------------------------------------------ the comparison
+#
+# Take the bid level at price 1.0721777 with amount 100.0000000. The offer list
+# holds amount=100.0000000 at price 0.9326812, price_r 10000000/10721777. Same
+# amount to the last digit, and the price is the exact reciprocal: the book
+# reports 10721777/10000000. Horizon inverted the PRICE into quote-per-base and
+# left the AMOUNT in the asset the offer sells, which is USDC.
+#
+# Every other bid level pairs the same way: 5464.4640894 at 1.0725038 against
+# the offer 5464.4640894 at 428369451/459427867, 52456.1449581 at 1.0722137
+# against 498425963/534419142, 216178.3600767 at 1.0711948, 450.0000000 at
+# 1.0711585, 61.4870392 at 1.0600000.
+#
+# Now the ask side. The book's 1.1684309 at 106.7372828 appears in the offer
+# list as amount=1.1684309 at price 106.7372828, price_r 266843207/2500000, NOT
+# inverted. Same for 99.9999962 at 77.0584670, 113.5163207 at 400.0584670,
+# 88.5084729 at 1.0900000, 87.4930682 at 1.1300000, 0.0100677 at 2.0000000, and
+# 47700.2581949 at 1.0732864.
+#
+# So internal/horizon converts a bid with amountBase = amount × d / n and leaves
+# an ask alone. The multiplication is exact and only the final division rounds.
+# The notional recovers Horizon's original quote amount, which is the invariant
+# TestBidAmountUnitConversion asserts.
+#
+# WHY IT MATTERS, in the one number that shows it. A bid of 216178.3600767 read
+# as base units yields a notional of 231,569.14 USDC. Read correctly it yields
+# 216,178. Reading the bid side as base overstates sell-side depth by the price
+# factor, and sell-side depth is the liquidation term of C_max in
+# docs/methodology/08-collateral.md. The error inflates the collateral a lender
+# is told is safe.
+
+# --------------------------------- 3. not every endpoint sends Latest-Ledger
+#
+# Found by running the recorder against live Horizon, not by reading docs. The
+# first version required the header on every response and failed on its first
+# real request. The collection endpoints send it; the single ledger resource
+# does not, and does not need to, because it carries its own sequence.
+
+$ for u in "ledgers/64091851" "liquidity_pools?reserves=USTRY:$USTRY_I,USDC:$USDC_I" "assets?asset_code=USTRY"; do
+    curl -s -o /dev/null -D - "https://horizon.stellar.org/$u" | grep -iE "^(HTTP|Latest-Ledger)"
+  done
+
+    --- /ledgers/64091851
+    HTTP/1.1 200 OK
+    --- /liquidity_pools?reserves=USTRY:...,USDC:...
+    HTTP/1.1 200 OK
+    Latest-Ledger: 64091855
+    --- /assets?asset_code=USTRY
+    HTTP/1.1 200 OK
+    Latest-Ledger: 64091855
+
+# ------------------------- 4. an unplanned corroboration of the golden fixture
+#
+# The manipulation ask is still posted, six months on, and it is short by exactly
+# what the attacker took.
+#
+#   testdata/fixtures/ustry_pre_exploit.md, ledger 61340263, 22 February 2026
+#     one ask, price_r 266843207/2500000, amount 1.2185312
+#
+#   live, 24 August 2026
+#     one ask, price_r 266843207/2500000, amount 1.1684309
+#
+#   1.2185312 - 1.1684309 = 0.0501003
+#
+# and 0.0501003 is the counter_amount of the executing trade in
+# docs/evidences/spike_result_2.txt, the 5.3475699 USDC for 0.0501003 USTRY that
+# is the headline number of Deliverable 2.
+#
+# Nothing was arranged to make that line up. The fixture's ask amount, the trade
+# that consumed part of it, and the amount left on the book today are three
+# independent readings and they agree to the seventh decimal. This is not part of
+# the question this file was opened to answer, and it is recorded because the
+# fixture is what the entire methodology is checked against.

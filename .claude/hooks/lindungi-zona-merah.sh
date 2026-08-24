@@ -34,6 +34,22 @@
 # refused, `internal/domain/types.go` is not. Both directions are proven on every
 # run by P2-6, P2-6b and P2-6c in scripts/audit-verification.sh.
 #
+# TWO MORE ZONES, ADDED 25 AUGUST 2026, AND THEY ARE MATCHED THE OPPOSITE WAY.
+# testdata/fixtures/ and docs/context/ are red in the CLAUDE.md zone map and had no
+# lock of any kind until now, in either file: the map called the golden fixture Al's
+# and nothing stopped Claude editing the very numbers
+# internal/conformance/fixture.go says must never be adjusted to match the code.
+# Neither directory holds a single file Claude maintains, so the narrowness that
+# protects types.go has nothing to protect here, and they are matched in ANY form,
+# a named file inside them included. internal/domain is a package with a red file in
+# it; these two are red all the way down. Finding P2-11.
+#
+# docs/methodology/ is red in the map and is deliberately NOT here. The map gives
+# Claude a job inside it, restructuring and cross-referencing what Al defines, so a
+# lock there would refuse the work the map assigns. A guardrail that refuses the work
+# it protects gets switched off, which is the failure this header already warns about
+# further down.
+#
 # Why a hook rather than just permissions. .claude/settings.json already denies
 # Edit and Write on this path, but Bash is untouched by those rules.
 # `sed -i internal/domain/compute.go` walks straight past the lock. Finding P2-6
@@ -75,12 +91,64 @@ fi
 
 command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 
-# Newlines collapsed to spaces and one space appended, so that every path in the
-# command is followed by at least one character. That lets every pattern below end
-# in a character class instead of a `$` anchor, and a `$` inside an alternation
-# branch is not portable in POSIX ERE. Collapsing newlines can only make this hook
-# refuse MORE, never less, which is the safe direction for a guardrail.
-line=$(printf '%s ' "$command_line" | tr '\n' ' ')
+# P2-6d part 1, REPAIRED THE SAME DAY IT LANDED. Finding P2-6e.
+#
+# A heredoc BODY is data. The line that OPENS one is not, and that distinction is
+# the whole of P2-6e. The first form of this fix truncated the command at the `<<`
+# marker, which is correct only while the marker is the last thing on the line.
+# It is not: `cat <<'EOF' > internal/domain/compute.go` puts the redirect AFTER the
+# marker, so truncating threw the target away and the write walked through. So only
+# the BODY is removed, from the newline after the marker to its terminator, and the
+# opening line is kept whole and scanned like any other command.
+#
+# Being generous about the terminator is the safe direction here and it is worth
+# knowing why, because this is the one place in the file where "refuse more" and
+# "match less" point the same way. Stopping the strip EARLY leaves more text to be
+# scanned, so a marker that matches sooner than the real terminator can only cause
+# a refusal, never miss one.
+#
+# The interpreter exception stays and is widened by three shells: for
+# `python3 - <<PY` the body IS the program and it may write to the zone, so nothing
+# is stripped and the whole command is scanned. That case is the seventh probe in
+# P2-6 and it must not regress.
+#
+# The interpreter has to be preceded by a separator rather than by any word
+# boundary, and that is not fussiness. `\bsh\b` matches inside `probe.sh`, and a
+# repository whose scripts all end in `.sh` would then skip the strip for nearly
+# every command that touches one, which switches part 1 off exactly where it was
+# needed. A dot is a word boundary; it is not a command boundary.
+body=$command_line
+if ! printf '%s' "$command_line" | grep -Eq '(^|[|;&([:space:]])(python3?|node|ruby|perl|awk|sh|bash|zsh)[[:space:]].*<<'; then
+  body=$(printf '%s\n' "$command_line" | awk '
+    skip { if ($0 ~ term) { skip = 0 }; next }
+    { print }
+    match($0, /<<-?[ \t]*[^ \t;|&<>]+/) {
+      m = substr($0, RSTART, RLENGTH)
+      gsub(/[^A-Za-z_0-9]/, "", m)
+      if (m != "") { term = "^[ \t]*" m "[ \t]*$"; skip = 1 }
+    }
+  ')
+fi
+
+# Newlines become SEMICOLONS, not spaces, and one space is appended, so that every
+# path in the command is followed by at least one character. That lets every pattern
+# below end in a character class instead of a `$` anchor, and a `$` inside an
+# alternation branch is not portable in POSIX ERE.
+#
+# The semicolon is the second half of P2-6e and it is the more important half. This
+# line used to collapse newlines to SPACES, and its comment claimed that could only
+# make the hook refuse more. That claim was true for exactly as long as there was no
+# command-position anchor. Once part 2 below arrived, a newline collapsed to a space
+# glued line two onto the end of line one, so the verb on line two was no longer at
+# the start of anything and walked straight through:
+#
+#     cd /tmp
+#     sed -i "" s/a/b/ internal/domain/compute.go
+#
+# A multi-line command is the ORDINARY form, not a deliberate evasion, so this was
+# the worst of the eight routes P2-6e found. A newline separates two commands, which
+# is what a semicolon means, and the anchor reads it that way now.
+line=$(printf '%s ' "$body" | tr '\n' ';')
 
 # 1. The red zone FILE. Add here when the zone moves again, add the same path to
 #    the deny list in .claude/settings.json, because neither one closes the other's
@@ -93,19 +161,43 @@ zone='internal/domain/compute\.go'
 #    slash after it. `internal/domain/types.go` matches neither, and must not.
 zone_dir='(internal/domain[^/[:alnum:]_]|internal/domain/[^[:alnum:]_])'
 
-zone_any="$zone|$zone_dir"
+# 2b. The two zones that are red ALL THE WAY DOWN, and they get the opposite rule
+#     to the one above: matched in any form, a named file inside them included,
+#     because neither holds a file Claude maintains. The trailing class costs
+#     nothing here, since the line always ends in a space, and it keeps a sibling
+#     like testdata/fixtures_old out of the match.
+zone_tree='(testdata/fixtures|docs/context)[^[:alnum:]_]'
+
+# zone_tree belongs in zone_any rather than in a check of its own, and that is not
+# tidiness. Rule B below reads zone_any to find a REDIRECT into a zone, and
+# `echo x > testdata/fixtures/f.md` carries no mutating verb for rule C to catch.
+# Left out of this alternation, that write walks straight through.
+zone_any="$zone|$zone_dir|$zone_tree"
+
+# P2-6d fix, part 2: command position anchor. A verb is only a verb at the
+# start of the line or after a shell separator (|, ;, &, &&, ||, an opening
+# paren, and a newline, which the semicolon above stands in for). A verb
+# inside a quoted string is prose, not a command. This is approximate and
+# loses `find . -exec rm {} +`, the deliberate path, not the accidental one.
+#
+# The second group is P2-6e again. A command position is not always the first WORD
+# of it: `FOO=1 sed -i ...`, `sudo rm ...`, `env`, `time`, `nohup`, `xargs` and the
+# `then`/`do` of a compound statement all put the verb one word later, and every one
+# of them walked through the first form of this anchor. Zero or more such prefixes
+# are skipped before the verb is read.
+cmd='(^|[|;&(]+)[[:space:]]*(([A-Za-z_][A-Za-z_0-9]*=[^[:space:]]*|sudo|env|time|nohup|command|xargs|nice|then|do|else)[[:space:]]+)*'
 
 # 3. A formatter rewriting in place with no file named. `gofmt -l -w .` and
 #    `goimports -w ./...` reach compute.go while mentioning neither it nor its
 #    directory, which is how P2-6c stayed open. A named .go file is the escape.
-formatter_in_place='\b(gofmt|goimports)\b[^|;&]*-[a-zA-Z]*w'
+formatter_in_place="$cmd"'\b(gofmt|goimports)\b[^|;&]*-[a-zA-Z]*w'
 names_go_file='\.go[^a-zA-Z0-9_]'
 
 # `make fmt` is that same sweep wearing a different name: the recipe is
 # `gofmt -l -w .`. A hook cannot see inside a recipe, so the target is named here.
 # ADDING A FORMATTING TARGET TO THE MAKEFILE MEANS ADDING IT HERE TOO. That is a
 # second home for one fact and it is the weakest line in this file.
-make_fmt='\bmake\b[^|;&]*\bfmt\b'
+make_fmt="$cmd"'\bmake\b[^|;&]*\bfmt\b'
 
 touches_zone=0
 if printf '%s' "$line" | grep -Eq "$zone_any"; then
@@ -137,7 +229,30 @@ refuse() {
   exit 0
 }
 
-message="internal/domain/compute.go is the RED ZONE. Al writes it, not you.
+blunt="If your real target is a file OUTSIDE the zone and this command only MENTIONS
+the zone, that is this hook being deliberately blunt. Use the Edit or Write tool for
+that file; permissions govern it separately."
+
+# The message names the zone that actually matched. One message covering all three
+# would send a reader refused over the fixture to internal/domain/CLAUDE.md, and a
+# guardrail that points at the wrong file teaches the wrong lesson twice: once about
+# the refusal, and once about where the rule lives.
+if printf '%s' "$line" | grep -Eq "$zone_tree"; then
+  message="testdata/fixtures/ and docs/context/ are RED ZONES, red all the way down.
+
+The golden fixture's numbers are computed BY HAND before any implementation exists,
+and internal/conformance/fixture.go says it in its own header: do not adjust these
+numbers to match the code, adjust the code to match these numbers. A fixture Claude
+can edit is a fixture that confirms whatever the code already does. docs/context/
+holds the SoW and the execution plan, which are inputs from outside and are read.
+
+What you may do there: read them, quote them, grep them, and report where the code
+and the fixture disagree. That disagreement IS the finding, and editing either side
+of it destroys the finding rather than resolving it.
+
+$blunt"
+else
+  message="internal/domain/compute.go is the RED ZONE. Al writes it, not you.
 
 This command is refused because it would mutate that file, and Bash is the path
 that the Edit and Write denials in .claude/settings.json do not close.
@@ -146,9 +261,8 @@ What you may do there: read, run tests, point out edge cases that are not handle
 yet, and ask questions. Offer /teach for the concept or /review-mine once Al has
 written it. See internal/domain/CLAUDE.md.
 
-If your real target is a file OUTSIDE the zone and this command only MENTIONS the
-zone, that is this hook being deliberately blunt. Use the Edit or Write tool for
-that file; permissions govern it separately."
+$blunt"
+fi
 
 # A. A tree-wide in-place format. Checked first because it names neither the file
 #    nor the directory, so no message about a mentioned path would make sense.
@@ -170,7 +284,7 @@ Detected: output redirected into the red zone."
 fi
 
 # C. Commands whose job is to mutate files, naming the zone or its directory.
-mutating='(\bsed\b[^|;]*-i|\bperl\b[^|;]*-[a-zA-Z]*i|\btee\b|\bcp\b|\bmv\b|\brm\b|\bln\b|\binstall\b|\btruncate\b|\bdd\b|\bpatch\b|\btouch\b|\bmkdir\b|git[[:space:]]+(apply|checkout|restore|stash|rm|mv)|\b(gofmt|goimports)\b[^|;]*-w|\bpython3?\b|\bnode\b|\bruby\b|\bperl\b|\bawk\b[^|;]*-i)'
+mutating="$cmd"'(\bsed\b[^|;]*-i|\bperl\b[^|;]*-[a-zA-Z]*i|\btee\b|\bcp\b|\bmv\b|\brm\b|\bln\b|\binstall\b|\btruncate\b|\bdd\b|\bpatch\b|\btouch\b|\bmkdir\b|git[[:space:]]+(apply|checkout|restore|stash|rm|mv)|\b(gofmt|goimports)\b[^|;]*-w|\bpython3?\b|\bnode\b|\bruby\b|\bperl\b|\bawk\b[^|;]*-i)'
 if printf '%s' "$line" | grep -Eq "$mutating"; then
   refuse "$message
 

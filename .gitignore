@@ -24,3 +24,18 @@
 
 # OS
 .DS_Store
+
+# Cross-validation recordings. `keel record` writes one gzipped file per pair per
+# ledger here, and two weeks of eight assets every thirty minutes is thousands of
+# files. The SOW asks for the comparison RESULTS, which go into
+# docs/methodology/10-validation.md, not for the whole archive, so the raw stream
+# stays out of git. scripts/audit-verification.sh and arch_test.go already skip
+# this directory, which is why it needs no row in the CLAUDE.md zone map.
+#
+# recordings/sample/ is the exception and it is deliberate: the header of
+# migrations/0001_core.sql promises that 60 recordings go into git as evidence.
+# The pattern has to be `/recordings/*` rather than `/recordings/` for the
+# negation below to work at all, because git cannot re-include a path inside a
+# directory it has already excluded.
+/recordings/*
+!/recordings/sample/

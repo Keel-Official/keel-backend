@@ -6,12 +6,14 @@
 //
 //	keel version    print the methodology version and exit
 //	keel record     record raw Horizon snapshots for cross-validation
+//	keel assets     declare and inspect the demonstration set
 //	keel scan       compute metrics for every active asset, store them in Postgres
 //	keel serve      run the read API
 //	keel replay     replay a ledger range through the historical adapter
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -34,16 +36,47 @@ func main() {
 		fmt.Printf("keel methodology %s\n", domain.MethodologyVersion)
 
 	case "record":
-		// The cross-validation recorder. This one must start running BEFORE the
-		// historical path, because a comparison baseline cannot be created
-		// retroactively. Every day of delay is evidence lost permanently.
-		belum(perintah, "internal/horizon + a recorder writing to recordings/")
+		// The cross-validation recorder, and the first subcommand with a body.
+		// It had to be first for the reason recorded here while it was still
+		// empty: a comparison baseline cannot be created retroactively, so
+		// every day of delay is evidence lost permanently. See record.go.
+		if err := runRecord(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel record: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "assets":
+		// The demonstration set. This one has a body because `scan` has nothing
+		// to scan until the assets table is populated, and because a package
+		// with no caller drifts; see the header of assets.go.
+		if err := runAssets(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel assets: %v\n", err)
+			os.Exit(1)
+		}
 
 	case "scan":
-		belum(perintah, "internal/horizon + internal/domain + internal/store")
+		// The wiring is written and the METHODOLOGY is not. Every function in
+		// internal/domain/compute.go panics, so a scan reads a real book, opens a
+		// real run row, and stores nothing. That state keeps exit code 3, which
+		// means "not built yet" for every other subcommand here and means the same
+		// thing for this one; a scan that genuinely broke still exits 1. See the
+		// header of scan.go for why it is written before the thing it calls.
+		if err := runScan(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel scan: %v\n", err)
+			if errors.Is(err, errComputeNotBuilt) {
+				os.Exit(belumSiap)
+			}
+			os.Exit(1)
+		}
 
 	case "serve":
-		belum(perintah, "internal/api + internal/store")
+		// The read-only API. It answers every endpoint in the contract today;
+		// what it has no rows to return is metrics, because producing one needs
+		// the red zone. See the header of serve.go.
+		if err := runServe(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel serve: %v\n", err)
+			os.Exit(1)
+		}
 
 	case "replay":
 		belum(perintah, "internal/hubble; deferred, see docs/decisions/DEC-002-hold-bigquery.md")
@@ -71,9 +104,10 @@ Usage:
 
 Subcommands:
   version   print the methodology version
-  record    record raw Horizon snapshots for cross-validation
+  record    record raw Horizon snapshots for cross-validation ("keel record -h")
+  assets    declare and inspect the demonstration set ("keel assets -h")
   scan      compute metrics for every active asset, store them in Postgres
-  serve     run the read API
+  serve     run the read API ("keel serve -h")
   replay    replay a ledger range through the historical adapter
 `)
 }

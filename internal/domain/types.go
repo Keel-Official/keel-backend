@@ -330,10 +330,17 @@ type Params struct {
 	//
 	// Cost is monotonically increasing in delta and Reachable is monotonically
 	// decreasing, so a lower value always yields a tighter bound while relying less
-	// often on an unreachable target. On the USTRY fixture, delta=1 gives
-	// Reachable=false with Cost=130.0627093, so the manipulation term would produce a
-	// positive collateral allowance derived from an IMPOSSIBLE attack. At delta=0.5
-	// the result is zero, which is correct.
+	// often on an unreachable target. A 50 percent price inflation is already more
+	// than enough to push a position under water at any sane LTV.
+	//
+	// The rationale lives in docs/methodology/08-collateral.md section 1 and this is
+	// a pointer to it rather than a second copy. The copy that used to be here
+	// carried a claim the document itself refuted four lines above the place it was
+	// copied from, that delta=1 would produce a collateral allowance derived from an
+	// impossible attack, which the Reachable guard prevents by construction. Al
+	// corrected the document on 25 August 2026 and this comment had to be corrected
+	// separately, because a rationale restated in two files is a rationale that gets
+	// fixed in one.
 	ManipulationCriticalDelta decimal.Decimal // 0.5
 	ManipulationMargin        decimal.Decimal // 0.25
 

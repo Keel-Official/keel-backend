@@ -55,3 +55,52 @@ Three things about it that are decisions rather than gaps:
 
 Apply it with `make migrate`, never by mounting it into initdb. The reason is in
 the comment at the top of `scripts/migrate.sh`.
+
+## What exists here now
+
+Written 24 August 2026. `store.go` holds `Open`, the decimal helpers and the
+`dbtx` interface; `assets.go`, `metrics.go` and `runs.go` are one table each;
+`jsonb.go` declares the shape of every JSONB column. The driver is
+`github.com/jackc/pgx/v5/stdlib` behind `database/sql`, and no pgx type appears in
+any signature here.
+
+Four properties are worth knowing before changing anything, and each has a test
+in `store_test.go` that fails if it stops holding:
+
+1. **Every money value crosses this boundary as a string.** `String()` on the way
+   in, `decimal.NewFromString` on the way out, `NUMERIC::text` in every SELECT.
+   No `float64` on either path, which is rule 2 above and what the repository
+   wide arch test enforces. A forty digit `spread_pct` round trips unchanged,
+   which is what an unqualified `NUMERIC` is for.
+2. **A metrics row is never overwritten.** The insert is `ON CONFLICT DO
+   NOTHING` and `SaveMetrics` returns whether it wrote. Rule 3 says a different
+   methodology version is a different row; the same argument forbids rewriting a
+   row from the same version, because a re-run that silently changed a stored
+   number would make the series useless as evidence.
+3. **NULL means unknown or not applicable, and never zero.** Every nullable
+   column maps to a `*decimal.Decimal`. A nil manipulation term says the attack
+   is impossible; zero says it is free.
+4. **The three `text[]` columns are written as arrays and read as JSONB.**
+   `database/sql` can send a `[]string` to a `text[]` parameter and cannot scan
+   one back, so the SELECT wraps them in `to_jsonb`. That also keeps the escaping
+   in Postgres, which matters because `warnings` is free text containing commas
+   and braces.
+
+## Two things found while writing it
+
+**`domain.AssetRisk` is NOT stored field for field, by one field.**
+`Supporting.GenuineVolumeInWindow` has no column, and it has no field in the API
+contract either; `internal/domain/types.go` is the only place it exists. Its
+definition is an empty row in the table at the end of
+`docs/methodology/07-supporting-metrics.md`. The header of `metrics.go` sets out
+why no column was added rather than one being added quietly, and handoff item 17
+is where the decision belongs.
+
+**`localhost:5432` is not necessarily this project's Postgres.** A Postgres
+already running on the host takes the port before the container does, and the
+symptom is `role "keel" does not exist` rather than a refused connection.
+`scripts/migrate.sh` is immune because it goes through `docker compose exec`, so
+the schema can be applied and the Go client still be talking to another server
+entirely. `keel assets` prints that as a hint on any connection failure, and
+`make store-test` takes `KEEL_TEST_DSN` so the container can be addressed
+directly.
