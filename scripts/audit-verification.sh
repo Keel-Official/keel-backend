@@ -371,6 +371,54 @@ make fmt'                                                   && return 0
   ! hook_refuses 'env sed -i "" s/a/b/ internal/domain/compute.go'   && return 0
   return 1
 }
+# PROVEN while the golden fixture and the inputs from outside have no lock, in
+# either of the two files that would carry one.
+#
+# This is the OLDEST hole in the repository rather than a new one, and its age is
+# the finding. testdata/fixtures/ and docs/context/ have been red in the zone map
+# since the map existed, and until 25 August 2026 nothing anywhere refused a write
+# to them: the deny list named one path, compute.go, and so did the hook. The map
+# said red, the harness said nothing, and the gap survived the audit that produced
+# P2-6 because that audit asked whether the lock it knew about worked.
+#
+# The fixture is the one artefact whose entire value is that Claude did not produce
+# its numbers. internal/conformance/fixture.go says so in its own header, and
+# DEC-006 section 5 repeats it: having Claude recompute the expected values destroys
+# the safeguard the fixture exists to be. A document saying that, with no lock under
+# it, is the arrangement the zone map calls a suggestion rather than a lock.
+#
+# Both halves are checked because neither closes the other's route, which is the
+# same sentence the hook's own header carries about compute.go: the deny list does
+# not see Bash, and the hook does not see Edit.
+red_tree_leaks(){
+  grep -qF 'Edit(testdata/fixtures/**)' .claude/settings.json || return 0
+  grep -qF 'Edit(docs/context/**)'      .claude/settings.json || return 0
+  hook_absent && return 0
+  ! hook_refuses 'sed -i "" s/a/b/ testdata/fixtures/ustry_pre_exploit.md' && return 0
+  ! hook_refuses 'echo x > testdata/fixtures/ustry_pre_exploit.md'         && return 0
+  ! hook_refuses 'rm -rf testdata/fixtures'                                && return 0
+  ! hook_refuses 'cp /tmp/x docs/context/Keel_SoW.pdf'                     && return 0
+  ! hook_refuses 'cd /tmp
+sed -i "" s/a/b/ testdata/fixtures/x.md'                                   && return 0
+  return 1
+}
+# Over-refusing when that rule reaches work it has no business reaching, which for
+# these two zones is a wider risk than it was for compute.go.
+#
+# Reading the fixture is not a courtesy, it IS Claude's job in there: reporting where
+# the code and the hand-computed numbers disagree is the finding the fixture exists
+# to produce, and a hook that refuses `cat` on it would refuse the finding. The
+# sibling probe is the other direction, because `testdata/fixtures` as a bare prefix
+# would swallow any path that merely starts with those letters.
+red_tree_over_refuses(){
+  hook_absent && return 1
+  hook_refuses 'cat testdata/fixtures/ustry_pre_exploit.md'      && return 0
+  hook_refuses 'grep -rn USTRY testdata/fixtures/'               && return 0
+  hook_refuses 'go test ./internal/conformance/ -count=1'        && return 0
+  hook_refuses 'sed -i "" s/a/b/ testdata/fixtures_old/x.md'     && return 0
+  hook_refuses 'git commit -m "testdata/fixtures is locked now"' && return 0
+  return 1
+}
 
 section "P0  What blocks everything else"
 check P0-1 "There is not a single commit, though the origin remote is configured" no_commit
@@ -457,6 +505,8 @@ check P2-6b "or the same hook refuses a yellow file next door, which gets it swi
 check P2-6c "or a directory-wide or tree-wide mutation reaches it without naming it at all" red_zone_dir_bypass
 check P2-6d "The same hook reads prose as a command, so a commit message quoting the zone is refused" red_zone_refuses_prose
 check P2-6e "or the fix for that reopens a route, because a newline or a heredoc hid the verb" red_zone_reopened_by_the_fix
+check P2-11 "The golden fixture and docs/context are red in the map and locked by nothing" red_tree_leaks
+check P2-11b "or that lock reaches reading, which is the whole job Claude has in the fixture" red_tree_over_refuses
 check P2-9 "A directory holding files has no row in the CLAUDE.md zone map, so it has no owner" zones_incomplete
 # A PROVEN line that does not say WHICH path is missing is a chore rather than a
 # finding, so the paths are printed here. Nothing is printed when the map is

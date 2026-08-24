@@ -36,7 +36,7 @@ What that means for the commands you can run:
 | `make assets` | works, declares the demonstration set. Needs the database |
 | `make serve` | works, serves every endpoint in the contract. Needs the database |
 | `make store-test` | works, the `internal/store` integration tests. Needs the database |
-| `make scan` | **no body yet**, exits with code 3. Blocked on the red zone, not on plumbing |
+| `make scan` | **wired, and produces nothing.** It reads the book, verifies the assets and opens a run row, then every asset panics inside `compute.go` and it exits with code 3. Needs the database |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
 built yet" apart from "failed".
@@ -127,8 +127,11 @@ make assets PAIRS=my-pairs.json          # declare the demonstration set
 make store-test                          # the integration tests, needs the above
 ```
 
-`keel assets` is the only command that writes to the database today. `scan` will
-be the second, once there is a result to store.
+`keel assets` is the only command that writes a result to the database today.
+`keel scan` writes its run row and gets no further, because every asset panics
+inside the red zone before there is anything to store. That row is the point of
+running it anyway: `runs` records what a job attempted, so a scan that stored
+nothing is visible rather than silent.
 
 **If a connection fails with `role "keel" does not exist`**, port 5432 is being
 answered by a Postgres that is not this project's container. A server already

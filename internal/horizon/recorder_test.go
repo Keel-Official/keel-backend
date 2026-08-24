@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Keel-Official/keel-backend/internal/domain"
 )
@@ -378,5 +379,39 @@ func TestRecordHoldersIsOffByDefault(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, "holders")); !errors.Is(err, os.ErrNotExist) {
 		t.Error("a holders directory was created although holder recording is off")
+	}
+}
+
+// dueForHolders is the whole of the holder cadence rule, extracted from Run so it
+// can be tested without a ticker. The cases that matter are the two ends: zero
+// interval must behave exactly as the code did before the interval existed, and a
+// first round must always be due, because a holder reading missed is a reading
+// that cannot be taken later.
+func TestDueForHolders(t *testing.T) {
+	base := time.Date(2026, time.August, 25, 12, 0, 0, 0, time.UTC)
+
+	cases := []struct {
+		name     string
+		last     time.Time
+		now      time.Time
+		interval time.Duration
+		want     bool
+	}{
+		{"zero interval records every round", base, base, 0, true},
+		{"negative interval is treated as zero", base, base, -time.Hour, true},
+		{"the first round is always due", time.Time{}, base, 6 * time.Hour, true},
+		{"not due before the interval has passed", base, base.Add(5 * time.Hour), 6 * time.Hour, false},
+		{"due exactly on the interval", base, base.Add(6 * time.Hour), 6 * time.Hour, true},
+		{"due after the interval", base, base.Add(7 * time.Hour), 6 * time.Hour, true},
+		{"a stamp in the future is not due", base, base.Add(-time.Hour), 6 * time.Hour, false},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := dueForHolders(c.last, c.now, c.interval); got != c.want {
+				t.Errorf("dueForHolders(%s, %s, %s) = %t, want %t",
+					c.last, c.now, c.interval, got, c.want)
+			}
+		})
 	}
 }

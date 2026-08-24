@@ -34,6 +34,22 @@
 # refused, `internal/domain/types.go` is not. Both directions are proven on every
 # run by P2-6, P2-6b and P2-6c in scripts/audit-verification.sh.
 #
+# TWO MORE ZONES, ADDED 25 AUGUST 2026, AND THEY ARE MATCHED THE OPPOSITE WAY.
+# testdata/fixtures/ and docs/context/ are red in the CLAUDE.md zone map and had no
+# lock of any kind until now, in either file: the map called the golden fixture Al's
+# and nothing stopped Claude editing the very numbers
+# internal/conformance/fixture.go says must never be adjusted to match the code.
+# Neither directory holds a single file Claude maintains, so the narrowness that
+# protects types.go has nothing to protect here, and they are matched in ANY form,
+# a named file inside them included. internal/domain is a package with a red file in
+# it; these two are red all the way down. Finding P2-11.
+#
+# docs/methodology/ is red in the map and is deliberately NOT here. The map gives
+# Claude a job inside it, restructuring and cross-referencing what Al defines, so a
+# lock there would refuse the work the map assigns. A guardrail that refuses the work
+# it protects gets switched off, which is the failure this header already warns about
+# further down.
+#
 # Why a hook rather than just permissions. .claude/settings.json already denies
 # Edit and Write on this path, but Bash is untouched by those rules.
 # `sed -i internal/domain/compute.go` walks straight past the lock. Finding P2-6
@@ -145,7 +161,18 @@ zone='internal/domain/compute\.go'
 #    slash after it. `internal/domain/types.go` matches neither, and must not.
 zone_dir='(internal/domain[^/[:alnum:]_]|internal/domain/[^[:alnum:]_])'
 
-zone_any="$zone|$zone_dir"
+# 2b. The two zones that are red ALL THE WAY DOWN, and they get the opposite rule
+#     to the one above: matched in any form, a named file inside them included,
+#     because neither holds a file Claude maintains. The trailing class costs
+#     nothing here, since the line always ends in a space, and it keeps a sibling
+#     like testdata/fixtures_old out of the match.
+zone_tree='(testdata/fixtures|docs/context)[^[:alnum:]_]'
+
+# zone_tree belongs in zone_any rather than in a check of its own, and that is not
+# tidiness. Rule B below reads zone_any to find a REDIRECT into a zone, and
+# `echo x > testdata/fixtures/f.md` carries no mutating verb for rule C to catch.
+# Left out of this alternation, that write walks straight through.
+zone_any="$zone|$zone_dir|$zone_tree"
 
 # P2-6d fix, part 2: command position anchor. A verb is only a verb at the
 # start of the line or after a shell separator (|, ;, &, &&, ||, an opening
@@ -202,7 +229,30 @@ refuse() {
   exit 0
 }
 
-message="internal/domain/compute.go is the RED ZONE. Al writes it, not you.
+blunt="If your real target is a file OUTSIDE the zone and this command only MENTIONS
+the zone, that is this hook being deliberately blunt. Use the Edit or Write tool for
+that file; permissions govern it separately."
+
+# The message names the zone that actually matched. One message covering all three
+# would send a reader refused over the fixture to internal/domain/CLAUDE.md, and a
+# guardrail that points at the wrong file teaches the wrong lesson twice: once about
+# the refusal, and once about where the rule lives.
+if printf '%s' "$line" | grep -Eq "$zone_tree"; then
+  message="testdata/fixtures/ and docs/context/ are RED ZONES, red all the way down.
+
+The golden fixture's numbers are computed BY HAND before any implementation exists,
+and internal/conformance/fixture.go says it in its own header: do not adjust these
+numbers to match the code, adjust the code to match these numbers. A fixture Claude
+can edit is a fixture that confirms whatever the code already does. docs/context/
+holds the SoW and the execution plan, which are inputs from outside and are read.
+
+What you may do there: read them, quote them, grep them, and report where the code
+and the fixture disagree. That disagreement IS the finding, and editing either side
+of it destroys the finding rather than resolving it.
+
+$blunt"
+else
+  message="internal/domain/compute.go is the RED ZONE. Al writes it, not you.
 
 This command is refused because it would mutate that file, and Bash is the path
 that the Edit and Write denials in .claude/settings.json do not close.
@@ -211,9 +261,8 @@ What you may do there: read, run tests, point out edge cases that are not handle
 yet, and ask questions. Offer /teach for the concept or /review-mine once Al has
 written it. See internal/domain/CLAUDE.md.
 
-If your real target is a file OUTSIDE the zone and this command only MENTIONS the
-zone, that is this hook being deliberately blunt. Use the Edit or Write tool for
-that file; permissions govern it separately."
+$blunt"
+fi
 
 # A. A tree-wide in-place format. Checked first because it names neither the file
 #    nor the directory, so no message about a mentioned path would make sense.

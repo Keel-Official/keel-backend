@@ -13,6 +13,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -54,10 +55,19 @@ func main() {
 		}
 
 	case "scan":
-		// Still a stub, and blocked on the RED ZONE rather than on plumbing:
-		// every function in internal/domain/compute.go panics, so there is no
-		// result to store. The adapter and the store it needs both exist now.
-		belum(perintah, "internal/domain/compute.go, which is Al's to write")
+		// The wiring is written and the METHODOLOGY is not. Every function in
+		// internal/domain/compute.go panics, so a scan reads a real book, opens a
+		// real run row, and stores nothing. That state keeps exit code 3, which
+		// means "not built yet" for every other subcommand here and means the same
+		// thing for this one; a scan that genuinely broke still exits 1. See the
+		// header of scan.go for why it is written before the thing it calls.
+		if err := runScan(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel scan: %v\n", err)
+			if errors.Is(err, errComputeNotBuilt) {
+				os.Exit(belumSiap)
+			}
+			os.Exit(1)
+		}
 
 	case "serve":
 		// The read-only API. It answers every endpoint in the contract today;

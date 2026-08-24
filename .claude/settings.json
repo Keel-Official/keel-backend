@@ -25,6 +25,10 @@
     "deny": [
       "Edit(internal/domain/compute.go)",
       "Write(internal/domain/compute.go)",
+      "Edit(testdata/fixtures/**)",
+      "Write(testdata/fixtures/**)",
+      "Edit(docs/context/**)",
+      "Write(docs/context/**)",
       "Read(.env)",
       "Read(.env.*)",
       "Bash(rm -rf:*)",

@@ -103,8 +103,20 @@ record-once:
 # one round. Separate from record-once rather than a flag on it, because it is
 # the one reading here whose request cost grows with the asset: one request per
 # 200 accounts, against an hourly budget shared with everything else.
+#
+# HOLDER_PAGES caps one reading, in pages of 200 accounts, and 0 leaves the
+# binary's default of 25, which is 5000 accounts. CHECK THE ASSET FIRST, because
+# a reading that hits the cap is written and flagged TRUNCATED, and a truncated
+# reading answers a holder COUNT as a lower bound and a concentration question
+# not at all: the account it did not read may be the largest one. Horizon's own
+# figure is one request away and needs no key:
+#
+#   curl -s "https://horizon.stellar.org/assets?asset_code=CODE&asset_issuer=ISSUER" \
+#     | python3 -c "import json,sys; print(json.load(sys.stdin)['_embedded']['records'][0]['accounts'])"
+HOLDER_PAGES ?= 0
+
 record-holders:
-	go run ./cmd/keel record -pairs $(PAIRS) -once -holders
+	go run ./cmd/keel record -pairs $(PAIRS) -once -holders -holder-pages $(HOLDER_PAGES)
 
 # assets declares the demonstration set from the same pair file the recorder
 # reads, then lists what is in the table. Needs the database.

@@ -44,6 +44,9 @@ func runRecord(args []string) error {
 		"also record the trustline holder distribution of every base asset. Costs one request per 200 accounts")
 	holderPages := fs.Int("holder-pages", 0,
 		"cap one holder reading at this many pages of 200 accounts. 0 uses the default of 25, which is 5000 accounts")
+	holderInterval := fs.Duration("holder-interval", 0,
+		"how often to read holders. 0 means every -interval round, which is rarely what you want: a trustline "+
+			"balance moves over days and an order book moves in seconds")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel record - record raw Horizon snapshots for cross-validation
@@ -60,6 +63,11 @@ historical trustline balance at all, so holder concentration for a past ledger i
 not recoverable from it by any route. It is off by default because its cost grows
 with the asset, one request per 200 accounts, where a pair snapshot is always
 three.
+
+Give -holders its own -holder-interval. Without one it reads holders on every
+-interval round, which sets the cadence of a balance that moves over days by the
+cadence of a book that moves in seconds, and writes a near-identical file each
+time in the one format here whose size grows with the asset.
 
 `)
 		fs.PrintDefaults()
@@ -96,11 +104,12 @@ three.
 	})
 
 	rec, err := horizon.NewRecorder(horizon.RecorderConfig{
-		Client:  client,
-		Root:    *out,
-		Pairs:   pairs,
-		Holders: *holders,
-		Logf:    logger.Printf,
+		Client:         client,
+		Root:           *out,
+		Pairs:          pairs,
+		Holders:        *holders,
+		HolderInterval: *holderInterval,
+		Logf:           logger.Printf,
 	})
 	if err != nil {
 		return fmt.Errorf("record: %w", err)
@@ -122,7 +131,14 @@ three.
 	logger.Printf("recording %d pair(s) into %s, bid amount read as %s", len(pairs), *out, unit)
 	if *holders {
 		assets := rec.HolderAssets()
-		logger.Printf("holder distribution on for %d base asset(s): %s", len(assets), assetList(assets))
+		cadence := "every round"
+		if *holderInterval > 0 {
+			cadence = "every " + holderInterval.String()
+		}
+		// The cadence is logged rather than left implicit because a reading NOT
+		// taken leaves no file to notice its absence in, unlike a failed one.
+		logger.Printf("holder distribution on for %d base asset(s), %s: %s",
+			len(assets), cadence, assetList(assets))
 	}
 
 	if *once {

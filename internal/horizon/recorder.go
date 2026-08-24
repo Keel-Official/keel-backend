@@ -51,6 +51,17 @@
 //     asks. It is off by default because it is the one reading here whose cost
 //     grows with the asset rather than staying at three requests. See
 //     holders.go for why it has to be recorded at all rather than fetched later.
+//
+//  6. THE TWO READINGS KEEP THEIR OWN CLOCKS, IN ONE PROCESS. Holders were tied
+//     to the pair tick until 25 August 2026, which set the cadence of a quantity
+//     that moves over days by the cadence of one that moves in seconds. The gate
+//     is a comparison against the last holder round rather than a second ticker,
+//     because two tickers drift apart and then the log stops saying which round a
+//     file belongs to. Rejected alternative: telling the operator to run a second
+//     `keel record` process at a longer interval, which works today and needs no
+//     code, but gives each process its own request budget counter with no view of
+//     the other, and two counters of 3000 against one Horizon limit of about 3600
+//     is a limit that is not being counted at all.
 package horizon
 
 import (
@@ -113,6 +124,17 @@ type RecorderConfig struct {
 	// request per two hundred accounts, where a pair snapshot costs three
 	// regardless of how deep the book is. See decision 5.
 	Holders bool
+
+	// HolderInterval is how often the holder reading is taken, and zero means
+	// every round, which is what it did when Holders was the only knob.
+	//
+	// It exists because the two readings measure quantities that move at
+	// different speeds. An order book turns over in seconds and is the reason
+	// the pair interval is thirty minutes. A trustline balance moves over days,
+	// so recording one every thirty minutes writes forty-eight near-identical
+	// files per asset per day for a distribution that changed once, and this is
+	// the reading whose file size grows with the asset. See decision 6.
+	HolderInterval time.Duration
 
 	Now  func() time.Time
 	Logf func(format string, args ...any)
@@ -448,15 +470,47 @@ func (r *Recorder) Run(ctx context.Context, interval time.Duration) error {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
+	// The zero value means no holder round has happened yet, and dueForHolders
+	// reads it as due. The first round therefore always takes one, for the same
+	// reason the pair round is taken before the first tick: a recorder that waits
+	// six hours for its first holder reading is six hours of a distribution that
+	// cannot be fetched afterwards.
+	var lastHolders time.Time
+
 	for {
 		r.Report(r.RecordOnce(ctx))
-		r.ReportHolders(r.RecordHoldersOnce(ctx))
+		if now := r.cfg.Now(); dueForHolders(lastHolders, now, r.cfg.HolderInterval) {
+			r.ReportHolders(r.RecordHoldersOnce(ctx))
+			lastHolders = now
+		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
 		}
 	}
+}
+
+// dueForHolders decides whether this round takes a holder reading.
+//
+// It is a function rather than three lines inside Run so that the rule can be
+// tested without driving a ticker, which is the only part of Run that is worth
+// testing at all. The comparison is >= and not >, so an interval that divides the
+// pair interval exactly does not skip a round to floating point luck: with a
+// 30 minute tick and a 6 hour holder interval, round 12 is due, not round 13.
+//
+// A stamp in the future, which a clock correction can produce, reads as not due
+// rather than as due forever. That is the conservative direction here: the cost of
+// a missed round is one gap in a series recorded every few hours, and the cost of
+// the other reading is a holder sweep on every single tick.
+func dueForHolders(last, now time.Time, interval time.Duration) bool {
+	if interval <= 0 {
+		return true
+	}
+	if last.IsZero() {
+		return true
+	}
+	return now.Sub(last) >= interval
 }
 
 // Report logs one round and returns how many pairs failed. It is exported so a
