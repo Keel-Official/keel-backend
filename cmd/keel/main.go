@@ -54,10 +54,19 @@ func main() {
 		}
 
 	case "scan":
-		belum(perintah, "internal/horizon + internal/domain + internal/store")
+		// Still a stub, and blocked on the RED ZONE rather than on plumbing:
+		// every function in internal/domain/compute.go panics, so there is no
+		// result to store. The adapter and the store it needs both exist now.
+		belum(perintah, "internal/domain/compute.go, which is Al's to write")
 
 	case "serve":
-		belum(perintah, "internal/api + internal/store")
+		// The read-only API. It answers every endpoint in the contract today;
+		// what it has no rows to return is metrics, because producing one needs
+		// the red zone. See the header of serve.go.
+		if err := runServe(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel serve: %v\n", err)
+			os.Exit(1)
+		}
 
 	case "replay":
 		belum(perintah, "internal/hubble; deferred, see docs/decisions/DEC-002-hold-bigquery.md")
@@ -88,7 +97,7 @@ Subcommands:
   record    record raw Horizon snapshots for cross-validation ("keel record -h")
   assets    declare and inspect the demonstration set ("keel assets -h")
   scan      compute metrics for every active asset, store them in Postgres
-  serve     run the read API
+  serve     run the read API ("keel serve -h")
   replay    replay a ledger range through the historical adapter
 `)
 }
