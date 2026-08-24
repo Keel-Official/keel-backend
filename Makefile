@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once assets scan serve
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve
 
 # ---------------------------------------------------------------- Local
 
@@ -117,6 +117,13 @@ HOLDER_PAGES ?= 0
 
 record-holders:
 	go run ./cmd/keel record -pairs $(PAIRS) -once -holders -holder-pages $(HOLDER_PAGES)
+
+# survey asks Horizon four cheap questions about every pair in PAIRS and prints one
+# row each, so the four liquidity buckets in 10-validation.md section 3 are filled
+# against numbers. It is a TRIAGE INSTRUMENT: nothing it prints is a Keel output and
+# none of it may be quoted as one. It needs no database and writes nothing.
+survey:
+	bash scripts/candidate-survey.sh $(PAIRS)
 
 # assets declares the demonstration set from the same pair file the recorder
 # reads, then lists what is in the table. Needs the database.

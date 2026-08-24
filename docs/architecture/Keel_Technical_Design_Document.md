@@ -20,6 +20,7 @@
 > | 7 | Fastify or Hono | not decided for Go yet, see the open decisions |
 > | 9 item 6 | the JSON determinism test | exists, `TestInvarianDeterminisme` in `internal/conformance` |
 > | 11 and 13 T1/T2 | the fallback plan and the BigQuery budget | deferred entirely, see `docs/decisions/DEC-002-hold-bigquery.md` |
+> | 6.4 | the request budget, and holder data coming from Hubble | annotated in place on 25 August 2026. Holders are read from Horizon now, and the recorder line is 48 per hour rather than 32 |
 
 This document explains **how** Keel is built. What is built is in the PRD. What was
 promised is in the SOW.
@@ -287,6 +288,27 @@ Run manually with a ledger range. It uses `hubbleAdapter`. It writes to the same
 table with `data_source = 'hubble'`.
 
 ### 6.4 The Horizon rate limit budget
+
+> **ANNOTATED 25 AUGUST 2026. The table below is kept as written and two of its
+> premises no longer hold.** The ceiling and the target are still right, and so is
+> the instruction to recompute rather than raise.
+>
+> | Line | What it says | What is true now |
+> |---|---|---|
+> | "Holder data comes from Hubble" | holders cost this budget nothing | holders are read from **Horizon**, because DEC-002 defers Hubble and a trustline balance cannot be reconstructed for a past ledger from anything Horizon serves. See `internal/horizon/holders.go` |
+> | "The recorder, 8 assets every 30 minutes = 32/hour" | 32 | **48**. A pair snapshot is 3 requests, and 8 pairs twice an hour is 48. The arithmetic was never rechecked after the recorder existed |
+>
+> **The line this table has no row for is the holder reading itself, and it is the
+> only cost here that is not fixed per asset.** One request per 200 accounts, so an
+> asset with 873 trustlines costs 5 and one at the 25 page cap costs 25. That is why
+> `keel record` has `-holder-pages` and `-holder-interval`: the cap bounds one
+> reading and the interval bounds how often the unbounded-in-principle cost is paid.
+> A recorder holding 8 base assets at a 6 hour holder interval adds well under 200
+> requests per hour at USTRY's size, and the honest statement is that this figure
+> depends on which assets are chosen, which is why it is not written as a constant.
+>
+> Recompute this whole table when the demonstration set is settled, which is decision
+> D-1 in `docs/methodology/02-pair-selection.md`.
 
 Public Horizon limits roughly 3600 requests per hour per IP. Our target is under
 3000.

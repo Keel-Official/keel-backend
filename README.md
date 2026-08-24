@@ -32,7 +32,8 @@ What that means for the commands you can run:
 | `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and every function in `compute.go` panics |
 | `make record-once` | works, records one round of live Horizon snapshots and exits |
 | `make record` | works, records every 30 minutes until stopped. Needs `PAIRS` |
-| `make record-holders` | works, one round of pairs plus the trustline holder distribution of every base asset |
+| `make record-holders` | works, one round of pairs plus the trustline holder distribution of every base asset. `HOLDER_PAGES` raises the cap |
+| `make survey` | works, prints one liquidity row per pair from Horizon. A triage instrument, not a measurement. Needs `PAIRS` |
 | `make assets` | works, declares the demonstration set. Needs the database |
 | `make serve` | works, serves every endpoint in the contract. Needs the database |
 | `make store-test` | works, the `internal/store` integration tests. Needs the database |
@@ -88,7 +89,24 @@ example rather than a selection.
 ### The holder distribution, which is worse than the order book in one way
 
 ```bash
-make record-holders PAIRS=my-pairs.json     # one round of pairs AND holders
+make record-holders PAIRS=my-pairs.json                  # one round of pairs AND holders
+make record-holders PAIRS=my-pairs.json HOLDER_PAGES=60  # raise the 5000 account cap
+```
+
+**Check the asset's real holder count before switching this on.** A reading that hits
+the page cap is written, flagged, and logged as TRUNCATED, and it answers a holder
+count as a lower bound and a concentration question not at all, because the account it
+did not reach may be the largest one. Horizon's own figure is one request away and
+`HOLDER_PAGES` above is how the cap is raised; the comment on that variable in the
+`Makefile` carries the command.
+
+For the long-running recorder, give holders their own cadence with
+`-holder-interval`. Without one they are read on every `-interval` round, which sets
+the pace of a balance that moves over days by the pace of a book that moves in
+seconds, and this is the one recording here whose file size grows with the asset:
+
+```bash
+go run ./cmd/keel record -pairs my-pairs.json -interval 30m -holders -holder-interval 6h
 ```
 
 `-holders` adds `recordings/holders/{asset}/{ledgerSeq}.json.gz`, one file per
