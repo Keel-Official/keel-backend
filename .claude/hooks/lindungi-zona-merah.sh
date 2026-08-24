@@ -75,22 +75,64 @@ fi
 
 command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 
-# Newlines collapsed to spaces and one space appended, so that every path in the
-# command is followed by at least one character. That lets every pattern below end
-# in a character class instead of a `$` anchor, and a `$` inside an alternation
-# branch is not portable in POSIX ERE. Collapsing newlines can only make this hook
-# refuse MORE, never less, which is the safe direction for a guardrail.
-line=$(printf '%s ' "$command_line" | tr '\n' ' ')
-
-# P2-6d fix, part 1: a heredoc body is DATA. Truncate the line at the <<
-# marker unless the thing being fed is an interpreter, because the heredoc
-# body IS the program in that case and it may write to the zone.
-if printf '%s' "$line" | grep -Eq "<<-?[[:space:]]*['\"\]?[A-Za-z_]"; then
-  if ! printf '%s' "$line" | grep -Eq '\b(python3?|node|ruby|perl|awk)\b.*<<'; then
-    line=$(printf '%s' "$line" | sed -E "s/<<-?[[:space:]]*['\"\]?[A-Za-z_][A-Za-z_0-9]*.*//")
-    line="$line "
-  fi
+# P2-6d part 1, REPAIRED THE SAME DAY IT LANDED. Finding P2-6e.
+#
+# A heredoc BODY is data. The line that OPENS one is not, and that distinction is
+# the whole of P2-6e. The first form of this fix truncated the command at the `<<`
+# marker, which is correct only while the marker is the last thing on the line.
+# It is not: `cat <<'EOF' > internal/domain/compute.go` puts the redirect AFTER the
+# marker, so truncating threw the target away and the write walked through. So only
+# the BODY is removed, from the newline after the marker to its terminator, and the
+# opening line is kept whole and scanned like any other command.
+#
+# Being generous about the terminator is the safe direction here and it is worth
+# knowing why, because this is the one place in the file where "refuse more" and
+# "match less" point the same way. Stopping the strip EARLY leaves more text to be
+# scanned, so a marker that matches sooner than the real terminator can only cause
+# a refusal, never miss one.
+#
+# The interpreter exception stays and is widened by three shells: for
+# `python3 - <<PY` the body IS the program and it may write to the zone, so nothing
+# is stripped and the whole command is scanned. That case is the seventh probe in
+# P2-6 and it must not regress.
+#
+# The interpreter has to be preceded by a separator rather than by any word
+# boundary, and that is not fussiness. `\bsh\b` matches inside `probe.sh`, and a
+# repository whose scripts all end in `.sh` would then skip the strip for nearly
+# every command that touches one, which switches part 1 off exactly where it was
+# needed. A dot is a word boundary; it is not a command boundary.
+body=$command_line
+if ! printf '%s' "$command_line" | grep -Eq '(^|[|;&([:space:]])(python3?|node|ruby|perl|awk|sh|bash|zsh)[[:space:]].*<<'; then
+  body=$(printf '%s\n' "$command_line" | awk '
+    skip { if ($0 ~ term) { skip = 0 }; next }
+    { print }
+    match($0, /<<-?[ \t]*[^ \t;|&<>]+/) {
+      m = substr($0, RSTART, RLENGTH)
+      gsub(/[^A-Za-z_0-9]/, "", m)
+      if (m != "") { term = "^[ \t]*" m "[ \t]*$"; skip = 1 }
+    }
+  ')
 fi
+
+# Newlines become SEMICOLONS, not spaces, and one space is appended, so that every
+# path in the command is followed by at least one character. That lets every pattern
+# below end in a character class instead of a `$` anchor, and a `$` inside an
+# alternation branch is not portable in POSIX ERE.
+#
+# The semicolon is the second half of P2-6e and it is the more important half. This
+# line used to collapse newlines to SPACES, and its comment claimed that could only
+# make the hook refuse more. That claim was true for exactly as long as there was no
+# command-position anchor. Once part 2 below arrived, a newline collapsed to a space
+# glued line two onto the end of line one, so the verb on line two was no longer at
+# the start of anything and walked straight through:
+#
+#     cd /tmp
+#     sed -i "" s/a/b/ internal/domain/compute.go
+#
+# A multi-line command is the ORDINARY form, not a deliberate evasion, so this was
+# the worst of the eight routes P2-6e found. A newline separates two commands, which
+# is what a semicolon means, and the anchor reads it that way now.
+line=$(printf '%s ' "$body" | tr '\n' ';')
 
 # 1. The red zone FILE. Add here when the zone moves again, add the same path to
 #    the deny list in .claude/settings.json, because neither one closes the other's
@@ -106,10 +148,17 @@ zone_dir='(internal/domain[^/[:alnum:]_]|internal/domain/[^[:alnum:]_])'
 zone_any="$zone|$zone_dir"
 
 # P2-6d fix, part 2: command position anchor. A verb is only a verb at the
-# start of the line or after a shell separator (|, ;, &, &&, ||). A verb
+# start of the line or after a shell separator (|, ;, &, &&, ||, an opening
+# paren, and a newline, which the semicolon above stands in for). A verb
 # inside a quoted string is prose, not a command. This is approximate and
 # loses `find . -exec rm {} +`, the deliberate path, not the accidental one.
-cmd='(^|[|;&]+)[[:space:]]*'
+#
+# The second group is P2-6e again. A command position is not always the first WORD
+# of it: `FOO=1 sed -i ...`, `sudo rm ...`, `env`, `time`, `nohup`, `xargs` and the
+# `then`/`do` of a compound statement all put the verb one word later, and every one
+# of them walked through the first form of this anchor. Zero or more such prefixes
+# are skipped before the verb is read.
+cmd='(^|[|;&(]+)[[:space:]]*(([A-Za-z_][A-Za-z_0-9]*=[^[:space:]]*|sudo|env|time|nohup|command|xargs|nice|then|do|else)[[:space:]]+)*'
 
 # 3. A formatter rewriting in place with no file named. `gofmt -l -w .` and
 #    `goimports -w ./...` reach compute.go while mentioning neither it nor its

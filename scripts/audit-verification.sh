@@ -28,7 +28,22 @@
 
 cd "$(dirname "$0")/.." || exit 1
 
-green=$'\033[32m'; red=$'\033[31m'; dim=$'\033[90m'; bold=$'\033[1m'; off=$'\033[0m'
+# Colour only when stdout is a terminal, and never when NO_COLOR is set.
+#
+# This was not cosmetic. The cross-check documented at the end of
+# docs/internal/handoff-2026-08-21.md pipes this script into grep and reads the
+# first field as a finding id, and while the escapes were unconditional that field
+# arrived as `\033[32mP0-2`. The check therefore reported all eleven PROVEN ids as
+# unaccounted for, which is the loudest possible false alarm from a check whose
+# whole promise is that it prints nothing. A report that is only correct on a
+# terminal is not a report, because the reason to write one is that something else
+# reads it.
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  green=$'\033[32m'; red=$'\033[31m'; dim=$'\033[90m'; bold=$'\033[1m'; off=$'\033[0m'
+else
+  green=''; red=''; dim=''; bold=''; off=''
+fi
+export AUDIT_GREEN="$green" AUDIT_RED="$red" AUDIT_OFF="$off"
 proven=0; not=0
 
 check() {
@@ -272,6 +287,13 @@ red_zone_over_refuses(){
   hook_refuses 'go test ./internal/domain/ 2>&1 | tail -5' && return 0
   hook_refuses 'gofmt -l .'                                && return 0
   hook_refuses 'make ci'                                   && return 0
+  # Two multi-line probes, added 24 August 2026 with P2-6e. Once a newline counts
+  # as a command separator, every ordinary two line command is a new chance to
+  # over-refuse, and a two line command is what most real work looks like.
+  hook_refuses 'cd /tmp
+go test ./internal/domain/ -run TestArch'                  && return 0
+  hook_refuses 'echo first
+sed -i "" s/a/b/ internal/domain/types.go'                 && return 0
   return 1
 }
 # PROVEN while the hook reads PROSE as a command. Closing routes two and three
@@ -285,25 +307,68 @@ red_zone_over_refuses(){
 # all. It is P2-6d and not part of P2-6b because the fix is different: P2-6b is
 # about which PATHS are matched, this is about what counts as a COMMAND.
 #
-# THE FIX IS AL'S, and not because it is hard. Claude is blocked from loosening the
-# guardrail Claude is subject to, which is the correct arrangement and the reason
-# this line is a finding rather than a patch. Two parts, both in this hook:
+# THE FIX WAS AL'S, and not because it was hard. Claude is blocked from loosening
+# the guardrail Claude is subject to, which is the correct arrangement and the
+# reason this line was a finding rather than a patch. Two parts, both in the hook:
 #
-#   1. A heredoc body is DATA. Scan `git commit -F - <<MSG` up to the `<<` and no
-#      further. Keep scanning the full command when the thing being fed is an
-#      interpreter or a writer, so `python3 - <<PY` writing to compute.go stays
-#      refused, which is what the fifth probe in P2-6 guards.
+#   1. A heredoc body is DATA, so the body is not scanned. The full command is still
+#      scanned when the thing being fed is an interpreter, so `python3 - <<PY`
+#      writing to compute.go stays refused, which is what the seventh probe in P2-6
+#      guards.
 #   2. Anchor every rule to COMMAND POSITION, the start of the line or just after a
 #      shell separator, so a verb inside a quoted string is not a verb. This loses
 #      `find . -exec rm {} + internal/domain`, which is the deliberate path rather
 #      than the accidental one.
 #
-# Until then the workaround is `git commit -F <file>`, which keeps the prose off
-# the command line. That works and it is not a fix: it depends on remembering.
+# CLOSED 24 AUGUST 2026. Al applied the patch, Claude committed it on Al's
+# instruction and then repaired it, which is P2-6e directly below. The workaround
+# this replaces was `git commit -F <file>`, which worked and was not a fix, because
+# it depended on remembering.
 red_zone_refuses_prose(){
   hook_absent && return 1
   hook_refuses 'git commit -m "rm -rf internal/domain is refused"' && return 0
   hook_refuses 'echo "make fmt is refused"'                        && return 0
+  return 1
+}
+# PROVEN while the fix for P2-6d has reopened a route that P2-6 or P2-6c closed.
+#
+# EVERY LOOSENING NEEDS ONE OF THESE, and that is the general lesson rather than
+# anything about heredocs. P2-6d was a real finding and its patch was correct in
+# intent, and it still opened eight routes, because it changed WHAT COUNTS AS A
+# COMMAND in a file where three separate rules all read that answer. It was probed
+# before being committed and the probes are kept here so the eight cannot come back
+# one at a time.
+#
+# The two that matter are not the exotic ones:
+#
+#   1. A MULTI-LINE COMMAND IS THE ORDINARY FORM. The hook collapsed newlines to
+#      spaces, under a comment claiming that could only make it refuse MORE. That
+#      was true until the command-position anchor existed, and then it was exactly
+#      backwards: line two got glued to the end of line one, so its verb was no
+#      longer at the start of anything. `cd /tmp` on line one was enough to walk a
+#      mutation of compute.go straight through. Newlines are semicolons now.
+#   2. TRUNCATING AT `<<` THREW AWAY THE REDIRECT. `cat <<'EOF' > compute.go` puts
+#      the target AFTER the marker, so cutting the line there removed the very thing
+#      the redirect rule reads. Only the heredoc BODY is dropped now, and the line
+#      that opens it is scanned like any other command.
+#
+# The other six are the same mistake in smaller shapes: a command position is not
+# always the first word of a line. `FOO=1 sed -i`, `sudo`, `env`, `time`, `nohup`,
+# `xargs` and the `then` of a compound statement each put the verb one word later.
+red_zone_reopened_by_the_fix(){
+  hook_absent && return 1
+  ! hook_refuses 'cat <<'"'"'EOF'"'"' > internal/domain/compute.go
+package domain
+EOF'                                                        && return 0
+  ! hook_refuses 'cd /tmp
+sed -i "" s/a/b/ internal/domain/compute.go'                && return 0
+  ! hook_refuses 'echo starting
+rm -f internal/domain/compute.go'                           && return 0
+  ! hook_refuses 'cd /tmp
+make fmt'                                                   && return 0
+  ! hook_refuses 'FOO=1 sed -i "" s/a/b/ internal/domain/compute.go' && return 0
+  ! hook_refuses 'sudo rm -f internal/domain/compute.go'    && return 0
+  ! hook_refuses 'env sed -i "" s/a/b/ internal/domain/compute.go'   && return 0
   return 1
 }
 
@@ -391,6 +456,7 @@ check P2-6 "The red zone lock leaks through Bash, uncovered by the Edit and Writ
 check P2-6b "or the same hook refuses a yellow file next door, which gets it switched off" red_zone_over_refuses
 check P2-6c "or a directory-wide or tree-wide mutation reaches it without naming it at all" red_zone_dir_bypass
 check P2-6d "The same hook reads prose as a command, so a commit message quoting the zone is refused" red_zone_refuses_prose
+check P2-6e "or the fix for that reopens a route, because a newline or a heredoc hid the verb" red_zone_reopened_by_the_fix
 check P2-9 "A directory holding files has no row in the CLAUDE.md zone map, so it has no owner" zones_incomplete
 # A PROVEN line that does not say WHICH path is missing is a chore rather than a
 # finding, so the paths are printed here. Nothing is printed when the map is
@@ -495,8 +561,12 @@ fi
 
 section "Golden fixture arithmetic, recomputed from scratch"
 python3 - <<'PY'
+import os
 from decimal import Decimal, getcontext
 getcontext().prec = 60
+GREEN = os.environ.get("AUDIT_GREEN", "")
+RED = os.environ.get("AUDIT_RED", "")
+OFF = os.environ.get("AUDIT_OFF", "")
 ask = Decimal(266843207) / Decimal(2500000)
 bid = Decimal(1057) / Decimal(1000)
 amt = Decimal("1.2185312")
@@ -505,7 +575,7 @@ spread = (ask - bid) / p0 * 100
 cost = ask * amt
 def compare(name, computed, written, tol=Decimal("0.0000001")):
     ok = abs(computed - Decimal(written)) <= tol
-    tag = "\033[32mMATCH \033[0m" if ok else "\033[31mDIFFER\033[0m"
+    tag = f"{GREEN}MATCH {OFF}" if ok else f"{RED}DIFFER{OFF}"
     print(f"{tag} {name:<26} computed {computed:<24} fixture {written}")
 compare("P0", p0, "53.8971414")
 compare("spreadPct", spread, "196.0777140585048")

@@ -81,8 +81,17 @@ twice and was then blocked from loosening it, mid-task, by the permission layer.
 That asymmetry is the whole idea. An agent that can widen its own permitted
 surface does not have a lock, it has a suggestion. It is the same reason the empty
 `internal/depth` could not be deleted from Claude's side. When a loosening is
-genuinely needed, and P2-6d is one, Claude writes the patch into a comment and a
+genuinely needed, and P2-6d was one, Claude writes the patch into a comment and a
 finding, and Al applies it.
+
+**P2-6d ran that route end to end on 24 August 2026, and it is the worked example.**
+Claude drafted the patch and was refused. Al applied it. Claude probed it BEFORE
+committing it, found eight routes it had reopened, two of them ordinary forms of a
+command rather than exotic ones, and repaired them in a second commit, because
+repairing is tightening and tightening is Claude's. Two lessons are worth carrying
+into the next loosening: probe a loosening before it lands and not after, and give
+every loosening a check of its own, which here is P2-6e in
+`scripts/audit-verification.sh`.
 
 **The red zone is a file, not a directory, and that is the second version of this
 map.** It was `internal/depth` until methodology 1.0.3 moved the computations into
