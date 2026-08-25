@@ -12,6 +12,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -36,6 +37,9 @@ func runRecord(args []string) error {
 	interval := fs.Duration("interval", 30*time.Minute, "how often to record")
 	once := fs.Bool("once", false, "record one round and exit")
 	baseURL := fs.String("horizon", horizon.DefaultBaseURL, "Horizon base URL")
+	schema := fs.Int("schema", horizon.TickSchemaVersion,
+		"recording schema to write: 2 stores raw response bytes and nothing else, 1 stores the parsed "+
+			"snapshot beside them. Files already written in either schema stay readable")
 	verify := fs.Bool("verify", true, "verify every asset's code, issuer and type on Horizon before recording")
 	budget := fs.Int("budget", 3000, "requests permitted per hour. Public Horizon allows about 3600 per IP")
 	bidUnit := fs.String("bid-amount-unit", string(horizon.BidAmountUnitQuote),
@@ -51,10 +55,20 @@ func runRecord(args []string) error {
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel record - record raw Horizon snapshots for cross-validation
 
-Writes {out}/{pair}/{ledgerSeq}.json.gz, one file per ledger per pair, and never
-overwrites one that exists. Each file holds the parsed conclusions AND the raw
-response bodies, so the reading of those bytes can be revised later without the
-evidence being re-fetched, which is impossible for a past ledger.
+SCHEMA 2, the default, writes {out}/{pair}/{date}/{ledgerBefore}.json.gz, one
+file per pair per tick. It holds ONLY raw response bytes: the order book and the
+liquidity pools, each with the exact URL requested, the HTTP status, the body
+verbatim as a string, and that body's sha256. It parses nothing, converts
+nothing, and makes no judgement about data quality. A non-2xx and an empty pool
+list are both recorded and kept. Nothing is ever overwritten; a name already
+taken gets a monotonic suffix.
+
+SCHEMA 1 writes {out}/{pair}/{ledgerSeq}.json.gz and holds the parsed
+conclusions AND the raw response bodies. It is still reachable with -schema 1
+and every file it has written stays readable, but it is no longer the default:
+the parsed half is the half that had to be revised when the bid amount unit
+turned out to be quote-denominated, and a recording that claims nothing cannot
+go stale that way.
 
 With -holders it also writes {out}/holders/{asset}/{ledgerSeq}.json.gz, one file
 per ledger per BASE asset, holding every trustline holder and the issued supply.
@@ -84,6 +98,9 @@ time in the one format here whose size grows with the asset.
 		return fmt.Errorf("record: -bid-amount-unit must be %q or %q",
 			horizon.BidAmountUnitQuote, horizon.BidAmountUnitBase)
 	}
+	if *schema != 1 && *schema != horizon.TickSchemaVersion {
+		return fmt.Errorf("record: -schema must be 1 or %d", horizon.TickSchemaVersion)
+	}
 
 	pairs, err := horizon.LoadPairs(*pairsPath)
 	if err != nil {
@@ -107,6 +124,7 @@ time in the one format here whose size grows with the asset.
 		Client:         client,
 		Root:           *out,
 		Pairs:          pairs,
+		Schema:         *schema,
 		Holders:        *holders,
 		HolderInterval: *holderInterval,
 		Logf:           logger.Printf,
@@ -128,7 +146,10 @@ time in the one format here whose size grows with the asset.
 		}
 	}
 
-	logger.Printf("recording %d pair(s) into %s, bid amount read as %s", len(pairs), *out, unit)
+	logger.Printf("recording %d pair(s) into %s in schema %d", len(pairs), *out, *schema)
+	if *schema == 1 {
+		logger.Printf("schema 1 also parses each reading, bid amount read as %s", unit)
+	}
 	if *holders {
 		assets := rec.HolderAssets()
 		cadence := "every round"
@@ -142,10 +163,10 @@ time in the one format here whose size grows with the asset.
 	}
 
 	if *once {
-		failed := rec.Report(rec.RecordOnce(ctx))
+		unwritten := recordOneRound(rec, ctx, *schema, os.Stdout)
 		holderFailed := rec.ReportHolders(rec.RecordHoldersOnce(ctx))
-		if failed > 0 {
-			return fmt.Errorf("record: %d of %d pair(s) failed", failed, len(pairs))
+		if unwritten > 0 {
+			return fmt.Errorf("record: %d of %d pair(s) wrote nothing", unwritten, len(pairs))
 		}
 		if holderFailed > 0 {
 			return fmt.Errorf("record: %d holder reading(s) failed", holderFailed)
@@ -160,6 +181,29 @@ time in the one format here whose size grows with the asset.
 		return nil
 	}
 	return err
+}
+
+// recordOneRound runs a single round and, in schema 2, prints one machine
+// readable tally to w. It returns how many pairs wrote NOTHING.
+//
+// Only an unwritten tick counts. A tick holding a 429 or a 503 has been written
+// and is evidence of exactly the thing it says, so it is not a failure and does
+// not color an exit code: a recorder that goes red whenever Horizon is busy is
+// a recorder whose red gets ignored, and the ledger it gave up on has closed by
+// the time anybody looks.
+//
+// The tally goes to STDOUT while every log line goes to stderr, so a caller can
+// read the numbers without parsing the log. It is deliberately a flat key=value
+// line and not JSON: the only consumer is a shell step in a workflow, and a
+// shell reading JSON needs a JSON parser installed on the runner.
+func recordOneRound(rec *horizon.Recorder, ctx context.Context, schema int, w io.Writer) int {
+	if schema == 1 {
+		return rec.Report(rec.RecordOnce(ctx))
+	}
+	round := rec.ReportTicks(rec.RecordTicksOnce(ctx))
+	fmt.Fprintf(w, "ticks_written=%d ticks_degraded=%d ticks_straddled=%d ticks_collided=%d ticks_unwritten=%d\n",
+		round.Written, round.Degraded, round.Straddled, round.Collided, round.Unwritten)
+	return round.Unwritten
 }
 
 // assetList names the assets a holder round will read, so the line that says a
