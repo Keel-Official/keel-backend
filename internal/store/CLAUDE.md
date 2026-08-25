@@ -129,11 +129,16 @@ definition is an empty row in the table at the end of
 why no column was added rather than one being added quietly, and handoff item 17
 is where the decision belongs.
 
-**`localhost:5432` is not necessarily this project's Postgres.** A Postgres
-already running on the host takes the port before the container does, and the
-symptom is `role "keel" does not exist` rather than a refused connection.
-`scripts/migrate.sh` is immune because it goes through `docker compose exec`, so
-the schema can be applied and the Go client still be talking to another server
-entirely. `keel assets` prints that as a hint on any connection failure, and
-`make store-test` takes `KEEL_TEST_DSN` so the container can be addressed
-directly.
+**The container is published on `localhost:5433`, and `localhost:5432` is not
+this project's Postgres.** A Postgres already installed on the host takes 5432
+before the container can: the host server binds `127.0.0.1` while Docker binds the
+wildcard, so the symptom is `role "keel" does not exist` rather than a refused
+connection. `scripts/migrate.sh` is immune because it goes through `docker compose
+exec` and never touches a published port, so the schema can be applied to the
+container while the Go client talks to another server entirely. That happened on
+26 August 2026, which is why the published port moved to 5433 and `DefaultDSN`
+moved with it.
+
+Moving the port narrows the collision and does not close it, so the escape hatches
+stay: `keel assets` prints the hint on any connection failure, and `make store-test`
+takes `KEEL_TEST_DSN` so the container can be addressed directly.

@@ -118,8 +118,8 @@ panics. The command says so and exits with code 3.
 
 	s, err := store.Open(ctx, *dsn)
 	if err != nil {
-		return fmt.Errorf("%w\n  hint: `make up && make migrate` first, and check that port 5432 is the container's "+
-			"Postgres and not another one already running locally", err)
+		return fmt.Errorf("%w\n  hint: `make up && make migrate` first. The container publishes 5433, not 5432, "+
+			"so a DSN still naming 5432 reaches whatever else is on the host", err)
 	}
 	defer func() { _ = s.Close() }()
 

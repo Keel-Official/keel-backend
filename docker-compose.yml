@@ -7,7 +7,22 @@ services:
       POSTGRES_PASSWORD: keel_dev_only
       POSTGRES_DB: keel
     ports:
-      - "5432:5432"
+      # 5433 ON THE HOST, 5432 INSIDE THE CONTAINER. It was 5432:5432 until 26
+      # August 2026, and a Postgres already installed on the host takes that port
+      # first: the host server binds 127.0.0.1 specifically while Docker binds the
+      # wildcard, so `localhost` reaches the host server and the symptom is
+      # `role "keel" does not exist` rather than a refused connection.
+      #
+      # `make migrate` never noticed, because scripts/migrate.sh goes through
+      # `docker compose exec` and never touches a published port at all. The
+      # schema could therefore be applied to THIS container while every Go client
+      # talked to a different server entirely, which is what happened on 26 August
+      # 2026: migrate reported four files present and the store suite failed on
+      # all 31 tests with a missing role.
+      #
+      # The container port stays 5432. Nothing inside the container moves, so the
+      # healthcheck and `docker compose exec postgres psql` are unchanged.
+      - "5433:5432"
     volumes:
       - keel_pgdata:/var/lib/postgresql/data
       # migrations/ is deliberately NOT mounted into

@@ -25,7 +25,7 @@ import (
 // no Docker. To run them:
 //
 //	make up && make migrate
-//	KEEL_TEST_DSN="postgres://keel:keel_dev_only@localhost:5432/keel?sslmode=disable" go test ./internal/store/
+//	KEEL_TEST_DSN="postgres://keel:keel_dev_only@localhost:5433/keel?sslmode=disable" go test ./internal/store/
 //
 // EVERY TEST RUNS INSIDE A TRANSACTION THAT IS ROLLED BACK. That is what the
 // unexported dbtx interface in store.go is for. A test suite that leaves rows in

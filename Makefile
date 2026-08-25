@@ -4,7 +4,7 @@
 
 up:
 	docker compose up -d
-	@echo "Postgres ready on localhost:5432 (user keel / db keel)"
+	@echo "Postgres ready on localhost:5433 (user keel / db keel)"
 
 down:
 	docker compose down
@@ -55,10 +55,16 @@ conformance:
 # Every test runs inside a transaction that is rolled back, so this leaves no
 # rows behind. It needs `make up && make migrate` first.
 #
-# KEEL_TEST_DSN is overridable because localhost:5432 is not always the
-# container: a Postgres already running on the host takes that port first, and
-# the symptom is `role "keel" does not exist` rather than a refused connection.
-KEEL_TEST_DSN ?= postgres://keel:keel_dev_only@localhost:5432/keel?sslmode=disable
+# THE DEFAULT NAMES 5433, which is where docker-compose.yml publishes the
+# container as of 26 August 2026. It named 5432 before that, and on a machine
+# with a Postgres already installed that address is the HOST server: it binds
+# 127.0.0.1 while Docker binds the wildcard, so the symptom is `role "keel" does
+# not exist` rather than a refused connection. The ports block in
+# docker-compose.yml carries the full account.
+#
+# It stays overridable, because moving the published port narrows that collision
+# and does not close it. Anything already on 5433 wins the same way.
+KEEL_TEST_DSN ?= postgres://keel:keel_dev_only@localhost:5433/keel?sslmode=disable
 
 store-test:
 	KEEL_TEST_DSN="$(KEEL_TEST_DSN)" go test ./internal/store/ -count=1 -v

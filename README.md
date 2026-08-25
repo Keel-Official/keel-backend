@@ -173,14 +173,17 @@ inside the red zone before there is anything to store. That row is the point of
 running it anyway: `runs` records what a job attempted, so a scan that stored
 nothing is visible rather than silent.
 
-**If a connection fails with `role "keel" does not exist`**, port 5432 is being
-answered by a Postgres that is not this project's container. A server already
-running on the host takes the port first, and `make migrate` will not notice
-because it goes through `docker compose exec`. Point the client at the container
-explicitly:
+**The container is published on 5433, not 5432.** A Postgres already installed on
+the host takes 5432 before the container can, `make migrate` does not notice
+because it goes through `docker compose exec`, and the symptom is `role "keel"
+does not exist` rather than a refused connection. The published port moved on 26
+August 2026 and `DefaultDSN` moved with it, so the defaults need no argument.
+
+**If a connection still fails with `role "keel" does not exist`**, something on
+this machine is answering 5433 too. Point the client at the container explicitly:
 
 ```bash
-make store-test KEEL_TEST_DSN="postgres://keel:keel_dev_only@<container-address>:5432/keel?sslmode=disable"
+make store-test KEEL_TEST_DSN="postgres://keel:keel_dev_only@<container-address>:5433/keel?sslmode=disable"
 KEEL_DSN="..." make assets
 ```
 
