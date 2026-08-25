@@ -294,7 +294,7 @@ func (c *Client) GetSnapshot(ctx context.Context, base, quote domain.Asset) (Obs
 	bookQ := url.Values{}
 	addAsset(bookQ, "selling", base)
 	addAsset(bookQ, "buying", quote)
-	bookQ.Set("limit", "200")
+	bookQ.Set("limit", strconv.Itoa(bookPageLimit))
 
 	bookBody, bookLedger, err := c.get(ctx, "/order_book", bookQ, true)
 	if err != nil {

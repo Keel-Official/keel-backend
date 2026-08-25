@@ -75,6 +75,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Keel-Official/keel-backend/internal/domain"
@@ -136,6 +137,20 @@ type RecorderConfig struct {
 	// the reading whose file size grows with the asset. See decision 6.
 	HolderInterval time.Duration
 
+	// Schema is which recording schema a round writes, 1 or 2, and zero means
+	// TickSchemaVersion.
+	//
+	// THE DEFAULT IS 2, which is a change of behavior and is the point. Schema 1
+	// writes the parsed conclusions beside the bytes, and the parsed half is the
+	// half that had to be revised once already; schema 2 writes bytes and makes
+	// no claim, so the hourly production path defaults to the one that cannot go
+	// stale. Schema 1 stays reachable, and every file it ever wrote stays
+	// readable through ReadRecording. Rejected alternative: leaving 1 as the
+	// default and letting the workflow opt in, which makes the correct schema
+	// depend on somebody remembering a flag and records the wrong one silently
+	// when they do not.
+	Schema int
+
 	Now  func() time.Time
 	Logf func(format string, args ...any)
 }
@@ -160,7 +175,24 @@ func NewRecorder(cfg RecorderConfig) (*Recorder, error) {
 	if cfg.Logf == nil {
 		cfg.Logf = func(string, ...any) {}
 	}
+	if cfg.Schema == 0 {
+		cfg.Schema = TickSchemaVersion
+	}
+	if cfg.Schema != 1 && cfg.Schema != TickSchemaVersion {
+		return nil, fmt.Errorf("recorder: schema %d is not 1 or %d", cfg.Schema, TickSchemaVersion)
+	}
 	return &Recorder{cfg: cfg}, nil
+}
+
+// recordRound records one round in the configured schema and returns how much
+// evidence failed to reach disk. It is the single place the two schemas are
+// chosen between, so Run and the one-shot path cannot disagree about which one
+// is in force.
+func (r *Recorder) recordRound(ctx context.Context) int {
+	if r.cfg.Schema == 1 {
+		return r.Report(r.RecordOnce(ctx))
+	}
+	return r.ReportTicks(r.RecordTicksOnce(ctx)).Unwritten
 }
 
 // Result is the outcome for one pair in one round.
@@ -198,7 +230,11 @@ func (r *Recorder) Verify(ctx context.Context) error {
 	})
 	for _, a := range assets {
 		if err := r.cfg.Client.VerifyAsset(ctx, a); err != nil {
-			return err
+			// Name the PAIRS, not only the asset. A message that says an issuer
+			// is unknown leaves the operator to work out which line of the pair
+			// file to look at, and the whole point of failing loudly at startup
+			// is that they do not have to.
+			return fmt.Errorf("%w (used by %s)", err, strings.Join(r.PairsUsing(a), ", "))
 		}
 		r.cfg.Logf("verified %s as %s", a, a.Type)
 	}
@@ -478,7 +514,7 @@ func (r *Recorder) Run(ctx context.Context, interval time.Duration) error {
 	var lastHolders time.Time
 
 	for {
-		r.Report(r.RecordOnce(ctx))
+		r.recordRound(ctx)
 		if now := r.cfg.Now(); dueForHolders(lastHolders, now, r.cfg.HolderInterval) {
 			r.ReportHolders(r.RecordHoldersOnce(ctx))
 			lastHolders = now
@@ -612,6 +648,9 @@ func (s assetSpec) asset() (domain.Asset, error) {
 		if s.Code == "" || s.Issuer == "" {
 			return domain.Asset{}, fmt.Errorf("%s asset needs both a code and an issuer", s.Type)
 		}
+		if err := checkIssuer(s.Issuer); err != nil {
+			return domain.Asset{}, err
+		}
 		return domain.Asset{Code: s.Code, Issuer: s.Issuer, Type: domain.AssetType(s.Type)}, nil
 	default:
 		// The type is never inferred from the code length. See trap 4 in this
@@ -619,6 +658,58 @@ func (s assetSpec) asset() (domain.Asset, error) {
 		// an empty book and no error, which looks exactly like a dead market.
 		return domain.Asset{}, fmt.Errorf("asset type %q must be one of native, credit_alphanum4, credit_alphanum12", s.Type)
 	}
+}
+
+// describe names an asset spec for an error message, including a malformed one.
+// It reads the RAW fields rather than a parsed domain.Asset, because the errors
+// it feeds are the ones raised when parsing failed.
+func (s assetSpec) describe() string {
+	if s.Code == "" && s.Issuer == "" {
+		return s.Type
+	}
+	return s.Code + ":" + s.Issuer
+}
+
+// issuerLen is the length of a strkey encoded Stellar account ID: the 56
+// characters of base32 that every G... address is.
+const issuerLen = 56
+
+// checkIssuer rejects a malformed issuer BEFORE any request is made.
+//
+// It exists because a malformed issuer fails in three different places
+// otherwise, none of them early and none of them naming the pair. Horizon
+// answers /assets with a 400 whose body says "is not a valid asset issuer",
+// /liquidity_pools quietly returns no pools, and /order_book returns an empty
+// book, which is indistinguishable from a dead market and is trap 4 in this
+// package's CLAUDE.md wearing a different hat. This was not hypothetical: the
+// AUDD issuer supplied for configs/recorder-pairs.json was 57 characters, one
+// too many, and Horizon rejected it. See
+// docs/evidences/liquidity_pools_reserves_2026-08-25.txt section 7.
+//
+// It checks the SHAPE and not the checksum. The last two bytes of a strkey are a
+// CRC16 and verifying them needs a base32 decoder here, which would be the third
+// place in this repository that knows the strkey format; the shape check catches
+// every transcription error seen so far, and VerifyAsset then asks Horizon,
+// which owns the real answer. NEVER FALLS BACK TO A DEFAULT: the pair file is
+// data and a recorder that substitutes its own issuer for a bad one is recording
+// a market nobody asked for.
+func checkIssuer(issuer string) error {
+	if len(issuer) != issuerLen {
+		return fmt.Errorf("issuer %q is %d characters and a Stellar account ID is %d",
+			issuer, len(issuer), issuerLen)
+	}
+	if issuer[0] != 'G' {
+		return fmt.Errorf("issuer %q does not start with G, so it is not an account ID", issuer)
+	}
+	for i := 0; i < len(issuer); i++ {
+		switch c := issuer[i]; {
+		case c >= 'A' && c <= 'Z', c >= '2' && c <= '7':
+		default:
+			return fmt.Errorf("issuer %q holds %q at position %d, which is not in the base32 alphabet",
+				issuer, string(issuer[i]), i)
+		}
+	}
+	return nil
 }
 
 // LoadPairs reads a pair list. It rejects a duplicate pair rather than recording
@@ -642,13 +733,16 @@ func LoadPairs(path string) ([]Pair, error) {
 	seen := map[string]bool{}
 	out := make([]Pair, 0, len(f.Pairs))
 	for i, p := range f.Pairs {
+		// Every error below names the offending pair as the FILE spells it, so a
+		// list of eight is not eight lines to check by hand.
+		spelled := p.Base.describe() + "/" + p.Quote.describe()
 		base, err := p.Base.asset()
 		if err != nil {
-			return nil, fmt.Errorf("%s: pair %d base: %w", path, i, err)
+			return nil, fmt.Errorf("%s: pair %d (%s) base: %w", path, i, spelled, err)
 		}
 		quote, err := p.Quote.asset()
 		if err != nil {
-			return nil, fmt.Errorf("%s: pair %d quote: %w", path, i, err)
+			return nil, fmt.Errorf("%s: pair %d (%s) quote: %w", path, i, spelled, err)
 		}
 		if base.Equal(quote) {
 			return nil, fmt.Errorf("%s: pair %d has the same asset on both sides", path, i)
