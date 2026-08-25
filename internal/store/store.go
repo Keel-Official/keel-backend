@@ -70,6 +70,9 @@ type dbtx interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
+// Store is Keel's Postgres persistence. It stores and reads and computes
+// nothing, which is the rule for this package: a figure that arrives here has
+// already been decided somewhere a reviewer can find.
 type Store struct {
 	db      dbtx
 	closeFn func() error
@@ -100,6 +103,8 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 	return &Store{db: db, closeFn: db.Close}, nil
 }
 
+// Close releases the connection pool. It is safe on a Store built around an
+// existing transaction, where there is no pool to release and closeFn is nil.
 func (s *Store) Close() error {
 	if s.closeFn == nil {
 		return nil

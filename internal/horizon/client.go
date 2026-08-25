@@ -223,6 +223,9 @@ type cacheEntry struct {
 	at     time.Time
 }
 
+// NewClient builds a Client, filling in the defaults documented on Config. It
+// cannot fail: every field has a working default and nothing is read from the
+// environment, so a misconfiguration is visible at the call site or nowhere.
 func NewClient(cfg Config) *Client {
 	return &Client{cfg: cfg.withDefaults(), cache: map[string]cacheEntry{}}
 }

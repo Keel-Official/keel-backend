@@ -49,6 +49,9 @@ var (
 	}
 )
 
+// PoolUSTRYUSDC is the AMM pool of the golden fixture, at the same ledger as the
+// order book beside it. THESE NUMBERS ARE COMPUTED BY HAND and are the
+// specification: when the code disagrees with them, the code is what changes.
 var PoolUSTRYUSDC = domain.PoolReserves{
 	PoolID:       "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
 	ReserveBase:  dec("15.4791416"), // USTRY
@@ -92,7 +95,7 @@ func GoldenSnapshot() domain.Snapshot {
 	}
 }
 
-// DefaultParams holds the default thresholds from
+// FixtureParams holds the default thresholds from
 // docs/methodology/09-flags-and-bands.md section 6.
 //
 // UNITS: every field ending in Pct is expressed in PERCENT, not as a fraction.

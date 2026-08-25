@@ -68,6 +68,9 @@ type Config struct {
 	Logf                func(format string, args ...any)
 }
 
+// Server is the read-only HTTP surface described by docs/api/keel-openapi.yaml.
+// It computes nothing: every figure it serves was computed elsewhere and stored,
+// so a request can never be the thing that triggers a methodology run.
 type Server struct {
 	cfg Config
 	mux *http.ServeMux
@@ -77,6 +80,9 @@ type Server struct {
 // /v1, so the paths in it are relative to that.
 const BasePath = "/v1"
 
+// New builds a Server and refuses a Config that cannot serve: the reader is
+// required, because a server that starts without one fails per request instead
+// of at startup, and the second is far harder to notice.
 func New(cfg Config) (*Server, error) {
 	if cfg.Reader == nil {
 		return nil, errors.New("api: no reader")

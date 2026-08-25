@@ -156,10 +156,16 @@ type RecorderConfig struct {
 	Logf func(format string, args ...any)
 }
 
+// Recorder writes raw Horizon readings to disk, one file per pair per ledger,
+// never overwriting one that exists. It is the only component here whose work
+// cannot be caught up later: a ledger that closed unrecorded is gone.
 type Recorder struct {
 	cfg RecorderConfig
 }
 
+// NewRecorder builds a Recorder and refuses a config that would record nothing.
+// An empty pair list is an error rather than a quiet no-op, because a recorder
+// that runs for a week writing no files looks identical to one that is working.
 func NewRecorder(cfg RecorderConfig) (*Recorder, error) {
 	if cfg.Client == nil {
 		return nil, errors.New("recorder: no client")
