@@ -62,7 +62,7 @@ func accountID(i int) string {
 
 // withHolders installs the two holder endpoints on the fake.
 func (f *fakeHorizon) withHolders(summary string, pages []string) {
-	f.handler["/assets"] = func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, summary) }
+	f.handler["/assets"] = func(w http.ResponseWriter, _ *http.Request) { _, _ = fmt.Fprint(w, summary) }
 	f.handler["/accounts"] = func(w http.ResponseWriter, r *http.Request) {
 		cursor := r.URL.Query().Get("cursor")
 		idx := 0
@@ -72,10 +72,10 @@ func (f *fakeHorizon) withHolders(summary string, pages []string) {
 			idx = f.hits["/accounts"] - 1
 		}
 		if idx >= len(pages) {
-			fmt.Fprint(w, `{"_embedded":{"records":[]}}`)
+			_, _ = fmt.Fprint(w, `{"_embedded":{"records":[]}}`)
 			return
 		}
-		fmt.Fprint(w, pages[idx])
+		_, _ = fmt.Fprint(w, pages[idx])
 	}
 }
 

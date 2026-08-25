@@ -17,6 +17,7 @@
 // '196.0777141' means 196 percent, not 1.96. The domain carries these on the same
 // scale, so this layer passes them through unchanged; if that ever stops being
 // true, the conversion belongs here and nowhere else.
+
 package api
 
 import (
@@ -64,7 +65,7 @@ func dec(d *decimal.Decimal) *string {
 type assetJSON struct {
 	Code string `json:"code"`
 	Type string `json:"type"`
-	// Issuer is a pointer so the native asset serialises as null rather than as
+	// Issuer is a pointer so the native asset serializes as null rather than as
 	// an empty string. The contract says null if and only if type is native.
 	Issuer *string `json:"issuer"`
 }
@@ -415,7 +416,7 @@ type healthJSON struct {
 
 type methodologyJSON struct {
 	Version         string         `json:"version"`
-	DocumentUrl     string         `json:"documentUrl"`
+	DocumentURL     string         `json:"documentUrl"`
 	Calibrated      bool           `json:"calibrated"`
 	CalibrationNote string         `json:"calibrationNote"`
 	Thresholds      map[string]any `json:"thresholds"`

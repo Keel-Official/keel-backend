@@ -63,10 +63,16 @@ and silently ignores every file after it.
 ## Recording cross-validation evidence, and why it starts before anything else
 
 ```bash
-make record-once                       # one round, into recordings/
+make record-once                                     # one round, into recordings/
+make record-once PAIRS=configs/recorder-pairs.json   # the eight provisional pairs
 cp scripts/record-pairs.example.json my-pairs.json   # then edit it
-make record PAIRS=my-pairs.json        # every 30 minutes, Ctrl-C to stop
+make record PAIRS=my-pairs.json                      # every 30 minutes, Ctrl-C to stop
 ```
+
+`configs/recorder-pairs.json` holds eight pairs, all quoted in USDC, and it is
+PROVISIONAL: `docs/methodology/02-pair-selection.md` section 5 supersedes it once
+written, and nothing in it is a methodology claim. It is what
+`.github/workflows/record.yml` records hourly.
 
 Layer 3 of `docs/methodology/10-validation.md` compares a live Horizon reading of
 a ledger against a reconstruction of that same ledger, and that is what satisfies
@@ -75,11 +81,27 @@ has to be taken while the ledger is current. **It is the only work in this
 repository that cannot be caught up later**, so the recorder was written before
 the storage layer and before the API.
 
-Each file is `recordings/{pair}/{ledgerSeq}.json.gz` and holds both the parsed
-conclusions and the raw response bodies. Existing files are never overwritten.
-The raw stream is not tracked by git; `recordings/sample/` is the exception,
+Each file is `recordings/{pair}/{date}/{ledgerBefore}.json.gz` and holds ONLY the
+raw response bodies: the order book and the liquidity pools, each with the exact
+URL requested, the HTTP status, the body verbatim as a string, and that body's
+sha256. It parses nothing and converts nothing. Nothing is ever overwritten; a
+name already taken gets a monotonic suffix.
+
+That is recording schema 2, and it is the default. Schema 1 wrote
+`recordings/{pair}/{ledgerSeq}.json.gz` and held the parsed conclusions beside
+the bytes; it is still reachable with `-schema 1` and every file it wrote stays
+readable, but the parsed half is the half that had to be revised once already,
+when the bid amount unit turned out to be quote-denominated. A recording that
+claims nothing cannot go stale that way.
+
+An empty pool list and a non-2xx are both recorded and kept. The recorder makes
+no judgement about data quality, and `ledger_consistent` says whether the two
+requests were served from the same ledger rather than hiding it.
+
+The raw stream is not tracked by git; `recordings/samples/` is the exception,
 because the schema's own header promises 60 recordings as committed evidence. See
-the reason in `.gitignore`.
+the reason in `.gitignore`. That directory is PLURAL because
+`docs/methodology/10-validation.md` names it that way, and it is the deliverable.
 
 Which assets to record is decision D-1 and
 `docs/methodology/02-pair-selection.md` is still a worksheet, so no asset list is

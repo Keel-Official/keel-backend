@@ -31,6 +31,53 @@ linters:
       - path: internal/domain/compute.go
         text: "not implemented"
 
+      # THE SAME STUBS, SEEN BY A DIFFERENT RULE. Every parameter of a function
+      # whose body is `panic("not implemented")` is unused, by construction. These
+      # findings are not a defect in the file, they are the shape of a file that
+      # is a specification waiting to be met.
+      #
+      # SELF-RETIRING: writing the bodies uses the parameters and these stop
+      # matching on their own. Delete this block at the same time as the one
+      # above, and if it is still needed then, that is a finding.
+      - path: internal/domain/compute.go
+        linters: [revive]
+        text: "unused-parameter"
+
+      # NOT SELF-RETIRING, AND THE ONE EXCLUSION HERE THAT SHOULD BE DELETED
+      # RATHER THAN WAITED OUT.
+      #
+      # compute.go opens with a header sitting directly above its package clause,
+      # which in Go makes it a SECOND package comment for internal/domain; the
+      # real one is on types.go. Eleven other files had the same problem and were
+      # fixed on 25 August 2026 by putting a blank line between the header and the
+      # package clause, which changes no prose and stops godoc gluing unrelated
+      # headers together.
+      #
+      # compute.go did not get that blank line because it is the red zone and
+      # Claude may not write to it. The fix is one empty line, above `package
+      # domain`, and Al is the only one who can add it. When it is added, delete
+      # this block.
+      - path: internal/domain/compute.go
+        linters: [revive]
+        text: "package-comments"
+
+      # A USER-FACING API MESSAGE, NOT A GO ERROR STRING. Both rules want this
+      # uncapitalised and without its full stop, and both are right about ordinary
+      # Go errors, which get wrapped into sentences by their callers.
+      #
+      # This string is not one. It is reproduced verbatim in the contract at
+      # docs/api/keel-openapi.yaml line 1095 as the message a consumer receives,
+      # so it is a specified payload that happens to travel as an error. Lowercasing
+      # it would put the code and the contract out of step, and changing the
+      # contract to match a Go style rule would be the tail wagging the dog: DEC-003
+      # governs when that file moves.
+      #
+      # Scoped to the one file, so a genuinely badly worded error elsewhere in
+      # internal/api is still reported.
+      - path: internal/api/assetid.go
+        linters: [revive, staticcheck]
+        text: "(error-strings|ST1005)"
+
 formatters:
   enable:
     - gofmt

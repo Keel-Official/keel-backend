@@ -80,18 +80,18 @@ func newFakeHorizon(t *testing.T) *fakeHorizon {
 		hits:   map[string]int{},
 		ledger: map[string]string{},
 		handler: map[string]func(http.ResponseWriter, *http.Request){
-			"/order_book":      func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, bookBody("1.2185312", "0.0001000")) },
-			"/liquidity_pools": func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, poolBody) },
+			"/order_book":      func(w http.ResponseWriter, _ *http.Request) { _, _ = fmt.Fprint(w, bookBody("1.2185312", "0.0001000")) },
+			"/liquidity_pools": func(w http.ResponseWriter, _ *http.Request) { _, _ = fmt.Fprint(w, poolBody) },
 		},
 	}
-	f.handler["/ledgers/61340263"] = func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, ledgerBody) }
+	f.handler["/ledgers/61340263"] = func(w http.ResponseWriter, _ *http.Request) { _, _ = fmt.Fprint(w, ledgerBody) }
 
 	f.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f.hits[r.URL.Path]++
 		h, ok := f.handler[r.URL.Path]
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(w, `{"title":"not found","path":%q}`, r.URL.Path)
+			_, _ = fmt.Fprintf(w, `{"title":"not found","path":%q}`, r.URL.Path)
 			return
 		}
 		latest := "61340263"
@@ -198,7 +198,7 @@ func TestGetSnapshotReadsBookPoolsAndLedger(t *testing.T) {
 func TestGetSnapshotSortsBothSides(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 		  "base":    {"asset_type":"credit_alphanum12","asset_code":"USTRY","asset_issuer":%q},
 		  "counter": {"asset_type":"credit_alphanum4","asset_code":"USDC","asset_issuer":%q},
 		  "asks": [{"price_r":{"n":3,"d":1},"amount":"1"},
@@ -226,7 +226,7 @@ func TestGetSnapshotSortsBothSides(t *testing.T) {
 func TestBidAmountUnitConversion(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprint(w, bookBody("1", "2.0000000"))
+		_, _ = fmt.Fprint(w, bookBody("1", "2.0000000"))
 	}
 
 	asQuote, _ := f.client()
@@ -281,7 +281,7 @@ func TestGetSnapshotRecordsLedgerStraddle(t *testing.T) {
 func TestGetSnapshotRejectsPairMismatch(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 		  "base":    {"asset_type":"credit_alphanum4","asset_code":"USTRY","asset_issuer":%q},
 		  "counter": {"asset_type":"credit_alphanum4","asset_code":"USDC","asset_issuer":%q},
 		  "asks": [], "bids": []
@@ -299,7 +299,7 @@ func TestGetSnapshotRejectsPairMismatch(t *testing.T) {
 func TestGetSnapshotAcceptsAnEmptyBook(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, `{
+		_, _ = fmt.Fprintf(w, `{
 		  "base":    {"asset_type":"credit_alphanum12","asset_code":"USTRY","asset_issuer":%q},
 		  "counter": {"asset_type":"credit_alphanum4","asset_code":"USDC","asset_issuer":%q},
 		  "asks": [], "bids": []
@@ -334,10 +334,10 @@ func TestRetriesOn429AndHonoursRetryAfter(t *testing.T) {
 		if attempts < 3 {
 			w.Header().Set("Retry-After", "7")
 			w.WriteHeader(http.StatusTooManyRequests)
-			fmt.Fprint(w, `{"title":"rate limit exceeded"}`)
+			_, _ = fmt.Fprint(w, `{"title":"rate limit exceeded"}`)
 			return
 		}
-		fmt.Fprint(w, bookBody("1.2185312", "0.0001000"))
+		_, _ = fmt.Fprint(w, bookBody("1.2185312", "0.0001000"))
 	}
 	c, slept := f.client()
 
@@ -426,7 +426,7 @@ func TestCacheIsOffByDefault(t *testing.T) {
 func TestVerifyAssetCatchesTheWrongType(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/assets"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, `{"_embedded":{"records":[
+		_, _ = fmt.Fprintf(w, `{"_embedded":{"records":[
 		  {"asset_type":"credit_alphanum12","asset_code":"USTRY","asset_issuer":%q}]}}`, testUSTRY.Issuer)
 	}
 	c, _ := f.client()
@@ -463,7 +463,7 @@ func TestVerifyAssetSkipsNative(t *testing.T) {
 func TestPoolMissingRequestedAssetIsAnError(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/liquidity_pools"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprint(w, `{"_embedded":{"records":[{"id":"deadbeef","fee_bp":30,"reserves":[
+		_, _ = fmt.Fprint(w, `{"_embedded":{"records":[{"id":"deadbeef","fee_bp":30,"reserves":[
 		  {"asset":"native","amount":"1"},
 		  {"asset":"USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN","amount":"2"}]}]}}`)
 	}
@@ -481,7 +481,7 @@ func TestPoolMissingRequestedAssetIsAnError(t *testing.T) {
 func TestNonPositiveAmountIsRejected(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprint(w, bookBody("0", "0.0001000"))
+		_, _ = fmt.Fprint(w, bookBody("0", "0.0001000"))
 	}
 	c, _ := f.client()
 
@@ -519,7 +519,7 @@ func TestVerifyAssetNeedsNoLatestLedgerHeader(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.ledger["/assets"] = ""
 	f.handler["/assets"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, `{"_embedded":{"records":[
+		_, _ = fmt.Fprintf(w, `{"_embedded":{"records":[
 		  {"asset_type":"credit_alphanum12","asset_code":"USTRY","asset_issuer":%q}]}}`, testUSTRY.Issuer)
 	}
 	c, _ := f.client()
@@ -535,7 +535,7 @@ func TestVerifyAssetNeedsNoLatestLedgerHeader(t *testing.T) {
 func TestLedgerSequenceMismatchIsRejected(t *testing.T) {
 	f := newFakeHorizon(t)
 	f.handler["/ledgers/61340263"] = func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprint(w, `{"sequence":61340999,"closed_at":"2026-02-22T00:10:21Z"}`)
+		_, _ = fmt.Fprint(w, `{"sequence":61340999,"closed_at":"2026-02-22T00:10:21Z"}`)
 	}
 	c, _ := f.client()
 
@@ -562,7 +562,7 @@ func TestAFullPageOfPoolsIsRefused(t *testing.T) {
 			  {"asset":"USDC:%s","amount":"1"}]}`, i, testUSTRY.Issuer, testUSDC.Issuer)
 		}
 		b.WriteString(`]}}`)
-		fmt.Fprint(w, b.String())
+		_, _ = fmt.Fprint(w, b.String())
 	}
 	c, _ := f.client()
 
@@ -588,7 +588,7 @@ func TestManyPoolsUnderTheLimitAreAccepted(t *testing.T) {
 			  {"asset":"USDC:%s","amount":"2"}]}`, i, 30+i, testUSTRY.Issuer, testUSDC.Issuer)
 		}
 		b.WriteString(`]}}`)
-		fmt.Fprint(w, b.String())
+		_, _ = fmt.Fprint(w, b.String())
 	}
 	c, _ := f.client()
 

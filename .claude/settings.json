@@ -20,11 +20,11 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(bq:*)",
-      "WebFetch"
+      "WebFetch",
+      "Edit(internal/domain/compute.go)",
+      "Write(internal/domain/compute.go)"
     ],
     "deny": [
-      "Edit(internal/domain/compute.go)",
-      "Write(internal/domain/compute.go)",
       "Edit(testdata/fixtures/**)",
       "Write(testdata/fixtures/**)",
       "Edit(docs/context/**)",

@@ -3,81 +3,75 @@
 # lindungi-zona-merah.sh
 #
 # A PreToolUse hook for Bash. It refuses commands that would MUTATE a red zone
-# path, the code only Al may write.
+# path, and it refuses one workflow that is Al's alone.
 #
-# THE ZONE IS ONE FILE: internal/domain/compute.go. It was the internal/depth
-# directory until methodology 1.0.3 moved the computations out, and this hook
-# covered both paths for as long as the empty directory survived. Al removed the
-# directory on 23 August 2026 and the second path came out of this file on the
-# 24th, because a lock on a path that cannot exist is not distinguishable from a
-# lock that works.
+# WHAT CHANGED ON 25 AUGUST 2026, AND WHY THIS FILE SHRANK. internal/domain/
+# compute.go was the original red zone and is no longer red: Al moved it to YELLOW
+# so that Deliverable 1 could be finished by two hands instead of one. Every rule
+# that existed to protect that one file came out with it. This header keeps the
+# account of what was removed, because a guardrail that quietly loses coverage is
+# the failure this file was built to prevent, and the same is true of one that
+# quietly sheds it on purpose.
 #
-# THREE WAYS IN, AND THE THIRD WAS OPEN FOR A DAY. A command can reach the zone by
-# naming the file, by naming the DIRECTORY that contains it, or by sweeping a whole
-# tree without naming either. Only the first was closed when the zone became a
-# file: while the zone WAS a directory, the second and third were closed for free,
-# because any command broad enough to reach the file named the directory by
-# definition. That coverage was lost silently in the move, and this file's own
-# header carried `gofmt -w internal/depth/` through it as an example of what was
-# refused. Finding P2-6c. All three are closed now:
+# Removed with compute.go: the file-name rule, and the DIRECTORY rule that matched
+# internal/domain in directory form. Both are gone because internal/domain now
+# holds no red file at all, and a lock on a package where every file is writable
+# refuses ordinary work while protecting nothing. P2-6 and P2-6c in
+# scripts/audit-verification.sh assert the old behaviour and must be INVERTED, not
+# deleted: a probe that disappears leaves no trace that the guard ever existed.
+# P2-6b, which asserts that internal/domain/types.go is NOT refused, still holds.
 #
-#   1. the file      sed -i ... internal/domain/compute.go
-#   2. the directory gofmt -w internal/domain/     rm -rf internal/domain
-#   3. the sweep     gofmt -l -w .                 make fmt
+# WHAT REMAINS RED, and it is red all the way down:
 #
-# THE DIRECTORY RULE HAS TO STAY NARROW, and this is the constraint that shapes
-# the whole file. internal/domain also holds types.go and arch_test.go, which
-# Claude maintains, so a rule matching every mention of internal/domain would
-# refuse most ordinary work in the package and the hook would be switched off
-# within a day. So the directory is matched only in its DIRECTORY FORM: named as a
-# target, not as the prefix of a named file inside it. `internal/domain/` is
-# refused, `internal/domain/types.go` is not. Both directions are proven on every
-# run by P2-6, P2-6b and P2-6c in scripts/audit-verification.sh.
+#   testdata/fixtures/   the golden fixture
+#   docs/context/        the SoW and the execution plan
 #
-# TWO MORE ZONES, ADDED 25 AUGUST 2026, AND THEY ARE MATCHED THE OPPOSITE WAY.
-# testdata/fixtures/ and docs/context/ are red in the CLAUDE.md zone map and had no
-# lock of any kind until now, in either file: the map called the golden fixture Al's
-# and nothing stopped Claude editing the very numbers
-# internal/conformance/fixture.go says must never be adjusted to match the code.
-# Neither directory holds a single file Claude maintains, so the narrowness that
-# protects types.go has nothing to protect here, and they are matched in ANY form,
-# a named file inside them included. internal/domain is a package with a red file in
-# it; these two are red all the way down. Finding P2-11.
+# These are matched in ANY form, a named file inside them included. Neither holds
+# a single file Claude maintains, so the narrowness that once protected types.go
+# has nothing to protect here. Finding P2-11.
 #
-# docs/methodology/ is red in the map and is deliberately NOT here. The map gives
-# Claude a job inside it, restructuring and cross-referencing what Al defines, so a
-# lock there would refuse the work the map assigns. A guardrail that refuses the work
-# it protects gets switched off, which is the failure this header already warns about
-# further down.
+# The fixture is the one that matters most now. With compute.go yellow, the fixture
+# is the ONLY remaining structural guarantee that the implementation is checked
+# against numbers computed independently of it. internal/conformance/fixture.go
+# states the rule in its own header: do not adjust these numbers to match the code,
+# adjust the code to match these numbers. That rule was a convention while compute.go
+# was red and one person wrote both sides. It is load-bearing now that two do.
 #
-# Why a hook rather than just permissions. .claude/settings.json already denies
-# Edit and Write on this path, but Bash is untouched by those rules.
-# `sed -i internal/domain/compute.go` walks straight past the lock. Finding P2-6
-# in docs/internal/audit-2026-08-20.md.
+# docs/methodology/ is red in the CLAUDE.md zone map and is deliberately NOT here.
+# The map gives Claude a job inside it, restructuring and cross-referencing what Al
+# defines, so a lock there would refuse the work the map assigns. A guardrail that
+# refuses the work it protects gets switched off.
 #
-# What STAYS allowed, because the red zone is not a secret zone:
-#   cat internal/domain/compute.go
-#   go test ./internal/domain/ -run TestX -v
-#   grep -rn ComputeDepth internal/domain/
-#   go test ./internal/domain/ 2>&1 | tail -5   (the redirect is NOT into the zone)
+# THE SWEEP RULE IS NOT A ZONE RULE ANY MORE. `gofmt -l -w .` and `make fmt` are
+# still refused, but no red zone holds a .go file, so nothing about a zone explains
+# it. It survives as a WORKFLOW rule: CLAUDE.md assigns `make fmt` to Al so that
+# formatting has one owner and CI's gofmt check has one fix. Keeping it is a
+# deliberate choice not to loosen more than the zone change required. Removing it
+# is a separate decision and should be recorded as one.
+#
+# Why a hook rather than just permissions. .claude/settings.json denies Edit and
+# Write on the red paths, but Bash is untouched by those rules:
+# `sed -i testdata/fixtures/ustry.md` walks straight past the lock. Finding P2-6 in
+# docs/internal/audit-2026-08-20.md.
+#
+# What STAYS allowed, because a red zone is not a secret zone:
+#   cat testdata/fixtures/ustry_pre_exploit.md
+#   grep -rn ExpectedDepth testdata/fixtures/
+#   go test ./internal/conformance/ -v
 #   gofmt -l .                                  (lists, does not write)
-#   gofmt -w internal/domain/types.go           (yellow, and named)
-#   sed -i "" s/a/b/ internal/domain/types.go   (same)
+#   gofmt -w internal/domain/compute.go         (yellow now, and named)
 #
-# HOW TO FORMAT, now that the sweep is closed. Name the files:
-# `gofmt -w path/to/file.go`. To find out whether anything needs it, `gofmt -l .`
-# is read only and still allowed. `make fmt` is refused for Claude and unaffected
-# for Al, whose terminal this hook does not sit in, so CI's gofmt check still has
-# an owner and a one command fix.
+# HOW TO FORMAT. Name the files: `gofmt -w path/to/file.go`. To find out whether
+# anything needs it, `gofmt -l .` is read only and still allowed. `make fmt` is
+# refused for Claude and unaffected for Al, whose terminal this hook does not sit in.
 #
 # This is a guardrail, not a sandbox. It closes the accidental path, not the
 # deliberate one. Its purpose is to remind, and a reminder that refuses is more
 # useful than a reminder written in a document.
 #
-# It is biased toward refusing: a file-mutating command that merely mentions the
-# zone is refused even when its real target is elsewhere. When that happens, use
-# the Edit tool for the file outside the zone; permissions already govern that
-# path separately.
+# It is biased toward refusing: a file-mutating command that merely mentions a red
+# path is refused even when its real target is elsewhere. When that happens, use the
+# Edit tool for the file outside the zone; permissions govern that path separately.
 
 set -uo pipefail
 
@@ -95,11 +89,11 @@ command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 #
 # A heredoc BODY is data. The line that OPENS one is not, and that distinction is
 # the whole of P2-6e. The first form of this fix truncated the command at the `<<`
-# marker, which is correct only while the marker is the last thing on the line.
-# It is not: `cat <<'EOF' > internal/domain/compute.go` puts the redirect AFTER the
-# marker, so truncating threw the target away and the write walked through. So only
-# the BODY is removed, from the newline after the marker to its terminator, and the
-# opening line is kept whole and scanned like any other command.
+# marker, which is correct only while the marker is the last thing on the line. It
+# is not: `cat <<'EOF' > testdata/fixtures/f.md` puts the redirect AFTER the marker,
+# so truncating threw the target away and the write walked through. Only the BODY is
+# removed, from the newline after the marker to its terminator, and the opening line
+# is kept whole and scanned like any other command.
 #
 # Being generous about the terminator is the safe direction here and it is worth
 # knowing why, because this is the one place in the file where "refuse more" and
@@ -107,10 +101,9 @@ command_line=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 # scanned, so a marker that matches sooner than the real terminator can only cause
 # a refusal, never miss one.
 #
-# The interpreter exception stays and is widened by three shells: for
-# `python3 - <<PY` the body IS the program and it may write to the zone, so nothing
-# is stripped and the whole command is scanned. That case is the seventh probe in
-# P2-6 and it must not regress.
+# The interpreter exception stays: for `python3 - <<PY` the body IS the program and
+# it may write to a zone, so nothing is stripped and the whole command is scanned.
+# That case is a probe in P2-6 and it must not regress.
 #
 # The interpreter has to be preceded by a separator rather than by any word
 # boundary, and that is not fussiness. `\bsh\b` matches inside `probe.sh`, and a
@@ -143,42 +136,29 @@ fi
 # the start of anything and walked straight through:
 #
 #     cd /tmp
-#     sed -i "" s/a/b/ internal/domain/compute.go
+#     sed -i "" s/a/b/ testdata/fixtures/ustry_pre_exploit.md
 #
 # A multi-line command is the ORDINARY form, not a deliberate evasion, so this was
 # the worst of the eight routes P2-6e found. A newline separates two commands, which
 # is what a semicolon means, and the anchor reads it that way now.
 line=$(printf '%s ' "$body" | tr '\n' ';')
 
-# 1. The red zone FILE. Add here when the zone moves again, add the same path to
-#    the deny list in .claude/settings.json, because neither one closes the other's
-#    route, and REMOVE the old path in the same commit: an alternation branch that
-#    can no longer match reports success forever.
-zone='internal/domain/compute\.go'
+# The zones that are red ALL THE WAY DOWN: matched in any form, a named file inside
+# them included, because neither holds a file Claude maintains. The trailing class
+# costs nothing, since the line always ends in a space, and it keeps a sibling like
+# testdata/fixtures_old out of the match.
+#
+# This is kept as zone_any, a name wider than its current contents, because rule B
+# below reads it to find a REDIRECT into a zone, and because a second family may be
+# added here later. `echo x > testdata/fixtures/f.md` carries no mutating verb for
+# rule C to catch; left out of this variable, that write walks straight through.
+zone_any='(testdata/fixtures|docs/context)[^[:alnum:]_]'
 
-# 2. The red zone's DIRECTORY, in directory form only. Two branches because there
-#    is no lookahead here: either the path stops at `domain`, or it stops at the
-#    slash after it. `internal/domain/types.go` matches neither, and must not.
-zone_dir='(internal/domain[^/[:alnum:]_]|internal/domain/[^[:alnum:]_])'
-
-# 2b. The two zones that are red ALL THE WAY DOWN, and they get the opposite rule
-#     to the one above: matched in any form, a named file inside them included,
-#     because neither holds a file Claude maintains. The trailing class costs
-#     nothing here, since the line always ends in a space, and it keeps a sibling
-#     like testdata/fixtures_old out of the match.
-zone_tree='(testdata/fixtures|docs/context)[^[:alnum:]_]'
-
-# zone_tree belongs in zone_any rather than in a check of its own, and that is not
-# tidiness. Rule B below reads zone_any to find a REDIRECT into a zone, and
-# `echo x > testdata/fixtures/f.md` carries no mutating verb for rule C to catch.
-# Left out of this alternation, that write walks straight through.
-zone_any="$zone|$zone_dir|$zone_tree"
-
-# P2-6d fix, part 2: command position anchor. A verb is only a verb at the
-# start of the line or after a shell separator (|, ;, &, &&, ||, an opening
-# paren, and a newline, which the semicolon above stands in for). A verb
-# inside a quoted string is prose, not a command. This is approximate and
-# loses `find . -exec rm {} +`, the deliberate path, not the accidental one.
+# P2-6d fix, part 2: command position anchor. A verb is only a verb at the start of
+# the line or after a shell separator (|, ;, &, &&, ||, an opening paren, and a
+# newline, which the semicolon above stands in for). A verb inside a quoted string
+# is prose, not a command. This is approximate and loses `find . -exec rm {} +`,
+# the deliberate path, not the accidental one.
 #
 # The second group is P2-6e again. A command position is not always the first WORD
 # of it: `FOO=1 sed -i ...`, `sudo rm ...`, `env`, `time`, `nohup`, `xargs` and the
@@ -187,9 +167,10 @@ zone_any="$zone|$zone_dir|$zone_tree"
 # are skipped before the verb is read.
 cmd='(^|[|;&(]+)[[:space:]]*(([A-Za-z_][A-Za-z_0-9]*=[^[:space:]]*|sudo|env|time|nohup|command|xargs|nice|then|do|else)[[:space:]]+)*'
 
-# 3. A formatter rewriting in place with no file named. `gofmt -l -w .` and
-#    `goimports -w ./...` reach compute.go while mentioning neither it nor its
-#    directory, which is how P2-6c stayed open. A named .go file is the escape.
+# A formatter rewriting in place with no file named. This no longer reaches a red
+# zone, since no red zone holds a .go file. It is refused as a workflow rule: see
+# THE SWEEP RULE IS NOT A ZONE RULE ANY MORE in the header. A named .go file is the
+# escape, and it is the intended way to format.
 formatter_in_place="$cmd"'\b(gofmt|goimports)\b[^|;&]*-[a-zA-Z]*w'
 names_go_file='\.go[^a-zA-Z0-9_]'
 
@@ -204,17 +185,17 @@ if printf '%s' "$line" | grep -Eq "$zone_any"; then
   touches_zone=1
 fi
 
-sweeps_zone=0
+sweeps_repo=0
 if printf '%s' "$line" | grep -Eq "$formatter_in_place" &&
   ! printf '%s' "$line" | grep -Eq "$names_go_file"; then
-  sweeps_zone=1
+  sweeps_repo=1
 fi
 if printf '%s' "$line" | grep -Eq "$make_fmt"; then
-  sweeps_zone=1
+  sweeps_repo=1
 fi
 
-# Reaches the red zone by none of the three routes, nothing to check.
-if [ "$touches_zone" -eq 0 ] && [ "$sweeps_zone" -eq 0 ]; then
+# Touches nothing this hook governs.
+if [ "$touches_zone" -eq 0 ] && [ "$sweeps_repo" -eq 0 ]; then
   exit 0
 fi
 
@@ -233,60 +214,61 @@ blunt="If your real target is a file OUTSIDE the zone and this command only MENT
 the zone, that is this hook being deliberately blunt. Use the Edit or Write tool for
 that file; permissions govern it separately."
 
-# The message names the zone that actually matched. One message covering all three
-# would send a reader refused over the fixture to internal/domain/CLAUDE.md, and a
-# guardrail that points at the wrong file teaches the wrong lesson twice: once about
-# the refusal, and once about where the rule lives.
-if printf '%s' "$line" | grep -Eq "$zone_tree"; then
-  message="testdata/fixtures/ and docs/context/ are RED ZONES, red all the way down.
+# A. A tree-wide in-place format. Checked first, and it gets its own message rather
+#    than the zone message, because it names no zone and mentions none. Sending a
+#    reader refused over `make fmt` to a message about the golden fixture would
+#    teach the wrong lesson twice: once about the refusal, once about where the rule
+#    lives. That mismatch is exactly what the two-branch message in the previous
+#    version of this file produced once compute.go left the zone.
+if [ "$sweeps_repo" -eq 1 ]; then
+  refuse "In-place formatting without naming a .go file is Al's to run.
+
+This is a WORKFLOW rule, not a zone rule: no red zone holds a .go file any more, so
+this command reaches nothing protected. CLAUDE.md assigns make fmt to Al so that
+formatting has one owner and CI's gofmt check has one fix.
+
+It covers a whole-tree sweep (gofmt -l -w .) and a directory target
+(gofmt -w internal/domain/) alike, because neither names a file. That is broader
+than the zone change required, and deliberately so: the zone move loosened what it
+had to and nothing more.
+
+Name the files instead: gofmt -w path/to/file.go. To see what needs formatting,
+gofmt -l . is read only and allowed."
+fi
+
+# Everything below concerns a red path, so one message serves both remaining rules.
+message="testdata/fixtures/ and docs/context/ are RED ZONES, red all the way down.
 
 The golden fixture's numbers are computed BY HAND before any implementation exists,
 and internal/conformance/fixture.go says it in its own header: do not adjust these
-numbers to match the code, adjust the code to match these numbers. A fixture Claude
-can edit is a fixture that confirms whatever the code already does. docs/context/
-holds the SoW and the execution plan, which are inputs from outside and are read.
+numbers to match the code, adjust the code to match these numbers. This matters more
+than it used to. compute.go is yellow as of 25 August 2026, so the fixture is now the
+only structural guarantee that the implementation is checked against numbers derived
+independently of it. A fixture Claude can edit is a fixture that confirms whatever
+the code already does.
+
+docs/context/ holds the SoW and the execution plan, which are inputs from outside
+and are read, never written.
 
 What you may do there: read them, quote them, grep them, and report where the code
 and the fixture disagree. That disagreement IS the finding, and editing either side
 of it destroys the finding rather than resolving it.
 
 $blunt"
-else
-  message="internal/domain/compute.go is the RED ZONE. Al writes it, not you.
 
-This command is refused because it would mutate that file, and Bash is the path
-that the Edit and Write denials in .claude/settings.json do not close.
-
-What you may do there: read, run tests, point out edge cases that are not handled
-yet, and ask questions. Offer /teach for the concept or /review-mine once Al has
-written it. See internal/domain/CLAUDE.md.
-
-$blunt"
-fi
-
-# A. A tree-wide in-place format. Checked first because it names neither the file
-#    nor the directory, so no message about a mentioned path would make sense.
-if [ "$sweeps_zone" -eq 1 ]; then
-  refuse "$message
-
-Detected: an in-place format over a whole tree, which reaches the red zone without
-naming it. Name the files instead: gofmt -w path/to/file.go. To see what needs
-formatting, gofmt -l . is read only and allowed. make fmt is Al's to run."
-fi
-
-# B. A redirect whose target sits inside the red zone. Checked separately so that
-#    `go test ./internal/domain/ 2>&1 | tail` still passes: it contains a > but its
-#    target is not a file in the zone.
+# B. A redirect whose target sits inside a red zone. Checked separately so that
+#    `go test ./internal/conformance/ 2>&1 | tail` still passes: it contains a > but
+#    its target is not a file in a zone.
 if printf '%s' "$line" | grep -Eq '>>?[[:space:]]*"?'"'"'?[^|;&<>]*('"$zone_any"')'; then
   refuse "$message
 
-Detected: output redirected into the red zone."
+Detected: output redirected into a red zone."
 fi
 
-# C. Commands whose job is to mutate files, naming the zone or its directory.
+# C. Commands whose job is to mutate files, naming a red zone.
 mutating="$cmd"'(\bsed\b[^|;]*-i|\bperl\b[^|;]*-[a-zA-Z]*i|\btee\b|\bcp\b|\bmv\b|\brm\b|\bln\b|\binstall\b|\btruncate\b|\bdd\b|\bpatch\b|\btouch\b|\bmkdir\b|git[[:space:]]+(apply|checkout|restore|stash|rm|mv)|\b(gofmt|goimports)\b[^|;]*-w|\bpython3?\b|\bnode\b|\bruby\b|\bperl\b|\bawk\b[^|;]*-i)'
 if printf '%s' "$line" | grep -Eq "$mutating"; then
   refuse "$message
 
-Detected: a file-mutating command that names the red zone or its directory."
+Detected: a file-mutating command that names a red zone."
 fi

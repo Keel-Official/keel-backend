@@ -41,7 +41,7 @@ func testStore(t *testing.T) (*Store, context.Context) {
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		db.Close()
+		_ = db.Close()
 		t.Fatalf("begin: %v", err)
 	}
 	t.Cleanup(func() {
@@ -146,7 +146,7 @@ func fullRisk() domain.AssetRisk {
 	}
 }
 
-func seedAsset(t *testing.T, s *Store, ctx context.Context) int {
+func seedAsset(ctx context.Context, t *testing.T, s *Store) int {
 	t.Helper()
 	id, err := s.UpsertAsset(ctx, testUSTRY, testUSDC, "the Blend case study asset")
 	if err != nil {
@@ -159,7 +159,7 @@ func seedAsset(t *testing.T, s *Store, ctx context.Context) int {
 
 func TestSaveAndReadBackIsExact(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	want := fullRisk()
 	computedAt := time.Date(2026, 8, 24, 9, 0, 0, 0, time.UTC)
 
@@ -186,7 +186,7 @@ func TestSaveAndReadBackIsExact(t *testing.T) {
 // 0001_core.sql says that is why it is unqualified.
 func TestNumericKeepsEveryDigit(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	risk := fullRisk()
 	const forty = "196.0777140585047799956232929266263460867"
 	risk.SpreadPct = decp(forty)
@@ -208,7 +208,7 @@ func TestNumericKeepsEveryDigit(t *testing.T) {
 // the attack is impossible, and zero says it is free.
 func TestNullMeansUnknownAndNeverZero(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 
 	risk := domain.AssetRisk{
 		Base:               testUSTRY,
@@ -268,7 +268,7 @@ func TestNullMeansUnknownAndNeverZero(t *testing.T) {
 
 func TestSaveIsNeverAnOverwrite(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	first := fullRisk()
 
 	if _, inserted, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), first); err != nil || !inserted {
@@ -299,14 +299,14 @@ func TestSaveIsNeverAnOverwrite(t *testing.T) {
 	}
 }
 
-// Rule 3 of this package's brief, as behaviour rather than prose.
+// Rule 3 of this package's brief, as behavior rather than prose.
 func TestVersionAndSourceAreEachPartOfTheKey(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	base := fullRisk()
 
 	for _, mod := range []func(r *domain.AssetRisk){
-		func(r *domain.AssetRisk) {},
+		func(*domain.AssetRisk) {},
 		func(r *domain.AssetRisk) { r.MethodologyVersion = "1.0.4-draft" },
 		func(r *domain.AssetRisk) { r.DataSource = domain.DataSourceHubble },
 	} {
@@ -339,7 +339,7 @@ func TestVersionAndSourceAreEachPartOfTheKey(t *testing.T) {
 // breaks this test and whoever closes it updates the store.
 func TestGenuineVolumeInWindowIsNotPersisted(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	risk := fullRisk()
 	risk.Supporting.GenuineVolumeInWindow = decp("5.3475699")
 
@@ -363,7 +363,7 @@ func TestGenuineVolumeInWindowIsNotPersisted(t *testing.T) {
 
 func TestPriceSourceNoneRejectsAMidPrice(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	risk := fullRisk()
 	risk.PriceSource = domain.PriceSourceNone
 
@@ -374,7 +374,7 @@ func TestPriceSourceNoneRejectsAMidPrice(t *testing.T) {
 
 func TestSaveRejectsWhatTheCheckConstraintsWould(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 
 	cases := map[string]func(r *domain.AssetRisk){
 		"an empty methodology version": func(r *domain.AssetRisk) { r.MethodologyVersion = "" },
@@ -401,7 +401,7 @@ func TestSaveRejectsWhatTheCheckConstraintsWould(t *testing.T) {
 
 func TestMetricsHistoryIsOldestFirstAndBounded(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 
 	for _, seq := range []uint32{61340265, 61340263, 61340264} {
 		risk := fullRisk()
@@ -444,7 +444,7 @@ func TestMetricsHistoryIsOldestFirstAndBounded(t *testing.T) {
 
 func TestMetricsAtLedgerNeedsAllFourKeyParts(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 	risk := fullRisk()
 	if _, _, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), risk); err != nil {
 		t.Fatalf("save: %v", err)
@@ -462,7 +462,7 @@ func TestMetricsAtLedgerNeedsAllFourKeyParts(t *testing.T) {
 
 func TestMissingMetricsIsErrNotFoundAndNotAZeroValue(t *testing.T) {
 	s, ctx := testStore(t)
-	assetID := seedAsset(t, s, ctx)
+	assetID := seedAsset(ctx, t, s)
 
 	if _, err := s.LatestMetrics(ctx, assetID, ""); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("err = %v, want ErrNotFound", err)
@@ -554,7 +554,7 @@ func TestUpsertAssetRejectsBadInput(t *testing.T) {
 
 func TestDeactivatedAssetIsHiddenFromAScanAndVisibleToAListing(t *testing.T) {
 	s, ctx := testStore(t)
-	id := seedAsset(t, s, ctx)
+	id := seedAsset(ctx, t, s)
 
 	if err := s.SetAssetActive(ctx, id, false); err != nil {
 		t.Fatalf("SetAssetActive: %v", err)

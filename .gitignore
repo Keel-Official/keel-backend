@@ -32,13 +32,35 @@
 # stays out of git. scripts/audit-verification.sh and arch_test.go already skip
 # this directory, which is why it needs no row in the CLAUDE.md zone map.
 #
-# recordings/sample/ is the exception and it is deliberate: the header of
+# recordings/samples/ is the exception and it is deliberate: the header of
 # migrations/0001_core.sql promises that 60 recordings go into git as evidence.
 # The pattern has to be `/recordings/*` rather than `/recordings/` for the
 # negation below to work at all, because git cannot re-include a path inside a
 # directory it has already excluded.
+#
+# THE NAME IS PLURAL, and it was singular here until 25 August 2026. docs/
+# methodology/10-validation.md line 112 names `recordings/samples/` as where the
+# cross-validation evidence lives, and this file re-included `recordings/sample/`,
+# so evidence placed where the methodology says to put it was silently ignored by
+# git. The methodology won the tie because it is the paid deliverable and this is
+# plumbing; the README was moved to match at the same time.
 /recordings/*
-!/recordings/sample/
+!/recordings/samples/
 
 # Context files
 /docs/context/*
+
+# Internal working documents. DEC-004 section 2 requires these OUT before the
+# repository is public: the pre-development memo, the execution plan, the audit,
+# the handoff and the deliverable breakdown carry criticism of the repository,
+# corrections to the SOW, and an allocation of working hours.
+#
+# UNTRACKED ON 25 AUGUST 2026, AFTER the repository was already public, which is
+# the wrong order and is written down here rather than tidied away. The files stay
+# on disk because the audit script and the journal command still read them locally.
+#
+# THIS DOES NOT UNDO THE EXPOSURE. DEC-004 says so in as many words: git rm alone
+# is not sufficient, because every one of these files stays readable at any earlier
+# commit to anyone who clones. Closing that needs a history rewrite or a fresh
+# repository, and that decision is Al's.
+/docs/internal/

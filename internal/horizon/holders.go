@@ -46,6 +46,7 @@
 //     non-negotiable rule 2 in the repository brief. Rejected alternative:
 //     keeping Horizon's paging order, which is deterministic for one run and not
 //     across two.
+
 package horizon
 
 import (

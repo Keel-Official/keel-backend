@@ -1,0 +1,2000 @@
+{
+  "ledger_close_time": "2026-02-22T00:38:20Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875141678891065345",
+  "base_amount": "0.0451191",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T00:41:22Z",
+  "base_offer_id": "4875141812035047425",
+  "counter_offer_id": "1824791851",
+  "base_amount": "0.0328602",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T00:53:26Z",
+  "base_offer_id": "4875142348906020865",
+  "counter_offer_id": "1824791851",
+  "base_amount": "0.0300056",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:15:09Z",
+  "base_offer_id": "4875143319568642049",
+  "counter_offer_id": "1824791851",
+  "base_amount": "1484.2025642",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:16:18Z",
+  "base_offer_id": "4875143371108278273",
+  "counter_offer_id": "1824791851",
+  "base_amount": "6.9221689",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:16:35Z",
+  "base_offer_id": "4875143383993139201",
+  "counter_offer_id": "1824791851",
+  "base_amount": "7.4862674",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:19:16Z",
+  "base_offer_id": "4875143499958067201",
+  "counter_offer_id": "1824791851",
+  "base_amount": "6.7093388",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:37:36Z",
+  "base_offer_id": "4875144311706554369",
+  "counter_offer_id": "1824791851",
+  "base_amount": "3456.7661178",
+  "price": {
+    "n": "961118517",
+    "d": "908907304"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:37:36Z",
+  "base_offer_id": "4875144311706554369",
+  "counter_offer_id": "1824791853",
+  "base_amount": "1115.4874461",
+  "price": {
+    "n": "138446662",
+    "d": "131063449"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:41:59Z",
+  "base_offer_id": "4875144504980000769",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0015157",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:43:19Z",
+  "base_offer_id": "4875144565109071873",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0091256",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:48:00Z",
+  "base_offer_id": "4875144771267661825",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0206103",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:52:23Z",
+  "base_offer_id": "4875144964541030401",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0267933",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:52:23Z",
+  "base_offer_id": "4875144964541042689",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0271444",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:52:46Z",
+  "base_offer_id": "4875144981721034753",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0369857",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:52:59Z",
+  "base_offer_id": "4875144990311120897",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0025624",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:54:43Z",
+  "base_offer_id": "4875145067620605953",
+  "counter_offer_id": "1824799524",
+  "base_amount": "10.9895483",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:55:00Z",
+  "base_offer_id": "4875145080505716737",
+  "counter_offer_id": "1824799524",
+  "base_amount": "15.6302210",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:55:24Z",
+  "base_offer_id": "4875145097685565441",
+  "counter_offer_id": "1824799524",
+  "base_amount": "6.5320629",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:55:50Z",
+  "base_offer_id": "4875145114865311745",
+  "counter_offer_id": "1824799524",
+  "base_amount": "13.7268318",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:56:06Z",
+  "base_offer_id": "4875145127750520833",
+  "counter_offer_id": "1824799524",
+  "base_amount": "6.2873847",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:56:36Z",
+  "base_offer_id": "4875145149224710145",
+  "counter_offer_id": "1824799524",
+  "base_amount": "7.4533232",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:57:04Z",
+  "base_offer_id": "4875145170699460609",
+  "counter_offer_id": "1824799524",
+  "base_amount": "1.4162451",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:57:44Z",
+  "base_offer_id": "4875145200764747777",
+  "counter_offer_id": "1824799524",
+  "base_amount": "2.6665829",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:58:07Z",
+  "base_offer_id": "4875145217944158209",
+  "counter_offer_id": "1824799524",
+  "base_amount": "5.6132240",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:58:36Z",
+  "base_offer_id": "4875145239419035649",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0486860",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:58:36Z",
+  "base_offer_id": "4875145239419412481",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0481109",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:59:06Z",
+  "base_offer_id": "4875145260894318593",
+  "counter_offer_id": "1824799524",
+  "base_amount": "1.5453526",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T01:59:29Z",
+  "base_offer_id": "4875145278074228737",
+  "counter_offer_id": "1824799524",
+  "base_amount": "13.8153558",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:06:10Z",
+  "base_offer_id": "4875145561542873089",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0023325",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:07:45Z",
+  "base_offer_id": "4875145630261039105",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.7371671",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:14:51Z",
+  "base_offer_id": "4875145939498889217",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0604547",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:15:37Z",
+  "base_offer_id": "4875145973858676737",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0608400",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:18:41Z",
+  "base_offer_id": "4875146107002527745",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0032708",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:19:11Z",
+  "base_offer_id": "4875146128477138945",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0612161",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:19:45Z",
+  "base_offer_id": "4875146154247868417",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1206979",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:19:51Z",
+  "base_offer_id": "4875146158542852097",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0613508",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:22:55Z",
+  "base_offer_id": "4875146295981236225",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1213651",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:25:40Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146416241012737",
+  "base_amount": "10.4270096",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:26:03Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146433420152833",
+  "base_amount": "3.7242781",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:26:56Z",
+  "base_offer_id": "4875146472075268097",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0606643",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:27:53Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146515024404481",
+  "base_amount": "10.2744146",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:30:05Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146609513500673",
+  "base_amount": "13.6877107",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:32:05Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146695413297153",
+  "base_amount": "4.2973051",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:32:28Z",
+  "base_offer_id": "4875146712592842753",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1153416",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:32:28Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146712593358849",
+  "base_amount": "1.7766123",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:32:53Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146729772785665",
+  "base_amount": "7.8705092",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:33:46Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146768427384833",
+  "base_amount": "7.9742133",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:34:04Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146781312991233",
+  "base_amount": "5.0402039",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:34:10Z",
+  "base_offer_id": "4875146785607274497",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0453912",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:34:40Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146807082582017",
+  "base_amount": "8.7584443",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:34:52Z",
+  "base_offer_id": "4875146815671898113",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0084339",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:34:52Z",
+  "base_offer_id": "4875146815671955457",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0081860",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:36:48Z",
+  "base_offer_id": "4875146901571297281",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0014720",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:38:02Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146957406953473",
+  "base_amount": "299.5098061",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:38:02Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146957407109121",
+  "base_amount": "3.6894866",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:38:08Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146961701797889",
+  "base_amount": "184.2410479",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:38:19Z",
+  "base_offer_id": "4875146970290905089",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1199808",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:38:25Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146974586044417",
+  "base_amount": "124.7170170",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:38:31Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875146978880876545",
+  "base_amount": "11.7952658",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:39:19Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875147013241139201",
+  "base_amount": "236.2064717",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:39:37Z",
+  "base_offer_id": "4875147026125746177",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0154274",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:39:54Z",
+  "base_offer_id": "4875147039010459649",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0151957",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:40:17Z",
+  "base_offer_id": "4875147056190824449",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0937218",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:42:29Z",
+  "base_offer_id": "4875147154974711809",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1193369",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:44:36Z",
+  "base_offer_id": "4875147245169274881",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0022943",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:46:12Z",
+  "base_offer_id": "4875147318183919617",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0596336",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:46:18Z",
+  "base_offer_id": "4875147322479833089",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0596663",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:47:28Z",
+  "base_offer_id": "4875147374018609153",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0597718",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:50:13Z",
+  "base_offer_id": "4875147494277414913",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1181553",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:51:21Z",
+  "base_offer_id": "4875147545816842241",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1195891",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:51:26Z",
+  "base_offer_id": "4875147550111674369",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1169578",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:52:13Z",
+  "base_offer_id": "4875147584471339009",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1179838",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:52:13Z",
+  "base_offer_id": "4875147584471617537",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0151154",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:54:34Z",
+  "base_offer_id": "4875147687551021057",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0194631",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:54:41Z",
+  "base_offer_id": "4875147691845558273",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0597931",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:54:53Z",
+  "base_offer_id": "4875147700435668993",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0595194",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:55:51Z",
+  "base_offer_id": "4875147743385489409",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0596333",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:55:56Z",
+  "base_offer_id": "4875147747679911937",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0587954",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:56:08Z",
+  "base_offer_id": "4875147756269850625",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.1183986",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:56:19Z",
+  "base_offer_id": "4875147764859801601",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0151100",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:57:40Z",
+  "base_offer_id": "4875147824989376513",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0590585",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:58:09Z",
+  "base_offer_id": "4875147846464421889",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0586338",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T02:58:16Z",
+  "base_offer_id": "4875147850759090177",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0585093",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:01:47Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148005378244609",
+  "base_amount": "0.0473389",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:01:54Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148009672884225",
+  "base_amount": "0.0471542",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:01:54Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148009672966145",
+  "base_amount": "0.0172092",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:03:24Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148078393126913",
+  "base_amount": "0.0370343",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:06:20Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148207241461761",
+  "base_amount": "2.8029592",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:10:52Z",
+  "base_offer_id": "4875148404809838593",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.4577141",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:10:52Z",
+  "base_offer_id": "4875148404809859073",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.9186865",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:10:58Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148409104785409",
+  "base_amount": "0.3583695",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:10:58Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148409105162241",
+  "base_amount": "0.1877007",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:11:04Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148413399789569",
+  "base_amount": "0.1806599",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:11:15Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148421989720065",
+  "base_amount": "0.0904360",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:11:15Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148421989883905",
+  "base_amount": "0.0453036",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:11:15Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148421990002689",
+  "base_amount": "0.0451337",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:14:07Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148546543718401",
+  "base_amount": "0.0850590",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:15:43Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148615263940609",
+  "base_amount": "13.9445291",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:16:36Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148653918023681",
+  "base_amount": "14.0481248",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:16:59Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148671098060801",
+  "base_amount": "8.9247412",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:17:23Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875148688278777857",
+  "base_amount": "7.7548342",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:18:09Z",
+  "base_offer_id": "4875148722637664257",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0323124",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:18:15Z",
+  "base_offer_id": "4875148726932520961",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0337220",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:24:40Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875149010400210945",
+  "base_amount": "0.0074840",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:34:52Z",
+  "base_offer_id": "4875149461372112897",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0041606",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:49:07Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150088437907457",
+  "base_amount": "0.0147674",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:49:36Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150109912444929",
+  "base_amount": "0.0147863",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:50:00Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150127092191233",
+  "base_amount": "0.0147863",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:50:56Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150170041561089",
+  "base_amount": "0.0147957",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:50:56Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150170041716737",
+  "base_amount": "0.0207140",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:51:45Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150204401377281",
+  "base_amount": "0.0014648",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:55:22Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150363314987009",
+  "base_amount": "0.0360106",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:55:22Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150363315183617",
+  "base_amount": "0.0361295",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T03:55:22Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875150363315195905",
+  "base_amount": "0.0361295",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T04:38:18Z",
+  "base_offer_id": "4875152265985511425",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0014680",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T04:43:18Z",
+  "base_offer_id": "4875152485028847617",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0116598",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T04:47:01Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875152648237588481",
+  "base_amount": "0.0014676",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T04:49:16Z",
+  "base_offer_id": "4875152751317008385",
+  "counter_offer_id": "1824799524",
+  "base_amount": "0.0108559",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:16:46Z",
+  "base_offer_id": "4875153966792556545",
+  "counter_offer_id": "1824799524",
+  "base_amount": "5071.0691029",
+  "price": {
+    "n": "290082677",
+    "d": "274323107"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:16:46Z",
+  "base_offer_id": "4875153966792556545",
+  "counter_offer_id": "1824791853",
+  "base_amount": "44928.9308971",
+  "price": {
+    "n": "138446662",
+    "d": "131063449"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:20:15Z",
+  "base_offer_id": "4875154121411321857",
+  "counter_offer_id": "1824825953",
+  "base_amount": "4903.5233210",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:20:15Z",
+  "base_offer_id": "4875154121411321857",
+  "counter_offer_id": "1824791853",
+  "base_amount": "5328.0015101",
+  "price": {
+    "n": "138446662",
+    "d": "131063449"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:20:15Z",
+  "base_offer_id": "4875154121411321857",
+  "counter_offer_id": "1824791855",
+  "base_amount": "39768.4751689",
+  "price": {
+    "n": "823985186",
+    "d": "782275769"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:23:04Z",
+  "base_offer_id": "4875154245965692929",
+  "counter_offer_id": "1824826227",
+  "base_amount": "4890.3280967",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T05:23:04Z",
+  "base_offer_id": "4875154245965692929",
+  "counter_offer_id": "1824826228",
+  "base_amount": "41637.5979318",
+  "price": {
+    "n": "146497569",
+    "d": "138682519"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:19:07Z",
+  "base_offer_id": "4875156724161843201",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.0146873",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:25:52Z",
+  "base_offer_id": "4875157024809918465",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.0205979",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:27:26Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157093528666121",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:27:26Z",
+  "base_offer_id": "4875157093528666121",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:28:14Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157127888502793",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:28:14Z",
+  "base_offer_id": "4875157127888502793",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:28:59Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157162248708105",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:28:59Z",
+  "base_offer_id": "4875157162248708105",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:29:46Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157196608540681",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:29:46Z",
+  "base_offer_id": "4875157196608540681",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:30:33Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157230967709705",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:30:33Z",
+  "base_offer_id": "4875157230967709705",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:31:20Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157265327505417",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:31:20Z",
+  "base_offer_id": "4875157265327505417",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:32:06Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157299687501833",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:32:06Z",
+  "base_offer_id": "4875157299687501833",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:32:54Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157334046941193",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:32:54Z",
+  "base_offer_id": "4875157334046941193",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:33:40Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157368406847497",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:33:40Z",
+  "base_offer_id": "4875157368406847497",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:35:13Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157437126270985",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:35:13Z",
+  "base_offer_id": "4875157437126270985",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:35:58Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157471485833225",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:35:58Z",
+  "base_offer_id": "4875157471485833225",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:36:43Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157505845764105",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:36:43Z",
+  "base_offer_id": "4875157505845764105",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:37:28Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157540205563913",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:37:28Z",
+  "base_offer_id": "4875157540205563913",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:38:15Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157574565249033",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:38:15Z",
+  "base_offer_id": "4875157574565249033",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:39:13Z",
+  "base_offer_id": "1824792809",
+  "counter_offer_id": "4875157617514872841",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "433723928",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:39:13Z",
+  "base_offer_id": "4875157617514872841",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448258",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:39:58Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157651874738185",
+  "base_amount": "0.9448261",
+  "price": {
+    "n": "433723828",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:39:58Z",
+  "base_offer_id": "4875157651874738185",
+  "counter_offer_id": "1824826475",
+  "base_amount": "0.9448261",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467885"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:40:42Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157686234193929",
+  "base_amount": "0.9448261",
+  "price": {
+    "n": "433723828",
+    "d": "409793595"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:40:42Z",
+  "base_offer_id": "4875157686234193929",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448261",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:41:29Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157720594509833",
+  "base_amount": "0.9448278",
+  "price": {
+    "n": "105839392",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:41:29Z",
+  "base_offer_id": "4875157720594509833",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448278",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:42:17Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157754953777161",
+  "base_amount": "0.9448286",
+  "price": {
+    "n": "105839292",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:42:17Z",
+  "base_offer_id": "4875157754953777161",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448286",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:43:05Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157789314179081",
+  "base_amount": "0.9448294",
+  "price": {
+    "n": "105839202",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:43:05Z",
+  "base_offer_id": "4875157789314179081",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448294",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:43:51Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157823673405449",
+  "base_amount": "0.9448268",
+  "price": {
+    "n": "105839504",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:43:51Z",
+  "base_offer_id": "4875157823673405449",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448268",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:44:37Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157858033078281",
+  "base_amount": "0.9448276",
+  "price": {
+    "n": "105839404",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:44:37Z",
+  "base_offer_id": "4875157858033078281",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448276",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:45:22Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157892392603657",
+  "base_amount": "0.9448284",
+  "price": {
+    "n": "105839314",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:45:22Z",
+  "base_offer_id": "4875157892392603657",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448284",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:46:55Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157961112408073",
+  "base_amount": "0.9448293",
+  "price": {
+    "n": "105839224",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:46:55Z",
+  "base_offer_id": "4875157961112408073",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448293",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:47:43Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875157995472171017",
+  "base_amount": "0.9448301",
+  "price": {
+    "n": "105839124",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:47:43Z",
+  "base_offer_id": "4875157995472171017",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448301",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:48:29Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158029831602185",
+  "base_amount": "0.9448301",
+  "price": {
+    "n": "105839124",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:48:29Z",
+  "base_offer_id": "4875158029831602185",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448301",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:49:14Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158064191422473",
+  "base_amount": "0.9448309",
+  "price": {
+    "n": "105839034",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:49:14Z",
+  "base_offer_id": "4875158064191422473",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448309",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:49:58Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158098551074825",
+  "base_amount": "0.9448318",
+  "price": {
+    "n": "105838944",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:49:58Z",
+  "base_offer_id": "4875158098551074825",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448318",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:50:42Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158132910731273",
+  "base_amount": "0.9448326",
+  "price": {
+    "n": "105838844",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:50:42Z",
+  "base_offer_id": "4875158132910731273",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448326",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:51:30Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158167271055369",
+  "base_amount": "0.9448342",
+  "price": {
+    "n": "105838664",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:51:30Z",
+  "base_offer_id": "4875158167271055369",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448342",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:52:17Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158201630330889",
+  "base_amount": "0.9448268",
+  "price": {
+    "n": "105839504",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:52:17Z",
+  "base_offer_id": "4875158201630330889",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448268",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:53:03Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158235990032393",
+  "base_amount": "0.9448276",
+  "price": {
+    "n": "105839404",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:53:03Z",
+  "base_offer_id": "4875158235990032393",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448276",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:53:50Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158270350082057",
+  "base_amount": "0.9448284",
+  "price": {
+    "n": "105839314",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:53:50Z",
+  "base_offer_id": "4875158270350082057",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448284",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:54:34Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158304709611529",
+  "base_amount": "0.9448293",
+  "price": {
+    "n": "105839224",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:54:34Z",
+  "base_offer_id": "4875158304709611529",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448293",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:55:19Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158339069227017",
+  "base_amount": "0.9448301",
+  "price": {
+    "n": "105839124",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:55:19Z",
+  "base_offer_id": "4875158339069227017",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448301",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:56:04Z",
+  "base_offer_id": "1823841098",
+  "counter_offer_id": "4875158373429321737",
+  "base_amount": "0.9448309",
+  "price": {
+    "n": "105839034",
+    "d": "100000000"
+  }
+}
+{
+  "ledger_close_time": "2026-02-22T06:56:04Z",
+  "base_offer_id": "4875158373429321737",
+  "counter_offer_id": "1823025211",
+  "base_amount": "0.9448309",
+  "price": {
+    "n": "1385771206",
+    "d": "1310467785"
+  }
+}

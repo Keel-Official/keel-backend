@@ -30,8 +30,12 @@ const MethodologyVersion = "1.0.3-draft"
 
 // ---------------------------------------------------------------- Assets
 
+// AssetType is Stellar's own name for the shape of an asset, carried verbatim
+// so that a value from this package can be handed to Horizon unchanged.
 type AssetType string
 
+// The three asset types Stellar defines. The choice between the two credit types
+// is by DECLARED type and never by code length: see the warning on Asset.
 const (
 	AssetTypeNative     AssetType = "native"
 	AssetTypeAlphanum4  AssetType = "credit_alphanum4"
@@ -49,6 +53,7 @@ type Asset struct {
 	Type   AssetType
 }
 
+// IsNative reports whether this is XLM, which is the one asset with no issuer.
 func (a Asset) IsNative() bool { return a.Type == AssetTypeNative }
 
 func (a Asset) String() string {
@@ -58,6 +63,9 @@ func (a Asset) String() string {
 	return a.Code + ":" + a.Issuer
 }
 
+// Equal compares all three fields, because asset identity is the pair
+// (code, issuer) and never the ticker alone. Two assets sharing a code are
+// routinely different assets: 97 of them share the AQUA ticker alone.
 func (a Asset) Equal(o Asset) bool {
 	return a.Code == o.Code && a.Issuer == o.Issuer && a.Type == o.Type
 }
@@ -79,12 +87,20 @@ type Price struct {
 	D int64
 }
 
+// Valid reports whether this fraction can be used in arithmetic. A zero
+// denominator is what a missing price_r field decodes to, so this is the check
+// that catches an upstream field which stopped arriving.
 func (p Price) Valid() bool { return p.D != 0 && p.N > 0 }
 
+// Decimal divides the fraction out. It LOSES PRECISION and belongs at the last
+// step before a number is displayed or multiplied by an amount; compare two
+// prices with Cmp instead, because that never divides.
 func (p Price) Decimal() decimal.Decimal {
 	return decimal.NewFromInt(p.N).Div(decimal.NewFromInt(p.D))
 }
 
+// Invert swaps numerator and denominator, turning quote-per-base into
+// base-per-quote. Exact, because nothing is divided.
 func (p Price) Invert() Price { return Price{N: p.D, D: p.N} }
 
 // Cmp compares without dividing, so no precision is lost.
@@ -98,6 +114,9 @@ func (p Price) String() string { return fmt.Sprintf("%d/%d", p.N, p.D) }
 
 // ---------------------------------------------------------------- Order book
 
+// Level is one price level of an order book: a price, and how much is available
+// at it. Amount is in BASE units on both sides of the book, which the upstream
+// data does not guarantee and the adapter is responsible for establishing.
 type Level struct {
 	Price  Price
 	Amount decimal.Decimal // in base asset units
@@ -106,13 +125,16 @@ type Level struct {
 // Notional returns the value of this level in the quote asset.
 func (l Level) Notional() decimal.Decimal { return l.Price.Decimal().Mul(l.Amount) }
 
-// OrderBook: Bids sorted by descending price, Asks by ascending price.
-// The adapter guarantees the ordering.
+// OrderBook holds both sides of a market at one ledger. Bids are sorted by
+// descending price and Asks by ascending price, and the ADAPTER guarantees that
+// ordering rather than this package re-establishing it.
 type OrderBook struct {
 	Bids []Level
 	Asks []Level
 }
 
+// BestBid returns the highest bid. The bool is false when the bid side is
+// empty, which is an ordinary state for a thin market and not an error.
 func (b OrderBook) BestBid() (Level, bool) {
 	if len(b.Bids) == 0 {
 		return Level{}, false
@@ -120,6 +142,8 @@ func (b OrderBook) BestBid() (Level, bool) {
 	return b.Bids[0], true
 }
 
+// BestAsk returns the lowest ask. The bool is false when the ask side is empty,
+// which is an ordinary state for a thin market and not an error.
 func (b OrderBook) BestAsk() (Level, bool) {
 	if len(b.Asks) == 0 {
 		return Level{}, false
@@ -140,6 +164,9 @@ type PoolReserves struct {
 	FeeBP        int32
 }
 
+// SpotPrice is the constant product pool's marginal price, quote per base,
+// before any fee. It returns zero rather than panicking on an empty pool, and a
+// caller that needs to tell those apart asks IsEmpty first.
 func (p PoolReserves) SpotPrice() decimal.Decimal {
 	if p.ReserveBase.IsZero() {
 		return decimal.Zero
@@ -147,20 +174,31 @@ func (p PoolReserves) SpotPrice() decimal.Decimal {
 	return p.ReserveQuote.Div(p.ReserveBase)
 }
 
+// IsEmpty reports whether either reserve is zero, which is a pool that can
+// price nothing. Either side being zero is enough.
 func (p PoolReserves) IsEmpty() bool {
 	return p.ReserveBase.IsZero() || p.ReserveQuote.IsZero()
 }
 
 // ---------------------------------------------------------------- Snapshot
 
+// PriceSource names which half of the market a reference price was taken from.
+// It records the fallback that was actually applied, so a result carries the
+// answer to "where did this number come from" instead of leaving it inferred.
 type PriceSource string
 
+// The reference price sources, in the fallback order that
+// docs/methodology/03-reference-price.md section 1 defines. PriceSourceNone
+// means no executable price existed at all, which is a real answer.
 const (
 	PriceSourceBook PriceSource = "book"
 	PriceSourcePool PriceSource = "pool"
 	PriceSourceNone PriceSource = "none"
 )
 
+// DataSource names where a reading came from and how far it can be trusted. The
+// values and their confidence ordering are on the const block below, which is
+// where the distinction that matters is written down.
 type DataSource string
 
 // The four data sources. Two name WHERE the data came from and two name HOW it was
@@ -242,7 +280,7 @@ type DepthPoint struct {
 // Interpretation:
 //
 //	Cost small, Reachable=true   cheap and achievable. MOST DANGEROUS.
-//	Cost large, Reachable=true   expensive; the market has a defence.
+//	Cost large, Reachable=true   expensive; the market has a defense.
 //	Reachable=false              the target cannot be reached at any capital.
 //	                             This is not bad news.
 //
@@ -261,8 +299,13 @@ type ManipulationPoint struct {
 
 // ---------------------------------------------------------------- Flags
 
+// Flag is a named warning attached to a result. A flag states a condition that
+// was observed and never a recommendation, and the API contract treats the set
+// as open ended so that adding one is not a breaking change.
 type Flag string
 
+// Every flag Keel can raise. The string values belong to the contract, so they
+// change only when the contract does.
 const (
 	FlagNoExecutablePrice          Flag = "NO_EXECUTABLE_PRICE"
 	FlagZeroDepth2Pct              Flag = "ZERO_DEPTH_2PCT"
@@ -278,8 +321,12 @@ const (
 	FlagWashTradeSuspected         Flag = "WASH_TRADE_SUSPECTED"
 )
 
+// Band is the coarse risk bucket a result falls into. It is a summary OF the
+// numbers and never a substitute for them: two assets in one band can be far
+// apart, which is why a band always travels with the figures behind it.
 type Band string
 
+// The four risk bands, ordered from least to most severe.
 const (
 	BandLow      Band = "LOW"
 	BandMedium   Band = "MEDIUM"
@@ -287,8 +334,13 @@ const (
 	BandCritical Band = "CRITICAL"
 )
 
+// BandConfidence says how much of the evidence a band was computed from. It
+// exists so that a band drawn from an incomplete reading cannot later be quoted
+// as though it had been drawn from a complete one.
 type BandConfidence string
 
+// The two confidence levels. Partial means at least one input the band depends
+// on was missing or truncated, and the band is still reported.
 const (
 	BandConfidenceFull    BandConfidence = "full"
 	BandConfidencePartial BandConfidence = "partial"
@@ -450,6 +502,9 @@ type OracleResistance struct {
 	TotalAttackCost *decimal.Decimal
 }
 
+// TradeRef points at a trade by the ledger it closed in and when that ledger
+// closed. It is a reference rather than a copy, so a reader can go back to the
+// chain and check the claim instead of trusting this record of it.
 type TradeRef struct {
 	LedgerSeq uint32
 	At        time.Time

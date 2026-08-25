@@ -63,11 +63,14 @@ type Config struct {
 	Params domain.Params
 	// HistoricalAvailable is false while the Hubble path does not exist. Stated
 	// as configuration rather than hardcoded, because DEC-002 defers that path
-	// rather than cancelling it.
+	// rather than canceling it.
 	HistoricalAvailable bool
 	Logf                func(format string, args ...any)
 }
 
+// Server is the read-only HTTP surface described by docs/api/keel-openapi.yaml.
+// It computes nothing: every figure it serves was computed elsewhere and stored,
+// so a request can never be the thing that triggers a methodology run.
 type Server struct {
 	cfg Config
 	mux *http.ServeMux
@@ -77,6 +80,9 @@ type Server struct {
 // /v1, so the paths in it are relative to that.
 const BasePath = "/v1"
 
+// New builds a Server and refuses a Config that cannot serve: the reader is
+// required, because a server that starts without one fails per request instead
+// of at startup, and the second is far harder to notice.
 func New(cfg Config) (*Server, error) {
 	if cfg.Reader == nil {
 		return nil, errors.New("api: no reader")
@@ -167,7 +173,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	s.writeJSON(w, http.StatusOK, out)
 }
 
-func (s *Server) handleMethodology(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleMethodology(w http.ResponseWriter, _ *http.Request) {
 	t := s.cfg.Params.Thresholds
 
 	// The threshold map is open ended by contract: a consumer reads it by key
@@ -201,7 +207,7 @@ func (s *Server) handleMethodology(w http.ResponseWriter, r *http.Request) {
 
 	s.writeJSON(w, http.StatusOK, methodologyJSON{
 		Version:     domain.MethodologyVersion,
-		DocumentUrl: "https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/00-overview.md",
+		DocumentURL: "https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/00-overview.md",
 		Calibrated:  false,
 		CalibrationNote: "The thresholds were chosen based on the magnitude of the Blend " +
 			"incident of February 2026 and on conservative judgement, not calibrated against a " +
@@ -300,7 +306,7 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 
 	// The historical path. DEC-002 defers Hubble, so there is no source that can
 	// answer this yet, and a 503 with HISTORICAL_UNAVAILABLE is the contract's
-	// own answer for that state. Returning a live figure and labelling it
+	// own answer for that state. Returning a live figure and labeling it
 	// historical would be the one genuinely dangerous alternative.
 	if !s.cfg.HistoricalAvailable {
 		s.writeError(w, http.StatusServiceUnavailable, codeHistoricalUnavailable,
@@ -566,7 +572,7 @@ var allFlags = []domain.Flag{
 	domain.FlagThinDepth5Pct, domain.FlagWashTradeSuspected,
 }
 
-func parseBoundedInt(raw string, def, min, max int) (int, error) {
+func parseBoundedInt(raw string, def, lo, hi int) (int, error) {
 	if strings.TrimSpace(raw) == "" {
 		return def, nil
 	}
@@ -574,13 +580,13 @@ func parseBoundedInt(raw string, def, min, max int) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("must be an integer")
 	}
-	if v < min || v > max {
-		return 0, fmt.Errorf("must be between %d and %d", min, max)
+	if v < lo || v > hi {
+		return 0, fmt.Errorf("must be between %d and %d", lo, hi)
 	}
 	return v, nil
 }
 
-// Serve runs the HTTP server until the context is cancelled, then shuts down
+// Serve runs the HTTP server until the context is canceled, then shuts down
 // gracefully so an in-flight response is not cut off mid-body.
 func (s *Server) Serve(ctx context.Context, addr string) error {
 	srv := &http.Server{

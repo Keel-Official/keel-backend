@@ -23,7 +23,7 @@
 //     CONFLICT DO UPDATE, which is the usual idiom and is wrong here.
 //
 //  3. THE JSONB COLUMNS HAVE THEIR OWN SHAPES, DECLARED IN jsonb.go. The domain
-//     types are not marshalled directly. A JSON field name inside a database
+//     types are not marshaled directly. A JSON field name inside a database
 //     column is a wire format that outlives any Go rename, so it is written down
 //     once, explicitly, matching the names the API contract uses. Every decimal
 //     inside them is a STRING even where the contract sends a number, because a
@@ -70,6 +70,9 @@ type dbtx interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
+// Store is Keel's Postgres persistence. It stores and reads and computes
+// nothing, which is the rule for this package: a figure that arrives here has
+// already been decided somewhere a reviewer can find.
 type Store struct {
 	db      dbtx
 	closeFn func() error
@@ -94,12 +97,14 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 	db.SetConnMaxLifetime(30 * time.Minute)
 
 	if err := db.PingContext(ctx); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("store: ping: %w", err)
 	}
 	return &Store{db: db, closeFn: db.Close}, nil
 }
 
+// Close releases the connection pool. It is safe on a Store built around an
+// existing transaction, where there is no pool to release and closeFn is nil.
 func (s *Store) Close() error {
 	if s.closeFn == nil {
 		return nil
@@ -121,7 +126,7 @@ func (s *Store) SchemaVersion(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("store: schema version: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []string
 	for rows.Next() {

@@ -1,0 +1,135 @@
+AQUA: identity verified in both directions, and what /liquidity_pools returns
+==============================================================================
+
+Taken 25 August 2026 against https://horizon.stellar.org and https://aqua.network.
+This file exists because AQUA was DELIBERATELY EXCLUDED from
+configs/recorder-pairs.json when that file was written earlier the same day, on
+the grounds that its identity was unverified, and was then admitted by amendment.
+The exclusion and the admission are both recorded, because a reader who sees only
+the second one cannot tell a verified asset from a guessed one.
+
+The issuer admitted:
+  AQUA  GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA   (56 characters)
+
+
+1. DIRECTION ONE: THE ACCOUNT CLAIMS THE DOMAIN
+------------------------------------------------
+
+  curl -sS "https://horizon.stellar.org/accounts/GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+
+  account_id  = GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA
+  home_domain = aqua.network
+
+  curl -sS -G "https://horizon.stellar.org/assets" \
+    --data-urlencode "asset_code=AQUA" \
+    --data-urlencode "asset_issuer=GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+
+  asset_type           = credit_alphanum4
+  accounts.authorized  = 191838
+
+
+2. DIRECTION TWO: THE DOMAIN CLAIMS THE ACCOUNT
+------------------------------------------------
+
+  curl -sS -L "https://aqua.network/.well-known/stellar.toml"      -> HTTP 200
+
+  [[CURRENCIES]]
+  code = "AQUA"
+  name = "AQUA"
+  issuer = "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+  is_asset_anchored = false
+  display_decimals = 7
+
+BOTH DIRECTIONS ARE NEEDED AND NEITHER IS SUFFICIENT. home_domain alone proves
+only that whoever controls the account typed a domain into it, which anybody can
+do. The toml alone proves only that whoever controls the domain typed an account
+into it. The two together mean the account operator and the domain operator agree
+about each other, which is what SEP-1 asks for.
+
+The other six CURRENCIES blocks in that toml are ICE, dICE, governICE, upvoteICE,
+downvoteICE and gdICE, all on GAXSGZ2JM3LNWOO4WRGADISNMWO4HQLG4QBGUZRKH5ZHL3EQBGX73ICE,
+which is a DIFFERENT account from the AQUA issuer. Only the block whose code is
+literally AQUA was read.
+
+97 distinct assets share the AQUA ticker and 13 of them use an aqua-flavoured
+domain. None of that was used to choose. Matching on the ticker, on the domain
+looking plausible, or on which issuer had the most holders would each have picked
+an issuer without proving anything about it. Asset identity is the pair
+(code, issuer), which is exactly what the two directions above pin down.
+
+
+3. THE QUESTION THE AMENDMENT ASKED: HOW MANY POOLS COME BACK
+--------------------------------------------------------------
+
+  curl -sS -G "https://horizon.stellar.org/liquidity_pools" \
+    --data-urlencode "reserves=AQUA:GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA,USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN" \
+    --data-urlencode "limit=200"
+
+  HTTP 200
+  Latest-Ledger: 64116131
+  records = 1
+
+    id      = 0b8aafefa1a40476e886929db7ad9ea038a5ade60584737c04045c6d018871f4
+    type    = constant_product
+    fee_bp  = 30
+    total_trustlines = 236
+    total_shares     = 689209.0071000
+    reserves:
+      AQUA:GBNZILSTVQZ4R7IKQDGHYGY...  52530841.3503483
+      USDC:GA5ZSEJYB37JRC5AVCIA5MO...     19401.7622350
+
+ONE record. The premise behind the amendment's warning is correct and its
+conclusion does not follow, so both halves are worth writing down.
+
+
+4. WHY 1308 POOLS BECOME ONE RECORD
+-------------------------------------
+
+The 1308 figure is right. Paged through every one of them:
+
+  reserves=AQUA:GBNZILST...   (the issuer alone, no second asset)
+  -> 1308 pools in 7 pages of 200
+
+Then every one of those 1308 was keyed by its unordered reserve asset pair:
+
+  asset pairs appearing in MORE THAN ONE pool: 0
+
+All 1308 are distinct asset pairs. The distribution across them:
+
+  fee_bp : {30: 1308}
+  type   : {constant_product: 1308}
+
+So AQUA is in 1308 pools because it is paired with 1308 DIFFERENT assets, not
+because any pair of assets has several pools. The `reserves=A,B` filter is an AND
+over both assets, measured separately in
+docs/evidences/liquidity_pools_reserves_2026-08-25.txt section 3, so it selects
+the one pool for that one pair.
+
+The underlying reason is that a Stellar pool is identified by a hash of its type,
+its two assets in canonical order, and its fee, and the protocol admits exactly
+one fee today. The 1308 rows above are the empirical form of that statement, and
+they are what is recorded here, because the protocol rule is somebody else's
+invariant and could be relaxed by a future protocol version without this
+repository being told.
+
+
+5. WHAT THE RECORDER DOES ABOUT IT, WHICH IS NOTHING
+------------------------------------------------------
+
+The version 2 recorder stores the response body of /liquidity_pools verbatim, as
+a string, with its sha256. It does not count the records, does not filter them,
+does not rank them and does not select one. If Horizon returns two records
+tomorrow it will store two records tomorrow, and the file will say so.
+
+That is not a convenience. CHOOSING AMONG CANDIDATE POOLS IS A METHODOLOGY
+DECISION and methodology is the red zone. A recorder that quietly kept the
+deepest pool would be answering that question every hour, in a way that leaves no
+trace in the evidence and cannot be revised afterwards, because the pools it
+dropped are not recoverable from Horizon for a past ledger.
+
+The one place a multi-record response would be noticed today is
+`poolReserves` in internal/horizon/decode.go, on the version 1 parsed path, which
+is a different code path and unchanged by this work. FOR AL TO DECIDE, and stated
+here rather than decided: if a pair ever does return more than one pool, what
+does effective AMM depth mean across them. Summing reserves is wrong, because two
+pools at different prices are not one deeper pool.

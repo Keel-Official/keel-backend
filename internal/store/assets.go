@@ -1,4 +1,5 @@
 // The assets table: the demonstration set, one row per scanned pair.
+
 package store
 
 import (
@@ -93,7 +94,7 @@ func (s *Store) Assets(ctx context.Context, activeOnly bool) ([]Asset, error) {
 	if err != nil {
 		return nil, fmt.Errorf("store: list assets: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Asset
 	for rows.Next() {
@@ -154,7 +155,7 @@ func validAsset(a domain.Asset, side string) error {
 	default:
 		// Never inferred from the length of the code. A five character code read
 		// as alphanum4 returns an empty book from Horizon with no error, and the
-		// CHECK on this column is the second line of defence.
+		// CHECK on this column is the second line of defense.
 		return fmt.Errorf("store: %s has asset type %q, which is not one of the three", side, a.Type)
 	}
 	return nil
@@ -181,7 +182,7 @@ func (s *Store) PairsForAsset(ctx context.Context, code, issuer string) ([]Asset
 	if err != nil {
 		return nil, fmt.Errorf("store: pairs for %s: %w", code, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Asset
 	for rows.Next() {

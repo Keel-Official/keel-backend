@@ -12,6 +12,7 @@
 // type that was declared when the pair entered the demonstration set, and that
 // row is the authority. An asset that is not in the set gets ASSET_NOT_MONITORED,
 // which is an ordinary condition and not a failure.
+
 package api
 
 import (

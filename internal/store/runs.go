@@ -3,6 +3,7 @@
 // It exists so that a partial failure is visible instead of silent. One asset
 // failing must not fail a whole scan, which means the scan finishes reporting
 // success, which means the only place the failure can be recorded is here.
+
 package store
 
 import (
@@ -19,11 +20,16 @@ import (
 // have.
 type RunKind string
 
+// The two kinds of run. A scan reads live data, a replay recomputes a past
+// ledger from history, and keeping them apart is what stops a replay's output
+// being quoted as a live measurement.
 const (
 	RunScan   RunKind = "scan"
 	RunReplay RunKind = "replay"
 )
 
+// Run is one execution of the engine, recorded so that every stored figure can
+// be traced back to the run that produced it and the code version it ran.
 type Run struct {
 	ID           int64
 	Kind         RunKind

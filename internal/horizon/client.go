@@ -44,6 +44,7 @@
 //     adapter guarantees bids descending and asks ascending, so this client
 //     sorts with Price.Cmp rather than trusting Horizon's order. Cmp
 //     cross-multiplies and never divides, so no precision is spent on it.
+
 package horizon
 
 import (
@@ -222,6 +223,9 @@ type cacheEntry struct {
 	at     time.Time
 }
 
+// NewClient builds a Client, filling in the defaults documented on Config. It
+// cannot fail: every field has a working default and nothing is read from the
+// environment, so a misconfiguration is visible at the call site or nowhere.
 func NewClient(cfg Config) *Client {
 	return &Client{cfg: cfg.withDefaults(), cache: map[string]cacheEntry{}}
 }
@@ -294,7 +298,7 @@ func (c *Client) GetSnapshot(ctx context.Context, base, quote domain.Asset) (Obs
 	bookQ := url.Values{}
 	addAsset(bookQ, "selling", base)
 	addAsset(bookQ, "buying", quote)
-	bookQ.Set("limit", "200")
+	bookQ.Set("limit", strconv.Itoa(bookPageLimit))
 
 	bookBody, bookLedger, err := c.get(ctx, "/order_book", bookQ, true)
 	if err != nil {
@@ -467,7 +471,7 @@ func (c *Client) attempt(ctx context.Context, full string, requireLatest bool) (
 	if err != nil {
 		return nil, 0, &transportError{err: err}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
