@@ -1,0 +1,109 @@
+{
+  "note": "PROVISIONAL. Superseded by docs/methodology/02-pair-selection.md section 5 once written. Not methodology. Eight pairs, every one quoted in USDC (Circle, GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN), spread across the four liquidity buckets in docs/methodology/10-validation.md section 3 rather than chosen by any rule this repository has written down yet. ASSET IDENTITY IS THE PAIR (code, issuer) AND NEVER THE TICKER ALONE. Every asset type below was read off Horizon /assets on 25 August 2026 and none was inferred from the code length: PYUSD and USTRY are both five character codes and both credit_alphanum12, and asking Horizon for either as credit_alphanum4 returns an empty order book with no error. Evidence: docs/evidences/liquidity_pools_reserves_2026-08-25.txt section 6. AQUA WAS DELIBERATELY ABSENT FROM THE FIRST VERSION OF THIS FILE and was admitted by amendment once its identity was verified in BOTH directions: the issuer account reports home_domain aqua.network, and that domain's SEP-1 stellar.toml lists code AQUA against that exact account. 97 distinct assets share the AQUA ticker and 13 of them use an aqua-flavored domain, so none of ticker, domain plausibility or holder count was used to choose. Evidence: docs/evidences/aqua_identity_and_pools_2026-08-25.txt.",
+  "pairs": [
+    {
+      "base": {
+        "code": "",
+        "issuer": "",
+        "type": "native"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "XLM. The deepest market on the network and the only pair here whose base is native, so it is the one that proves the recorder handles an asset with no issuer at all."
+    },
+    {
+      "base": {
+        "code": "EURC",
+        "issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "Circle's euro stablecoin against Circle's dollar stablecoin. A fiat pair whose price moves for reasons outside Stellar, which is a different shape of book from an asset priced only by its own market."
+    },
+    {
+      "base": {
+        "code": "PYUSD",
+        "issuer": "GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "PayPal's dollar stablecoin. Two assets that should trade at parity, so a depth figure here is readable without an exchange rate in the way. credit_alphanum12 on a five character code, read off Horizon and not inferred."
+    },
+    {
+      "base": {
+        "code": "AUDD",
+        "issuer": "GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "Australian dollar stablecoin. THE ISSUER HERE IS NOT THE ONE IN THE TASK BRIEF, which was 57 characters and rejected by Horizon as a malformed asset_issuer. This is the single AUDD account on the first page of /assets that is a one character deletion of it, confirmed live to exist with this code and type. Al approved the substitution. The full account and the 400 response are in docs/evidences/liquidity_pools_reserves_2026-08-25.txt section 7."
+    },
+    {
+      "base": {
+        "code": "ARST",
+        "issuer": "GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "Argentine peso stablecoin, and the widest held asset in this list after USDC itself at 328634 authorized trustlines. Many holders and a thin book is a combination the depth figure has to be able to say out loud."
+    },
+    {
+      "base": {
+        "code": "BRL",
+        "issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "Brazilian real. A regional fiat asset whose liquidity is concentrated in a small number of anchors, which is the bucket between the stablecoins and USTRY."
+    },
+    {
+      "base": {
+        "code": "AQUA",
+        "issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "Aquarius, the AMM incentive token, and the one asset here whose liquidity lives mostly in pools rather than in the order book. Its issuer participates in 1308 liquidity pools, which is 1308 DIFFERENT counter assets and not several pools for one pair: across all 1308 no asset pair appears twice, every one is constant_product at fee_bp 30, and reserves=AQUA,USDC returns exactly one record. Measured, not assumed, in docs/evidences/aqua_identity_and_pools_2026-08-25.txt sections 3 and 4."
+    },
+    {
+      "base": {
+        "code": "USTRY",
+        "issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "The asset of the 22 February 2026 Blend incident, the subject of DEC-001 and of the golden fixture. The issuer here is copied from the fixture rather than retyped. Present because the deliverable is checked against it, not because it was selected by a rule."
+    }
+  ]
+}

@@ -54,6 +54,7 @@ it. A path with no row has no owner, and a check in
 | `internal/conformance` | GREEN | the expected values come from a fixture computed by hand. Never adjust those numbers to match the code. Adjust the code to match those numbers |
 | `internal/domain` | YELLOW | except the one file below. See `internal/domain/CLAUDE.md` |
 | `internal/domain/compute.go` | RED | the methodology. Denied in `.claude/settings.json`, and the Bash path is closed by `.claude/hooks/lindungi-zona-merah.sh` |
+| `configs/` | GREEN | the pair lists the recorder reads. DATA, never methodology: `recorder-pairs.json` is provisional and 02-pair-selection.md section 5 supersedes it. An asset is the pair (code, issuer) and is never matched on the ticker |
 | `migrations/` | GREEN | |
 | `scripts/` | GREEN | |
 | `testdata/fixtures/` | RED | the golden fixture. Al computes these numbers by hand BEFORE any implementation. Same rule as `internal/conformance`, and this is where those numbers come from. ENFORCED since 25 August 2026, in both files, the same way `compute.go` is. Reading stays open, because reporting where the code and these numbers disagree is the job |
