@@ -1,0 +1,209 @@
+name: record
+
+# The hourly cross-validation recorder.
+#
+# Layer 3 of docs/methodology/10-validation.md compares a live Horizon reading of
+# a ledger against a reconstruction of that same ledger, and the live half has to
+# be taken while that ledger is current. It is the only work in this repository
+# that no amount of later effort recovers, which is why it runs on a schedule
+# instead of when somebody remembers.
+#
+# THE SCHEDULE IS COMMENTED OUT AND AL ENABLES IT. Uncomment the two lines under
+# `schedule:` below. Nothing else has to change.
+#
+# NOTHING HERE MAY COMPUTE AN INTERVAL FROM THE CRON EXPRESSION. GitHub's cron is
+# best effort: it is delayed under load and skipped outright when the fleet is
+# busy, so "it is 14:07, therefore the last run was 13:07" is false and a series
+# built on it is fiction. recorded_at and ledger_before inside each file are the
+# only time truth this archive has.
+
+on:
+  # schedule:
+  #   # Hourly at seven minutes past. NOT on the hour: :00 is the most congested
+  #   # slot on the shared scheduler and the one most likely to be delayed or
+  #   # dropped. The offset buys nothing except a less crowded queue, and the
+  #   # recorder does not care what the offset is, because see above.
+  #   - cron: "7 * * * *"
+  workflow_dispatch:
+
+# contents: write, and nothing else. The job commits recordings to an orphan
+# branch and needs no packages, no issues, no pull requests and no id-token.
+# GITHUB_TOKEN is sufficient; there is no repository secret here and there does
+# not need to be one, because public Horizon is read without a key.
+permissions:
+  contents: write
+
+# cancel-in-progress is FALSE and that is the important half. A run that is
+# taking its time is holding a reading of a ledger that is closing right now, and
+# canceling it to start a fresher one throws away evidence in order to be
+# punctual. Queueing behind it costs a few minutes and loses nothing.
+concurrency:
+  group: recorder
+  cancel-in-progress: false
+
+env:
+  GO_VERSION: "1.23"
+  PAIRS: configs/recorder-pairs.json
+  RECORDINGS_BRANCH: recordings
+
+jobs:
+  record:
+    name: record every pair once
+    runs-on: ubuntu-latest
+    # Ten minutes is roughly twenty times what one round costs. It is a stuck
+    # job guard, not a budget: a round of eight pairs is sixteen Horizon
+    # requests and finishes in seconds.
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          # Module and build caching. Without it every run pays a fresh download
+          # and compile, which is most of the billed minute.
+          cache: true
+
+      - name: Build the recorder
+        run: go build -o keel-recorder ./cmd/keel
+
+      # The orphan branch is checked out into a worktree BEFORE anything is
+      # recorded, so a failure to prepare the destination happens before the
+      # Horizon requests rather than after them.
+      #
+      # ORPHAN, and nothing lands on main. The recordings branch shares no
+      # history with main at all: it is an append-only archive of evidence, and
+      # a thousand commits an hour of gzipped blobs on the branch people review
+      # code on would make that branch useless for reviewing code.
+      - name: Check out the recordings branch into a worktree
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin "$RECORDINGS_BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$RECORDINGS_BRANCH" --depth=1
+            git worktree add archive "origin/$RECORDINGS_BRANCH"
+            git -C archive switch -c "$RECORDINGS_BRANCH" || git -C archive switch "$RECORDINGS_BRANCH"
+          else
+            # First run. An orphan worktree starts with no commit and no parent,
+            # which is exactly the point of the branch.
+            git worktree add --detach archive
+            git -C archive checkout --orphan "$RECORDINGS_BRANCH"
+            git -C archive rm -rf --cached . >/dev/null 2>&1 || true
+            find archive -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          fi
+
+      # THE RECORDER EXITS 0 WHEN HORIZON IS BUSY. A 429 or a 5xx is recorded
+      # inside the tick with its status and its body, and a tick that was written
+      # is a success no matter what it says. The binary exits non-zero only when
+      # a pair wrote nothing at all, which is the case where evidence was
+      # actually lost. A recorder that goes red whenever Horizon is busy is a
+      # recorder whose red gets ignored.
+      #
+      # Its log goes to stderr and its tally to stdout, so the tally is captured
+      # here without parsing the log.
+      - name: Record every pair once
+        id: record
+        run: |
+          set -euo pipefail
+          ./keel-recorder record \
+            -pairs "$PAIRS" \
+            -out archive/recordings \
+            -once \
+            | tee tally.txt
+
+          # ticks_written=8 ticks_degraded=0 ... -> individual step outputs.
+          tr ' ' '\n' < tally.txt | grep '=' >> "$GITHUB_OUTPUT"
+
+      - name: Commit the round
+        id: commit
+        run: |
+          set -euo pipefail
+          cd archive
+          git add -A recordings
+
+          if git diff --cached --quiet; then
+            echo "nothing to commit: every tick this round was already on the branch"
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The commit this round is built on, remembered BEFORE the commit is
+          # made. The push step replays exactly the range base..HEAD, which is
+          # this one commit, and never has to find a merge base. On the very
+          # first run there is no parent and base is empty.
+          base="$(git rev-parse --verify --quiet HEAD || true)"
+          echo "base=${base}" >> "$GITHUB_OUTPUT"
+
+          # The timestamp is taken HERE, now, in UTC. It is not derived from the
+          # cron expression, for the reason at the top of this file.
+          stamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          ticks="${{ steps.record.outputs.ticks_written }}"
+          git commit -m "Record ${ticks} ticks at ${stamp}" \
+                     -m "Schema 2. Written by .github/workflows/record.yml, run ${GITHUB_RUN_ID}."
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      # Push conflicts are expected rather than exceptional: a delayed run and
+      # the next scheduled one can finish close together, and both append to the
+      # same branch. Rebase and retry, three times, then fail. Failing is
+      # correct at that point, because the recordings are still in the worktree
+      # of a run nobody will look at and the loss should be visible.
+      #
+      # THE REBASE IS EXPLICIT ABOUT ITS RANGE, and that is not a flourish. The
+      # branch is fetched at --depth=1 so that an archive growing by 24 commits a
+      # day never turns into a full clone every hour, and a shallow branch has no
+      # merge base for a plain `git rebase` to find. `--onto <new tip> <base>`
+      # replays exactly the one commit this run made and needs no history at all.
+      # A textual conflict is not possible either way: every run writes new files
+      # under recordings/{pair}/{date}/{ledger} and never touches an existing one.
+      - name: Push, retrying with rebase
+        if: steps.commit.outputs.committed == 'true'
+        env:
+          BASE: ${{ steps.commit.outputs.base }}
+        run: |
+          set -euo pipefail
+          cd archive
+          base="$BASE"
+          for attempt in 1 2 3; do
+            if git push origin "$RECORDINGS_BRANCH"; then
+              echo "pushed on attempt ${attempt}"
+              exit 0
+            fi
+            echo "push rejected on attempt ${attempt}, replaying onto the new remote tip"
+            git fetch origin "$RECORDINGS_BRANCH" --depth=1
+            if [ -n "$base" ]; then
+              git rebase --onto "origin/$RECORDINGS_BRANCH" "$base" "$RECORDINGS_BRANCH"
+            else
+              # First run losing a race with another first run. There is no base
+              # to replay from, so graft this round's tree onto whatever landed.
+              git rebase --onto "origin/$RECORDINGS_BRANCH" --root "$RECORDINGS_BRANCH"
+            fi
+            base="$(git rev-parse HEAD~1)"
+          done
+          echo "three attempts and the branch is still moving under us"
+          exit 1
+
+      # A silent stall is the failure mode this recorder actually has: the
+      # schedule is skipped, or it runs and writes nothing, and neither shows up
+      # as a red run. One line per run in the Actions tab makes a gap in the
+      # series visible by scrolling.
+      #
+      # always(), so a run that failed still says what it managed to record.
+      - name: Summarize the round
+        if: always()
+        run: |
+          {
+            echo "| ticks written | degraded | straddled a ledger | name collisions | unwritten |"
+            echo "|---|---|---|---|---|"
+            echo "| ${{ steps.record.outputs.ticks_written    || '0' }} \
+                 | ${{ steps.record.outputs.ticks_degraded   || '0' }} \
+                 | ${{ steps.record.outputs.ticks_straddled  || '0' }} \
+                 | ${{ steps.record.outputs.ticks_collided   || '0' }} \
+                 | ${{ steps.record.outputs.ticks_unwritten  || '0' }} |"
+            echo ""
+            echo "Degraded means at least one endpoint answered with something other than a 2xx."
+            echo "The tick is still written and that is not a failure."
+            echo "Unwritten is the only number that reddens a run."
+          } >> "$GITHUB_STEP_SUMMARY"
