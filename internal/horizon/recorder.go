@@ -62,6 +62,7 @@
 //     code, but gives each process its own request budget counter with no view of
 //     the other, and two counters of 3000 against one Horizon limit of about 3600
 //     is a limit that is not being counted at all.
+
 package horizon
 
 import (

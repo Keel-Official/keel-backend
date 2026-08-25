@@ -72,6 +72,7 @@
 //     alternative: formatting the recorder's clock directly, which is one line
 //     shorter and lets a file whose recorded_at says 23:59 land in tomorrow's
 //     directory when the two clock reads straddle midnight.
+
 package horizon
 
 import (

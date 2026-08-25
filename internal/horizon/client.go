@@ -44,6 +44,7 @@
 //     adapter guarantees bids descending and asks ascending, so this client
 //     sorts with Price.Cmp rather than trusting Horizon's order. Cmp
 //     cross-multiplies and never divides, so no precision is spent on it.
+
 package horizon
 
 import (

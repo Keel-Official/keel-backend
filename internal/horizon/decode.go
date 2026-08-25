@@ -9,6 +9,7 @@
 // which survives an upstream field rename by silently producing zero. A struct
 // that fails to decode is the louder failure, and a silent zero in a price or a
 // reserve is the worst outcome this adapter has.
+
 package horizon
 
 import (

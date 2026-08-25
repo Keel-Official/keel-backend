@@ -1,4 +1,5 @@
 // The assets table: the demonstration set, one row per scanned pair.
+
 package store
 
 import (

@@ -3,6 +3,7 @@
 // It exists so that a partial failure is visible instead of silent. One asset
 // failing must not fail a whole scan, which means the scan finishes reporting
 // success, which means the only place the failure can be recorded is here.
+
 package store
 
 import (

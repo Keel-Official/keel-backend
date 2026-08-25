@@ -7,6 +7,7 @@
 // match the API contract so that a column can be read beside a response without
 // translating, and every decimal is a STRING even where the contract sends a
 // number, because a JSON number is an IEEE 754 double.
+
 package store
 
 import (

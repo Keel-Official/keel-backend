@@ -19,6 +19,7 @@
 // to be discovered, and handoff item 17 is where the decision sits: give the
 // field a definition, a column and a contract field, or drop it from the type
 // because the oracle object already carries it.
+
 package store
 
 import (

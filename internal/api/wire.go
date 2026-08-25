@@ -17,6 +17,7 @@
 // '196.0777141' means 196 percent, not 1.96. The domain carries these on the same
 // scale, so this layer passes them through unchanged; if that ever stops being
 // true, the conversion belongs here and nowhere else.
+
 package api
 
 import (
