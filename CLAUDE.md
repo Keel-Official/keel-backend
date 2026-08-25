@@ -177,3 +177,19 @@ Note that no path in this list carries an `@` prefix. That is deliberate. An `@`
 loads the file into context on every session, and the OpenAPI contract alone runs
 to 1,500 lines. This section is titled "read when needed, do not load them all",
 and `@` does the opposite.
+
+## Commit message conventions
+
+Selalu gunakan format Conventional Commits:
+
+<type>(<scope>): <deskripsi singkat>
+
+- type: feat, fix, docs, style, refactor, test, chore
+- scope: opsional, area yang diubah (mis. auth, api, ui)
+- deskripsi: imperative mood, huruf kecil, tanpa titik di akhir
+- maksimal 72 karakter untuk baris pertama
+- tambahkan body jika perlu menjelaskan "kenapa", dipisah 1 baris kosong
+
+Contoh:
+feat(auth): tambah login via Google OAuth
+fix(api): tangani null response saat timeout
