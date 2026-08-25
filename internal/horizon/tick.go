@@ -349,7 +349,7 @@ func (c *Client) rawAttempt(ctx context.Context, full string) (body []byte, stat
 	if err != nil {
 		return nil, 0, 0, "", &transportError{err: err}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err = io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
@@ -464,18 +464,20 @@ func writeNewFile(dir, base, ext string, body []byte) (string, error) {
 	}
 	name := tmp.Name()
 	if _, err := tmp.Write(body); err != nil {
-		tmp.Close()
-		os.Remove(name)
+		// The write error is the one being returned. Close and Remove are
+		// cleanup on a file that is already known to be bad.
+		_ = tmp.Close()
+		_ = os.Remove(name)
 		return "", err
 	}
 	if err := tmp.Close(); err != nil {
-		os.Remove(name)
+		_ = os.Remove(name)
 		return "", err
 	}
 	// The temporary name is removed whichever way this goes. On success the
 	// content survives under the linked name, because a hard link is another
 	// name for the same inode and not a copy.
-	defer os.Remove(name)
+	defer func() { _ = os.Remove(name) }()
 
 	for n := 0; n <= maxCollisionSuffix; n++ {
 		candidate := filepath.Join(dir, base+ext)
@@ -597,13 +599,13 @@ func readRecordingBytes(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	zr, err := gzip.NewReader(f)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
-	defer zr.Close()
+	defer func() { _ = zr.Close() }()
 
 	body, err := io.ReadAll(zr)
 	if err != nil {
