@@ -64,3 +64,20 @@
 # commit to anyone who clones. Closing that needs a history rewrite or a fresh
 # repository, and that decision is Al's.
 /docs/internal/
+
+# The prepared clean-history migration, kept LOCAL and deliberately untracked.
+#
+# scripts/history-migration/ holds RUNBOOK.md and verify-clean.sh, prepared on 25
+# August 2026 and not executed. verify-clean.sh is a scanner, so it carries every
+# marker it hunts for as literal text, and the runbook quotes the same markers
+# while explaining the exposure: the personal email present in all 59 commits as
+# author and committer, the counterparty named in the SoW, the budget figure, and
+# the internal document names.
+#
+# Committing them would publish exactly the strings the runbook exists to remove,
+# in a repository that has been public since 2026-08-18T15:47:52Z, and would add
+# them to the history that same runbook plans to rewrite. So they stay on disk and
+# out of git. scripts/audit-verification.sh skips the directory, the same way it
+# skips recordings/ and for the same reason, which is why it needs no row in the
+# CLAUDE.md zone map.
+/scripts/history-migration/
