@@ -1,0 +1,166 @@
+/liquidity_pools?reserves= : the exact query parameter form, measured
+=====================================================================
+
+Taken 25 August 2026 against https://horizon.stellar.org, BEFORE the schema
+version 2 recorder was written, because the task that asked for it said not to
+assume the asset ordering or the canonical asset string format. Every command
+below was run as written and every output below is what came back.
+
+USDC throughout is the Circle issuer:
+  USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+
+
+1. THE PARAMETER IS ONE STRING HOLDING TWO ASSETS SEPARATED BY A COMMA
+----------------------------------------------------------------------
+
+  curl -sS -G "https://horizon.stellar.org/liquidity_pools" \
+    --data-urlencode "reserves=native,USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN" \
+    --data-urlencode "limit=3"
+
+  effective URL:
+    https://horizon.stellar.org/liquidity_pools?reserves=native%2cUSDC%3aGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&limit=3
+  HTTP 200
+  Latest-Ledger: 64116009
+
+The canonical asset string is `CODE:ISSUER` for a credit asset and the bare word
+`native` for XLM. It carries NO asset type. That is worth stating next to trap 4
+in this package's CLAUDE.md: /order_book takes the type as its own parameter and
+returns an empty book when it is wrong, and /liquidity_pools does not take a type
+at all, so the two endpoints fail differently on the same bad configuration.
+
+The comma and the colon are percent-encoded on the wire, %2c and %3a. Horizon
+echoes them back in _links.self.href upper-cased, %2C and %3A, so a URL recorded
+from the request and a URL read out of the response body are not
+byte-identical. The recorder stores the URL IT SENT, which is the one that has to
+be reproducible.
+
+`internal/horizon` builds this with net/url's Values.Encode, which produces the
+lower-case form above and sorts the parameters by key, so `limit` comes before
+`reserves` and the same tick always produces the same URL string.
+
+
+2. THE ORDER OF THE TWO ASSETS DOES NOT MATTER
+-----------------------------------------------
+
+  reserves=native,USDC:GA5ZSEJY...            -> 1 record
+  reserves=USDC:GA5ZSEJY...,native            -> 1 record
+
+Same pool, either way round. So the recorder is free to send base,quote and does,
+because that ordering is then the one written into the recording and a reader
+never has to wonder which way it went.
+
+
+3. THE FILTER IS AN AND, NOT AN OR
+-----------------------------------
+
+  reserves=ARST:GCSAZVWX...,USDC:GA5ZSEJY...  -> 1 record
+    aee77f92cbec  reserves = ['ARST:GCSAZVWXZKWS4XS', 'USDC:GA5ZSEJYB37JRC5']
+
+The one record returned holds BOTH named assets. A pool holding only one of them
+is not returned.
+
+
+4. AN EMPTY RESULT IS HTTP 200 WITH records: []
+------------------------------------------------
+
+  reserves=ARST:GCSAZVWX...,USTRY:GCRYUGD5...
+
+  HTTP 200
+  {
+    "_links": { "self": {...}, "next": {...}, "prev": {...} },
+    "_embedded": {
+      "records": []
+    }
+  }
+
+This is DATA, not an error, and the version 2 recorder stores it and carries on.
+A pair with no AMM pool is one of the four liquidity buckets the validation
+document has to fill, so a tick that threw this away would be throwing away the
+answer.
+
+
+5. ALL SEVEN PROVISIONAL PAIRS, ONE CALL EACH
+----------------------------------------------
+
+  limit=200 in every case, quote USDC in every case.
+
+  XLM    http=200  latest-ledger=64116037  pools=1
+  EURC   http=200  latest-ledger=64116037  pools=1
+  PYUSD  http=200  latest-ledger=64116037  pools=1
+  AUDD   http=200  latest-ledger=64116038  pools=1
+  ARST   http=200  latest-ledger=64116038  pools=1
+  BRL    http=200  latest-ledger=64116038  pools=1
+  USTRY  http=200  latest-ledger=64116038  pools=1
+
+Every one of the seven has exactly one constant product pool against USDC. None
+of them is near the 200 record page limit, so the full-page-is-an-error rule that
+`poolPageLimit` exists for is nowhere near being hit by this pair list.
+
+The Latest-Ledger moved from 64116037 to 64116038 in the middle of this sweep,
+between the third and the fourth call, about eleven seconds apart. That is the
+ordinary case the version 2 schema's ledger_before, ledger_after and
+ledger_consistent exist to record: two requests in one tick can straddle a close
+and the recording says so rather than pretending otherwise.
+
+
+6. THE ISSUER IDENTITY OF ALL SEVEN, /assets?asset_code=&asset_issuer=
+-----------------------------------------------------------------------
+
+  EURC   credit_alphanum4   GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2   authorized=26448
+  PYUSD  credit_alphanum12  GDQE7IXJ4HUHV6RQHIUPRJSEZE4DRS5WY577O2FY6YQ5LVWZ7JZTU2V5   authorized=9498
+  ARST   credit_alphanum4   GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG   authorized=328634
+  BRL    credit_alphanum4   GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP   authorized=6989
+  USTRY  credit_alphanum12  GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC   authorized=878
+  USDC   credit_alphanum4   GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN   authorized=2353641
+
+PYUSD is credit_alphanum12 on a five character code, exactly as USTRY is. Neither
+type was inferred from the code length; both were read off Horizon here. Trap 4
+in this package's CLAUDE.md is the reason this section exists at all.
+
+AUDD is section 7 and did not fit in this table.
+
+
+7. THE AUDD ISSUER IN THE TASK IS 57 CHARACTERS AND HORIZON REJECTS IT
+------------------------------------------------------------------------
+
+The issuer written in the task brief was
+
+  GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWWH4GLNFECQVJJLB2EEU
+
+which is 57 characters. Every other issuer in the brief is 56, which is the
+length of a strkey encoded Stellar account ID. Horizon:
+
+  curl -sS -G "https://horizon.stellar.org/assets" \
+    --data-urlencode "asset_code=AUDD" \
+    --data-urlencode "asset_issuer=GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWWH4GLNFECQVJJLB2EEU"
+
+  HTTP 400
+  {
+    "type": "https://stellar.org/horizon-errors/bad_request",
+    "title": "Bad Request",
+    "status": 400,
+    "detail": "The request you sent was invalid in some way.",
+    "extras": {
+      "invalid_field": "asset_issuer",
+      "reason": "GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWWH4GLNFECQVJJLB2EEU is not a valid asset issuer"
+    }
+  }
+
+The first page of /assets?asset_code=AUDD holds 15 distinct issuers. EXACTLY ONE
+of them is a single character deletion of the string above:
+
+  GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU   credit_alphanum4   authorized=1457
+
+The difference is one W: the brief has WWWH4 where the live account has WWH4.
+The other 14 issuers are not a deletion of it and are not close to it; they were
+compared mechanically, by generating all 57 single character deletions of the
+brief's string and testing every issuer on the page for membership.
+
+This was NOT resolved by picking the busiest looking AUDD, which is the mistake
+the same task forbids for AQUA. It was resolved by asking, and Al chose the
+verified 56 character account. The distinction that matters: AQUA has no
+candidate that is a typo of anything, so there is nothing to verify against and
+it stays out; AUDD has one candidate that is a typo of the string Al typed, and a
+live lookup confirms that candidate exists with the code and issuer it claims.
+
+AQUA REMAINS ABSENT from configs/recorder-pairs.json.
