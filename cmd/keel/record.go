@@ -163,7 +163,7 @@ time in the one format here whose size grows with the asset.
 	}
 
 	if *once {
-		unwritten := recordOneRound(rec, ctx, *schema, os.Stdout)
+		unwritten := recordOneRound(ctx, rec, *schema, os.Stdout)
 		holderFailed := rec.ReportHolders(rec.RecordHoldersOnce(ctx))
 		if unwritten > 0 {
 			return fmt.Errorf("record: %d of %d pair(s) wrote nothing", unwritten, len(pairs))
@@ -196,12 +196,15 @@ time in the one format here whose size grows with the asset.
 // read the numbers without parsing the log. It is deliberately a flat key=value
 // line and not JSON: the only consumer is a shell step in a workflow, and a
 // shell reading JSON needs a JSON parser installed on the runner.
-func recordOneRound(rec *horizon.Recorder, ctx context.Context, schema int, w io.Writer) int {
+func recordOneRound(ctx context.Context, rec *horizon.Recorder, schema int, w io.Writer) int {
 	if schema == 1 {
 		return rec.Report(rec.RecordOnce(ctx))
 	}
 	round := rec.ReportTicks(rec.RecordTicksOnce(ctx))
-	fmt.Fprintf(w, "ticks_written=%d ticks_degraded=%d ticks_straddled=%d ticks_collided=%d ticks_unwritten=%d\n",
+	// The tally is a convenience for a workflow step. Failing to print it must
+	// not turn a round that reached disk into a failure, so the error is
+	// discarded deliberately rather than by omission.
+	_, _ = fmt.Fprintf(w, "ticks_written=%d ticks_degraded=%d ticks_straddled=%d ticks_collided=%d ticks_unwritten=%d\n",
 		round.Written, round.Degraded, round.Straddled, round.Collided, round.Unwritten)
 	return round.Unwritten
 }
