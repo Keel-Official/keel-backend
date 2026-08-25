@@ -7,6 +7,7 @@
 //	keel version    print the methodology version and exit
 //	keel record     record raw Horizon snapshots for cross-validation
 //	keel assets     declare and inspect the demonstration set
+//	keel universe   build a candidate asset universe (proposes, never selects)
 //	keel scan       compute metrics for every active asset, store them in Postgres
 //	keel serve      run the read API
 //	keel replay     replay a ledger range through the historical adapter
@@ -51,6 +52,17 @@ func main() {
 		// with no caller drifts; see the header of assets.go.
 		if err := runAssets(os.Args[2:]); err != nil {
 			fmt.Fprintf(os.Stderr, "keel assets: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "universe":
+		// The candidate asset universe. It PROPOSES and does not SELECT: every
+		// issuer of every code it is given comes back, verified or not, with no
+		// inclusion criterion applied. Those criteria are
+		// docs/methodology/02-pair-selection.md section 5 and are not this
+		// binary's to hold. See the header of universe.go.
+		if err := runUniverse(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel universe: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -106,6 +118,7 @@ Subcommands:
   version   print the methodology version
   record    record raw Horizon snapshots for cross-validation ("keel record -h")
   assets    declare and inspect the demonstration set ("keel assets -h")
+  universe  build a candidate asset universe ("keel universe -h")
   scan      compute metrics for every active asset, store them in Postgres
   serve     run the read API ("keel serve -h")
   replay    replay a ledger range through the historical adapter
