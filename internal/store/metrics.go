@@ -238,7 +238,7 @@ func (s *Store) MetricsHistory(ctx context.Context, assetID int, fromLedger, toL
 	if err != nil {
 		return nil, fmt.Errorf("store: metrics history asset %d: %w", assetID, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Metric
 	for rows.Next() {
@@ -524,7 +524,7 @@ func (s *Store) LatestSummaries(ctx context.Context, f SummaryFilter) ([]Metric,
 	if err != nil {
 		return nil, 0, fmt.Errorf("store: list summaries: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Metric
 	for rows.Next() {

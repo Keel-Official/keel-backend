@@ -467,7 +467,7 @@ func (c *Client) attempt(ctx context.Context, full string, requireLatest bool) (
 	if err != nil {
 		return nil, 0, &transportError{err: err}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {

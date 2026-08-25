@@ -94,7 +94,7 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 	db.SetConnMaxLifetime(30 * time.Minute)
 
 	if err := db.PingContext(ctx); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("store: ping: %w", err)
 	}
 	return &Store{db: db, closeFn: db.Close}, nil
@@ -121,7 +121,7 @@ func (s *Store) SchemaVersion(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("store: schema version: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []string
 	for rows.Next() {

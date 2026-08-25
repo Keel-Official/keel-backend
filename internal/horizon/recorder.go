@@ -420,13 +420,13 @@ func ReadHolderRecording(path string) (RawHolders, error) {
 	if err != nil {
 		return raw, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	zr, err := gzip.NewReader(f)
 	if err != nil {
 		return raw, fmt.Errorf("%s: %w", path, err)
 	}
-	defer zr.Close()
+	defer func() { _ = zr.Close() }()
 
 	if err := json.NewDecoder(zr).Decode(&raw); err != nil {
 		return raw, fmt.Errorf("%s: %w", path, err)
@@ -458,13 +458,13 @@ func ReadRecording(path string) (RawSnapshot, error) {
 	if err != nil {
 		return raw, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	zr, err := gzip.NewReader(f)
 	if err != nil {
 		return raw, fmt.Errorf("%s: %w", path, err)
 	}
-	defer zr.Close()
+	defer func() { _ = zr.Close() }()
 
 	if err := json.NewDecoder(zr).Decode(&raw); err != nil {
 		return raw, fmt.Errorf("%s: %w", path, err)
@@ -481,16 +481,16 @@ func writeAtomic(path string, body []byte) error {
 	}
 	name := tmp.Name()
 	if _, err := tmp.Write(body); err != nil {
-		tmp.Close()
-		os.Remove(name)
+		_ = tmp.Close()
+		_ = os.Remove(name)
 		return err
 	}
 	if err := tmp.Close(); err != nil {
-		os.Remove(name)
+		_ = os.Remove(name)
 		return err
 	}
 	if err := os.Rename(name, path); err != nil {
-		os.Remove(name)
+		_ = os.Remove(name)
 		return err
 	}
 	return nil

@@ -153,7 +153,7 @@ func TestRecorderVerifiesEveryDistinctAssetOnce(t *testing.T) {
 		if code == "USTRY" {
 			typ = "credit_alphanum12"
 		}
-		w.Write([]byte(`{"_embedded":{"records":[{"asset_type":"` + typ + `","asset_code":"` + code +
+		_, _ = w.Write([]byte(`{"_embedded":{"records":[{"asset_type":"` + typ + `","asset_code":"` + code +
 			`","asset_issuer":"` + req.URL.Query().Get("asset_issuer") + `"}]}}`))
 	}
 	// The same quote asset twice, so the deduplication is what is under test.

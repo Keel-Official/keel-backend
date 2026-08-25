@@ -52,7 +52,7 @@ func serve(f *fakeHorizon, path string, status int, body string) {
 		if status != http.StatusOK {
 			w.WriteHeader(status)
 		}
-		fmt.Fprint(w, body)
+		_, _ = fmt.Fprint(w, body)
 	}
 }
 

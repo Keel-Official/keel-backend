@@ -93,7 +93,7 @@ func (s *Store) Assets(ctx context.Context, activeOnly bool) ([]Asset, error) {
 	if err != nil {
 		return nil, fmt.Errorf("store: list assets: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Asset
 	for rows.Next() {
@@ -181,7 +181,7 @@ func (s *Store) PairsForAsset(ctx context.Context, code, issuer string) ([]Asset
 	if err != nil {
 		return nil, fmt.Errorf("store: pairs for %s: %w", code, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Asset
 	for rows.Next() {

@@ -121,7 +121,7 @@ panics. The command says so and exits with code 3.
 		return fmt.Errorf("%w\n  hint: `make up && make migrate` first, and check that port 5432 is the container's "+
 			"Postgres and not another one already running locally", err)
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	applied, err := s.SchemaVersion(ctx)
 	if err != nil {

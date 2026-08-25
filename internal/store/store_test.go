@@ -41,7 +41,7 @@ func testStore(t *testing.T) (*Store, context.Context) {
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		db.Close()
+		_ = db.Close()
 		t.Fatalf("begin: %v", err)
 	}
 	t.Cleanup(func() {
