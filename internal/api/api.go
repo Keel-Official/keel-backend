@@ -167,7 +167,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	s.writeJSON(w, http.StatusOK, out)
 }
 
-func (s *Server) handleMethodology(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleMethodology(w http.ResponseWriter, _ *http.Request) {
 	t := s.cfg.Params.Thresholds
 
 	// The threshold map is open ended by contract: a consumer reads it by key
@@ -201,7 +201,7 @@ func (s *Server) handleMethodology(w http.ResponseWriter, r *http.Request) {
 
 	s.writeJSON(w, http.StatusOK, methodologyJSON{
 		Version:     domain.MethodologyVersion,
-		DocumentUrl: "https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/00-overview.md",
+		DocumentURL: "https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/00-overview.md",
 		Calibrated:  false,
 		CalibrationNote: "The thresholds were chosen based on the magnitude of the Blend " +
 			"incident of February 2026 and on conservative judgement, not calibrated against a " +
@@ -566,7 +566,7 @@ var allFlags = []domain.Flag{
 	domain.FlagThinDepth5Pct, domain.FlagWashTradeSuspected,
 }
 
-func parseBoundedInt(raw string, def, min, max int) (int, error) {
+func parseBoundedInt(raw string, def, lo, hi int) (int, error) {
 	if strings.TrimSpace(raw) == "" {
 		return def, nil
 	}
@@ -574,8 +574,8 @@ func parseBoundedInt(raw string, def, min, max int) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("must be an integer")
 	}
-	if v < min || v > max {
-		return 0, fmt.Errorf("must be between %d and %d", min, max)
+	if v < lo || v > hi {
+		return 0, fmt.Errorf("must be between %d and %d", lo, hi)
 	}
 	return v, nil
 }

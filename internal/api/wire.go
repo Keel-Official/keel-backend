@@ -416,7 +416,7 @@ type healthJSON struct {
 
 type methodologyJSON struct {
 	Version         string         `json:"version"`
-	DocumentUrl     string         `json:"documentUrl"`
+	DocumentURL     string         `json:"documentUrl"`
 	Calibrated      bool           `json:"calibrated"`
 	CalibrationNote string         `json:"calibrationNote"`
 	Thresholds      map[string]any `json:"thresholds"`
