@@ -39,3 +39,6 @@
 # directory it has already excluded.
 /recordings/*
 !/recordings/sample/
+
+# Context files
+/docs/context/*
