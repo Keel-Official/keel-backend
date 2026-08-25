@@ -231,12 +231,19 @@ empty_dirs_vanish(){
   done
   return 1
 }
-# THE RED ZONE HOOK, PROBED IN THREE DIRECTIONS. There are three ways a Bash
-# command can reach the red zone: naming the file, naming the DIRECTORY that holds
-# it, or sweeping a whole tree without naming either. P2-6, P2-6c and P2-6b below
-# probe the first two for leaks and then probe the hook for over-refusal, which is
-# a leak on a longer timescale, because a hook that refuses ordinary work gets
-# switched off within a day.
+# THE ZONE HOOK, PROBED IN BOTH DIRECTIONS, AND RE-ANCHORED ON 25 AUGUST 2026.
+# internal/domain/compute.go was the red zone until Al moved it to YELLOW so that
+# Deliverable 1 could be finished by two hands instead of one. Every check below
+# used to probe that file. Not one of them was deleted, because a check that
+# disappears leaves no trace that the guard ever existed, and this repository has
+# been defeated five times by exactly that. They were RE-ANCHORED instead, onto
+# what is still red, and P2-6 was INVERTED: it used to ask whether the lock worked,
+# and it now asks whether the lock outlived the zone it was built for.
+#
+# A stale lock is not a harmless leftover. It refuses work that the map now permits,
+# and the map is what people read, so the disagreement surfaces as a guardrail
+# misfiring rather than as a document being wrong. That gets the guardrail switched
+# off, which is the failure the hook's own header names as the worst one.
 #
 # Runs the hook the way Claude Code does, and needs jq exactly like the hook does.
 # Returns 0 when the hook REFUSES the command.
@@ -249,54 +256,74 @@ hook_refuses(){
 hook_absent(){
   [ ! -f .claude/hooks/lindungi-zona-merah.sh ] || ! command -v jq >/dev/null 2>&1
 }
-# Leaking when the guard hook is absent, or present but does not refuse a mutation
-# that names the red zone file.
+# INVERTED 25 AUGUST 2026. PROVEN while a lock on compute.go SURVIVES the zone
+# change that retired it, in either of the two files that can carry one.
 #
-# The probe path was internal/depth/x.go until 24 August 2026. That directory was
-# removed on the 23rd, and the check would have stayed green for as long as the
-# hook kept the dead path in its alternation, then flipped to PROVEN once it was
-# tidied, reporting a leak that did not exist. Worse in the other direction: while
-# it passed, it was proving that the hook defends a path nobody can write to. It
-# probes the file that is actually the zone now.
-red_zone_leaks(){
-  hook_absent && return 0
-  ! hook_refuses 'sed -i "" s/a/b/ internal/domain/compute.go'
+# The original claim, that the red zone lock leaked through Bash while the Edit and
+# Write denials did not see Bash, was true, was closed on 24 August, and stopped
+# being about anything the following day. Read the id in the dated audit as the
+# question it was asking, which was whether the harness and the map agree about
+# compute.go. That question survives the answer changing sides.
+#
+# Both files are checked because neither closes the other's route: the deny list
+# does not see Bash, and the hook does not see Edit.
+# Reads the deny array only. `compute.go` appearing anywhere in the file is not the
+# finding: it is expected to appear under "ask", which is where the loosening put
+# it, and matching the whole file would report the intended state as a defect.
+compute_in_deny(){
+  awk '/"deny"[[:space:]]*:/{f=1} f{print} f && /\]/{exit}' .claude/settings.json \
+    | grep -q 'internal/domain/compute\.go'
 }
-# PROVEN while a command that never names the red zone file reaches it anyway,
-# either by naming the directory or by sweeping a tree that contains it.
-#
-# This was the guarantee QUIETLY WEAKENING when the zone moved from a directory to
-# a file, and it was open for one day. While the zone WAS internal/depth, any
-# command broad enough to reach the code named the zone by definition, so both
-# routes were closed for free, and the hook's header listed
-# `gofmt -w internal/depth/` as an example of exactly that. The example survived
-# the move and stopped being true, which is the seventh time this repository has
-# found a check or a claim measuring the old shape of something.
-#
-# CLOSED 24 AUGUST 2026, both routes, in the order Al chose. The sweep first: an
-# in-place formatter with no .go file named is refused, and `make fmt` is named
-# explicitly because a hook cannot see inside a recipe. Then the directory: matched
-# in directory form only, so `internal/domain/` is refused and
-# `internal/domain/types.go` is not, which is what keeps P2-6b below at NOT.
-#
-# Five probes and not one, because each closed route has its own way of reopening.
-red_zone_dir_bypass(){
+stale_lock_on_compute(){
+  compute_in_deny && return 0
   hook_absent && return 1
-  ! hook_refuses 'gofmt -w internal/domain/'  && return 0
-  ! hook_refuses 'rm -rf internal/domain'     && return 0
+  hook_refuses 'sed -i "" s/a/b/ internal/domain/compute.go' && return 0
+  hook_refuses 'rm -f internal/domain/compute.go'            && return 0
+  return 1
+}
+# RE-ANCHORED 25 AUGUST 2026, FROM A ZONE RULE TO A WORKFLOW RULE. PROVEN while an
+# in-place format that names no .go file is not refused.
+#
+# This used to ask whether a command could reach the red zone without naming it,
+# and while the zone was internal/depth any command broad enough to reach the code
+# named the zone by definition, so the route was closed for free. It reopened
+# silently when the zone became a file, was closed on 24 August, and lost its
+# subject entirely on the 25th: no red zone holds a .go file any more, so a sweep
+# reaches nothing protected.
+#
+# The rule survives anyway, and deliberately. CLAUDE.md assigns `make fmt` to Al so
+# that formatting has one owner and CI's gofmt check has one fix, and a zone change
+# is a licence to loosen what the zone change required and nothing else. Keeping it
+# is therefore a choice, and this check is where that choice is visible: if it is
+# ever dropped, it gets dropped on purpose and with a line to change.
+#
+# `rm -rf internal/domain` came out of the probe list, because the directory is
+# yellow now and refusing it would be over-refusal, which is P2-6b's question.
+# `gofmt -w internal/domain/` stays, as a DIRECTORY target naming no file.
+sweep_not_refused(){
+  hook_absent && return 1
   ! hook_refuses 'gofmt -l -w .'              && return 0
   ! hook_refuses 'goimports -w ./...'         && return 0
   ! hook_refuses 'make fmt'                   && return 0
+  ! hook_refuses 'gofmt -w internal/domain/'  && return 0
   return 1
 }
 # Over-refusing when the hook denies work it has no business denying. types.go and
 # arch_test.go are Claude's to write and they sit in the same package as the zone,
 # so the directory rule above is one careless character away from refusing them.
-# Reading and running are allowed too: the red zone is not a secret zone.
+# Reading and running are allowed too: a red zone is not a secret zone.
+#
+# WIDENED 25 AUGUST 2026. compute.go is yellow, so writing to it by a NAMED path is
+# ordinary work and refusing it is over-refusal. The named-file probes sit here
+# rather than in P2-6, because P2-6 asks about a lock surviving in a settings file
+# and this asks what the hook does to a command. A yellow file that the hook still
+# refuses would be discovered as a misfire in the middle of Deliverable 1.
 red_zone_over_refuses(){
   hook_absent && return 1
   hook_refuses 'sed -i "" s/a/b/ internal/domain/types.go' && return 0
   hook_refuses 'gofmt -w internal/domain/types.go'         && return 0
+  hook_refuses 'gofmt -w internal/domain/compute.go'       && return 0
+  hook_refuses 'sed -i "" s/a/b/ internal/domain/compute.go' && return 0
   hook_refuses 'cat internal/domain/compute.go'            && return 0
   hook_refuses 'go test ./internal/domain/ -run TestArch'   && return 0
   hook_refuses 'go test ./internal/domain/ 2>&1 | tail -5' && return 0
@@ -341,8 +368,8 @@ sed -i "" s/a/b/ internal/domain/types.go'                 && return 0
 # it depended on remembering.
 red_zone_refuses_prose(){
   hook_absent && return 1
-  hook_refuses 'git commit -m "rm -rf internal/domain is refused"' && return 0
-  hook_refuses 'echo "make fmt is refused"'                        && return 0
+  hook_refuses 'git commit -m "rm -rf testdata/fixtures is refused"' && return 0
+  hook_refuses 'echo "make fmt is refused"'                          && return 0
   return 1
 }
 # PROVEN while the fix for P2-6d has reopened a route that P2-6 or P2-6c closed.
@@ -370,21 +397,60 @@ red_zone_refuses_prose(){
 # The other six are the same mistake in smaller shapes: a command position is not
 # always the first word of a line. `FOO=1 sed -i`, `sudo`, `env`, `time`, `nohup`,
 # `xargs` and the `then` of a compound statement each put the verb one word later.
+# RE-ANCHORED 25 AUGUST 2026, ONTO testdata/fixtures. The eight routes were found
+# against compute.go, and compute.go is yellow now, so every probe here would have
+# passed for the wrong reason and reported all eight reopened. The routes are
+# properties of the hook's command parser, not of any one path, so they transfer
+# whole. Losing them would mean losing the only record of what a loosening cost.
 red_zone_reopened_by_the_fix(){
   hook_absent && return 1
-  ! hook_refuses 'cat <<'"'"'EOF'"'"' > internal/domain/compute.go
-package domain
+  ! hook_refuses 'cat <<'"'"'EOF'"'"' > testdata/fixtures/ustry_pre_exploit.md
+hello
 EOF'                                                        && return 0
   ! hook_refuses 'cd /tmp
-sed -i "" s/a/b/ internal/domain/compute.go'                && return 0
+sed -i "" s/a/b/ testdata/fixtures/ustry_pre_exploit.md'    && return 0
   ! hook_refuses 'echo starting
-rm -f internal/domain/compute.go'                           && return 0
+rm -f testdata/fixtures/ustry_pre_exploit.md'               && return 0
   ! hook_refuses 'cd /tmp
 make fmt'                                                   && return 0
-  ! hook_refuses 'FOO=1 sed -i "" s/a/b/ internal/domain/compute.go' && return 0
-  ! hook_refuses 'sudo rm -f internal/domain/compute.go'    && return 0
-  ! hook_refuses 'env sed -i "" s/a/b/ internal/domain/compute.go'   && return 0
+  ! hook_refuses 'FOO=1 sed -i "" s/a/b/ testdata/fixtures/x.md' && return 0
+  ! hook_refuses 'sudo rm -f docs/context/Keel_SoW.pdf'     && return 0
+  ! hook_refuses 'env sed -i "" s/a/b/ testdata/fixtures/x.md'   && return 0
   return 1
+}
+# ADDED 25 AUGUST 2026. PROVEN while the loosening that moved compute.go out of the
+# red zone is recorded as a placeholder rather than as a decision.
+#
+# EVERY LOOSENING NEEDS A CHECK OF ITS OWN. That is the lesson P2-6e was written to
+# carry, and this is its second application. P2-6e asked whether the loosening
+# reopened a route; this asks whether the loosening was written down at all. The row
+# in the zone map went in on the day of the move carrying `DEC-00X`, a number that
+# does not exist, so the largest loosening in this repository so far points at
+# nothing. A decision record numbered later is a decision record that is numbered
+# when somebody happens to remember.
+#
+# It reads the zone map rather than docs/decisions/, because the map is what the
+# next reader consults and a dangling pointer there is the defect. The number
+# collision between the two DEC-003 documents is a separate question and not this
+# one.
+loosening_unnumbered(){
+  grep -qE 'DEC-00X|DEC-0\?\?|DEC-TBD' CLAUDE.md
+}
+# ADDED 25 AUGUST 2026. PROVEN while the rule that REPLACED the compute.go lock is
+# not written where the harness can see it.
+#
+# A lock was removed and nothing mechanical took its place, which is correct: the
+# rule that replaces it cannot be enforced by any hook. A function may only be
+# written after its expected values exist in testdata/fixtures, and no permission
+# layer can tell whether a number was computed before or after the code that meets
+# it. So the rule lives in prose, and prose that nothing checks is the arrangement
+# the zone map itself calls a suggestion rather than a lock.
+#
+# This is the weakest check in this file and it says so: it proves the sentence
+# exists, never that it was followed. That limit is structural, the same one P2-9
+# carries, and writing it down is the honest response.
+ordering_rule_unwritten(){
+  ! grep -qiE 'expected values exist in .?testdata/fixtures' CLAUDE.md
 }
 # PROVEN while the golden fixture and the inputs from outside have no lock, in
 # either of the two files that would carry one.
@@ -515,11 +581,13 @@ check P2-1 "CLAUDE.md force-loads keel-openapi.yaml into every session" \
 check P2-2 "README points at docs/learning, and that directory does not exist" learning_pointed_but_missing
 check P2-4 "README promises make record works, though it exits with code 3" readme_promises_record
 check P2-5 "An empty directory exists that will vanish when somebody else clones" empty_dirs_vanish
-check P2-6 "The red zone lock leaks through Bash, uncovered by the Edit and Write denials" red_zone_leaks
+check P2-6 "A lock on compute.go outlived the zone it was built for, in the deny list or the hook" stale_lock_on_compute
 check P2-6b "or the same hook refuses a yellow file next door, which gets it switched off" red_zone_over_refuses
-check P2-6c "or a directory-wide or tree-wide mutation reaches it without naming it at all" red_zone_dir_bypass
-check P2-6d "The same hook reads prose as a command, so a commit message quoting the zone is refused" red_zone_refuses_prose
+check P2-6c "or in-place formatting that names no .go file stops being Al's alone" sweep_not_refused
+check P2-6d "The same hook reads prose as a command, so a commit message quoting a zone is refused" red_zone_refuses_prose
 check P2-6e "or the fix for that reopens a route, because a newline or a heredoc hid the verb" red_zone_reopened_by_the_fix
+check P2-12 "The compute.go loosening points at a DEC number that does not exist" loosening_unnumbered
+check P2-13 "and the fixture-first rule that replaces its lock is not written in the zone map" ordering_rule_unwritten
 check P2-11 "The golden fixture and docs/context are red in the map and locked by nothing" red_tree_leaks
 check P2-11b "or that lock reaches reading, which is the whole job Claude has in the fixture" red_tree_over_refuses
 check P2-9 "A directory holding files has no row in the CLAUDE.md zone map, so it has no owner" zones_incomplete
@@ -654,6 +722,29 @@ print(f"       buy targets at 2/5/10 percent   {p0*Decimal('1.02')} {p0*Decimal(
 print(f"       sell targets at 2/5/10 percent  {p0*Decimal('0.98')} {p0*Decimal('0.95')} {p0*Decimal('0.90')}")
 print("       the only ask at 106.7372828 sits outside every buy target, the only bid at 1.057 outside every sell target")
 print("       which is why depth is zero in six cells, and that zero is correct")
+
+# TWO INPUTS ABOVE HAVE NO LEDGER PROVENANCE, established 25 August 2026, and they
+# are printed rather than silently corrected because both are red zone numbers.
+#
+# The bid of 1.057 appears in no Horizon response. The offers endpoint returns four
+# surviving bids on this pair, at 0.0002778, 0.0002778, 0.0053 and 0.0189 USDC per
+# USTRY, none of them near it. The nearest real figure is offer 1823025211 at about
+# 1.0574630, recovered from a trade AFTER the fixture ledger: its id is lower than
+# the manipulation offer's and offer ids are globally monotonic and never reused, so
+# it was resting in the book at the fixture ledger. 1.057 looks like a rounding of
+# that, and P0 = 53.8971414 is derived from it.
+#
+# The amount of 1.2185312 is the offer BEFORE the manipulation trade. The offer
+# holds 1.1684309 today, unchanged since ledger 61340263, and the difference is
+# exactly 0.0501003, the USTRY that changed hands in the manipulation. Al pinned the
+# fixture to ledger 61340408, which is after that trade, so the fixture ledger and
+# this amount disagree by one trade.
+delta = Decimal("1.2185312") - Decimal("1.1684309")
+print()
+print(f"{RED}       PROVENANCE   bid 1.057 is not a Horizon reading. Nearest on-ledger figure: 1.0574630, offer 1823025211{OFF}")
+print(f"{RED}       PROVENANCE   amt 1.2185312 is the pre-manipulation size; the offer holds 1.1684309 at ledger 61340408{OFF}")
+print(f"       the difference is {delta}, the exact USTRY volume of the manipulation trade")
+print("       both are red zone numbers. This block reports the disagreement and does not resolve it")
 PY
 
 section "What the attacker actually paid to manipulate the price"
