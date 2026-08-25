@@ -49,7 +49,7 @@ type Reader interface {
 	PairsForAsset(ctx context.Context, code, issuer string) ([]store.Asset, error)
 	LatestMetrics(ctx context.Context, assetID int, methodologyVersion string) (store.Metric, error)
 	MetricsAtLedger(ctx context.Context, assetID int, ledgerSeq uint32, methodologyVersion string, source domain.DataSource) (store.Metric, error)
-	MetricsHistory(ctx context.Context, assetID int, fromLedger, toLedger uint32, methodologyVersion string, limit int) ([]store.Metric, error)
+	MetricsHistory(ctx context.Context, assetID int, fromLedger, toLedger uint32, methodologyVersion string, source domain.DataSource, limit int) ([]store.Metric, error)
 	LatestSummaries(ctx context.Context, f store.SummaryFilter) ([]store.Metric, int, error)
 	LastRun(ctx context.Context, kind store.RunKind) (store.Run, error)
 }
@@ -386,7 +386,24 @@ func (s *Server) handleHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := s.cfg.Reader.MetricsHistory(ctx, pair.ID, uint32(from), uint32(to), "", 0)
+	// ONE SERIES IS ONE DATA SOURCE. horizon is the default because it is the only
+	// one of the four that is a direct reading; the other three are a warehouse
+	// copy and two reconstructions, and trades-implied is a lower bound rather
+	// than a measurement. Charting them together as one line would present the
+	// weakest point in the range as if it were the same kind of number as the
+	// strongest, which is what this endpoint did until 26 August 2026.
+	source := domain.DataSource(q.Get("source"))
+	if source == "" {
+		source = domain.DataSourceHorizon
+	}
+	if !source.Valid() {
+		s.writeError(w, http.StatusBadRequest, codeInvalidRange,
+			"source must be one of horizon, hubble, offers-implied, trades-implied.",
+			map[string]any{"source": q.Get("source"), "allowed": domain.DataSources()})
+		return
+	}
+
+	rows, err := s.cfg.Reader.MetricsHistory(ctx, pair.ID, uint32(from), uint32(to), "", source, 0)
 	if err != nil {
 		s.fail(w, "history", err)
 		return
@@ -400,12 +417,13 @@ func (s *Server) handleHistory(w http.ResponseWriter, r *http.Request) {
 		To:                 uint32(to),
 		Resolution:         resolution,
 		MethodologyVersion: domain.MethodologyVersion,
-		DataSource:         string(domain.DataSourceHorizon),
-		Gaps:               gaps,
-		Points:             points,
-	}
-	if len(rows) > 0 {
-		out.DataSource = string(rows[len(rows)-1].Risk.DataSource)
+		// The source that was ASKED FOR, which is now the source of every row.
+		// It used to be read off the last row, so an empty range reported a
+		// default and a mixed range reported whichever source happened to sort
+		// last. Both are labels the series could not support.
+		DataSource: string(source),
+		Gaps:       gaps,
+		Points:     points,
 	}
 	s.writeJSON(w, http.StatusOK, out)
 }

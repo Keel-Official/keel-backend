@@ -1,0 +1,59 @@
+-- An index for the shape GET /asset/{assetId}/history now reads in, and the
+-- first migration in this directory to carry an explicit down.
+--
+-- WHY THIS INDEX. Until 26 August 2026 the history read constrained the asset and
+-- the methodology version and ranged over the ledger, leaving data_source
+-- unfiltered. The key has FOUR parts, so one ledger could return up to four rows,
+-- and the caller downsampled by keeping the last row in each bucket. Of the four
+-- values 'trades-implied' sorts last alphabetically, so wherever a ledger held
+-- both a live reading and a reconstruction the series charted the reconstruction,
+-- which is a LOWER BOUND, and labelled it nothing. The read now names the source.
+--
+-- idx_metrics_asset_ledger, from 0001, is (asset_id, ledger_seq DESC). It serves
+-- the newest-first single-row reads and is a poor fit for the new predicate,
+-- which is an equality on three columns and a range on the fourth. This index
+-- puts the three equalities first, in selectivity order, and the range last,
+-- which is the order a btree can actually use.
+--
+-- NOT A REPLACEMENT. 0001's index stays: LatestMetrics orders by ledger_seq DESC
+-- with no source filter at all, and would lose its backing if that index went.
+-- Two indexes on a table this size cost nothing worth counting.
+--
+-- CREATE INDEX and not CREATE INDEX CONCURRENTLY. Concurrently cannot run inside
+-- a transaction, and scripts/migrate.sh wraps each file in one together with its
+-- bookkeeping insert, which is what lets a failed migration leave no trace. The
+-- table is empty today, so the lock costs nothing; a migration adding an index to
+-- a large metrics table would need to leave the transaction and record that it
+-- did.
+
+CREATE INDEX IF NOT EXISTS idx_metrics_history_series
+    ON metrics (asset_id, methodology_version, data_source, ledger_seq);
+
+-- ---------------------------------------------------------------- down
+--
+-- THE FIRST EXPLICIT DOWN IN THIS DIRECTORY, and it is deliberately not
+-- retrofitted to 0001 through 0003. Those three are already applied to real
+-- databases, and a down written now for a migration applied days ago is a claim
+-- that has never been executed; 0003's RENAME COLUMN and its DROP/ADD CONSTRAINT
+-- pair in particular are not mechanically reversible without deciding what to do
+-- with rows the narrower constraint would reject. Writing three untested downs to
+-- satisfy a convention would be worse than recording that they are absent.
+--
+-- NOT RUN BY scripts/migrate.sh. That script is forward-only: it applies files in
+-- filename order and records them in schema_migrations, and it has no down path
+-- at all. This section is therefore documentation with a tested body rather than
+-- something `make migrate` can invoke, and that is the honest description of it
+-- until the runner grows a down command. Apply it by hand:
+--
+--   docker compose exec -T postgres psql -U keel -d keel -v ON_ERROR_STOP=1 \
+--     -c 'DROP INDEX IF EXISTS idx_metrics_history_series;' \
+--     -c "DELETE FROM schema_migrations WHERE version = '0004_history_source_index.sql';"
+--
+-- Dropping the index loses no data. The bookkeeping delete is the half that is
+-- easy to forget, and skipping it leaves a schema_migrations row claiming a
+-- migration is applied when its only effect has been removed, which is exactly
+-- the class of silent drift this repository keeps finding.
+--
+-- DOWN:
+-- DROP INDEX IF EXISTS idx_metrics_history_series;
+-- DELETE FROM schema_migrations WHERE version = '0004_history_source_index.sql';

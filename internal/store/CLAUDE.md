@@ -8,9 +8,25 @@ in `internal/domain/compute.go`, which is the red zone and not yours to write.
 
 ## Rules
 
-1. Prices are stored as the fraction `price_n` and `price_d`, not as one decimal
-   column holding the quotient. Never add a `float`, `real`, or
-   `double precision` column to any schema here.
+1. Never add a `float`, `real`, or `double precision` column to any schema here.
+
+   **This rule used to open by saying prices are stored as the fraction `price_n`
+   and `price_d` rather than as one decimal column holding the quotient. No such
+   column has ever existed.** `mid_price`, `max_reachable_price` and
+   `pool_spot_price` are all single `NUMERIC` columns holding the quotient, and
+   `domain.AssetRisk` has no numerator or denominator field for this package to
+   read one from. The sentence is corrected rather than deleted because the intent
+   behind it is sound and unfinished, and quietly dropping it would lose the
+   intent along with the error.
+
+   Where the exactness actually goes: Horizon's `price_r` IS an exact fraction,
+   and `internal/horizon` converts it to a `decimal.Decimal` at `decode.go:95`,
+   whose own comment records that "only the final division rounds, at shopspring's
+   DivisionPrecision" (never configured, so 16 places). The fraction is gone
+   before a price reaches this package, so `NUMERIC` here loses nothing further
+   and this package cannot restore what it never receives. Making prices exact end
+   to end means carrying the fraction through `domain.AssetRisk` first, which is a
+   `types.go` change, and only then a column here.
 2. Amounts use `NUMERIC` and are read into `decimal.Decimal`, never `float64`.
 3. Every result row carries `ledger_seq` and `methodology_version`. Results from
    different methodology versions are different rows, not overwrites of each
@@ -34,6 +50,13 @@ All three migration files, applied in order:
 - `0003_venue_split_and_offers_implied.sql`, which renamed `manipulation_cost` to
   `manipulation_cost_combined`, added `manipulation_cost_orderbook_only`, and
   widened the `data_source` CHECK to the four values in rule 4.
+- `0004_history_source_index.sql`, which added
+  `(asset_id, methodology_version, data_source, ledger_seq)` to back the history
+  read now that it filters on the source. It is also the FIRST migration here to
+  carry an explicit down, and its header says why 0001 through 0003 were not
+  retrofitted with one: they are already applied, and an untested down written
+  days later is a claim rather than a rollback. `scripts/migrate.sh` is
+  forward-only and has no down command, so that section is applied by hand.
 
 Raw snapshots are not in the database; the cross-validation recordings go to
 `recordings/` as gzipped JSON.
@@ -80,7 +103,17 @@ in `store_test.go` that fails if it stops holding:
 3. **NULL means unknown or not applicable, and never zero.** Every nullable
    column maps to a `*decimal.Decimal`. A nil manipulation term says the attack
    is impossible; zero says it is free.
-4. **The three `text[]` columns are written as arrays and read as JSONB.**
+4. **A history read names all four key parts, and one series is one data
+   source.** `MetricsHistory` filters asset, methodology version AND data source,
+   and ranges only over the ledger, so one ledger yields at most one row. Until 26
+   August 2026 it left `data_source` unconstrained: `GET /history` downsamples by
+   keeping the last row in each bucket, `trades-implied` sorts last of the four
+   alphabetically, so any ledger holding both a live reading and a reconstruction
+   charted the LOWER BOUND and said nothing about it. An empty source argument
+   means `horizon` specifically, never every source. `TestOneLedgerWithTwoSources\
+IsNotTwoPointsInOneSeries` fails if that stops holding.
+
+5. **The three `text[]` columns are written as arrays and read as JSONB.**
    `database/sql` can send a `[]string` to a `text[]` parameter and cannot scan
    one back, so the SELECT wraps them in `to_jsonb`. That also keeps the escaping
    in Postgres, which matters because `warnings` is free text containing commas

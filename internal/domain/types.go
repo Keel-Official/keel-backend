@@ -226,6 +226,38 @@ const (
 	DataSourceTradesImplied DataSource = "trades-implied"
 )
 
+// DataSources returns the four values, in the confidence order documented above
+// and never in map order. It is the ONE place the set is enumerated, so a fifth
+// source is added to the const block and to this slice and nowhere else.
+//
+// This exists because the set has already drifted once. Migration 0001 wrote a
+// CHECK constraint over three of these values and omitted offers-implied although
+// this package already had it, so the database rejected exactly the historical
+// path the Blend case study depends on, and 0003 had to drop and recreate the
+// constraint to repair it. Every other copy of the list, in a CHECK constraint, a
+// switch, or a request validator, is now checkable against this one.
+func DataSources() []DataSource {
+	return []DataSource{
+		DataSourceHorizon,
+		DataSourceHubble,
+		DataSourceOffersImplied,
+		DataSourceTradesImplied,
+	}
+}
+
+// Valid reports whether d is one of the four. A zero DataSource is NOT valid:
+// every reading knows where it came from, and defaulting an empty value to
+// horizon here would let an unset field silently claim to be a live measurement.
+// Callers that want a default choose it explicitly.
+func (d DataSource) Valid() bool {
+	for _, known := range DataSources() {
+		if d == known {
+			return true
+		}
+	}
+	return false
+}
+
 // Snapshot is the ONLY input to the depth computation.
 //
 // Its shape is identical whether it came from Horizon (live) or Hubble (historical),

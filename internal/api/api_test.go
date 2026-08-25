@@ -36,6 +36,9 @@ type fakeReader struct {
 	total     int
 	lastRun   *store.Run
 	err       error
+
+	// gotSource is what the last MetricsHistory call asked for.
+	gotSource domain.DataSource
 }
 
 func (f *fakeReader) Assets(context.Context, bool) ([]store.Asset, error) {
@@ -68,13 +71,20 @@ func (f *fakeReader) MetricsAtLedger(_ context.Context, assetID int, seq uint32,
 	return m, nil
 }
 
-func (f *fakeReader) MetricsHistory(_ context.Context, assetID int, from, to uint32, _ string, _ int) ([]store.Metric, error) {
+// gotSource records the source the handler asked for, so a test can assert the
+// default and the override reach the store rather than only that the response
+// looks right.
+func (f *fakeReader) MetricsHistory(_ context.Context, assetID int, from, to uint32, _ string, source domain.DataSource, _ int) ([]store.Metric, error) {
+	f.gotSource = source
 	if f.err != nil {
 		return nil, f.err
 	}
 	var out []store.Metric
 	for _, m := range f.history[assetID] {
-		if m.Risk.LedgerSeq >= from && m.Risk.LedgerSeq <= to {
+		// The real store filters on the source because it is part of the key.
+		// The fake filters too, so a test that mixes sources sees what Postgres
+		// would return and not everything it was given.
+		if m.Risk.LedgerSeq >= from && m.Risk.LedgerSeq <= to && m.Risk.DataSource == source {
 			out = append(out, m)
 		}
 	}
@@ -640,6 +650,115 @@ func TestHistoryDownsamplesBySelectingRealPoints(t *testing.T) {
 	}
 	if body.Resolution != "day" {
 		t.Errorf("resolution = %q", body.Resolution)
+	}
+}
+
+// ONE SERIES IS ONE DATA SOURCE, at the HTTP boundary.
+//
+// Before 26 August 2026 this endpoint asked the store for every source and then
+// downsampled by keeping the last row in each bucket. 'trades-implied' sorts last
+// of the four, so a ledger that had both a live reading and a reconstruction
+// charted the reconstruction, which is a LOWER BOUND, as though it were the
+// measurement. The response even labelled the whole series with the last row's
+// source, so the label moved with the data instead of describing it.
+func TestHistoryDefaultsToHorizonAndNeverMixesSources(t *testing.T) {
+	base := time.Date(2026, 2, 20, 0, 0, 0, 0, time.UTC)
+	var rows []store.Metric
+	for i, src := range []domain.DataSource{
+		domain.DataSourceHorizon, domain.DataSourceTradesImplied,
+	} {
+		m := riskFixture()
+		m.Risk.LedgerSeq = uint32(61000000 + i)
+		m.Risk.LedgerClosedAt = base.Add(time.Duration(i) * time.Hour)
+		m.Risk.DataSource = src
+		// 1 is the horizon row, 2 the trades-implied one, so the assertion below
+		// names which row was charted rather than only how many.
+		m.Risk.MidPrice = dp(strconv.Itoa(i + 1))
+		rows = append(rows, m)
+	}
+
+	f := &fakeReader{
+		pairs:   map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		history: map[int][]store.Metric{7: rows},
+	}
+	rec := get(t, newTestServer(t, f),
+		BasePath+"/asset/"+ustryID+"/history?from=60999000&to=61001000&resolution=day")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	if f.gotSource != domain.DataSourceHorizon {
+		t.Errorf("the store was asked for %q, want %q by default", f.gotSource, domain.DataSourceHorizon)
+	}
+
+	var body historyJSON
+	decodeBody(t, rec, &body)
+	if body.DataSource != string(domain.DataSourceHorizon) {
+		t.Errorf("dataSource = %q, want horizon", body.DataSource)
+	}
+	if len(body.Points) != 1 {
+		t.Fatalf("got %d points, want 1: the two sources were charted as one series", len(body.Points))
+	}
+	if body.Points[0].MidPrice == nil || *body.Points[0].MidPrice != "1" {
+		t.Errorf("the charted point midPrice = %v, want 1, the horizon row", body.Points[0].MidPrice)
+	}
+}
+
+// The lower bound is still reachable, by name. Hiding it would be the opposite
+// mistake: trades-implied is the source the Blend case study depends on.
+func TestHistoryServesANamedSourceAndLabelsIt(t *testing.T) {
+	m := riskFixture()
+	m.Risk.DataSource = domain.DataSourceTradesImplied
+	f := &fakeReader{
+		pairs:   map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		history: map[int][]store.Metric{7: {m}},
+	}
+	rec := get(t, newTestServer(t, f),
+		BasePath+"/asset/"+ustryID+"/history?from=61340000&to=61341000&source=trades-implied")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	if f.gotSource != domain.DataSourceTradesImplied {
+		t.Errorf("the store was asked for %q, want trades-implied", f.gotSource)
+	}
+	var body historyJSON
+	decodeBody(t, rec, &body)
+	if body.DataSource != "trades-implied" {
+		t.Errorf("dataSource = %q, want the source that was asked for", body.DataSource)
+	}
+	if len(body.Points) != 1 {
+		t.Errorf("got %d points, want 1", len(body.Points))
+	}
+}
+
+// Every one of the four is accepted, checked against domain.DataSources rather
+// than against a list written out here. A CHECK constraint that omitted
+// offers-implied is a bug this repository already shipped once.
+func TestHistoryAcceptsEveryDataSourceTheDomainDeclares(t *testing.T) {
+	for _, src := range domain.DataSources() {
+		f := &fakeReader{
+			pairs:   map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+			history: map[int][]store.Metric{7: {}},
+		}
+		rec := get(t, newTestServer(t, f),
+			BasePath+"/asset/"+ustryID+"/history?from=61340000&to=61341000&source="+string(src))
+		if rec.Code != http.StatusOK {
+			t.Errorf("source %q: status = %d, want 200; body %s", src, rec.Code, rec.Body.String())
+		}
+	}
+}
+
+func TestHistoryRejectsAnUnknownSource(t *testing.T) {
+	f := &fakeReader{
+		pairs:   map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		history: map[int][]store.Metric{7: {}},
+	}
+	rec := get(t, newTestServer(t, f),
+		BasePath+"/asset/"+ustryID+"/history?from=61340000&to=61341000&source=horizen")
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400 for a misspelled source", rec.Code)
 	}
 }
 
