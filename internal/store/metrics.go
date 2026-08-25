@@ -221,9 +221,29 @@ func (s *Store) MetricsAtLedger(ctx context.Context, assetID int, ledgerSeq uint
 // what every result is keyed by and what the historical replay path addresses;
 // filtering by wall clock would make the same query return different rows
 // depending on when a ledger happened to close.
-func (s *Store) MetricsHistory(ctx context.Context, assetID int, fromLedger, toLedger uint32, methodologyVersion string, limit int) ([]Metric, error) {
+//
+// THE SOURCE IS PART OF THE FILTER, AND IT HAS TO BE. The key has four parts and
+// this read constrains three of them plus a range on the fourth, so one ledger
+// yields at most one row. Until 26 August 2026 it constrained only the asset and
+// the version, and a ledger holding both a horizon row and a trades-implied row
+// returned both. The caller downsamples by keeping the last row in each bucket
+// and 'trades-implied' sorts last of the four alphabetically, so the series
+// silently showed the LOWER BOUND wherever both existed and labeled it nothing.
+// That is the posted-against-executed distinction the package brief calls not
+// interchangeable, collapsed by an ORDER BY.
+//
+// An empty source means horizon rather than every source. A caller that wants a
+// different one names it; there is deliberately no way to ask for all of them,
+// because a series mixing derivations is not a series.
+func (s *Store) MetricsHistory(ctx context.Context, assetID int, fromLedger, toLedger uint32, methodologyVersion string, source domain.DataSource, limit int) ([]Metric, error) {
 	if methodologyVersion == "" {
 		methodologyVersion = domain.MethodologyVersion
+	}
+	if source == "" {
+		source = domain.DataSourceHorizon
+	}
+	if !source.Valid() {
+		return nil, fmt.Errorf("store: data source %q is not one of the four", source)
 	}
 	if limit <= 0 || limit > 5000 {
 		limit = 5000
@@ -232,10 +252,11 @@ func (s *Store) MetricsHistory(ctx context.Context, assetID int, fromLedger, toL
 		SELECT `+metricColumns+`
 		  FROM metrics m JOIN assets a ON a.id = m.asset_id
 		 WHERE m.asset_id = $1 AND m.methodology_version = $2
-		   AND m.ledger_seq >= $3 AND m.ledger_seq <= $4
-		 ORDER BY m.ledger_seq ASC, m.data_source ASC
-		 LIMIT $5`,
-		assetID, methodologyVersion, int64(fromLedger), int64(toLedger), limit)
+		   AND m.data_source = $3
+		   AND m.ledger_seq >= $4 AND m.ledger_seq <= $5
+		 ORDER BY m.ledger_seq ASC
+		 LIMIT $6`,
+		assetID, methodologyVersion, string(source), int64(fromLedger), int64(toLedger), limit)
 	if err != nil {
 		return nil, fmt.Errorf("store: metrics history asset %d: %w", assetID, err)
 	}
@@ -398,10 +419,10 @@ func validRisk(r domain.AssetRisk) error {
 	if r.LedgerSeq == 0 {
 		return errors.New("store: ledger sequence is zero; every result carries one")
 	}
-	switch r.DataSource {
-	case domain.DataSourceHorizon, domain.DataSourceHubble,
-		domain.DataSourceOffersImplied, domain.DataSourceTradesImplied:
-	default:
+	// domain.Valid rather than a switch repeated here. The set has drifted once
+	// already, between this package's CHECK constraint and the const block, and
+	// one enumeration is what stops it drifting again.
+	if !r.DataSource.Valid() {
 		return fmt.Errorf("store: data source %q is not one of the four", r.DataSource)
 	}
 	switch r.PriceSource {

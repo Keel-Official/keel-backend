@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/url"
 	"os"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,7 +26,7 @@ import (
 // no Docker. To run them:
 //
 //	make up && make migrate
-//	KEEL_TEST_DSN="postgres://keel:keel_dev_only@localhost:5432/keel?sslmode=disable" go test ./internal/store/
+//	KEEL_TEST_DSN="postgres://keel:keel_dev_only@localhost:5433/keel?sslmode=disable" go test ./internal/store/
 //
 // EVERY TEST RUNS INSIDE A TRANSACTION THAT IS ROLLED BACK. That is what the
 // unexported dbtx interface in store.go is for. A test suite that leaves rows in
@@ -49,6 +52,75 @@ func testStore(t *testing.T) (*Store, context.Context) {
 		_ = db.Close()
 	})
 	return &Store{db: tx}, ctx
+}
+
+// PREFLIGHT. It runs alone, before the suite, because `make store-test` invokes
+// it that way, and make stops on its failure.
+//
+// WHY IT EXISTS. On 26 August 2026 a DSN naming port 5432 reached the Postgres
+// installed on the host rather than this project's container, and every one of
+// the 31 tests in this file failed with the same connection error. Thirty-one
+// identical failures read like a broken package. They were a misdirected client,
+// and one diagnosis is worth more than thirty-one symptoms.
+//
+// WHY IT IS A GO TEST rather than a psql or nc probe in the Makefile. It has to
+// use the same driver and the same DSN as testStore, because a preflight that
+// checks something else can pass while the suite fails. `psql` is not guaranteed
+// to be installed on the host at all. A TCP probe would have PASSED on the day
+// this was needed: the port was open and a Postgres was answering it, just not
+// this one, and the refusal came back at authentication rather than at connect.
+//
+// WHAT IT CANNOT PROVE. That the server on the other end is the container. A
+// second Postgres carrying a keel role and a schema_migrations table would
+// satisfy both checks. It proves the DSN reaches A server that this package can
+// use, which is the question the 31 failures were really asking.
+func TestPreflightTheDSNReachesAUsablePostgres(t *testing.T) {
+	dsn := os.Getenv("KEEL_TEST_DSN")
+	if dsn == "" {
+		t.Skip("KEEL_TEST_DSN is unset; see the comment above testStore")
+	}
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		t.Fatalf("open %s: %v", dsnHost(dsn), err)
+	}
+	defer func() { _ = db.Close() }()
+
+	// A bounded wait. Without it an address that accepts a connection and never
+	// answers hangs until go test's own ten minute timeout, which is the slowest
+	// possible way to deliver this message.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		t.Fatalf("cannot use Postgres at %s: %v\n"+
+			"  `role \"keel\" does not exist` means the address ANSWERED and is not this\n"+
+			"  project's container: a Postgres installed on the host binds 127.0.0.1:5432\n"+
+			"  while Docker binds the wildcard, so loopback reaches the host server. The\n"+
+			"  container publishes 5433. Run `make up && make migrate`, or point\n"+
+			"  KEEL_TEST_DSN at the container directly.", dsnHost(dsn), err)
+	}
+
+	// Connected is not enough. `make migrate` goes through `docker compose exec`
+	// and never touches a published port, so it can report success against a
+	// database this DSN has never reached.
+	s := &Store{db: db}
+	if _, err := s.SchemaVersion(ctx); err != nil {
+		t.Fatalf("connected to %s and schema_migrations is not readable: %v\n"+
+			"  Either no migration has been applied here (run `make migrate`), or this\n"+
+			"  is a different Postgres that happens to carry a keel role.", dsnHost(dsn), err)
+	}
+}
+
+// dsnHost is the host and port of a DSN with the credentials dropped. The
+// password in the default is the public development one, but an overridden
+// KEEL_TEST_DSN may hold a real one, and a failing test's log is the wrong place
+// to discover that.
+func dsnHost(dsn string) string {
+	u, err := url.Parse(dsn)
+	if err != nil || u.Host == "" {
+		return "the configured DSN"
+	}
+	return u.Host
 }
 
 var (
@@ -317,21 +389,89 @@ func TestVersionAndSourceAreEachPartOfTheKey(t *testing.T) {
 		}
 	}
 
-	// Three rows for one asset at one ledger, and the version filter separates
-	// them, which is what makes cross-validation a single query.
-	current, err := s.MetricsHistory(ctx, assetID, 0, 99999999, domain.MethodologyVersion, 0)
+	// Three rows for one asset at one ledger: two at the current version under
+	// different sources, one at the next version. Both the version filter and the
+	// source filter separate them, which is what makes cross-validation a single
+	// query AND what keeps a series to one kind of number.
+	// fullRisk is offers-implied, not horizon: the golden fixture is that value,
+	// which is 0003's header and handoff item 5b.
+	current, err := s.MetricsHistory(ctx, assetID, 0, 99999999, domain.MethodologyVersion, domain.DataSourceOffersImplied, 0)
 	if err != nil {
 		t.Fatalf("history: %v", err)
 	}
-	if len(current) != 2 {
-		t.Errorf("got %d rows at the current version, want 2 (two sources)", len(current))
+	if len(current) != 1 {
+		t.Errorf("got %d rows at the current version from offers-implied, want 1", len(current))
 	}
-	next, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "1.0.4-draft", 0)
+	hubble, err := s.MetricsHistory(ctx, assetID, 0, 99999999, domain.MethodologyVersion, domain.DataSourceHubble, 0)
+	if err != nil {
+		t.Fatalf("history: %v", err)
+	}
+	if len(hubble) != 1 {
+		t.Errorf("got %d rows at the current version from hubble, want 1", len(hubble))
+	}
+	if len(current) == 1 && len(hubble) == 1 &&
+		current[0].Risk.DataSource == hubble[0].Risk.DataSource {
+		t.Error("the two sources returned the same row, so the source filter is not applied")
+	}
+	next, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "1.0.4-draft", domain.DataSourceOffersImplied, 0)
 	if err != nil {
 		t.Fatalf("history: %v", err)
 	}
 	if len(next) != 1 {
 		t.Errorf("got %d rows at 1.0.4-draft, want 1", len(next))
+	}
+}
+
+// THE BUG THIS FILTER EXISTS FOR, asserted directly rather than only implied by
+// the key test above.
+//
+// One ledger carrying both a horizon reading and a trades-implied reconstruction
+// must never come back as two points in one series. The caller downsamples by
+// keeping the last row in a bucket and 'trades-implied' sorts last of the four
+// alphabetically, so before 26 August 2026 the series showed the lower bound
+// wherever both existed, with nothing in the output saying so.
+func TestOneLedgerWithTwoSourcesIsNotTwoPointsInOneSeries(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	for _, src := range []domain.DataSource{domain.DataSourceHorizon, domain.DataSourceTradesImplied} {
+		risk := fullRisk()
+		risk.DataSource = src
+		if _, inserted, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), risk); err != nil || !inserted {
+			t.Fatalf("save %s: inserted = %t, err = %v", src, inserted, err)
+		}
+	}
+
+	rows, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "", "", 0)
+	if err != nil {
+		t.Fatalf("history: %v", err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("got %d rows for one ledger, want 1: the series is mixing sources", len(rows))
+	}
+	// An empty source means horizon, and horizon specifically. Defaulting to the
+	// lower bound would be worse than not defaulting at all.
+	if rows[0].Risk.DataSource != domain.DataSourceHorizon {
+		t.Errorf("default source = %q, want %q", rows[0].Risk.DataSource, domain.DataSourceHorizon)
+	}
+
+	lower, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "", domain.DataSourceTradesImplied, 0)
+	if err != nil {
+		t.Fatalf("history trades-implied: %v", err)
+	}
+	if len(lower) != 1 || lower[0].Risk.DataSource != domain.DataSourceTradesImplied {
+		t.Errorf("the lower bound is still reachable when asked for by name; got %d rows", len(lower))
+	}
+}
+
+// A source outside the four is refused rather than silently returning nothing.
+// An empty result and a bad request are different answers.
+func TestMetricsHistoryRejectsAnUnknownSource(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	if _, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "", domain.DataSource("guesswork"), 0); err == nil {
+		t.Error("an unknown data source was accepted")
 	}
 }
 
@@ -411,7 +551,10 @@ func TestMetricsHistoryIsOldestFirstAndBounded(t *testing.T) {
 		}
 	}
 
-	all, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "", 0)
+	// The source is named because fullRisk is offers-implied and an empty source
+	// means horizon. That is the intended default and it is why this call cannot
+	// leave the source blank.
+	all, err := s.MetricsHistory(ctx, assetID, 0, 99999999, "", domain.DataSourceOffersImplied, 0)
 	if err != nil {
 		t.Fatalf("history: %v", err)
 	}
@@ -425,7 +568,7 @@ func TestMetricsHistoryIsOldestFirstAndBounded(t *testing.T) {
 		}
 	}
 	// The range is inclusive at both ends and on LEDGER, not on wall clock.
-	window, err := s.MetricsHistory(ctx, assetID, 61340264, 61340265, "", 0)
+	window, err := s.MetricsHistory(ctx, assetID, 61340264, 61340265, "", domain.DataSourceOffersImplied, 0)
 	if err != nil {
 		t.Fatalf("history: %v", err)
 	}
@@ -662,18 +805,33 @@ func TestSchemaHasEveryMigrationApplied(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SchemaVersion: %v; run make migrate", err)
 	}
-	want := []string{
-		"0001_core.sql",
-		"0002_methodology_103.sql",
-		"0003_venue_split_and_offers_implied.sql",
+	// READ FROM THE DIRECTORY, not from a list written out here. The list was
+	// hardcoded until 26 August 2026, so adding 0004 would have left this test
+	// green while the new migration went unapplied. A check that has to be
+	// updated by hand to keep covering is a check that quietly stops covering,
+	// which is the failure this repository keeps finding.
+	entries, err := os.ReadDir("../../migrations")
+	if err != nil {
+		t.Fatalf("read migrations/: %v", err)
 	}
+	var want []string
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".sql") {
+			want = append(want, e.Name())
+		}
+	}
+	if len(want) == 0 {
+		t.Fatal("no migrations found on disk, so this test proves nothing")
+	}
+	sort.Strings(want)
+
 	have := map[string]bool{}
 	for _, f := range applied {
 		have[f] = true
 	}
 	for _, w := range want {
 		if !have[w] {
-			t.Errorf("%s is not applied; run make migrate", w)
+			t.Errorf("%s is on disk and not applied; run make migrate", w)
 		}
 	}
 }

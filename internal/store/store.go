@@ -50,7 +50,12 @@ import (
 // development-only one already written into docker-compose.yml in this
 // repository, so nothing is being leaked by naming it here; anything real reads
 // the DSN from its environment.
-const DefaultDSN = "postgres://keel:keel_dev_only@localhost:5432/keel?sslmode=disable"
+//
+// THE PORT IS 5433 AND NOT 5432, because that is where docker-compose.yml
+// publishes the container as of 26 August 2026. On a machine with a Postgres
+// already installed, 5432 is the HOST server rather than this one, and the
+// symptom is `role "keel" does not exist` rather than a refused connection.
+const DefaultDSN = "postgres://keel:keel_dev_only@localhost:5433/keel?sslmode=disable"
 
 // ErrNotFound is returned by every read that asks for one row and finds none. It
 // is distinct from a zero value on purpose: a caller has to be able to tell "no

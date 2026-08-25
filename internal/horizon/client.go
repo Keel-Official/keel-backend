@@ -215,6 +215,17 @@ type Client struct {
 	mu    sync.Mutex
 	spent []time.Time // request times inside the current window
 	cache map[string]cacheEntry
+
+	// throttled counts 429 responses seen across this client's whole life,
+	// including the ones a retry went on to recover from.
+	//
+	// It exists because a rate limit that is absorbed silently is
+	// indistinguishable from one that never happened, and the two have opposite
+	// consequences for a survey: a candidate list shortened by throttling looks
+	// exactly like a candidate list that is genuinely short. Counting them here
+	// rather than at each call site means every path through this client is
+	// covered, including the retries, which is where most of them land.
+	throttled int
 }
 
 type cacheEntry struct {
@@ -228,6 +239,21 @@ type cacheEntry struct {
 // environment, so a misconfiguration is visible at the call site or nowhere.
 func NewClient(cfg Config) *Client {
 	return &Client{cfg: cfg.withDefaults(), cache: map[string]cacheEntry{}}
+}
+
+// Throttled reports how many 429 responses this client has seen, retries
+// included. A survey that reports a short candidate list alongside a non-zero
+// count here is reporting two different things, and the caller has to say which.
+func (c *Client) Throttled() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.throttled
+}
+
+func (c *Client) noteThrottled() {
+	c.mu.Lock()
+	c.throttled++
+	c.mu.Unlock()
 }
 
 // Requests reports how many requests were made inside the current budget
@@ -478,6 +504,9 @@ func (c *Client) attempt(ctx context.Context, full string, requireLatest bool) (
 		return nil, 0, &transportError{err: err}
 	}
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusTooManyRequests {
+			c.noteThrottled()
+		}
 		return nil, 0, &StatusError{
 			Status: resp.StatusCode,
 			URL:    full,

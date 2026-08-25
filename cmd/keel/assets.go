@@ -56,11 +56,12 @@ deactivated, because metrics rows reference these ids.
 	ctx := context.Background()
 	s, err := store.Open(ctx, *dsn)
 	if err != nil {
-		// The most common cause on a developer machine is a second Postgres on
-		// 5432 that is not the one docker-compose started, so the hint is here
-		// rather than in a document nobody reads at the moment it fails.
-		return fmt.Errorf("%w\n  hint: `make up && make migrate` first, and check that port 5432 is the container's "+
-			"Postgres and not another one already running locally", err)
+		// The most common cause on a developer machine is a DSN naming 5432,
+		// which is a second Postgres and not the one docker-compose started, so
+		// the hint is here rather than in a document nobody reads at the moment
+		// it fails.
+		return fmt.Errorf("%w\n  hint: `make up && make migrate` first. The container publishes 5433, not 5432, "+
+			"so a DSN still naming 5432 reaches whatever else is on the host", err)
 	}
 	defer func() { _ = s.Close() }()
 

@@ -100,9 +100,15 @@ adapter_unzoned()  { adapter_exists && ! grep -q "internal/adapter" CLAUDE.md; }
 # zoned, never that the zone is right. Fifth time this class of limit has come up
 # here, and the honest response is to write it down rather than pretend the check
 # is stronger than it is.
+# recordings/ and scripts/history-migration/ are excluded for the same reason:
+# both are gitignored, both exist only on the machine that produced them, and a
+# map row for a directory no clone has is a row nobody can check. The second one
+# is also the directory the map must NOT name for a different reason, recorded in
+# .gitignore: its two files carry the exposure markers as literal text.
 mapped_dirs(){
   find . -type f \
-    -not -path './.git/*' -not -path './recordings/*' -not -name '.DS_Store' \
+    -not -path './.git/*' -not -path './recordings/*' \
+    -not -path './scripts/history-migration/*' -not -name '.DS_Store' \
     -exec dirname {} \; 2>/dev/null | sort -u | sed 's|^\./||' | grep -v '^\.$'
 }
 unmapped_dirs(){

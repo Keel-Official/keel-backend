@@ -318,6 +318,9 @@ func (c *Client) getRawExchange(ctx context.Context, endpoint, path string, q ur
 		src.Error = ""
 		lastLatest = latest
 
+		if status == http.StatusTooManyRequests {
+			c.noteThrottled()
+		}
 		if status == http.StatusTooManyRequests || status >= 500 {
 			// Retryable. Keep it as the answer in case the retries run out, and
 			// go round again; the backoff honors Horizon's Retry-After through

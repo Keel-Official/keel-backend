@@ -117,3 +117,36 @@ than one, this package must still store all of them: CHOOSING AMONG CANDIDATE
 POOLS IS A METHODOLOGY DECISION and methodology is the red zone. Summing their
 reserves would be wrong anyway, because two pools at different prices are not one
 deeper pool. Measured in `docs/evidences/aqua_identity_and_pools_2026-08-25.txt`.
+
+## The same three sentences for the candidate universe, added 26 August 2026
+
+`universe.go` reads `/assets` paged by ticker and `/accounts/{issuer}` for
+`home_domain`. It gathers and never selects: there is no threshold in it, and the
+inclusion criteria are `docs/methodology/02-pair-selection.md` section 5, which is
+red and unwritten.
+
+The decision: `AssetsByCode` asks for one `asset_code` and returns EVERY issuer
+that answers, as separate rows sorted by issuer, walking `_links.next` until a page
+comes back empty and reporting how many pages that took. The alternative rejected:
+one request at `limit=200` returning the single best record per code, picked by
+holder count, which is shorter and reuses the existing `findAssetRecord`. Why it
+was rejected: both halves of that shortcut are the bug this repository has already
+paid for, because 97 assets carry the code AQUA and a ranked pick promotes an
+impostor with three pools and no `stellar.toml`, while a single page at `order=asc`
+returns the OLDEST records and hides the real one on page two.
+
+Three things about it that are decisions rather than gaps:
+
+- **The asset type is read and never inferred.** `/assets` keyed on the code alone
+  returns both widths and each record states its own `asset_type`, so trap 1 is
+  closed by construction rather than by care. Querying per width would double the
+  request count and put the guess back.
+- **`Client.Throttled()` counts 429s including the ones a retry recovered from.**
+  A rate limit absorbed silently is indistinguishable from one that never
+  happened, and the two have opposite meanings for a short candidate list. It is
+  incremented in both the parsed path and the raw tick path.
+- **`HomeDomain` is deliberately half a proof and says so.** The other half is the
+  domain's SEP-1 toml naming the same pair back, and that fetch lives in
+  `cmd/keel/stellartoml.go` rather than here: a stellar.toml is served by a
+  stranger's web server, not by Horizon, and giving this client a second transport
+  with a second failure mode and a second timeout would blur what the package is.

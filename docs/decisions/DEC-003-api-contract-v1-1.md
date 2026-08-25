@@ -486,3 +486,64 @@ both quantities survive and the contract does not move. The full reasoning is
 handoff item 13. The short version is that a ratio has two undefined states, a
 `genuineVolume` of zero and an unreachable target, and a scalar has nowhere to put
 either one.
+
+---
+
+## 10. What v1.4.0 changed, 26 August 2026
+
+One additive query parameter on `GET /asset/{assetId}/history`, and it exists to
+repair a defect rather than to add a feature. Mocks regenerated, and their content
+did not move, because the change is to the parameter list and not to any example.
+
+### 10.1 The defect
+
+A result is keyed by `(asset_id, ledger_seq, methodology_version, data_source)`.
+The history read constrained the asset and the methodology version and ranged over
+the ledger, and left `data_source` unconstrained. One ledger could therefore return
+up to four rows.
+
+The handler downsamples by keeping the last row in each time bucket. Of the four
+source values, `trades-implied` sorts last alphabetically, and the query ordered by
+`data_source ASC`. So for any ledger holding both a live `horizon` reading and a
+`trades-implied` reconstruction, the series charted the reconstruction.
+
+That is not a cosmetic mix. `trades-implied` is rebuilt from trades that executed,
+so it proves only liquidity that was CONSUMED and is a **lower bound**, while
+`horizon` is a direct reading. The endpoint was presenting the weakest number in
+the range as though it were the same kind of number as the strongest. The response
+even carried `dataSource` read off the last row, so the label moved with the data
+instead of describing the series.
+
+This is the same posted-against-executed distinction that
+`docs/methodology/06-oracle-resilience.md` section 2 builds its argument on, and
+`internal/store/CLAUDE.md` rule 4 already said the two "are not interchangeable".
+Both were correct; the query did not implement them.
+
+### 10.2 The change
+
+| Added | Why |
+|---|---|
+| `source` query parameter, enum of the four data sources, default `horizon` | one series is one source. The default is the only value of the four that is a direct live reading |
+| A value outside the enum is `400 INVALID_RANGE` | "no data" and "no such source" are different answers, and returning an empty series for a misspelled source hides the typo |
+
+`dataSource` in the response body already existed and is unchanged in shape. It now
+reports the source that was **asked for**, which is the source of every row,
+instead of whichever row happened to sort last.
+
+### 10.3 Why not "return every source and let the client split them"
+
+Considered and rejected. It moves the same decision to every consumer and makes the
+default behavior the wrong one, since a client that does not know to split gets the
+old bug back. The dashboard would have to learn the confidence ordering of the four
+values to draw one line, and that ordering is methodology, not presentation.
+
+The narrower alternative, requiring `source` with no default, was also rejected: it
+is the most internally consistent option and it breaks every existing caller of an
+endpoint whose contract is already in a frontend's hands.
+
+### 10.4 What this does not close
+
+`internal/store/MetricsHistory` still has no way to ask for several sources at
+once, deliberately. If a cross-validation view ever needs to compare two sources on
+one chart, that is a new endpoint or a new parameter that names a comparison, not a
+relaxation of this filter.
