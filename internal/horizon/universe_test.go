@@ -69,7 +69,7 @@ func newAssetsFixture(t *testing.T, pages [][]string) *assetsFixture {
 		// reason a walk must stop on an empty page rather than on a missing link.
 		next := fmt.Sprintf("%s/assets?asset_code=%s&cursor=page%d&limit=200&order=asc",
 			f.srv.URL, r.URL.Query().Get("asset_code"), page+1)
-		fmt.Fprintf(w, `{"_links":{"next":{"href":%q}},"_embedded":{"records":[%s]}}`,
+		_, _ = fmt.Fprintf(w, `{"_links":{"next":{"href":%q}},"_embedded":{"records":[%s]}}`,
 			next, strings.Join(recs, ","))
 	}))
 	t.Cleanup(f.srv.Close)
@@ -172,7 +172,7 @@ func TestAssetsByCodeReturnsBothWidthsWithoutBeingAsked(t *testing.T) {
 }
 
 // TRAP 3. An endpoint returning an array is not a promise that every element
-// answers the question. A neighbouring record read silently is the failure mode
+// answers the question. A neighboring record read silently is the failure mode
 // here, not an error.
 func TestAssetsByCodeIgnoresARecordForAnotherCode(t *testing.T) {
 	f := newAssetsFixture(t, [][]string{
@@ -187,7 +187,7 @@ func TestAssetsByCodeIgnoresARecordForAnotherCode(t *testing.T) {
 		t.Fatalf("AssetsByCode: %v", err)
 	}
 	if len(got.Assets) != 1 {
-		t.Fatalf("got %d, want 1: a neighbouring code was read as an answer", len(got.Assets))
+		t.Fatalf("got %d, want 1: a neighboring code was read as an answer", len(got.Assets))
 	}
 	if got.Assets[0].Code != "AQUA" {
 		t.Errorf("code = %q", got.Assets[0].Code)
@@ -246,7 +246,7 @@ func TestThrottledCountsA429ThatWasRetriedThrough(t *testing.T) {
 // and attributed to the right account.
 func TestHomeDomainReadsTheAccountAndRefusesAnotherOne(t *testing.T) {
 	var serve string
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(serve))
 	}))

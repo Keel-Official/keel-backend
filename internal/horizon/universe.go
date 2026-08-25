@@ -19,7 +19,7 @@
 //     alternative: returning the single "best" record per code, chosen by holder
 //     count, which is one line shorter and is exactly the bug this repository has
 //     already paid for. 97 distinct assets carry the code AQUA, 13 of them on an
-//     aqua-flavoured domain, and the busiest-looking one is not the real one; a
+//     aqua-flavored domain, and the busiest-looking one is not the real one; a
 //     ranked pick would have promoted an impostor holding three liquidity pools
 //     and no stellar.toml.
 //
@@ -41,6 +41,7 @@
 //     each code twice, once per width, and merging, which doubles the request
 //     count against an hourly budget and reintroduces the guess it was meant to
 //     remove.
+
 package horizon
 
 import (
@@ -56,7 +57,7 @@ import (
 )
 
 // assetsPageLimit is the page size asked for on /assets. It is the maximum
-// Horizon serves, which minimises the number of round trips; it is NOT a cap on
+// Horizon serves, which minimizes the number of round trips; it is NOT a cap on
 // the answer, because the walk follows _links.next past it.
 const assetsPageLimit = 200
 
@@ -181,7 +182,7 @@ func (c *Client) AssetsByCode(ctx context.Context, code string) (CodeReading, er
 		for _, r := range res.Embedded.Records {
 			// Filter by the identifier that was asked for. An endpoint returning
 			// an array is not a promise that every element answers the question,
-			// and reading a neighbour silently is the failure mode here rather
+			// and reading a neighbor silently is the failure mode here rather
 			// than an error. Horizon has never been seen to do this on /assets;
 			// the check costs nothing and its absence is not detectable later.
 			if r.AssetCode != code {

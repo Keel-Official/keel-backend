@@ -491,9 +491,9 @@ func renderUniverseReport(f universeFile) string {
 	fmt.Fprintf(&b, "\nTICKERS WITH MORE THAN ONE ISSUER (%d)\n", len(collisions))
 	fmt.Fprintf(&b, "Every row here is a ticker that cannot be used as an identifier.\n\n")
 	tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(tw, "  CODE\tISSUERS\tVERIFIED\tPAGES")
+	_, _ = fmt.Fprintln(tw, "  CODE\tISSUERS\tVERIFIED\tPAGES")
 	for _, c := range collisions {
-		fmt.Fprintf(tw, "  %s\t%d\t%d\t%d\n", c.code, c.issuers, c.verified, c.pages)
+		_, _ = fmt.Fprintf(tw, "  %s\t%d\t%d\t%d\n", c.code, c.issuers, c.verified, c.pages)
 	}
 	_ = tw.Flush()
 
@@ -501,12 +501,12 @@ func renderUniverseReport(f universeFile) string {
 	fmt.Fprintf(&b, "Both directions agreed: the account named the domain and the domain's\n")
 	fmt.Fprintf(&b, "stellar.toml named this exact (code, issuer) pair.\n\n")
 	tw = tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(tw, "  CODE\tISSUER\tTYPE\tTRUSTLINES\tPOOLS\tDOMAIN")
+	_, _ = fmt.Fprintln(tw, "  CODE\tISSUER\tTYPE\tTRUSTLINES\tPOOLS\tDOMAIN")
 	for _, c := range f.Candidates {
 		if c.Verification != verified {
 			continue
 		}
-		fmt.Fprintf(tw, "  %s\t%s\t%s\t%d\t%d\t%s\n",
+		_, _ = fmt.Fprintf(tw, "  %s\t%s\t%s\t%d\t%d\t%s\n",
 			c.Code, c.Issuer, shortType(c.Type), c.AuthorizedTrustlines, c.NumLiquidityPools, c.HomeDomain)
 	}
 	_ = tw.Flush()

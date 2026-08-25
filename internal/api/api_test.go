@@ -659,7 +659,7 @@ func TestHistoryDownsamplesBySelectingRealPoints(t *testing.T) {
 // downsampled by keeping the last row in each bucket. 'trades-implied' sorts last
 // of the four, so a ledger that had both a live reading and a reconstruction
 // charted the reconstruction, which is a LOWER BOUND, as though it were the
-// measurement. The response even labelled the whole series with the last row's
+// measurement. The response even labeled the whole series with the last row's
 // source, so the label moved with the data instead of describing it.
 func TestHistoryDefaultsToHorizonAndNeverMixesSources(t *testing.T) {
 	base := time.Date(2026, 2, 20, 0, 0, 0, 0, time.UTC)

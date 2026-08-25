@@ -7,7 +7,7 @@
 -- and the caller downsampled by keeping the last row in each bucket. Of the four
 -- values 'trades-implied' sorts last alphabetically, so wherever a ledger held
 -- both a live reading and a reconstruction the series charted the reconstruction,
--- which is a LOWER BOUND, and labelled it nothing. The read now names the source.
+-- which is a LOWER BOUND, and labeled it nothing. The read now names the source.
 --
 -- idx_metrics_asset_ledger, from 0001, is (asset_id, ledger_seq DESC). It serves
 -- the newest-first single-row reads and is a poor fit for the new predicate,

@@ -61,7 +61,7 @@ func TestParseCurrenciesReadsEveryBlockAndOnlyCurrencies(t *testing.T) {
 func TestListsExactlyRequiresTheIssuerAndNotOnlyTheCode(t *testing.T) {
 	doc := tomlDoc{Currencies: parseCurrencies(aquaTOML)}
 	if !doc.listsExactly("AQUA", aquaIssuer) {
-		t.Error("the real AQUA was not recognised")
+		t.Error("the real AQUA was not recognized")
 	}
 	if doc.listsExactly("AQUA", "GIMPOSTORAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA") {
 		t.Error("an impostor sharing the ticker was verified against somebody else's toml")
@@ -140,7 +140,7 @@ func TestTOMLFetcherFetchesEachDomainOnce(t *testing.T) {
 func TestTOMLFetcherCachesAFailureInsteadOfRetrying(t *testing.T) {
 	var mu sync.Mutex
 	hits := 0
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		mu.Lock()
 		hits++
 		mu.Unlock()
@@ -307,10 +307,10 @@ func TestAnAssetWithNothingIsStillACandidate(t *testing.T) {
 
 // A parked domain answers the well-known path with HTML and HTTP 200. That says
 // nothing about the asset, so it is unreachable rather than a mismatch. Measured
-// on aqua.trading, which is one of the aqua-flavoured domains an AQUA impostor
+// on aqua.trading, which is one of the aqua-flavored domains an AQUA impostor
 // claims as its home_domain.
 func TestHTMLServedAt200IsUnreachableAndNotAMismatch(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("<!DOCTYPE html><html><head><script>window.location.href=\"/lander\"</script></head></html>"))
 	}))
 	defer srv.Close()
@@ -331,7 +331,7 @@ func TestHTMLServedAt200IsUnreachableAndNotAMismatch(t *testing.T) {
 // And a real toml is still parsed, so the HTML guard has not swallowed the
 // ordinary case.
 func TestARealTOMLIsStillParsedAfterTheHTMLGuard(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(aquaTOML))
 	}))
 	defer srv.Close()

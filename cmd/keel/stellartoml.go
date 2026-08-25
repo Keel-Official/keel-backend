@@ -83,7 +83,7 @@ func newTOMLFetcher(timeout time.Duration, concurrency int) *tomlFetcher {
 			// followed anywhere is a redirect changing which domain the answer
 			// came from without that being visible: the URL actually fetched is
 			// recorded on the document.
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			CheckRedirect: func(_ *http.Request, via []*http.Request) error {
 				if len(via) >= 5 {
 					return fmt.Errorf("stopped after 5 redirects")
 				}
@@ -174,7 +174,7 @@ func (f *tomlFetcher) fetchOnce(ctx context.Context, domain string) tomlDoc {
 	//
 	// Measured, not supposed: aqua.trading answers this path with
 	// `<!DOCTYPE html>` and a redirect script, and it is one of the
-	// aqua-flavoured domains an AQUA impostor claims.
+	// aqua-flavored domains an AQUA impostor claims.
 	if looksLikeHTML(body) {
 		doc.Err = fmt.Errorf("the document is HTML, not a stellar.toml")
 		return doc
@@ -282,7 +282,7 @@ func unquoteTOML(v string) string {
 // BOTH HALVES, ALWAYS, and the code comparison is case sensitive because Stellar
 // asset codes are. A toml listing AQUA on the right domain does not verify a
 // DIFFERENT issuer's AQUA, which is the entire failure this tool exists to
-// prevent: 97 assets carry that code and 13 of them sit on an aqua-flavoured
+// prevent: 97 assets carry that code and 13 of them sit on an aqua-flavored
 // domain.
 func (d tomlDoc) listsExactly(code, issuer string) bool {
 	for _, c := range d.Currencies {

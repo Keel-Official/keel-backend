@@ -533,7 +533,7 @@ instead of whichever row happened to sort last.
 ### 10.3 Why not "return every source and let the client split them"
 
 Considered and rejected. It moves the same decision to every consumer and makes the
-default behaviour the wrong one, since a client that does not know to split gets the
+default behavior the wrong one, since a client that does not know to split gets the
 old bug back. The dashboard would have to learn the confidence ordering of the four
 values to draw one line, and that ordering is methodology, not presentation.
 

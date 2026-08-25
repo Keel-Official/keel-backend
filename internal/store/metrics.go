@@ -228,7 +228,7 @@ func (s *Store) MetricsAtLedger(ctx context.Context, assetID int, ledgerSeq uint
 // the version, and a ledger holding both a horizon row and a trades-implied row
 // returned both. The caller downsamples by keeping the last row in each bucket
 // and 'trades-implied' sorts last of the four alphabetically, so the series
-// silently showed the LOWER BOUND wherever both existed and labelled it nothing.
+// silently showed the LOWER BOUND wherever both existed and labeled it nothing.
 // That is the posted-against-executed distinction the package brief calls not
 // interchangeable, collapsed by an ORDER BY.
 //
