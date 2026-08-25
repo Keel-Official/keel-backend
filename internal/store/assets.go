@@ -154,7 +154,7 @@ func validAsset(a domain.Asset, side string) error {
 	default:
 		// Never inferred from the length of the code. A five character code read
 		// as alphanum4 returns an empty book from Horizon with no error, and the
-		// CHECK on this column is the second line of defence.
+		// CHECK on this column is the second line of defense.
 		return fmt.Errorf("store: %s has asset type %q, which is not one of the three", side, a.Type)
 	}
 	return nil

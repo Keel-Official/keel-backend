@@ -23,7 +23,7 @@
 //     CONFLICT DO UPDATE, which is the usual idiom and is wrong here.
 //
 //  3. THE JSONB COLUMNS HAVE THEIR OWN SHAPES, DECLARED IN jsonb.go. The domain
-//     types are not marshalled directly. A JSON field name inside a database
+//     types are not marshaled directly. A JSON field name inside a database
 //     column is a wire format that outlives any Go rename, so it is written down
 //     once, explicitly, matching the names the API contract uses. Every decimal
 //     inside them is a STRING even where the contract sends a number, because a

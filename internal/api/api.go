@@ -63,7 +63,7 @@ type Config struct {
 	Params domain.Params
 	// HistoricalAvailable is false while the Hubble path does not exist. Stated
 	// as configuration rather than hardcoded, because DEC-002 defers that path
-	// rather than cancelling it.
+	// rather than canceling it.
 	HistoricalAvailable bool
 	Logf                func(format string, args ...any)
 }
@@ -300,7 +300,7 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 
 	// The historical path. DEC-002 defers Hubble, so there is no source that can
 	// answer this yet, and a 503 with HISTORICAL_UNAVAILABLE is the contract's
-	// own answer for that state. Returning a live figure and labelling it
+	// own answer for that state. Returning a live figure and labeling it
 	// historical would be the one genuinely dangerous alternative.
 	if !s.cfg.HistoricalAvailable {
 		s.writeError(w, http.StatusServiceUnavailable, codeHistoricalUnavailable,
@@ -580,7 +580,7 @@ func parseBoundedInt(raw string, def, min, max int) (int, error) {
 	return v, nil
 }
 
-// Serve runs the HTTP server until the context is cancelled, then shuts down
+// Serve runs the HTTP server until the context is canceled, then shuts down
 // gracefully so an in-flight response is not cut off mid-body.
 func (s *Server) Serve(ctx context.Context, addr string) error {
 	srv := &http.Server{

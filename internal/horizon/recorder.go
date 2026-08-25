@@ -497,7 +497,7 @@ func writeAtomic(path string, body []byte) error {
 }
 
 // Run records once immediately and then on every tick until the context is
-// cancelled. Recording immediately matters: a recorder started and left for an
+// canceled. Recording immediately matters: a recorder started and left for an
 // hour before its first write is an hour of evidence that does not exist.
 func (r *Recorder) Run(ctx context.Context, interval time.Duration) error {
 	if interval <= 0 {

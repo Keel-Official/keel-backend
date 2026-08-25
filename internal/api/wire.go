@@ -64,7 +64,7 @@ func dec(d *decimal.Decimal) *string {
 type assetJSON struct {
 	Code string `json:"code"`
 	Type string `json:"type"`
-	// Issuer is a pointer so the native asset serialises as null rather than as
+	// Issuer is a pointer so the native asset serializes as null rather than as
 	// an empty string. The contract says null if and only if type is native.
 	Issuer *string `json:"issuer"`
 }

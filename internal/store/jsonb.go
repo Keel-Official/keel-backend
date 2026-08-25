@@ -1,6 +1,6 @@
 // The shapes of the JSONB columns.
 //
-// These are declared once, here, rather than by marshalling the domain types
+// These are declared once, here, rather than by marshaling the domain types
 // directly. A field name inside a JSONB column is a storage format: it outlives
 // any Go rename, and a rename that silently changed it would leave every row
 // written before the rename unreadable by the code that comes after. The names
@@ -30,7 +30,7 @@ type depthJSON struct {
 }
 
 func encodeDepth(points []domain.DepthPoint) ([]byte, error) {
-	// A nil slice must serialise as [] and not as null: the column is NOT NULL
+	// A nil slice must serialize as [] and not as null: the column is NOT NULL
 	// and an asset with no depth ladder at all is a different statement from an
 	// empty one.
 	out := make([]depthJSON, 0, len(points))

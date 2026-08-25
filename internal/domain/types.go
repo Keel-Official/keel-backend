@@ -242,7 +242,7 @@ type DepthPoint struct {
 // Interpretation:
 //
 //	Cost small, Reachable=true   cheap and achievable. MOST DANGEROUS.
-//	Cost large, Reachable=true   expensive; the market has a defence.
+//	Cost large, Reachable=true   expensive; the market has a defense.
 //	Reachable=false              the target cannot be reached at any capital.
 //	                             This is not bad news.
 //

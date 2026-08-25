@@ -299,7 +299,7 @@ func TestSaveIsNeverAnOverwrite(t *testing.T) {
 	}
 }
 
-// Rule 3 of this package's brief, as behaviour rather than prose.
+// Rule 3 of this package's brief, as behavior rather than prose.
 func TestVersionAndSourceAreEachPartOfTheKey(t *testing.T) {
 	s, ctx := testStore(t)
 	assetID := seedAsset(t, s, ctx)
