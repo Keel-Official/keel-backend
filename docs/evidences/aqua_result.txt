@@ -1,0 +1,2559 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=AQUA\u0026cursor=AQUA_GAPBQM3OO5H2BMRRGZ2MD7VCIFKCA5XOQHYKOD2MP4TEMTP2KKEXDILB_credit_alphanum4\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=AQUA\u0026cursor=AQUA_GDZGPS333DSC7CR453J4CDVFA4IKS3UJMA3SZRCH6CLRPDDIZMXAQ7H3_credit_alphanum4\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=AQUA\u0026cursor=AQUA_GAPI2SOWJSTKJ2LPHWNEGIO2T5DVG3L7TEP4V4IJ4A2XSRTN2LP6WZYM_credit_alphanum4\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://xcrypto-stellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAPI2SOWJSTKJ2LPHWNEGIO2T5DVG3L7TEP4V4IJ4A2XSRTN2LP6WZYM",
+        "paging_token": "AQUA_GAPI2SOWJSTKJ2LPHWNEGIO2T5DVG3L7TEP4V4IJ4A2XSRTN2LP6WZYM_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 312,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "9999323300.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAPJBAMFA657HY2OAIKDZQASMPMUQ3HE4IBEB4PCVOZY6Q3A6NHBAHUR",
+        "paging_token": "AQUA_GAPJBAMFA657HY2OAIKDZQASMPMUQ3HE4IBEB4PCVOZY6Q3A6NHBAHUR_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stelarmart.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAPM6UZZNYQOMYYSTHHNKK5RKOZNSEGHYA7I4ZO5LCD3VGZEAQXIZMST",
+        "paging_token": "AQUA_GAPM6UZZNYQOMYYSTHHNKK5RKOZNSEGHYA7I4ZO5LCD3VGZEAQXIZMST_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 6,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1999849999.3099631",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAR5FMJR3D6FQUDPRZC4JYICFCBM5ZQRAWOJYXO7QHAHBBZQ5TM27EI6",
+        "paging_token": "AQUA_GAR5FMJR3D6FQUDPRZC4JYICFCBM5ZQRAWOJYXO7QHAHBBZQ5TM27EI6_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "320000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ultracapital.xyz/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "paging_token": "AQUA_GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://xgenerator-stellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAS7FRW7I5PF7GUDC7CZTA56N3EJOM3C476JKQ67A74M3HN74CIVWFRR",
+        "paging_token": "AQUA_GAS7FRW7I5PF7GUDC7CZTA56N3EJOM3C476JKQ67A74M3HN74CIVWFRR_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 192,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAVFL45CJUXLKXKOQ5CGNS2NTCP25SYIGSW23I26FSGLBL6W3ZYT45QB",
+        "paging_token": "AQUA_GAVFL45CJUXLKXKOQ5CGNS2NTCP25SYIGSW23I26FSGLBL6W3ZYT45QB_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 0,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0100000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://dex.stellarfusion.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAVFQOZP4HV6UBNCE2S2HKLNUV4V5YLV6IKWLGNL74ZQJMRQLWYLWDEX",
+        "paging_token": "AQUA_GAVFQOZP4HV6UBNCE2S2HKLNUV4V5YLV6IKWLGNL74ZQJMRQLWYLWDEX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 7,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "2790.5825000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999997209.4175000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAWLO2TIWQBTUVBSRACJLMXOAAOWEFL75UZF57QLAXMKOWBJZGPLX3BD",
+        "paging_token": "AQUA_GAWLO2TIWQBTUVBSRACJLMXOAAOWEFL75UZF57QLAXMKOWBJZGPLX3BD_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 0,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarpredator.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAXI2WKTSYXLMMZWVY77NB4OLEKGDQ4IXKXD4UGXD7IW2XYMBPLW6PRZ",
+        "paging_token": "AQUA_GAXI2WKTSYXLMMZWVY77NB4OLEKGDQ4IXKXD4UGXD7IW2XYMBPLW6PRZ_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "5000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://staging.lobstr.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GAZS3HZHS5GR2WDME2CZ4NNTBGONPCHPAUKVSNP6A4UJMQXMFH526T3G",
+        "paging_token": "AQUA_GAZS3HZHS5GR2WDME2CZ4NNTBGONPCHPAUKVSNP6A4UJMQXMFH526T3G_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "2.0000010",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://centre.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GB26IFM76GQ5AXQZVSXO2VXC3IP6CSHJASJTWUGQPTQ2KY4QSF5P7V7M",
+        "paging_token": "AQUA_GB26IFM76GQ5AXQZVSXO2VXC3IP6CSHJASJTWUGQPTQ2KY4QSF5P7V7M_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 4,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 7,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "407829840665.5386261",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "514507363019.9389546",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://cbdc-tokens.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GB5UHD7I6CX22MYGNTVLCPEIA7ST3KWZLKENA666MNRRKQGWTD53PEJ5",
+        "paging_token": "AQUA_GB5UHD7I6CX22MYGNTVLCPEIA7ST3KWZLKENA666MNRRKQGWTD53PEJ5_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 112,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "899850000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GB6DI4JGRAV3Q3GMX24ZCP7BWDFWM7FNBDNHUTKGZGPYPLWAGZEVA4RY",
+        "paging_token": "AQUA_GB6DI4JGRAV3Q3GMX24ZCP7BWDFWM7FNBDNHUTKGZGPYPLWAGZEVA4RY_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://horizon.stellarweb3.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GB6TB242LFBBURIXAE6ZBZ3JYHFFCFEFMDDULQHLTHIQSYG3TU2CBTJG",
+        "paging_token": "AQUA_GB6TB242LFBBURIXAE6ZBZ3JYHFFCFEFMDDULQHLTHIQSYG3TU2CBTJG_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GB72MPLZKAUJTZXJRUMI4GJLGABTPZQZ4K7HRBB3GXHVIMECALNBENNB",
+        "paging_token": "AQUA_GB72MPLZKAUJTZXJRUMI4GJLGABTPZQZ4K7HRBB3GXHVIMECALNBENNB_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 11,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://qripple.fainance/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBASWKSOCGZAI2UFZ2ELWHSTG43U6E5RU2357OSX5BTE37YM45IARKLM",
+        "paging_token": "AQUA_GBASWKSOCGZAI2UFZ2ELWHSTG43U6E5RU2357OSX5BTE37YM45IARKLM_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "9000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBD7QFQVR4QWNEJSHP4VN7RAAUKXTMZ4EJ4EBMCR7CP3HMF7RXEASTD7",
+        "paging_token": "AQUA_GBD7QFQVR4QWNEJSHP4VN7RAAUKXTMZ4EJ4EBMCR7CP3HMF7RXEASTD7_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 20,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 3
+        },
+        "claimable_balances_amount": "1011603702.9000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "107503145823.8685506",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "100095427.5366307"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://spiaxrp.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBEEEUFSYEHBIMSZ42YXKSWLCUINNTBMBRAFEHINYT3VTPPDZ3PIEQSI",
+        "paging_token": "AQUA_GBEEEUFSYEHBIMSZ42YXKSWLCUINNTBMBRAFEHINYT3VTPPDZ3PIEQSI_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 10,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999999800.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.bond/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBGOCEGMKHJVPJRDJ5ACXZPTJK3QGH5JTS4E4VRYFMKDZ7DKIUVZLOBS",
+        "paging_token": "AQUA_GBGOCEGMKHJVPJRDJ5ACXZPTJK3QGH5JTS4E4VRYFMKDZ7DKIUVZLOBS_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 130,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1420073194909.9249681",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBJDANYDDAHPSRHOTCZMIHL352DPWZCJIIBPSYFCHRF4EPMY5MNMAQUA",
+        "paging_token": "AQUA_GBJDANYDDAHPSRHOTCZMIHL352DPWZCJIIBPSYFCHRF4EPMY5MNMAQUA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "50000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://newqfs.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBJHJSN7HIQQYDYEFG6QZG27IRQCCF3MMSN6G7U775OKDHKHJUTXFNEW",
+        "paging_token": "AQUA_GBJHJSN7HIQQYDYEFG6QZG27IRQCCF3MMSN6G7U775OKDHKHJUTXFNEW_credit_alphanum4",
+        "num_claimable_balances": 269,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 550,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "4365000000.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "901941497880.0190498",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBK6HDRLZT7XCXF4DU6LK6BW4WQZFICOQYQ7DNZ4PBLDKXWHXJ6QAQUA",
+        "paging_token": "AQUA_GBK6HDRLZT7XCXF4DU6LK6BW4WQZFICOQYQ7DNZ4PBLDKXWHXJ6QAQUA_credit_alphanum4",
+        "num_claimable_balances": 6,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 581,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "150265021.5010000",
+        "liquidity_pools_amount": "65252819.3211780",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "615836712900.8504933",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.forex/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBNBDSPX52V4OL65AW756NELTBER7ZKWG5BH25OTEETASKYNEO2UXSTR",
+        "paging_token": "AQUA_GBNBDSPX52V4OL65AW756NELTBER7ZKWG5BH25OTEETASKYNEO2UXSTR_credit_alphanum4",
+        "num_claimable_balances": 2,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 56,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "100010804.6003563",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "790192278.8000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua.network/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "paging_token": "AQUA_GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA_credit_alphanum4",
+        "contract_id": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+        "num_claimable_balances": 41541,
+        "num_liquidity_pools": 1308,
+        "num_contracts": 196,
+        "accounts": {
+          "authorized": 191838,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "13841032739.0282474",
+        "liquidity_pools_amount": "514779424.3316828",
+        "contracts_amount": "4810639132.4251274",
+        "balances": {
+          "authorized": "80743625611.0396231",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://xlmcoin.top/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBO45U346PP2VZOYHAC4XTZVFHWKNAV67OHNJWJSZEIXUWAJOOF3FPQU",
+        "paging_token": "AQUA_GBO45U346PP2VZOYHAC4XTZVFHWKNAV67OHNJWJSZEIXUWAJOOF3FPQU_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 12,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "97103851.0452791",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "19902896148.9547209",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBOWN3AESUJHAYML4VWRLN3A7ZJV5HPKII53MXNKVUOKWDBQ37XALOBS",
+        "paging_token": "AQUA_GBOWN3AESUJHAYML4VWRLN3A7ZJV5HPKII53MXNKVUOKWDBQ37XALOBS_credit_alphanum4",
+        "num_claimable_balances": 3,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 234,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "50007666.2388601",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "803367035540.0699842",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://franklintempleton.co.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBQONCELXNRYUDGHPZDZXV32BVHXHVF3ML34OP2E4ZEI42HHMLLSMDAO",
+        "paging_token": "AQUA_GBQONCELXNRYUDGHPZDZXV32BVHXHVF3ML34OP2E4ZEI42HHMLLSMDAO_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 5,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "10000.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999990000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://yaqua.network/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBU3NXEPIVU6ZANHROSUWUG3D4PPOVRDRD3MTSVGBE2NWSDL3VQAAQUA",
+        "paging_token": "AQUA_GBU3NXEPIVU6ZANHROSUWUG3D4PPOVRDRD3MTSVGBE2NWSDL3VQAAQUA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 4,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "899999999898.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarterm.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBUC72BL3FYPJQWA4QBRAMAIIE4XWL4HGHAXRPD7YQHHEYVF7CV6MV2Q",
+        "paging_token": "AQUA_GBUC72BL3FYPJQWA4QBRAMAIIE4XWL4HGHAXRPD7YQHHEYVF7CV6MV2Q_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarport.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
+        "paging_token": "AQUA_GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarvault.exchange/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBVYIKXNUTHKFATNFRIVPS4WIT6XKXVHBW6X3LFLPQURYVYFNTID2EAW",
+        "paging_token": "AQUA_GBVYIKXNUTHKFATNFRIVPS4WIT6XKXVHBW6X3LFLPQURYVYFNTID2EAW_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://trustlines.pages.dev/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBWE52WZZHZ5FFUKRWVEV3OOP5ZCGP6ADC24H3D3AL7CVDBBVTK46AFX",
+        "paging_token": "AQUA_GBWE52WZZHZ5FFUKRWVEV3OOP5ZCGP6ADC24H3D3AL7CVDBBVTK46AFX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 11,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "15868677778.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "14131322222.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBWXZENM5VHP5TIVKL66KOWEKPT3S7IVTPJALOBRJ5KI4ZNHRQPQHTZG",
+        "paging_token": "AQUA_GBWXZENM5VHP5TIVKL66KOWEKPT3S7IVTPJALOBRJ5KI4ZNHRQPQHTZG_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://AQUAstellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBYI5PYLB3GB72JGZKKGDAFAQIJJEEBHNO6SXGJKS2QA4BP2UHOBPP3D",
+        "paging_token": "AQUA_GBYI5PYLB3GB72JGZKKGDAFAQIJJEEBHNO6SXGJKS2QA4BP2UHOBPP3D_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 47,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99961762933.3206107",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua-guardian.digital/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBZ7CWS4KY6ZYVDEWNWUS4Z44SXPKY5LNEWMGDMSRH5UIRD7EGQPAQUA",
+        "paging_token": "AQUA_GBZ7CWS4KY6ZYVDEWNWUS4Z44SXPKY5LNEWMGDMSRH5UIRD7EGQPAQUA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999999999.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GC3SCJGAK7QU5SG7LV4ZWDJUMXFGP67TDNFCBC6E6UDVE2VECGMWG2NX",
+        "paging_token": "AQUA_GC3SCJGAK7QU5SG7LV4ZWDJUMXFGP67TDNFCBC6E6UDVE2VECGMWG2NX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "71000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GC4GCL3GHORQFRIWZTOFXXM3UWYV6FLC3ZBRZMZAZMVHIJCDQ77ZBC7U",
+        "paging_token": "AQUA_GC4GCL3GHORQFRIWZTOFXXM3UWYV6FLC3ZBRZMZAZMVHIJCDQ77ZBC7U_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GC6ZWKVYRAUSCLMQYKDQZNTUNVDH2J5J6IELIWHMF7THRUQJQTQFQANA",
+        "paging_token": "AQUA_GC6ZWKVYRAUSCLMQYKDQZNTUNVDH2J5J6IELIWHMF7THRUQJQTQFQANA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GC7HEDSWIEEBM4FG7GQAEO2FLEVFMOU6UFMKTIHX4ZGCIQQ5TOAILOBS",
+        "paging_token": "AQUA_GC7HEDSWIEEBM4FG7GQAEO2FLEVFMOU6UFMKTIHX4ZGCIQQ5TOAILOBS_credit_alphanum4",
+        "num_claimable_balances": 5,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 130,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "137418470.5150001",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "512403998971.8444903",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCABT6ZQZ27JKYEPFUHSCOIHKBDDJ655FNARPISHDHGZGPWAWGD3IALD",
+        "paging_token": "AQUA_GCABT6ZQZ27JKYEPFUHSCOIHKBDDJ655FNARPISHDHGZGPWAWGD3IALD_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 4,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1545360095.0479764",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarchains.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCC6GH6LDSHHND72QYCKFO4VVR3O6OZUFR7DGT6ACUQVIF6UCLM2SWVN",
+        "paging_token": "AQUA_GCC6GH6LDSHHND72QYCKFO4VVR3O6OZUFR7DGT6ACUQVIF6UCLM2SWVN_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ultracapitol.xyz/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCCHRFZZNVTP6GIN6XQ2QJFH32Q347XTIFONA5DVN56HWIHHFUGCN63O",
+        "paging_token": "AQUA_GCCHRFZZNVTP6GIN6XQ2QJFH32Q347XTIFONA5DVN56HWIHHFUGCN63O_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 9,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellareast.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCCODOYVXLSN2IZVV6WB43ZSVUTW2H6F3H63XDSTICQQMKPU557PEDML",
+        "paging_token": "AQUA_GCCODOYVXLSN2IZVV6WB43ZSVUTW2H6F3H63XDSTICQQMKPU557PEDML_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 38,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "49994383666.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lumen.exchange/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCD5ML6C5CAIO77HURQ3Z4JM64XGWRULNV43C4A6V3SLJQRYL3ITVLUM",
+        "paging_token": "AQUA_GCD5ML6C5CAIO77HURQ3Z4JM64XGWRULNV43C4A6V3SLJQRYL3ITVLUM_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 35,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "128762759.2500000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://liquidity347.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCFQPAPVF6QOG6PWX67QFPAYWAF2S3NVRFF4ULLHO2ENMCA5SS3N7LIQ",
+        "paging_token": "AQUA_GCFQPAPVF6QOG6PWX67QFPAYWAF2S3NVRFF4ULLHO2ENMCA5SS3N7LIQ_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 345,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1415217991920.6470626",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://wrc-airdrops.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCFZV3RJKJDENW3AYRT2WIEREOQZ3IU5IZIQGY6ZDUQYXPNWRZDVY6QL",
+        "paging_token": "AQUA_GCFZV3RJKJDENW3AYRT2WIEREOQZ3IU5IZIQGY6ZDUQYXPNWRZDVY6QL_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 236,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "3690000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://interstellar.network/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCJ6EUWRYUMZPFLXPZVNQEAJ2OCNJLKKYLLJB6K2GS6N77DNK5FC2J5I",
+        "paging_token": "AQUA_GCJ6EUWRYUMZPFLXPZVNQEAJ2OCNJLKKYLLJB6K2GS6N77DNK5FC2J5I_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua-stellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCJSNGTGZO4ULSZCVNOCJU3EYT2JCMJFKY4X3TCGPDQYEAHZMCWKKWUO",
+        "paging_token": "AQUA_GCJSNGTGZO4ULSZCVNOCJU3EYT2JCMJFKY4X3TCGPDQYEAHZMCWKKWUO_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 2,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 264,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "100000.0000000",
+        "liquidity_pools_amount": "115768.9196513",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999731079.0741697",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.claims/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCL2BFTGS4TQ33ABSUJ4IXNXTWPCASY4OCZ6LQZ3OCYFNDUTOEBMRSTR",
+        "paging_token": "AQUA_GCL2BFTGS4TQ33ABSUJ4IXNXTWPCASY4OCZ6LQZ3OCYFNDUTOEBMRSTR_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "10000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aquanatura.me/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCLZVLYTHEZBQBFWGDV67O7CHFP5KFBBMSIML7VBP3BD44CW53GK5Q2Q",
+        "paging_token": "AQUA_GCLZVLYTHEZBQBFWGDV67O7CHFP5KFBBMSIML7VBP3BD44CW53GK5Q2Q_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 14,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "322228.3709812",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99089575770.4424858",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCNKFZDB2AX4HEXE274DTOQNYLA5YYN2ZBWCVGKVOL7E6BK5AMU3ENJA",
+        "paging_token": "AQUA_GCNKFZDB2AX4HEXE274DTOQNYLA5YYN2ZBWCVGKVOL7E6BK5AMU3ENJA_credit_alphanum4",
+        "num_claimable_balances": 6,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "6000000.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99994000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://cryptox.litemint.store/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCOTIWQ3W5KMPIP2FZOFUKDABRD2A4WBFCL3XLZVAUANYCBKWTPGV2X3",
+        "paging_token": "AQUA_GCOTIWQ3W5KMPIP2FZOFUKDABRD2A4WBFCL3XLZVAUANYCBKWTPGV2X3_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "3.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "899999999997.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCSAZQ7YLPFXB22LYJQLU2SPVSSFVUACOPXXTN5243RHYKJIIZXAOZWZ",
+        "paging_token": "AQUA_GCSAZQ7YLPFXB22LYJQLU2SPVSSFVUACOPXXTN5243RHYKJIIZXAOZWZ_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "500.0000010",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua.markets/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCSVGERPVISO2GEIBXF4VQMTCZE56G7VW5UQ35PKWPTNNCJVJ35BVTIN",
+        "paging_token": "AQUA_GCSVGERPVISO2GEIBXF4VQMTCZE56G7VW5UQ35PKWPTNNCJVJ35BVTIN_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999999840.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellargemstones.xyz/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCTHHZ63CMTTMN2JTHVE34PTUQDMEUKPHFUHQBUYGHTKLZOU7L6VKHBD",
+        "paging_token": "AQUA_GCTHHZ63CMTTMN2JTHVE34PTUQDMEUKPHFUHQBUYGHTKLZOU7L6VKHBD_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 151,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "27133029.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "9964776720.9975850",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://sorobandomains.vercel.app/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCUZ2JFESETN5XCICBJCYXCUYFH5S5QALRZYW2Z22DJZ2SGURPGAGSEN",
+        "paging_token": "AQUA_GCUZ2JFESETN5XCICBJCYXCUYFH5S5QALRZYW2Z22DJZ2SGURPGAGSEN_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 24,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "922337203684.4775807",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": true,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aiqua.network/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCWP6DV6PR7G4AEIBLP2VUBTGBAW42YVDVUEP6HF7JAYSKMPOUUBWUAB",
+        "paging_token": "AQUA_GCWP6DV6PR7G4AEIBLP2VUBTGBAW42YVDVUEP6HF7JAYSKMPOUUBWUAB_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 5,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99994718364.1839005",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://limitedstellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCWRD7DXFTA3TDUIHXRLUBY4RNJCEHUYJ5LQB3QWNYITSXIRDBGRGT32",
+        "paging_token": "AQUA_GCWRD7DXFTA3TDUIHXRLUBY4RNJCEHUYJ5LQB3QWNYITSXIRDBGRGT32_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 96,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "48793485409.9053208",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua-network.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GCYHKFHLUGSBMQS3ZLOFESGKHJQQRVF7XN3VFSZGSLJROOGEFDTSAQUA",
+        "paging_token": "AQUA_GCYHKFHLUGSBMQS3ZLOFESGKHJQQRVF7XN3VFSZGSLJROOGEFDTSAQUA_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1626,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "3.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "31987.4550489",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarmarketcap.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GD3FD6U2DVWZ4S55UIOKOCWBX6YCB34VM7XRIHXG6VWI2LBVHJVL2UTX",
+        "paging_token": "AQUA_GD3FD6U2DVWZ4S55UIOKOCWBX6YCB34VM7XRIHXG6VWI2LBVHJVL2UTX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 63,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "6852459037.1999900",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://publicstellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GD65BTTYDWK2OYFIPDYOWVTDOAHJSF2JAIBFZHB5DNM4O24XNEHJNQEP",
+        "paging_token": "AQUA_GD65BTTYDWK2OYFIPDYOWVTDOAHJSF2JAIBFZHB5DNM4O24XNEHJNQEP_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 27,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "69917399998.9499996",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://coinonstellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GD7X2FPZ7V6T3RV6FKOJMCCLEKK2XLNTR2GZ6NXKNOAZ5D3TKPE3TBRK",
+        "paging_token": "AQUA_GD7X2FPZ7V6T3RV6FKOJMCCLEKK2XLNTR2GZ6NXKNOAZ5D3TKPE3TBRK_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 32,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1565768807.2204861",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua.markets/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDAMQ4XSL43AEQVD3YHSFA6L6UWGGSLHFVE7ND2OBA2F3I7YDGFY5N45",
+        "paging_token": "AQUA_GDAMQ4XSL43AEQVD3YHSFA6L6UWGGSLHFVE7ND2OBA2F3I7YDGFY5N45_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999999840.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://AQUA Community DAO/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDB3GJCDWLAMVV7ZL6Q7BH3PGVMFWHA5KSRIY2NML3RXX35ESL3MBOXU",
+        "paging_token": "AQUA_GDB3GJCDWLAMVV7ZL6Q7BH3PGVMFWHA5KSRIY2NML3RXX35ESL3MBOXU_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua.tomlhosting.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDD343CKWZQT6ALNWWBTUU3EBLCVGNQ7QFEBA4GWSPPMIJ2BAJR42AAX",
+        "paging_token": "AQUA_GDD343CKWZQT6ALNWWBTUU3EBLCVGNQ7QFEBA4GWSPPMIJ2BAJR42AAX_credit_alphanum4",
+        "num_claimable_balances": 90,
+        "num_liquidity_pools": 7,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 51,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "830.0000000",
+        "liquidity_pools_amount": "70627.9420834",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "899999928482.0579166",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://native-rwa.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDE523GTP5CJT66A6EPSAKSDGJ5HVE3XXP3JVC5MKGPYNJWIXOJ4GPQ4",
+        "paging_token": "AQUA_GDE523GTP5CJT66A6EPSAKSDGJ5HVE3XXP3JVC5MKGPYNJWIXOJ4GPQ4_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 238,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "18700.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999981300.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDEC5WYGH2BWYIHHALV6WAHQQV4L4NZBDXWI5ZOKAF53R4DO5ZE5AQUA",
+        "paging_token": "AQUA_GDEC5WYGH2BWYIHHALV6WAHQQV4L4NZBDXWI5ZOKAF53R4DO5ZE5AQUA_credit_alphanum4",
+        "num_claimable_balances": 6,
+        "num_liquidity_pools": 3,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 470,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "45355.8406331",
+        "liquidity_pools_amount": "792243.7237826",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "646731475157.8825299",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://AQUA Airdrop 2/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDFCYDQOVJ2OEWPLEGIRQVAM3VTOQ6JDNLJTDZP5S5OGTEHM5CIWMYBH",
+        "paging_token": "AQUA_GDFCYDQOVJ2OEWPLEGIRQVAM3VTOQ6JDNLJTDZP5S5OGTEHM5CIWMYBH_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarstudio.online/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDHE4ZB4ULK2SB6JV4EJJKI4JFAFRH3WGQAG2TLZ3Q2RNSPP4AC2L65F",
+        "paging_token": "AQUA_GDHE4ZB4ULK2SB6JV4EJJKI4JFAFRH3WGQAG2TLZ3Q2RNSPP4AC2L65F_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 165,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99947672611.1282762",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://hiddenstellar.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDIZIFKMCCRCHHVNUQS3RLJVIY5KBOVYYIIXPQSPYHLRBCK3EIMQKY37",
+        "paging_token": "AQUA_GDIZIFKMCCRCHHVNUQS3RLJVIY5KBOVYYIIXPQSPYHLRBCK3EIMQKY37_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 13,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "25000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarchips.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDKRZXHMPRKMQNPXK4ENTX7NF2PRWPRURJUCXVG4G2GX5UQJMI7XXBVI",
+        "paging_token": "AQUA_GDKRZXHMPRKMQNPXK4ENTX7NF2PRWPRURJUCXVG4G2GX5UQJMI7XXBVI_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 7,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "250000031.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDOJ7BMYS46Z6X6GOXIXYAVICETHMDENP36TOLGPDRAMAAEECNCTIEXA",
+        "paging_token": "AQUA_GDOJ7BMYS46Z6X6GOXIXYAVICETHMDENP36TOLGPDRAMAAEECNCTIEXA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 8,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99665150443.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": ""
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDQ4WU7K6WPL2ANIEKENITA4EMXHL54SJKRQQK42O7WKFDNPZK7AAQUA",
+        "paging_token": "AQUA_GDQ4WU7K6WPL2ANIEKENITA4EMXHL54SJKRQQK42O7WKFDNPZK7AAQUA_credit_alphanum4",
+        "num_claimable_balances": 6,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "26000200.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stablestellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDQKA2KDETP4QLJSB6KZ2JEU7GCLSHCKWZOPOHGHLSMFBTZVBGGCOCOM",
+        "paging_token": "AQUA_GDQKA2KDETP4QLJSB6KZ2JEU7GCLSHCKWZOPOHGHLSMFBTZVBGGCOCOM_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 19,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "49955001992.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://dex.intrestellar.exchange/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDVYDP2RDEW6DMYYOHPPOZZH3HSR2T36XF4HWOTBC2WFJ2Z4PLXT5DEX",
+        "paging_token": "AQUA_GDVYDP2RDEW6DMYYOHPPOZZH3HSR2T36XF4HWOTBC2WFJ2Z4PLXT5DEX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://aqua.trading/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GDZGPS333DSC7CR453J4CDVFA4IKS3UJMA3SZRCH6CLRPDDIZMXAQ7H3",
+        "paging_token": "AQUA_GDZGPS333DSC7CR453J4CDVFA4IKS3UJMA3SZRCH6CLRPDDIZMXAQ7H3_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "99999999640.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}
