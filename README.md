@@ -180,7 +180,9 @@ does not exist` rather than a refused connection. The published port moved on 26
 August 2026 and `DefaultDSN` moved with it, so the defaults need no argument.
 
 **If a connection still fails with `role "keel" does not exist`**, something on
-this machine is answering 5433 too. Point the client at the container explicitly:
+this machine is answering 5433 too. `make store-test` runs a preflight before the
+suite and says which it is, rather than failing 31 tests identically. Point the
+client at the container explicitly:
 
 ```bash
 make store-test KEEL_TEST_DSN="postgres://keel:keel_dev_only@<container-address>:5433/keel?sslmode=disable"

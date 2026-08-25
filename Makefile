@@ -66,7 +66,17 @@ conformance:
 # and does not close it. Anything already on 5433 wins the same way.
 KEEL_TEST_DSN ?= postgres://keel:keel_dev_only@localhost:5433/keel?sslmode=disable
 
+# THE PREFLIGHT RUNS FIRST AND ALONE, and make stops here when it fails. On 26
+# August 2026 a DSN naming 5432 reached the host's Postgres instead of the
+# container and all 31 tests failed with the same connection error, which reads
+# like a broken package rather than a misdirected client. One diagnosis is worth
+# more than 31 symptoms.
+#
+# It is a Go test and not a psql or nc probe: psql is not guaranteed to be on the
+# host, and a TCP probe would have PASSED that day, because the port was open and
+# a Postgres was answering it. See the comment on the test itself.
 store-test:
+	@KEEL_TEST_DSN="$(KEEL_TEST_DSN)" go test ./internal/store/ -count=1 -run "^TestPreflight"
 	KEEL_TEST_DSN="$(KEEL_TEST_DSN)" go test ./internal/store/ -count=1 -v
 
 # api-mocks writes every example response in the contract out as standalone JSON

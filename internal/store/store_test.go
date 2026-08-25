@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -51,6 +52,75 @@ func testStore(t *testing.T) (*Store, context.Context) {
 		_ = db.Close()
 	})
 	return &Store{db: tx}, ctx
+}
+
+// PREFLIGHT. It runs alone, before the suite, because `make store-test` invokes
+// it that way, and make stops on its failure.
+//
+// WHY IT EXISTS. On 26 August 2026 a DSN naming port 5432 reached the Postgres
+// installed on the host rather than this project's container, and every one of
+// the 31 tests in this file failed with the same connection error. Thirty-one
+// identical failures read like a broken package. They were a misdirected client,
+// and one diagnosis is worth more than thirty-one symptoms.
+//
+// WHY IT IS A GO TEST rather than a psql or nc probe in the Makefile. It has to
+// use the same driver and the same DSN as testStore, because a preflight that
+// checks something else can pass while the suite fails. `psql` is not guaranteed
+// to be installed on the host at all. A TCP probe would have PASSED on the day
+// this was needed: the port was open and a Postgres was answering it, just not
+// this one, and the refusal came back at authentication rather than at connect.
+//
+// WHAT IT CANNOT PROVE. That the server on the other end is the container. A
+// second Postgres carrying a keel role and a schema_migrations table would
+// satisfy both checks. It proves the DSN reaches A server that this package can
+// use, which is the question the 31 failures were really asking.
+func TestPreflightTheDSNReachesAUsablePostgres(t *testing.T) {
+	dsn := os.Getenv("KEEL_TEST_DSN")
+	if dsn == "" {
+		t.Skip("KEEL_TEST_DSN is unset; see the comment above testStore")
+	}
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		t.Fatalf("open %s: %v", dsnHost(dsn), err)
+	}
+	defer func() { _ = db.Close() }()
+
+	// A bounded wait. Without it an address that accepts a connection and never
+	// answers hangs until go test's own ten minute timeout, which is the slowest
+	// possible way to deliver this message.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		t.Fatalf("cannot use Postgres at %s: %v\n"+
+			"  `role \"keel\" does not exist` means the address ANSWERED and is not this\n"+
+			"  project's container: a Postgres installed on the host binds 127.0.0.1:5432\n"+
+			"  while Docker binds the wildcard, so loopback reaches the host server. The\n"+
+			"  container publishes 5433. Run `make up && make migrate`, or point\n"+
+			"  KEEL_TEST_DSN at the container directly.", dsnHost(dsn), err)
+	}
+
+	// Connected is not enough. `make migrate` goes through `docker compose exec`
+	// and never touches a published port, so it can report success against a
+	// database this DSN has never reached.
+	s := &Store{db: db}
+	if _, err := s.SchemaVersion(ctx); err != nil {
+		t.Fatalf("connected to %s and schema_migrations is not readable: %v\n"+
+			"  Either no migration has been applied here (run `make migrate`), or this\n"+
+			"  is a different Postgres that happens to carry a keel role.", dsnHost(dsn), err)
+	}
+}
+
+// dsnHost is the host and port of a DSN with the credentials dropped. The
+// password in the default is the public development one, but an overridden
+// KEEL_TEST_DSN may hold a real one, and a failing test's log is the wrong place
+// to discover that.
+func dsnHost(dsn string) string {
+	u, err := url.Parse(dsn)
+	if err != nil || u.Host == "" {
+		return "the configured DSN"
+	}
+	return u.Host
 }
 
 var (

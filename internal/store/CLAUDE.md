@@ -141,4 +141,7 @@ moved with it.
 
 Moving the port narrows the collision and does not close it, so the escape hatches
 stay: `keel assets` prints the hint on any connection failure, and `make store-test`
-takes `KEEL_TEST_DSN` so the container can be addressed directly.
+takes `KEEL_TEST_DSN` so the container can be addressed directly. That target
+also runs `TestPreflightTheDSNReachesAUsablePostgres` on its own before the
+suite, so a misdirected DSN produces one diagnosis instead of 31 identical
+connection errors.
