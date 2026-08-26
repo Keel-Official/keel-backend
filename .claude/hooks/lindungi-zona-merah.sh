@@ -24,11 +24,22 @@
 # WHAT REMAINS RED, and it is red all the way down:
 #
 #   testdata/fixtures/   the golden fixture
+#   testdata/manual/     the Layer 1 hand recomputations, added 26 August 2026
 #   docs/context/        the SoW and the execution plan
 #
-# These are matched in ANY form, a named file inside them included. Neither holds
-# a single file Claude maintains, so the narrowness that once protected types.go
-# has nothing to protect here. Finding P2-11.
+# These are matched in ANY form, a named file inside them included. None of them
+# holds a single file Claude maintains, so the narrowness that once protected
+# types.go has nothing to protect here. Finding P2-11.
+#
+# testdata/manual/ IS LOCKED BEFORE IT EXISTS, and that is the point rather than an
+# oversight. It will hold the hand recomputation spreadsheets that are the
+# independent oracle for compute.go, and the moment worth protecting is the one
+# before the first file lands: a directory that spends even a day writable is a
+# directory whose first spreadsheet may have been produced by the thing it exists
+# to check, and nothing downstream can tell afterwards which numbers those were.
+# Every other rule in this file was added after the fact, to a path that already
+# had contents. This one is not, so the ordinary reading of an empty match here is
+# that the work has not started, never that the guard is dead.
 #
 # The fixture is the one that matters most now. With compute.go yellow, the fixture
 # is the ONLY remaining structural guarantee that the implementation is checked
@@ -144,15 +155,19 @@ fi
 line=$(printf '%s ' "$body" | tr '\n' ';')
 
 # The zones that are red ALL THE WAY DOWN: matched in any form, a named file inside
-# them included, because neither holds a file Claude maintains. The trailing class
-# costs nothing, since the line always ends in a space, and it keeps a sibling like
-# testdata/fixtures_old out of the match.
+# them included, because none of them holds a file Claude maintains. The trailing
+# class costs nothing, since the line always ends in a space, and it keeps a sibling
+# like testdata/fixtures_old out of the match. testdata/manual gets that same
+# protection from the same trailing class, which is why the two testdata paths are
+# listed in full rather than folded into testdata/(fixtures|manual): the folded form
+# is one character from becoming a bare testdata/ prefix under a later edit, and a
+# prefix that wide would swallow every sibling the class was added to exclude.
 #
 # This is kept as zone_any, a name wider than its current contents, because rule B
-# below reads it to find a REDIRECT into a zone, and because a second family may be
+# below reads it to find a REDIRECT into a zone, and because a further family may be
 # added here later. `echo x > testdata/fixtures/f.md` carries no mutating verb for
 # rule C to catch; left out of this variable, that write walks straight through.
-zone_any='(testdata/fixtures|docs/context)[^[:alnum:]_]'
+zone_any='(testdata/fixtures|testdata/manual|docs/context)[^[:alnum:]_]'
 
 # P2-6d fix, part 2: command position anchor. A verb is only a verb at the start of
 # the line or after a shell separator (|, ;, &, &&, ||, an opening paren, and a
@@ -237,7 +252,8 @@ gofmt -l . is read only and allowed."
 fi
 
 # Everything below concerns a red path, so one message serves both remaining rules.
-message="testdata/fixtures/ and docs/context/ are RED ZONES, red all the way down.
+message="testdata/fixtures/, testdata/manual/ and docs/context/ are RED ZONES, red
+all the way down.
 
 The golden fixture's numbers are computed BY HAND before any implementation exists,
 and internal/conformance/fixture.go says it in its own header: do not adjust these
@@ -246,6 +262,12 @@ than it used to. compute.go is yellow as of 25 August 2026, so the fixture is no
 only structural guarantee that the implementation is checked against numbers derived
 independently of it. A fixture Claude can edit is a fixture that confirms whatever
 the code already does.
+
+testdata/manual/ holds the Layer 1 hand recomputations, which are the independent
+oracle for compute.go, and it is red for exactly the same reason one step further
+back: numbers produced by Claude must never become the numbers that test Claude's
+code. It is locked before it exists, so a refusal here on an empty directory is the
+guard working early rather than a stale rule.
 
 docs/context/ holds the SoW and the execution plan, which are inputs from outside
 and are read, never written.

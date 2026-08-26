@@ -27,6 +27,8 @@
     "deny": [
       "Edit(testdata/fixtures/**)",
       "Write(testdata/fixtures/**)",
+      "Edit(testdata/manual/**)",
+      "Write(testdata/manual/**)",
       "Edit(docs/context/**)",
       "Write(docs/context/**)",
       "Read(.env)",
