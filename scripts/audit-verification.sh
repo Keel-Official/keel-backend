@@ -709,8 +709,12 @@ syarat "the contract is structurally valid OpenAPI 3.1" contract_validates
 syarat "docs/api/mocks matches the contract, so the frontend is not served stale data" mocks_fresh
 
 section "Repository visibility, see DEC-004"
-# This section needs the network and gh. It is skipped when either is missing,
-# because this script has to stay useful offline.
+# ONLY THE BLOCK BELOW needs the network and gh, and it is skipped when either is
+# missing, because this script has to stay useful offline. The two checks that
+# follow it read local git alone and therefore always run: whether the history is
+# clean is exactly the work that has to happen WHILE the repository is still
+# private, so gating it on the repository already being public would report it
+# only once it was too late to act on.
 if ! command -v gh >/dev/null 2>&1; then
   echo "       gh is not installed, the visibility check is skipped"
 elif ! private=$(gh repo view Keel-Official/keel-backend --json isPrivate --jq '.isPrivate' 2>/dev/null); then
@@ -722,16 +726,70 @@ else
   remaining=0
   for f in docs/context/Keel_SoW.pdf docs/internal; do
     if git ls-files --error-unmatch "$f" >/dev/null 2>&1 || [ -d "$f" ]; then
-      printf "%s  DEC-004 VIOLATION  %s is still present although the repository is PUBLIC%s\n" "$red" "$f" "$off"
+      printf "%s  DEC-004 VIOLATION  %s is still in the working tree although the repository is PUBLIC%s\n" "$red" "$f" "$off"
       remaining=$((remaining + 1))
     fi
   done
   if [ "$remaining" = 0 ]; then
-    printf "%s       public, and both files are out. The DEC-004 condition is met%s\n" "$green" "$off"
+    printf "%s       working tree clean: public, and both paths are out of the working tree%s\n" "$green" "$off"
   else
     echo "       See DEC-004 section 2. git rm alone is not enough; both are already in the history"
   fi
 fi
+
+# THE WORKING TREE IS NOT THE REPOSITORY, and until 26 August 2026 this section
+# behaved as though it were. The block above asks `git ls-files` and `[ -d ]`,
+# which is a question about the current commit and the current disk, and it
+# answered "the DEC-004 condition is met" while every byte of docs/internal/ and
+# docs/context/ was still reachable from `--all` and would land in the working
+# directory of anyone who cloned. DEC-004 section 2 says this in words -- "git rm
+# alone is not sufficient" -- and the check that was supposed to enforce section 2
+# could not see the thing section 2 is about. That is the worst shape a report can
+# take: not silence, but a green line that stops the reader.
+#
+# So the working-tree check keeps its logic untouched and loses its overbroad
+# label, and history gets its own line. The two can disagree, and the point is
+# that they can: clean tree plus dirty history is the state this repository is
+# actually in, and it is the one state the old single check could not express.
+#
+# THE COUNT IS THE FINDING, not the boolean. "history is dirty" is a fact to file
+# away; "35 objects are reachable" is a number that goes down as filter-repo runs
+# and reaches zero when the work is done, so it is what gets printed. `grep -c`
+# exits 1 on a count of zero, hence the `|| true`, which is the same guard
+# questions_answered() uses above.
+leaked_objects=$(git rev-list --objects --all 2>/dev/null | grep -cE 'docs/(internal|context)/' || true)
+leaked_objects=${leaked_objects:-0}
+check DEC-004 "docs/context/ and docs/internal/ are still reachable in the git history" \
+  test "$leaked_objects" -gt 0
+if [ "$leaked_objects" -gt 0 ]; then
+  printf "%s       %s objects under docs/internal/ or docs/context/ are reachable from --all, expected 0%s\n" \
+    "$red" "$leaked_objects" "$off"
+  echo "       Anyone who clones gets them. DEC-004 section 2 gives the two roads: filter-repo now,"
+  echo "       while nobody has forked, or a fresh public repository with one clean initial commit"
+else
+  printf "%s       history clean: no object path under docs/internal/ or docs/context/ is reachable from --all%s\n" "$green" "$off"
+fi
+
+# INFO, NOT PASS/FAIL, and deliberately so. A public history exposes the author
+# and committer identity of every commit, which is a real consequence of DEC-004
+# and belongs in this section. But WHICH identities are acceptable is Al's
+# decision, and DEC-004 has not made it: there is no allowed set to compare
+# against, so a PASS or FAIL here would be this script inventing the policy it is
+# supposed to be checking. It reports and does not judge.
+#
+# NO ADDRESS IS WRITTEN INTO THIS FILE. The set is read out of the history, and
+# only the DOMAINS are printed, never the addresses. This report is piped, pasted
+# and read by people, and a check about not publishing a personal address should
+# not be the thing that publishes it. The address COUNT is safe to print and is
+# what tells Al whether the domain list is hiding several identities.
+ident_domains(){ git log --all --format='%ae%n%ce' 2>/dev/null | sort -u | sed 's/.*@//' | sort -u; }
+ident_addr_count=$(git log --all --format='%ae%n%ce' 2>/dev/null | sort -u | grep -c . || true)
+ident_domain_list=$(ident_domains | tr '\n' ' ' | sed 's/ *$//')
+ident_domain_count=$(ident_domains | grep -c . || true)
+printf "       INFO  %s distinct author/committer email domains in history, across %s distinct addresses\n" \
+  "${ident_domain_count:-0}" "${ident_addr_count:-0}"
+printf "       INFO  domains: %s\n" "${ident_domain_list:-none}"
+echo "       Not scored. DEC-004 names no acceptable set, and until it does this is Al's call to make"
 
 section "Golden fixture arithmetic, recomputed from scratch"
 python3 - <<'PY'
