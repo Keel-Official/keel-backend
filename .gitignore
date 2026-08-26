@@ -81,3 +81,13 @@
 # skips recordings/ and for the same reason, which is why it needs no row in the
 # CLAUDE.md zone map.
 /scripts/history-migration/
+
+# The red zone work report, written for Al on 26 August 2026 and kept LOCAL.
+#
+# Same category as /docs/internal/ above: it carries an allocation of work and
+# criticism of the repository, which is exactly what DEC-004 section 2 took out
+# before this repository went public. It is also written in Indonesian, and
+# DEC-005 makes English the repository language, so committing it would break two
+# rules at once. If it is ever wanted in git it has to be translated first and
+# rethought second.
+/laporan_pekerjaan_al.md
