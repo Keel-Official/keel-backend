@@ -100,21 +100,56 @@ adapter_unzoned()  { adapter_exists && ! grep -q "internal/adapter" CLAUDE.md; }
 # zoned, never that the zone is right. Fifth time this class of limit has come up
 # here, and the honest response is to write it down rather than pretend the check
 # is stronger than it is.
-# recordings/ and scripts/history-migration/ are excluded for the same reason:
-# both are gitignored, both exist only on the machine that produced them, and a
-# map row for a directory no clone has is a row nobody can check. The second one
-# is also the directory the map must NOT name for a different reason, recorded in
-# .gitignore: its two files carry the exposure markers as literal text.
+# IT ASKS GIT, AND IT USED TO ASK find. That changed on 26 August 2026 and the
+# reason is the finding rather than the fix.
+#
+# The old version walked the filesystem and then subtracted two directories by
+# name, recordings/ and scripts/history-migration/, on the stated grounds that both
+# were gitignored and a map row for a directory no clone has is a row nobody can
+# check. The grounds were sound and the implementation restated them as a guess.
+# The day recordings/samples/ was committed through the .gitignore negation, sixty
+# files entered the repository and walked straight past the one check that exists
+# to give every committed directory an owner, because the subtraction still named
+# the whole tree.
+#
+# `git ls-files` states the actual rule instead of approximating it: a directory
+# that holds a TRACKED file needs a row. Everything gitignored drops out because it
+# is gitignored, not because somebody remembered to list it, so re-including a new
+# path under recordings/ now makes this check speak up on its own. Untracked working
+# files are not in the repository and do not need an owner yet.
 mapped_dirs(){
-  find . -type f \
-    -not -path './.git/*' -not -path './recordings/*' \
-    -not -path './scripts/history-migration/*' -not -name '.DS_Store' \
-    -exec dirname {} \; 2>/dev/null | sort -u | sed 's|^\./||' | grep -v '^\.$'
+  git ls-files 2>/dev/null \
+    | grep -v '/\.DS_Store$' | grep -v '^\.DS_Store$' \
+    | xargs -n1 dirname 2>/dev/null | sort -u | grep -v '^\.$'
 }
+# A directory is covered by its own row OR by an ancestor's row, and that is a
+# DELIBERATE WEAKENING made on 26 August 2026, so it is written down rather than
+# slipped in.
+#
+# Exact matching was right while every tracked directory was hand made. It stopped
+# being right when recordings/samples/ landed: its contents are one directory per
+# pair per day, created by keel record, so exact matching demanded a map row for
+# sixty machine generated paths and one more for every pair on every future day. A
+# check that can only be satisfied by work nobody should do is a check that gets
+# switched off, and this repository has already lost coverage that way once.
+#
+# What is given up: a NEW subdirectory under a mapped path no longer announces
+# itself. It silently inherits its parent's zone. That is the correct answer for
+# recordings/samples/ and for docs/methodology/, and it would be the wrong answer
+# for a subdirectory that genuinely deserves a different owner. The map is still
+# the only place that decides, and this check still cannot tell whether a zone is
+# the RIGHT one, which the note above already says.
 unmapped_dirs(){
-  local d
+  local d p
   mapped_dirs | while IFS= read -r d; do
-    grep -qE "\`$d/?\`.*(GREEN|YELLOW|RED)" CLAUDE.md || printf '%s\n' "$d"
+    p=$d
+    while [ -n "$p" ] && [ "$p" != "." ]; do
+      if grep -qE "\`$p/?\`.*(GREEN|YELLOW|RED)" CLAUDE.md; then
+        continue 2
+      fi
+      p=$(dirname "$p")
+    done
+    printf '%s\n' "$d"
   done
 }
 zones_incomplete(){ [ -n "$(unmapped_dirs)" ]; }

@@ -40,9 +40,19 @@ zones, and what each one means:
 - **RED**: Al writes it. Your role is reviewer and questioner, not author. If Al
   asks you to write red zone content, refuse and offer `/teach` or `/review-mine`.
 
-**Every directory that holds a file is in the table below.** That is the point of
-it. A path with no row has no owner, and a check in
-`scripts/audit-verification.sh` reports any that go missing.
+**Every directory that holds a TRACKED file is owned by the table below.** That is
+the point of it. A path with no owner is a path where nobody agreed what may be
+written, and P2-9 in `scripts/audit-verification.sh` reports any that go missing.
+
+Two things about that check changed on 26 August 2026 and both weakened it, so
+they are stated here rather than left in the script. It asks `git ls-files` instead
+of walking the filesystem, so gitignored working directories drop out because they
+are ignored rather than because somebody remembered to subtract them by name; the
+old subtraction named the whole of `recordings/` and went on doing so after sixty
+files were committed under it. And a directory is now owned by its own row OR by an
+ancestor's, because `recordings/samples/` holds one machine-made directory per pair
+per day and demanding a row for each would be work nobody should do. The cost is
+that a new subdirectory under a mapped path inherits its parent's zone silently.
 
 | Path | Zone | The limit that is specific to it |
 | --- | --- | --- |
@@ -57,6 +67,8 @@ it. A path with no row has no owner, and a check in
 | `configs/` | GREEN | the pair lists the recorder reads. DATA, never methodology: `recorder-pairs.json` is provisional and 02-pair-selection.md section 5 supersedes it. An asset is the pair (code, issuer) and is never matched on the ticker |
 | `migrations/` | GREEN | |
 | `scripts/` | GREEN | |
+| `scripts/s3-archive/` | GREEN to PREPARE, RED to APPLY | the drafted move of the recordings archive off the orphan git branch and into S3. Claude writes the runbook, the IAM policies, the manifest tooling and the workflow fragment; Al owns the AWS account and applies them. Same split as `scripts/history-migration/`, and for the same reason: an agent that provisions the storage its own evidence lives in has no chain of custody, it has a filing cabinet |
+| `recordings/samples/` | GREEN | the sixty recordings that go into git, which `migrations/0001_core.sql` promises and `10-validation.md` section 3 names. RAW BYTES, never edited by hand: a recording that was adjusted afterwards proves nothing, and `scripts/s3-archive/verify-manifest.sh` is what makes that checkable rather than promised. The rest of `recordings/` is gitignored and has no row because nothing in it is in the repository |
 | `testdata/fixtures/` | RED | the golden fixture. Al computes these numbers by hand BEFORE any implementation. Same rule as `internal/conformance`, and this is where those numbers come from. Since `compute.go` went yellow this is the ONLY structural guarantee that the implementation is checked against numbers derived independently of it. ENFORCED in both the deny list and the hook. Reading stays open, because reporting where the code and these numbers disagree is the job |
 | `docs/methodology/` | RED | the paid deliverable. Al writes the definitions, Claude restructures, cross-references and checks them |
 | `docs/api/` | YELLOW | the contract. A change bumps its version and regenerates the mocks; DEC-003's freeze conditions govern when it stops moving |

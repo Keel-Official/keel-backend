@@ -1,0 +1,90 @@
+# PREPARED, NOT APPLIED. This is not a workflow file and GitHub does not read it:
+# the extension is .fragment so that dropping it in this directory cannot start
+# anything. It replaces three steps in .github/workflows/record.yml and leaves the
+# rest of that file alone. See scripts/s3-archive/RUNBOOK.md step 4.4.
+#
+# WHAT COMES OUT, roughly 80 lines:
+#   "Check out the recordings branch into a worktree"   the whole orphan/worktree dance
+#   "Commit the round"                                  git add, the base rev, the message
+#   "Push, retrying with rebase"                        the three-attempt rebase --onto loop
+#
+# All three exist to append blobs to a git branch. S3 objects are independent, so
+# there is no conflict to rebase around and none of it has an equivalent.
+#
+# WHAT MUST NOT CHANGE, and this is the part to check when applying it:
+#
+#   1. `-out` still points at a plain directory. keel record writes files; where
+#      they end up afterwards is this workflow's business and not the recorder's.
+#   2. The recorder still exits 0 when Horizon is busy. A tick that was written is
+#      a success no matter what status it recorded, and a recorder whose red gets
+#      ignored is worse than one that is never red.
+#   3. concurrency cancel-in-progress stays FALSE. A run in flight holds a reading
+#      of a ledger that is closing now.
+#   4. The manifest commit is what keeps this an archive of EVIDENCE rather than an
+#      archive of bytes. If it is dropped to save a step, the move is not worth
+#      making at all.
+#
+# Substitute: <ACCOUNT_ID>, <ROLE_NAME>, <REGION>, <BUCKET>.
+
+# --- replaces `permissions:` at the top of the file -------------------------
+#
+# id-token: write is what lets the job ask GitHub for the OIDC JWT. contents:
+# write is STILL needed, because the manifest is still committed to the orphan
+# branch; only the gzipped blobs stop being committed.
+permissions:
+  contents: write
+  id-token: write
+
+# --- replaces the three steps named above -----------------------------------
+
+      - name: Assume the recorder role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>
+          role-session-name: keel-recorder-${{ github.run_id }}
+          aws-region: <REGION>
+
+      # sync and not cp --recursive: sync skips a key that is already there, so a
+      # re-run after a partial failure uploads only what is missing. Every key is
+      # new anyway, because keel record never reuses a name, but a step that is
+      # safe to re-run is a step somebody will actually re-run.
+      - name: Upload the round
+        run: |
+          set -euo pipefail
+          aws s3 sync out/recordings "s3://<BUCKET>/recordings/" \
+            --only-show-errors --no-progress
+
+      # The manifest is written from the LOCAL files, before anything is fetched
+      # back. Hashing what was uploaded by downloading it again would prove only
+      # that S3 returns what S3 stored, which nobody doubts. Hashing the bytes the
+      # recorder produced is what makes the manifest a claim about the recording.
+      - name: Write the sha256 manifest
+        run: |
+          set -euo pipefail
+          day="$(date -u +'%Y-%m-%d')"
+          bash scripts/s3-archive/manifest.sh out/recordings \
+            "archive/recordings/manifest/${day}.sha256"
+
+      # The orphan branch survives, holding text instead of blobs. It grows at
+      # roughly a twenty-fourth of the old rate, and it is the chain that lets a
+      # stranger check the bucket without trusting anyone.
+      - name: Commit the manifest
+        run: |
+          set -euo pipefail
+          cd archive
+          git add -A recordings/manifest
+          git diff --cached --quiet && exit 0
+          stamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          git commit -m "Manifest for ${{ steps.record.outputs.ticks_written }} ticks at ${stamp}" \
+                     -m "Objects are in s3://<BUCKET>/recordings/. Verify with scripts/s3-archive/verify-manifest.sh."
+          git push origin "$RECORDINGS_BRANCH"
+
+# --- one line for .gitignore ------------------------------------------------
+#
+# /recordings/* is excluded with a negation for samples/. The manifest directory
+# needs the same treatment or git will ignore the very file this design depends on,
+# which is the exact failure .gitignore already records once: 10-validation.md named
+# recordings/samples/ while .gitignore re-included recordings/sample/, and evidence
+# put where the methodology said to put it was silently dropped.
+#
+#   !/recordings/manifest/

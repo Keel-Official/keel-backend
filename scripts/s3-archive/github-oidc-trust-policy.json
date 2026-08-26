@@ -1,0 +1,20 @@
+{
+  "_comment": "PREPARED, NOT APPLIED. Trust policy for the role the recorder workflow assumes. Substitute <ACCOUNT_ID>. THE sub CONDITION IS StringEquals AND NOT StringLike, deliberately: a wildcard there is the difference between one workflow on one branch of one repository and every workflow of every repository in the org. The value is the exact subject GitHub mints for a job running on refs/heads/main. If the recorder ever has to run from a tag or another branch, add a second exact value rather than widening this one to a pattern. See scripts/s3-archive/RUNBOOK.md.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GitHubActionsRecorderOnMain",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:sub": "repo:Keel-Official/keel-backend:ref:refs/heads/main"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "_comment": "PREPARED, NOT APPLIED. The ONLY policy this role gets. Substitute <BUCKET>. IT IS PUT-ONLY AND THAT IS THE POINT: no GetObject, no DeleteObject, no DeleteObjectVersion, no ListBucket, and no wildcard on either Action or Resource. A recorder writes evidence and never reads it back, never removes it, and never needs to know what else is there. A credential that can delete the archive is a credential that can quietly rewrite history, which is the one property this archive exists to deny. Overwrite protection does NOT come from this policy, because S3 has no create-if-absent condition: it comes from Object Lock in COMPLIANCE mode plus versioning, set on the bucket in RUNBOOK.md step 4.1. Deletion of an old version is denied explicitly below as a second line of defence, so a widened policy elsewhere cannot silently grant it. See scripts/s3-archive/RUNBOOK.md.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WriteRecordingsAndManifests",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::<BUCKET>/recordings/*"
+    },
+    {
+      "Sid": "NeverRemoveAnything",
+      "Effect": "Deny",
+      "Action": [
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:PutObjectRetention",
+        "s3:PutBucketVersioning",
+        "s3:PutObjectLegalHold"
+      ],
+      "Resource": [
+        "arn:aws:s3:::<BUCKET>",
+        "arn:aws:s3:::<BUCKET>/*"
+      ]
+    }
+  ]
+}
