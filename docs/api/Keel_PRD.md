@@ -18,9 +18,14 @@ is right.
 > guarantee both drift, which is exactly what happened. Reconciling this is a
 > content change, not a translation.
 >
-> Note also that this document still says the incident was in May 2026. DEC-001
-> corrected that to 22 February 2026. Section 12 of that decision record calls for
-> changing every "May 2026" reference here, and that has not been done.
+> **The incident date was corrected here on 26 August 2026**, five days after
+> DEC-001 corrected it to 22 February 2026 and asked for every "May 2026" reference
+> to be changed. Six of them lived in this document, and this note used to say that
+> the change "has not been done". A document that records its own known error and
+> then keeps the error is worse than one that simply has the error: it proves
+> somebody read the correction and moved on. The same pass corrected the contract
+> at `keel-openapi.yaml` and regenerated the mocks, which had been serving the
+> frontend the wrong date since the contract existed.
 
 ---
 
@@ -32,7 +37,7 @@ in the Stellar ecosystem answers today:
 > This asset's price is X. How large a transaction can that price support?
 
 An oracle answers "what is the price". Keel answers "how deep is the market". That
-difference is what went missing during the Blend incident of May 2026, when the
+difference is what went missing during the Blend incident of February 2026, when the
 USTRY price was pushed up 100 times through a thinly traded feed and then used as
 collateral to borrow $61 million in XLM.
 
@@ -141,7 +146,7 @@ under duress), **C** = could (cut first).
 |---|---|---|
 | FR-24 | A table of every monitored asset with its risk band and triggered flags | M |
 | FR-25 | A per-asset detail page: depth curve, supporting metrics, C_max | M |
-| FR-26 | A Blend case study page with a manipulation cost ratio chart across May 2026 and a marker on the exploit date | M |
+| FR-26 | A Blend case study page with a manipulation cost ratio chart across February 2026 and a marker on the exploit date | M |
 | FR-27 | Historical trend per asset | S |
 | FR-28 | A short explanation of each metric readable by a non-technical audience | S |
 | FR-29 | Asset search and filtering | C |
@@ -319,7 +324,7 @@ Taken from the SOW and restated so nobody is tempted to add them.
 ### Deliverable 2
 
 - [ ] FR-18 through FR-22 live and documented
-- [ ] The USTRY time series for May 2026 complete, raw CSV in the repository
+- [ ] The USTRY time series for February 2026 complete, raw CSV in the repository
 - [ ] The report states when the unsafe threshold was crossed relative to the exploit date
 - [ ] The limitations section names hindsight bias explicitly
 - [ ] A third party can reproduce the headline numbers from the repository and the report alone
@@ -367,9 +372,9 @@ To be answered before the end of the week named.
 
 | # | Question | Deadline |
 |---|---|---|
-| Q1 | How dense are the `offers` snapshots in Hubble for May 2026? | Day 1 |
+| Q1 | How dense are the `offers` snapshots in Hubble for February 2026? | Day 1 |
 | Q2 | What does BigQuery cost for one full month-long USTRY replay? | Day 2 |
-| Q3 | The Blend risk parameters actually in force in May 2026, for use as the C_max defaults | Week 1 |
+| Q3 | The Blend risk parameters actually in force in February 2026, for use as the C_max defaults | Week 1 |
 | Q4 | Does supply locked in a liquidity pool count toward the holder concentration denominator? | Week 1 |
 | Q5 | The final genuine trade rules, in particular whether related account detection lands in v1 or v2 | Week 2 |
 | Q6 | The selection criteria for the 50 asset demonstration set | Week 2 |
