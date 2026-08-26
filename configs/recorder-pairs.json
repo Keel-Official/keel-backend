@@ -12,7 +12,7 @@
         "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
         "type": "credit_alphanum4"
       },
-      "note": "XLM. The deepest market on the network and the only pair here whose base is native, so it is the one that proves the recorder handles an asset with no issuer at all."
+      "note": "XLM. The deepest market on the network and the only pair here whose base is native, so it is the one that proves the recorder handles an asset with no issuer at all. THE CODE STAYS EMPTY. On-chain the native asset carries no code, the pair file loader enforces that, and every Horizon path branches on Asset.IsNative(), which reads Type and never Code. internal/store wants the opposite, because the assets table has code NOT NULL and its unique constraint is what stops the native asset being stored twice under two spellings. Both are right inside their own layer and no value of this field satisfies both, so the conversion happens at the boundary in cmd/keel/assets.go rather than here. Fixed on 26 August 2026, after `keel assets -pairs` on this file failed on pair 0 while `keel record` on the same file had been working for days."
     },
     {
       "base": {

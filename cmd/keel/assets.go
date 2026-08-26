@@ -8,6 +8,19 @@
 //
 // The pair file is the same one `record` reads. One declaration of the
 // demonstration set, two consumers.
+//
+// AND THE TWO CONSUMERS DISAGREED ABOUT THE NATIVE ASSET UNTIL 26 AUGUST 2026.
+// horizon.LoadPairs requires a native asset to carry NO code, because on-chain it
+// has none and because every Horizon path branches on Asset.IsNative(), which
+// reads Type and never Code. internal/store requires a native asset to carry the
+// code "XLM", because the assets table has code NOT NULL and its unique constraint
+// is what stops the native asset being stored twice under two spellings.
+//
+// Both rules are right inside their own layer, and no value in the pair file
+// satisfies both: `keel record` had been reading configs/recorder-pairs.json for
+// days while `keel assets -pairs` on the same file failed on pair 0. So the
+// conversion happens HERE, at the boundary where a pair-file asset becomes a
+// stored asset, and neither layer has to give up its rule. See forStore below.
 package main
 
 import (
@@ -18,6 +31,7 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/Keel-Official/keel-backend/internal/domain"
 	"github.com/Keel-Official/keel-backend/internal/horizon"
 	"github.com/Keel-Official/keel-backend/internal/store"
 )
@@ -77,7 +91,7 @@ deactivated, because metrics rows reference these ids.
 			return fmt.Errorf("assets: %w", err)
 		}
 		for _, p := range pairs {
-			id, err := s.UpsertAsset(ctx, p.Base, p.Quote, p.Note)
+			id, err := s.UpsertAsset(ctx, forStore(p.Base), forStore(p.Quote), p.Note)
 			if err != nil {
 				return fmt.Errorf("assets: %w", err)
 			}
@@ -104,6 +118,26 @@ deactivated, because metrics rows reference these ids.
 		_, _ = fmt.Fprintf(w, "%d\t%s/%s\t%t\t%s\n", a.ID, a.Base, a.Quote, a.Active, note)
 	}
 	return w.Flush()
+}
+
+// forStore gives the native asset the code the assets table needs, and leaves
+// every other asset exactly as the pair file declared it.
+//
+// "XLM" is not chosen here. It is what domain.Asset.String() returns for a native
+// asset and what the API contract uses, and internal/store/assets.go names it in
+// the error this function exists to prevent. Type is untouched, so IsNative() and
+// therefore every Horizon path keep answering the same way they did before.
+//
+// The rejected alternative was to write "XLM" into configs/recorder-pairs.json.
+// It fails on the same run: horizon.LoadPairs refuses a native asset that carries
+// a code, so the file would then be readable by `keel assets` and rejected by
+// `keel record`. Moving the problem is not fixing it, and a conversion at a
+// boundary is what a boundary is for.
+func forStore(a domain.Asset) domain.Asset {
+	if a.IsNative() && a.Code == "" {
+		a.Code = "XLM"
+	}
+	return a
 }
 
 func envOr(key, fallback string) string {
