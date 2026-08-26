@@ -170,7 +170,10 @@ depends on them:
 3. `README.md`, `CLAUDE.md`, and the zone files
 4. `docs/methodology/`, the paid deliverable and the most delicate prose
 5. `docs/decisions/` and `docs/api/keel-openapi.yaml`
-6. `docs/internal/`, `docs/learning/`, `testdata/fixtures/`
+6. `docs/internal/`, `docs/learning/`, `testdata/fixtures/`. The first two are no
+   longer in the repository: `docs/learning/` was removed on 23 August 2026 and
+   `docs/internal/` is gitignored under DEC-004 as of the 25th. This step is
+   recorded as it was planned; only `testdata/fixtures/` remains to check
 7. `scripts/audit-verification.sh` anchors, then confirm the totals still read 36 and 7
 
 ---

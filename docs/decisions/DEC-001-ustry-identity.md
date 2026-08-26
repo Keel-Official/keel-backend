@@ -9,8 +9,10 @@ and one thing that turned out worse than expected.
 > **Corrected 21 August 2026.** Two claims this document made were wrong: the
 > manipulation ratio in section 2, and the asset type in its own curl command in
 > section 5.2. Both are fixed in place, and section 7 records what the ledger
-> actually says. Findings P1-20 through P1-23 in
-> `docs/internal/audit-2026-08-20.md`.
+> actually says. Findings P1-20 through P1-23, which are reproducible by running
+> `bash scripts/audit-verification.sh` and reading those ids. The audit document
+> they were first written in is not in the repository: `docs/internal/` is
+> gitignored under DEC-004 as of 25 August 2026.
 
 ---
 

@@ -7,8 +7,12 @@ conditions in section 7 are met; the fourth needs the frontend builder. The
 `criticalDelta` question this document carried as open was SETTLED at 0.5, the value
 this contract already used, so no contract change followed. See section 8.6 and its
 dated note. See sections 7 and 8.
-**Source of the changes:** `docs/internal/memo-pra-development.md` sections 1 and 2,
-then the audit findings P1-6 through P1-13 and P1-28 through P1-31.
+**Source of the changes:** the pre-development memo, sections 1 and 2, then the audit
+findings P1-6 through P1-13 and P1-28 through P1-31. Neither source document is in
+the repository; both lived in `docs/internal/`, which is gitignored under DEC-004 as
+of 25 August 2026. The finding ids are reproducible from
+`bash scripts/audit-verification.sh`; the memo is Al's local copy, and the citations
+to it below are kept as provenance rather than as links.
 **Affected files:** `docs/api/keel-openapi.yaml`, `docs/api/mocks/`,
 `internal/domain/types.go`
 
@@ -99,7 +103,7 @@ value, because `priceSource` already distinguishes them.
 only as a triggered status.
 
 **A difference from the methodology, needs Al's approval.**
-`docs/internal/memo-pra-development.md` section 1.2 writes the `SpreadExtremePct`
+The pre-development memo, section 1.2, writes the `SpreadExtremePct`
 default as 0.20, a fraction. The API contract uses a percent scale:
 `spreadExtremePct: '20.0'`, and `spreadPct: '196.0777141'` for a spread of 196
 percent.
@@ -196,7 +200,7 @@ What the display has to do, already written into the example's `description`:
 
 ## 4. The numbers deliberately left blank
 
-`docs/internal/memo-pra-development.md` section 3 requires the golden fixture table
+The pre-development memo, section 3, requires the golden fixture table
 to be filled in by hand before a single line of implementation is written, and it
 states the reason: a table filled in after the code exists merely confirms whatever
 that code did.
@@ -301,7 +305,7 @@ methodology 1.0.1 in most examples and 1.0.2-draft in one, while the code produc
 
 ## 8. What v1.2.0 changed, 20 August 2026
 
-Everything in this section closes a finding from `docs/internal/audit-2026-08-20.md`.
+Everything in this section closes a finding from the repository audit.
 
 ### 8.1 Three fields the code had and the contract did not
 

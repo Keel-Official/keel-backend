@@ -22,9 +22,12 @@ already happened once: the journal used to live at `docs/learning/journal.md`, t
 directory was removed, and this command spent a day pointing at nothing.
 
 `docs/internal/` and not `docs/learning/`, because a learning journal is not part
-of the paid deliverable and DEC-004 requires `docs/internal/` to come out of the
-repository before it is made public. If the journal should live somewhere else, or
-not in the repository at all, change this line.
+of the paid deliverable. As of 25 August 2026 that directory is gitignored,
+`.gitignore` line 66, which is DEC-004 section 2 carried out ahead of the repository
+going public. So the journal is now deliberately LOCAL ONLY: it is written, it is
+not committed, and a clone will not contain it. That is the intended end state and
+not a path to repair. If the journal should live somewhere else, or not in the
+repository at all, change this line.
 
 ```markdown
 ## YYYY-MM-DD
