@@ -233,6 +233,105 @@ hand numbers were kept and the tests were moved. That is the right way round.
    cannot be the numbers the conformance test proves the code against. Recompute them,
    then compare against section 2. Agreement is a free confirmation and disagreement is
    a second finding; copying is neither.
+3. **Section 2 of this record was computed under the pre-1.0.3 `P0` ladder, so the
+   reference price its tables are built on may not be the one the current ladder
+   chooses.** Recorded 27 August 2026.
+
+   The subsection "What does not change" in section 2 says `P0` stays 53.8971414
+   "because the fallback ladder in methodology section 3 stops at case 1 as soon as the
+   book has two sides". That sentence describes the rule as it stood before 1.0.3.
+   `03-reference-price.md` section 1 records that case 1 itself changed: with a pool
+   present and a two-sided book it now compares the book mid against the pool spot, and
+   when the divergence exceeds `Thresholds.PriceDivergencePct` it takes
+   `P0 = pool_spot`, sets `priceSource` to `pool` and raises `PRICE_SOURCE_CONFLICT`. A
+   two-sided book no longer ends the ladder on its own, and that file names this
+   fixture as the reason for the change.
+
+   What it reaches is not one cell:
+
+   - the **target price column of both tables** in section 2, because every buy target
+     is `P0 x (1 + delta)` and every sell target is `P0 x (1 - delta)`;
+   - **every figure in the depth table**, which is computed against those targets;
+   - **`spreadPct`**, which `03-reference-price.md` section 2 defines as
+     `(best_ask - best_bid) / P0 x 100`, so it moves with `P0` while neither side of
+     the book moves;
+   - **the `ZERO_DEPTH_2PCT` reasoning** in the same subsection, which argues from a
+     sell side target of 52.82 sitting far above the pool quote of 1.0555. If the
+     ladder takes the pool branch, the sell side target is derived from the pool quote
+     instead and that argument has to be made again rather than carried across;
+   - **the second finding in section 4**, "a venue quoting the true price sat there and
+     the reference price ignored it". That is a statement about the superseded ladder.
+     1.0.3 is the answer to it, so the sentence now records history rather than the
+     current rule.
+
+   **Nothing is recomputed here and no replacement value is offered, deliberately.**
+   Which branch of case 1 this fixture takes is methodology applied to the fixture, and
+   both halves of that are Al's: the methodology tree is RED and so is the golden
+   fixture. The material needed to settle it is already written down, the rule in
+   `03-reference-price.md` section 1 and the threshold default and this fixture's own
+   divergence in `09-flags-and-bands.md`. Reading those two together looks like it
+   settles the branch. It is still Al's to settle and to record, because what follows
+   is not one number but a chain of replacement values through both tables of section 2,
+   and every one of them lands in a red zone.
+
+### Two conflicts found afterwards, in neither A nor C
+
+Found 27 August 2026 while checking section 2 against the 1.0.3 documents. Neither
+belongs to option A or to option C. They are numbered on from the list above so that a
+reference to item 4 is unambiguous inside this section.
+
+4. **The methodology and the contract disagree about when `maxReachablePrice` is null,
+   and this fixture is exactly the case where they disagree.**
+
+   `05-manipulation-cost.md` section 5 keys the null on the **presence** of a pool:
+   "When an active pool is present, both are null", and "Both fields are meaningful
+   only for pure order book markets". `docs/api/keel-openapi.yaml` keys it on
+   **exclusivity**: `maxReachablePrice` is "Null in two situations: there is no ask at
+   all on this pair, or all the liquidity comes from an AMM", and
+   `costToMaxReachablePrice` is null "in the same two situations".
+
+   On a market holding a book AND a pool those two rules give opposite answers, and the
+   market this record is about is that market: section 1 above establishes the pool, and
+   the book holds one ask at 106.7372828. The contract does not merely imply the
+   non-null answer there, it states it, because the `costToMaxReachablePrice`
+   description says that on the USTRY fixture "the highest reachable price was
+   106.7372828 and reaching it cost zero". Its data agrees with its prose: the
+   `AssetHealthy` example, whose summary is "A liquid asset with both an orderbook and a
+   pool", carries `poolSpotPrice: '2.8390000'` alongside
+   `maxReachablePrice: '41.8842000'`.
+
+   **Choosing between the two rules is a methodology decision and it is Al's.** Neither
+   `05-manipulation-cost.md` nor the contract was touched. What is worth knowing before
+   the choice: if the methodology wins, the contract has to change, two field
+   descriptions and the two `AssetHealthy` values, and by the zone map a contract change
+   means a version bump and `make api-mocks`. If the contract wins, section 5 of
+   `05-manipulation-cost.md` changes and nothing generated moves. P2-16 in
+   `scripts/audit-verification.sh` reads the rule out of each of the two files and fails
+   while they differ, so it closes whichever side moves.
+
+5. **The contract example and the methodology state oracle window lengths that differ by
+   a factor of three, and the mocks are generated from the example.**
+
+   The `/methodology` response example carries `oracleWindowSeconds: 300`. The
+   methodology assumes fifteen minutes, which is 900 seconds: `06-oracle-resilience.md`
+   section 1 states that "The 15-minute default follows Script3's statement that no
+   other trade occurred within 15 minutes before the manipulation", and
+   `07-supporting-metrics.md` section 4 repeats "The 15 minute default window". The same
+   300 is repeated in three `oracleResistance.windowSeconds` example values and in two
+   warning strings reading "the 300 second oracle window".
+
+   `docs/api/mocks/methodology.json` is generated from that example, so 300 is the number
+   a frontend builds against today while 900 is the number the deliverable assumes.
+
+   **The number was not changed, and not for lack of an obvious candidate.** The correct
+   value depends on R-6, the open question about Reflector's actual VWAP window, which
+   `06-oracle-resilience.md` records as handoff item 6 and which is open against a third
+   party rather than against this repository. Writing 900 into the contract would swap a
+   wrong number for an assumed one and would read as a confirmed oracle parameter, which
+   is precisely what `06-oracle-resilience.md` is careful not to claim. P2-17 in
+   `scripts/audit-verification.sh` converts the methodology's minutes into seconds, reads
+   the example's number, and fails while the two differ in either direction, so whichever
+   way R-6 lands the check is what closes.
 
 ### What is left of C, and one question inside it
 
@@ -257,3 +356,17 @@ Whether that identity is a definition or a coincidence of this one fixture is a
 methodology question and it is Al's. If it is a definition, C is finished by saying so
 in `05-manipulation-cost.md` and in the contract, and no column, field or migration is
 needed. If it is not, the third ladder needs its own formula in `compute.go`.
+
+---
+
+## 9. Amendment history
+
+This record is append-only. An amendment adds a row here and text below the section it
+concerns; no earlier sentence is edited or deleted. That is the treatment DEC-003 gives
+its own section 4, and the reason is the same: a document that quietly grows correct
+hides the fact that it was wrong, and the fact that it was wrong is the finding.
+
+| Date | Amendment |
+|---|---|
+| 25 August 2026 | Section 8 added. A and C decided by Al, and most of both turned out to already exist |
+| 27 August 2026 | Section 8 item 3: section 2 was computed under the pre-1.0.3 `P0` ladder, so its target prices, its depth figures, `spreadPct` and the `ZERO_DEPTH_2PCT` reasoning all rest on a reference price the current ladder may not choose. Section 8 items 4 and 5: the `maxReachablePrice` null-condition conflict between `05-manipulation-cost.md` and the contract, and the oracle window conflict between the contract example and the methodology. No number in this record was changed, no branch was chosen, and no replacement value was computed |

@@ -2,6 +2,14 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.4.2, 27 August 2026. priceDivergencePct added to the /methodology example. No
+  # schema change and no breaking change: the Thresholds schema has declared the key
+  # since methodology 1.0.3, and `thresholds` is documented as open ended with
+  # consumers reading it by key name. The example was the one place it was missing, so
+  # docs/api/mocks/methodology.json never showed a consumer the threshold that decides
+  # priceSource. The value is the default in 09-flags-and-bands.md section 6 and is not
+  # a choice made here.
+  #
   # 1.4.1, 26 August 2026. Two example values corrected, no schema change and no
   # breaking change. The Blend incident is February 2026 and not May: DEC-001
   # section 1 records it as a correction to the SOW, every other detail of the SOW
@@ -9,7 +17,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.3-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.4.1
+  version: 1.4.2
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -142,6 +150,7 @@ paths:
                   genuineTradeWarnDays: 7
                   washTradeSuspectedPct: '50.0'
                   spreadExtremePct: '20.0'
+                  priceDivergencePct: '10.0'
                   oracleWindowSeconds: 300
                   ammFeeBp: 30
         '429':
