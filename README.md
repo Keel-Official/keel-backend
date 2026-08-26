@@ -7,19 +7,31 @@ actually support".
 
 ## Where this stands
 
-This repository is under construction and **the core of the methodology is not
-implemented yet.** What exists: the methodology definitions, the API contract, a
-golden fixture computed by hand from real on-chain data, the shared types,
-architecture tests that enforce package purity, the live Horizon adapter with the
-cross-validation recorder, the Postgres persistence layer, and the read-only API.
-What does not exist yet: the formulas in `internal/domain/compute.go`, which are
-declared and panic, plus the historical adapter, which DEC-002 defers.
+This repository is under construction. **The depth and manipulation engine computes
+as of 26 August 2026**, and `make conformance` passes against a golden fixture whose
+numbers were computed by hand before any implementation existed.
 
-**Every layer around the engine is now built, and the engine is the gap.** `keel
-serve` answers all five endpoints today; what it has no rows to return is metrics,
-and `keel scan` cannot produce one, because every function in the red zone panics.
-That makes the API worth running before the engine exists: the frontend can build
-against real 404s, real 503s and real headers rather than against mocks.
+What exists: the methodology definitions, the API contract, that golden fixture, the
+shared types, the depth, manipulation cost, reference price, collateral and flag
+computations, architecture tests that enforce package purity, the live Horizon
+adapter with the cross-validation recorder, the Postgres persistence layer, and the
+read-only API.
+
+What does not exist yet, and the list is specific on purpose:
+
+- **The supporting metrics.** Holder concentration, the volume-to-supply ratios and
+  the time since the last genuine trade are declared, stored and served, and none of
+  them is computed. Their DEFINITIONS are not written either:
+  `docs/methodology/07-supporting-metrics.md` is still a worksheet. Every result
+  reports the six flags that depend on them as `unevaluated`, which is not the same
+  claim as clear.
+- **The historical adapter.** `keel replay` exits 3. DEC-002 defers Hubble.
+- **A hand computed check on the AMM half.**
+  `testdata/fixtures/ustry_pre_exploit.md` records `Pools: []` while the pool that
+  genuinely existed at that ledger is in `GoldenSnapshot()`, so the with-pool depth
+  and manipulation tables have no expected values yet. The AMM formulas are
+  implemented from the methodology and checked only by invariants, and the header of
+  `internal/domain/compute.go` says which functions are in that position.
 
 What that means for the commands you can run:
 
@@ -29,7 +41,7 @@ What that means for the commands you can run:
 | `make ci` | works, and must be green |
 | `make arch` | works, enforces purity of `internal/domain` |
 | `make up` | works, starts local Postgres |
-| `make conformance` | **red on purpose.** The golden fixture is a specification waiting to be met, and every function in `compute.go` panics |
+| `make conformance` | **green since 26 August 2026.** Fourteen tests against the golden fixture. The build tag came out the same day, so these also run inside `make test` and CI; this target runs the package alone and verbosely |
 | `make record-once` | works, records one round of live Horizon snapshots and exits |
 | `make record` | works, records every 30 minutes until stopped. Needs `PAIRS` |
 | `make record-holders` | works, one round of pairs plus the trustline holder distribution of every base asset. `HOLDER_PAGES` raises the cap |
@@ -37,10 +49,12 @@ What that means for the commands you can run:
 | `make assets` | works, declares the demonstration set. Needs the database |
 | `make serve` | works, serves every endpoint in the contract. Needs the database |
 | `make store-test` | works, the `internal/store` integration tests. Needs the database |
-| `make scan` | **wired, and produces nothing.** It reads the book, verifies the assets and opens a run row, then every asset panics inside `compute.go` and it exits with code 3. Needs the database |
+| `make scan` | works, computes and stores one result per asset per ledger. The supporting metric fields are stored null, because they are not computed yet. Needs the database |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
-built yet" apart from "failed".
+built yet" apart from "failed". `keel replay` still uses it. `keel scan` now uses it
+only if EVERY asset in a round panicked, which would mean one formula breaking on
+the whole set at once.
 
 ## Starting from nothing
 
@@ -167,11 +181,10 @@ make assets PAIRS=my-pairs.json          # declare the demonstration set
 make store-test                          # the integration tests, needs the above
 ```
 
-`keel assets` is the only command that writes a result to the database today.
-`keel scan` writes its run row and gets no further, because every asset panics
-inside the red zone before there is anything to store. That row is the point of
-running it anyway: `runs` records what a job attempted, so a scan that stored
-nothing is visible rather than silent.
+`keel assets` declares the demonstration set and `keel scan` fills it in: one metrics
+row per asset per ledger, plus a `runs` row recording what the job attempted. `runs`
+exists so a scan that stored nothing is visible rather than silent, which is worth as
+much now that scans do store something as it was while they could not.
 
 **The container is published on 5433, not 5432.** A Postgres already installed on
 the host takes 5432 before the container can, `make migrate` does not notice
@@ -204,8 +217,8 @@ raw `price_r` values, outside Go, as a cross-check.
 | Directory | Contents | State |
 |---|---|---|
 | `cmd/keel` | single entrypoint, several subcommands | skeleton |
-| `internal/domain` | shared types in `types.go`, the methodology in `compute.go` | types present, `compute.go` declared and panicking |
-| `internal/conformance` | golden fixture and conformance tests, black-box against `internal/domain` | present, waiting on `compute.go` |
+| `internal/domain` | shared types in `types.go`, the methodology in `compute.go`, the flag and band rules in `flags.go` | present. The supporting metric formulas are not written, and neither are their definitions |
+| `internal/conformance` | golden fixture and conformance tests, black-box against `internal/domain` | present and green |
 | `internal/horizon` | live data adapter and the cross-validation recorder | present |
 | `internal/hubble` | historical data adapter, deferred, see DEC-002 | empty |
 | `internal/store` | Postgres persistence for assets, metrics and runs | present |

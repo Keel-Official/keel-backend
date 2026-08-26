@@ -6,14 +6,18 @@
 // zone map means by an entrypoint with no methodology in it. If a formula ever
 // appears in this file it is in the wrong file.
 //
-// WHY IT IS WRITTEN WHILE THE RED ZONE IS EMPTY. Every function in
-// internal/domain/compute.go panics, so a scan today fetches a real snapshot,
-// verifies real assets, opens a real run row, and has nothing to store. That is
-// worth having anyway: the wiring is the part that can be wrong in ways a test of
-// the formula never catches, and the day compute.go has a body this command works
-// without being touched. The cost of the opposite order is a scan written in a
-// hurry against a formula that already exists, which is how a wiring bug gets
-// blamed on the methodology.
+// IT WAS WRITTEN WHILE THE RED ZONE WAS EMPTY, AND THE BET PAID OFF ON
+// 26 AUGUST 2026. Until that date every function in internal/domain/compute.go
+// panicked, so a scan fetched a real snapshot, verified real assets, opened a real
+// run row, and had nothing to store. The wiring is the part that can be wrong in
+// ways a test of the formula never catches, and when compute.go finally got a body
+// this command computed and stored without one line here being touched. The cost of
+// the opposite order is a scan written in a hurry against a formula that already
+// exists, which is how a wiring bug gets blamed on the methodology.
+//
+// The panic machinery below stays, and its reason changed rather than expiring.
+// It used to catch a function that panicked by design; it now catches a bug in a
+// formula, which is the case decision 1 was always really about.
 //
 // THREE DECISIONS THIS FILE MAKES.
 //
@@ -21,16 +25,17 @@
 //     it in its own header: one asset failing must not fail a whole scan, which is
 //     the reason the runs table exists at all. A panic is the strongest form of one
 //     asset failing, so it is recovered, counted, and recorded like any other
-//     failure. Without that, an unwritten compute.go kills the process mid-round
-//     and leaves the run row open, and once compute.go IS written, one bad snapshot
-//     out of fifty throws away the other forty-nine results.
+//     failure. This is now the live case rather than the future one: one bad
+//     snapshot out of fifty must not throw away the other forty-nine results.
 //
 //  2. A ROUND THAT PANICKED ON EVERY ASSET STOPS THE COMMAND, with exit code 3
 //     rather than 1. Three means "not built yet" everywhere else in this binary and
 //     it means the same here. Looping every fifteen minutes against a Horizon
 //     budget to store nothing is not honest work, and exiting 1 would tell a
 //     scheduler the scan is broken when what is true is that it has nothing to
-//     compute with.
+//     compute with. Since compute.go was written this path should never be taken,
+//     and if it ever is, it means every asset in the set broke the same formula at
+//     once, which is exactly the thing worth stopping for.
 //
 //  3. ASSET IDENTITY IS VERIFIED ONCE AT STARTUP, NOT PER ROUND. Trap 4 in
 //     internal/horizon/CLAUDE.md: naming the wrong asset type returns an EMPTY
@@ -58,9 +63,11 @@ import (
 	"github.com/Keel-Official/keel-backend/internal/store"
 )
 
-// errComputeNotBuilt is returned when every asset in a round panicked, which is
-// what an empty internal/domain/compute.go looks like from out here. main.go turns
-// it into exit code 3, the same code every other unbuilt subcommand uses.
+// errComputeNotBuilt is returned when every asset in a round panicked. That was
+// what an empty internal/domain/compute.go looked like from out here until
+// 26 August 2026; now it would mean a formula that breaks on every asset at once.
+// main.go turns it into exit code 3, the same code every other unbuilt subcommand
+// uses, and the name is kept because the exit code is what callers match on.
 //
 // It is matched on the ERROR and not on the panic text, because "not implemented"
 // is a string in a file this side may not read for meaning. A round where every
@@ -91,9 +98,6 @@ which is the budget line in section 6.4 of the technical design.
 A result is written once per (asset, ledger, methodology version, source). Scanning
 a ledger that is already stored writes NOTHING and is not an error, so a re-run
 after a crash is safe and a differing result is a finding rather than an overwrite.
-
-Today every asset fails, because every function in internal/domain/compute.go
-panics. The command says so and exits with code 3.
 
 `)
 		fs.PrintDefaults()

@@ -1,35 +1,71 @@
 # Zones inside internal/domain
 
-This directory holds two things with different owners, and the split is by file.
+**THIS PACKAGE HOLDS NO RED FILE ANY MORE.** Every file here is YELLOW.
 
 | File | Zone | Owner |
 | --- | --- | --- |
-| `compute.go` | RED | Al alone. Claude has no write permission |
+| `compute.go` | YELLOW since 25 August 2026 | Al and Claude both. Every write still surfaces: the entry in `.claude/settings.json` became `ask`, not nothing |
+| `flags.go` | YELLOW | added 26 August 2026, at the path `docs/methodology/09-flags-and-bands.md` line 5 had already been naming for days |
 | `types.go` | YELLOW | Claude may write, and must explain each design decision in three sentences and name one rejected alternative |
-| `arch_test.go`, `*_test.go` | YELLOW | same, except tests for `compute.go` which Al asks for explicitly |
+| `arch_test.go`, `*_test.go` | YELLOW | same |
 
-## Why the zone is a file and not a directory
+The three-sentence rule applies to all of them, and it applies hardest to
+`compute.go`, because a formula is a claim that has to be defended to a reviewer or
+a funder while a type is only a shape.
+
+## What this document said until 26 August 2026, and why that matters
+
+It said `compute.go` was RED, that Claude had no write permission, and that the
+correct response to being asked to write it was to refuse. All three had been false
+since 25 August, when Al moved the file to YELLOW so that Deliverable 1 would not be
+gated on a single writer.
+
+That is the exact failure this repository keeps recording about itself, running the
+other way. A stale lock pointing at a path that no longer exists reports success
+while protecting nothing; a stale zone document pointing at a rule that no longer
+exists refuses work the map permits. Neither one fails loudly. The root `CLAUDE.md`
+was updated on the 25th and this file was not, so for one day the package's own zone
+document contradicted the map that governs it.
+
+## Why the zone was a file and not a directory, while it lasted
 
 It used to be a directory, `internal/depth`. Methodology 1.0.3 moved the
 computations into this package and left the lock pointing at a directory that no
 longer held anything, so for a while the red zone existed in `CLAUDE.md` and
 nowhere else. The zone follows the code, not the name. The empty directory was
-removed on 23 August 2026 and this file is the only zone document for the
-methodology code now.
+removed on 23 August 2026.
 
-`compute.go` is the core of Keel's methodology and it is the paid deliverable. Al
-has to be able to defend every number in it to a reviewer or a funder. If Claude
-writes it, Al cannot. A type is a shape and a formula is a claim, and only the
-second one has to be defended, which is why `types.go` next door stays open.
+When `compute.go` went yellow the hook's file rule and its directory rule for
+`internal/domain` came out with it, because a lock over a package where every file
+is writable refuses ordinary work while protecting nothing. What did NOT come out:
+`testdata/fixtures/` and `docs/context/`, both still denied in `.claude/settings.json`
+and still closed in `.claude/hooks/lindungi-zona-merah.sh`.
 
-Enforced rather than agreed: `Edit` and `Write` are denied on `compute.go` in
-`.claude/settings.json`, and the Bash path is closed by
-`.claude/hooks/lindungi-zona-merah.sh`.
+## What replaced the lock
 
-**Three routes, all closed, and the third one caught Claude out.** A Bash command
-reaches this file by naming it, by naming this directory, or by sweeping a tree that
-contains it. Only the first was closed until 24 August 2026, and the last is the one
-worth knowing about in daily work:
+**A function in `compute.go` may only be written after its expected values exist in
+`testdata/fixtures`.** No permission layer can tell whether a number was computed
+before or after the code that satisfies it, so this rule is enforced by nothing.
+That is why the fixture lock matters more now than it did while one person wrote
+both sides: it is the only remaining structural reason to believe the expected
+values are independent of the implementation.
+
+Read the header of `compute.go` before adding to it. It lists which functions have
+a hand computed oracle and which do not, and the second list is not empty: the AMM
+half of the depth and manipulation formulas, and the whole of
+`ComputeMaxSafeCollateral`, are implemented from the methodology and checked only by
+invariants. `testdata/fixtures/ustry_pre_exploit.md` line 30 still records
+`Pools: []` while `GoldenSnapshot()` carries the pool that genuinely existed, which
+is handoff item B-4 and is Al's.
+
+## The formatting rule survived the zone it used to serve
+
+Three routes once reached this package: naming a file, naming the directory, or
+sweeping a tree that contained it. All three were closed by 24 August and the first
+two reopened on the 25th along with the zone. **The formatting rule stayed anyway**,
+deliberately, because formatting having one owner and CI's gofmt check having one
+fix is a workflow rule rather than a zone rule. `gofmt -l .` is read only and always
+allowed; a write has to name its files.
 
 | Want to | Do this | Not this |
 | --- | --- | --- |
@@ -40,18 +76,24 @@ worth knowing about in daily work:
 not sit in. So CI's gofmt check still has an owner and a one command fix, and Claude
 formats by naming files. Finding P2-6c.
 
-## Claude's role in compute.go
+## Claude's role in compute.go now
 
-Allowed: read the code, run the tests, point out an edge case that is not handled,
-correct a misunderstanding about Go, and write tests in `*_test.go` if Al asks for
-them explicitly.
+Writing it is permitted. Three obligations come with that, and they are what is left
+of the lock:
 
-Not allowed: writing or editing the implementation, pasting a complete block for Al
-to copy, or an "example" that happens to be the answer.
+1. **Check the ordering rule first.** Name, out loud, which fixture value the
+   function you are about to write is judged against. If the answer is "none", say
+   so in the code and in the report rather than writing the number and moving on.
+2. **Never touch `testdata/fixtures/` or the expected values in
+   `internal/conformance/expected.go` to make a test pass.** `fixture.go` says it in
+   its own header: adjust the code to match those numbers, never the reverse. A
+   disagreement between the two IS the finding, and editing either side destroys it.
+3. **Explain each design decision in three sentences and name one rejected
+   alternative**, the same rule `types.go` has always carried.
 
-## If Al asks Claude to write it
-
-Refuse, then ask one question that points at the thing being decided. For example:
+Still worth doing before writing anything: read the code, run the tests, and point
+out an edge case that is not handled. The question below is the kind that finds one,
+and it is kept here because it is a better use of five minutes than a first draft.
 
 > If the best SDEX ask sits at 0.101 and the AMM curve only crosses 0.101 after 400
 > units, how many units can be absorbed before the combined marginal price moves?
