@@ -63,10 +63,34 @@ from_ms=$(python3 -c "print($now_ms - $DAYS*86400*1000)")
 printf '%-14s %-8s %8s %6s %6s %14s %14s %9s %6s %14s %9s\n' \
   ASSET QUOTE HOLDERS BIDS ASKS BEST_BID BEST_ASK SPREAD% POOLS POOL_QUOTE "TRADES_${DAYS}D"
 
-jq -r '.pairs[] | [.base.code, .base.issuer, .base.type, .quote.code, .quote.issuer, .quote.type] | @tsv' "$pairs" |
-while IFS=$'\t' read -r bcode bissuer btype qcode qissuer qtype; do
+# THE SEPARATOR IS \x1f AND NOT A TAB, and that is a bug fix rather than a style
+# choice. Tab is IFS WHITESPACE in the shell, so a run of tabs collapses into one
+# delimiter and leading empty fields disappear. The native asset carries an empty
+# code AND an empty issuer, so its row began with two empty fields and every column
+# after them shifted two places left: XLM surveyed as an asset literally named
+# "native" quoted in "credit_alphanum4", with a holder count of "?" and an empty
+# book. XLM against USDC is the deepest market on the network, so the one row that
+# could not be allowed to be wrong was the one that was.
+#
+# \x1f is the ASCII unit separator, it is not IFS whitespace, so empty fields
+# survive, and it cannot occur in an asset code or a Stellar account id.
+#
+# Found on 26 August 2026 by surveying 60 candidates and reading the top row. It is
+# the same family as the native asset defect in cmd/keel/assets.go fixed the same
+# day: three components read one pair file and each had its own idea of what an
+# empty code means.
+jq -r '.pairs[] | [.base.code, .base.issuer, .base.type, .quote.code, .quote.issuer, .quote.type] | join("")' "$pairs" |
+while IFS=$'\x1f' read -r bcode bissuer btype qcode qissuer qtype; do
   b=$(horizon_asset "$bcode" "$bissuer" "$btype")
   q=$(horizon_asset "$qcode" "$qissuer" "$qtype")
+
+  # What to print in the ASSET column. domain.Asset.String() calls the native asset
+  # XLM and so does the API contract, so a blank cell would be this table inventing
+  # a third spelling.
+  bdisplay=$bcode
+  [ "$btype" = "native" ] && bdisplay=XLM
+  qdisplay=$qcode
+  [ "$qtype" = "native" ] && qdisplay=XLM
 
   # 1. /assets: holder count. The newer `accounts` object is preferred over the
   #    deprecated num_accounts for the reason decode.go gives: an adapter reading only
@@ -106,7 +130,7 @@ print('n/a' if bid <= 0 or ask <= 0 else '%.2f' % ((ask - bid) / ((ask + bid) / 
     jq -r '[ ._embedded.records[]?.trade_count | tonumber ] | add // 0' 2>/dev/null || echo 0)
 
   printf '%-14s %-8s %8s %6s %6s %14.7f %14.7f %9s %6s %14.7f %9s\n' \
-    "$bcode" "$qcode" "$holders" "$nbids" "$nasks" "$bestbid" "$bestask" "$spread" "$npools" "$poolq" "$trades"
+    "$bdisplay" "$qdisplay" "$holders" "$nbids" "$nasks" "$bestbid" "$bestask" "$spread" "$npools" "$poolq" "$trades"
 done
 
 cat <<'NOTE'
