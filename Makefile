@@ -41,12 +41,18 @@ arch:
 # conformance tests the methodology implementation against the USTRY golden
 # fixture.
 #
-# It TEMPORARILY uses a build tag because every function in
-# internal/domain/compute.go panics. Once that file is filled in, delete the
-# //go:build line in internal/conformance/golden_test.go and delete this target;
-# the test belongs in a plain `make test`.
+# THE BUILD TAG CAME OUT ON 26 AUGUST 2026, so this suite now also runs inside
+# plain `make test` and inside CI. This target is no longer the only way to reach
+# it and is kept for two reasons: it runs the package alone and verbosely, which is
+# what you want on the day the fixture is the thing under discussion, and DEC-004
+# phrases the trigger for opening this repository as "make conformance passes
+# without a build tag", which is not checkable if the target does not exist.
+#
+# golden_test.go's own removal instruction said to delete this target. That one
+# line of it was not followed, and the reason is recorded in that file rather than
+# only here.
 conformance:
-	go test -tags conformance ./internal/conformance/ -count=1 -v
+	go test ./internal/conformance/ -count=1 -v
 
 # store-test runs the internal/store integration tests against a real Postgres.
 # They are SKIPPED by plain `make test`, because they need a database and a

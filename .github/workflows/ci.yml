@@ -79,22 +79,12 @@ jobs:
         with:
           version: v2.13.0
 
-  conformance:
-    name: conformance (methodology not implemented yet)
-    runs-on: ubuntu-latest
-    # DELIBERATELY allowed to fail. The USTRY golden fixture is a specification
-    # waiting to be met, and every function in internal/domain/compute.go panics,
-    # so this job stays red until the methodology is written. That is an honest
-    # state.
-    #
-    # CONDITION FOR REMOVAL: once compute.go passes the fixture, delete the
-    # continue-on-error line, delete the build tag in golden_test.go, and fold
-    # this job into the build job.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-      - run: go test -tags conformance ./internal/conformance/ -count=1 -v
+  # THE CONFORMANCE JOB WAS FOLDED INTO `build` ON 26 AUGUST 2026, which is what
+  # its own removal condition said to do once compute.go passed the fixture.
+  #
+  # It existed with continue-on-error: true, deliberately allowed to fail, because
+  # the golden fixture was a specification waiting to be met and every function in
+  # internal/domain/compute.go panicked. That was an honest state and it is over.
+  # internal/conformance no longer carries a build tag, so `go test ./... -race` in
+  # the build job above runs it and a failure there is now a red build rather than
+  # a job nobody was expected to read.

@@ -1,24 +1,23 @@
-//go:build conformance
-
 // Methodology conformance test against the USTRY/USDC golden fixture.
 //
-// WHY THE BUILD TAG. The functions this file calls are declared in
-// internal/domain/compute.go and every one of them panics: the red zone has no
-// body yet. Without the tag, `make test` and CI would be red on committed work,
-// and a suite that is always red stops being read.
+// THE BUILD TAG IS GONE, removed on 26 August 2026 under the condition this file
+// wrote for itself. It carried `//go:build conformance` for two different reasons
+// in turn: first because the functions lived in a package with no .go file at all
+// and the repository would not build, then because they were declared and panicked.
+// Both were forms of "always red", and a suite that is always red stops being read.
 //
-// The tag's reason CHANGED and is worth recording. It used to exist because the
-// functions lived in a package with no .go file at all, so the repository would
-// not build. Now it builds and the calls panic instead. That is a better kind of
-// broken: the shape of the API is checked by the compiler today, and only the
-// arithmetic is missing.
+// It passes now, so it runs in plain `make test` and in the CI build job like any
+// other test. The separate CI job went with the tag, because a job whose whole
+// purpose was to be allowed to fail has nothing left to do.
 //
-// CONDITION FOR REMOVAL: once compute.go has an implementation that passes,
-// delete the //go:build line above, delete the separate `conformance` target in
-// the Makefile, and delete continue-on-error from the conformance job in CI. All
-// three exist only because that file is empty.
-//
-// For now, run it with: make conformance
+// ONE PIECE OF THE REMOVAL INSTRUCTION WAS NOT FOLLOWED, deliberately. It also
+// said to delete the `conformance` target in the Makefile. That target stayed:
+// DEC-004 phrases the trigger for opening this repository as "make conformance
+// passes without a build tag", and scripts/audit-verification.sh prints that
+// sentence, so deleting the target would make a decision record's own trigger
+// impossible to check. The tag came out of the target instead. A target that
+// re-runs one package verbosely is worth keeping anyway on the day that package
+// is the thing under discussion.
 //
 // WHICH SNAPSHOT EACH TEST USES, and this is the part to read before adding one.
 // Every expected value in expected.go was computed by hand for a market with NO
