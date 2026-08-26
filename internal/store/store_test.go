@@ -675,6 +675,59 @@ func TestAssetsRoundTripBothAssetTypes(t *testing.T) {
 	t.Fatal("the native pair is missing from the list")
 }
 
+// TestUpsertAssetIsIdempotentForTheNativeAssetToo is a regression test for the
+// defect migration 0005 repairs, and the shape of the gap that let it through is
+// worth as much as the test.
+//
+// Two tests sat next to each other above. One upserts TWICE and uses a credit
+// asset; the other uses the NATIVE asset and upserts once. Neither did both, so
+// nothing exercised a second upsert of XLM, which was the only case that failed.
+//
+// It failed because the unique constraint 0001 declared over
+// (code, issuer, quote_code, quote_issuer) cannot bind on a row whose issuer is
+// NULL, and assets_native_has_no_issuer REQUIRES the native issuer to be NULL. So
+// ON CONFLICT never fired, the statement fell through to a plain INSERT, and
+// `keel assets -pairs` gained one XLM row per run while documenting itself as
+// idempotent. In a live database it reached two rows and was noticed only because
+// they carried different spreads; identical numbers would have hidden it.
+func TestUpsertAssetIsIdempotentForTheNativeAssetToo(t *testing.T) {
+	s, ctx := testStore(t)
+
+	first, err := s.UpsertAsset(ctx, testXLM, testUSDC, "the deepest market on the network")
+	if err != nil {
+		t.Fatalf("first upsert: %v", err)
+	}
+	second, err := s.UpsertAsset(ctx, testXLM, testUSDC, "")
+	if err != nil {
+		t.Fatalf("second upsert: %v", err)
+	}
+	if first != second {
+		t.Fatalf("ids differ: %d then %d. The native pair was inserted twice, so the unique constraint is not binding on a NULL issuer",
+			first, second)
+	}
+
+	var n int
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT count(*) FROM assets WHERE type = 'native' AND quote_code = $1 AND quote_issuer = $2`,
+		testUSDC.Code, testUSDC.Issuer).Scan(&n); err != nil {
+		t.Fatalf("counting native rows: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("the assets table holds %d rows for this native pair, want 1", n)
+	}
+
+	// And the note survives, for the same reason the credit case checks it.
+	assets, err := s.Assets(ctx, true)
+	if err != nil {
+		t.Fatalf("Assets: %v", err)
+	}
+	for _, a := range assets {
+		if a.ID == first && a.SelectionNote != "the deepest market on the network" {
+			t.Errorf("selection note is now %q; the reason was erased", a.SelectionNote)
+		}
+	}
+}
+
 func TestUpsertAssetRejectsBadInput(t *testing.T) {
 	s, ctx := testStore(t)
 	cases := map[string][2]domain.Asset{
