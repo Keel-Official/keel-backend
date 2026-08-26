@@ -907,6 +907,136 @@ for mf in docs/methodology/*.md; do
 done
 echo "       partial is not a failure: 06-oracle-resilience.md is open against Reflector, handoff item 6"
 
+section "Methodology and contract agreement"
+# ADDED 27 AUGUST 2026, extending the methodology section above. That section asks
+# whether the methodology says anything yet. This one asks whether it and the contract
+# say the SAME thing, which is a different question and the one that bit twice on
+# 26 August: two documents each internally consistent, disagreeing with each other, and
+# nothing in this repository failing.
+#
+# WHY THIS IS NOT ONE MORE `grep -qF` PAIR. Every earlier check of this shape anchors on
+# the wrong side existing, and this file has been bitten four times by anchoring on prose
+# that the fix itself rewrites. Both checks below read the RULE out of each document,
+# normalise it, and fail while the two normalised rules differ. Neither one knows which
+# document is right, and neither one can be satisfied by editing only the side the check
+# was written against. Whichever side moves, the check closes.
+#
+# THIS SECTION ONLY READS. docs/methodology/ is RED. docs/api/ is YELLOW and neither
+# check writes to it.
+
+# ---- P2-16: when is maxReachablePrice null ----
+#
+# 05-manipulation-cost.md section 5 keys the null on a pool being PRESENT. The contract
+# keys it on the pool being the ONLY venue. On a market with a book and a pool the two
+# give opposite answers, and the USTRY fixture is that market, which is why this sits in
+# DEC-006 rather than on its own.
+#
+# The heading is matched on its subject rather than on "## 5.", so renumbering the
+# methodology file cannot make the finding vanish. The contract block is matched on the
+# property key at its own indent and ends at the next sibling key, so a reworded
+# description is still read rather than missed.
+mrp_methodology_block(){
+  awk '/^#+ /{ if (f) exit; if (tolower($0) ~ /maximum reachable price/) f=1; next } f' \
+    docs/methodology/05-manipulation-cost.md
+}
+mrp_contract_block(){
+  awk '/^        maxReachablePrice:[[:space:]]*$/{f=1; next} f && /^        [A-Za-z]/{exit} f' \
+    docs/api/keel-openapi.yaml
+}
+# Normalises a null rule to one word. `presence` means the rule fires because a pool
+# exists at all; `exclusivity` means it fires only when the pool is the whole market.
+# Anything else is reported as it is rather than guessed at, because a rule this check
+# cannot read is not a rule this check may declare agreed.
+#
+# THE TEXT IS JOINED INTO ONE LINE FIRST, and that was not a tidy-up. The contract wraps
+# "or all the / liquidity comes from an AMM" across two lines, so a per-line grep read the
+# contract rule as unreadable and the check would have reported a disagreement it could
+# only see one side of. A rule that spans a line break is still the rule.
+mrp_rule(){
+  local t p=0 x=0
+  t=$(tr '\n' ' ' | tr -s ' ')
+  printf '%s\n' "$t" | grep -qiE 'pool is present|a pool exists|pure order ?book' && p=1
+  printf '%s\n' "$t" | grep -qiE 'all (of )?(the )?liquidity comes from an amm|liquidity comes only from an amm|only venue' && x=1
+  if [ "$p" = 1 ] && [ "$x" = 1 ]; then printf 'ambiguous'
+  elif [ "$p" = 1 ]; then printf 'presence'
+  elif [ "$x" = 1 ]; then printf 'exclusivity'
+  else printf 'unreadable'
+  fi
+}
+mrp_rules_disagree(){
+  local m c
+  m=$(mrp_methodology_block | mrp_rule)
+  c=$(mrp_contract_block | mrp_rule)
+  case $m in presence|exclusivity) ;; *) return 0 ;; esac
+  case $c in presence|exclusivity) ;; *) return 0 ;; esac
+  [ "$m" != "$c" ]
+}
+check P2-16 "The methodology and the contract disagree about when maxReachablePrice is null" \
+  mrp_rules_disagree
+printf "        %smethodology%s 05-manipulation-cost.md keys the null on %s%s%s\n" \
+  "$dim" "$off" "$bold" "$(mrp_methodology_block | mrp_rule)" "$off"
+printf "        %scontract%s    keel-openapi.yaml keys the null on %s%s%s\n" \
+  "$dim" "$off" "$bold" "$(mrp_contract_block | mrp_rule)" "$off"
+# The same disagreement expressed in DATA rather than in prose, printed as supporting
+# evidence and not as a second condition. An example that carries a pool spot price and
+# a non-null maxReachablePrice has taken the contract's side of the conflict, whatever
+# either description says.
+mrp_examples_with_pool(){
+  awk '
+    /^    [A-Za-z][A-Za-z0-9]*:[[:space:]]*$/ { name=$1; sub(":","",name); pool=""; mrp="" }
+    /^        poolSpotPrice:/ { pool=$2 }
+    /^        maxReachablePrice:/ { mrp=$2
+      if (pool != "" && pool != "null" && mrp != "null")
+        printf "%s  poolSpotPrice %s  maxReachablePrice %s\n", name, pool, mrp
+    }
+  ' docs/api/keel-openapi.yaml
+}
+mrp_examples_with_pool | while read -r line; do
+  printf "        %sboth venues, non-null:%s %s\n" "$dim" "$off" "$line"
+done
+
+# ---- P2-17: how long is the oracle window ----
+#
+# The /methodology example is what scripts/generate-api-mocks.sh writes into
+# docs/api/mocks/methodology.json, so a wrong number there is the number a frontend
+# builds against. The methodology states the window in MINUTES and the contract in
+# SECONDS, so both sides are read and converted rather than compared as strings.
+#
+# THIS CHECK DOES NOT SAY WHICH IS RIGHT, and it must not. The window length is open
+# against Reflector, handoff item 6, and 06-oracle-resilience.md is honest to call it an
+# assumption. The finding is the DISAGREEMENT, so the check fails in either direction and
+# closes whichever way that question lands.
+contract_window_seconds(){
+  grep -oE '^[[:space:]]+oracleWindowSeconds:[[:space:]]+[0-9]+' docs/api/keel-openapi.yaml \
+    | grep -oE '[0-9]+$' | sort -u
+}
+methodology_window_seconds(){
+  grep -rhoiE '[0-9]+[ -]minute default' docs/methodology/ \
+    | grep -oE '^[0-9]+' | sort -un | while read -r m; do echo $((m * 60)); done
+}
+one_value(){ [ "$(printf '%s\n' "$1" | grep -c .)" = 1 ] && [ -n "$1" ]; }
+oracle_window_disagrees(){
+  local c m
+  c=$(contract_window_seconds); m=$(methodology_window_seconds)
+  one_value "$c" || return 0
+  one_value "$m" || return 0
+  [ "$c" != "$m" ]
+}
+check P2-17 "The /methodology example and the methodology state different oracle window lengths" \
+  oracle_window_disagrees
+printf "        %scontract%s    oracleWindowSeconds in the example: %s%s%s seconds\n" \
+  "$dim" "$off" "$bold" "$(contract_window_seconds | paste -sd, -)" "$off"
+printf "        %smethodology%s the stated default window:         %s%s%s seconds\n" \
+  "$dim" "$off" "$bold" "$(methodology_window_seconds | paste -sd, -)" "$off"
+printf "        %sthe example is what docs/api/mocks/methodology.json is generated from, so it is what a frontend builds against%s\n" \
+  "$dim" "$off"
+# The same number is repeated in the asset examples, and those are generated too. Counted
+# rather than listed, because the count is what says whether this is one edit or several.
+win_repeats=$(grep -cE '^[[:space:]]+windowSeconds:[[:space:]]+[0-9]+' docs/api/keel-openapi.yaml || true)
+win_prose=$(grep -coE '[0-9]+ second oracle window' docs/api/keel-openapi.yaml || true)
+printf "        %s%s oracleResistance.windowSeconds example values and %s prose mentions carry the same figure%s\n" \
+  "$dim" "$win_repeats" "$win_prose" "$off"
+
 section "Golden fixture arithmetic, recomputed from scratch"
 python3 - <<'PY'
 import os
