@@ -26,6 +26,11 @@ What does not exist yet, and the list is specific on purpose:
   reports the six flags that depend on them as `unevaluated`, which is not the same
   claim as clear.
 - **The historical adapter.** `keel replay` exits 3. DEC-002 defers Hubble.
+  `keel backtest` is the DEC-002 section 2 substitute and it is not the same thing:
+  it reads the trade STREAM, which Horizon serves in full, and cannot see the order
+  book STATE, which Horizon does not serve for a past ledger.
+  `docs/evidences/2026-08-26-ustry-february-trades-implied.md` measures what that
+  costs on the one asset it matters for, and the answer is most of the claim.
 - **A hand computed check on the AMM half.**
   `testdata/fixtures/ustry_pre_exploit.md` records `Pools: []` while the pool that
   genuinely existed at that ledger is in `GoldenSnapshot()`, so the with-pool depth
@@ -50,6 +55,7 @@ What that means for the commands you can run:
 | `make serve` | works, serves every endpoint in the contract. Needs the database |
 | `make store-test` | works, the `internal/store` integration tests. Needs the database |
 | `make scan` | works, computes and stores one result per asset per ledger. The supporting metric fields are stored null, because they are not computed yet. Needs the database |
+| `make backtest` | works, writes the trade-implied history of a pair as two CSV files. Needs `PAIRS`, `FROM`, `TO`. No database |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
 built yet" apart from "failed". `keel replay` still uses it. `keel scan` now uses it

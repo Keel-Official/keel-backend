@@ -150,3 +150,43 @@ Three things about it that are decisions rather than gaps:
   `cmd/keel/stellartoml.go` rather than here: a stellar.toml is served by a
   stranger's web server, not by Horizon, and giving this client a second transport
   with a second failure mode and a second timeout would blur what the package is.
+
+## The same three sentences for the trade stream, added 26 August 2026
+
+`trades.go` reads `/trades` for one pinned pair. It exists because trap 3 above is
+about STATE and not about EVENTS: Horizon serves no order book at a past ledger and
+serves the whole trade history of a pair, which is what DEC-002 section 1 records
+and what makes its section 2 substitutes reachable at all. It gathers and never
+selects: no genuine-trade rule, no dust threshold, no account filter, because those
+are `docs/methodology/07-supporting-metrics.md` section 1 and that file is red and
+unwritten.
+
+The decision: the walk seeks with a LEDGER, follows Horizon's own `_links.next`
+afterwards, and ends on a predicate the caller supplies over each decoded trade.
+The alternative rejected: taking a start and an end TIME and converting both into
+ledger sequences to build the cursors, which is the obvious shape for "give me
+February". Why it was rejected: `00-overview.md` section 2 rule 4 forbids deriving
+a time from a ledger sequence arithmetically, and the inverse is the same mistake
+with the same error, roughly three weeks of drift over six months. A ledger is an
+honest SEEK because arriving early only costs requests, while the window boundary
+is decided on `ledger_close_time`, which every record states.
+
+Three more things about it that are decisions rather than gaps:
+
+- **A record whose base is not the asset that was asked for is REFUSED, not
+  flipped.** Queried without a pinned pair, Horizon returns the 22 February exploit
+  trade with USDC as the base and the fraction upside down, which is the case
+  `orient()` in `price.go` was written for. Here the pair IS pinned, so a record
+  that disagrees means the endpoint answered a different question, and silently
+  inverting 106.74 into 0.0093 is a hundredfold error every downstream number would
+  inherit. `ErrPairMismatch`, the same error `GetSnapshot` uses for the same reason.
+- **The rational is the field called `price` on this endpoint and its members are
+  STRINGS.** That is not trap 2. `/offers` spells the same value `price_r` with
+  number members, and `flexInt64` accepting both is the whole reason `price.go`
+  exists. The rounded string is never read.
+- **`base_is_seller` is carried, and it is not decoration.** It is what separates a
+  book walk from a `path_payment_strict_send` that buys the base asset on one venue
+  and sells it on another inside ONE operation.
+  `internal/domain/TradeImpliedDepthBounds` groups on it, and
+  `docs/evidences/2026-08-26-ustry-february-trades-implied.md` section 2 records
+  the wrong number that grouping by operation alone produced.

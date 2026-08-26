@@ -10,6 +10,7 @@
 //	keel universe   build a candidate asset universe (proposes, never selects)
 //	keel scan       compute metrics for every active asset, store them in Postgres
 //	keel serve      run the read API
+//	keel backtest   the trade-implied history of a pair, as CSV
 //	keel replay     replay a ledger range through the historical adapter
 package main
 
@@ -90,6 +91,16 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "backtest":
+		// The trade-implied history. It is the DEC-002 section 2 substitute for a
+		// historical order book, built because `replay` below needs a source this
+		// repository has decided not to reach for yet, and Deliverable 2 needs a
+		// February 2026 series either way. See the header of backtest.go.
+		if err := runBacktest(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel backtest: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "replay":
 		belum(perintah, "internal/hubble; deferred, see docs/decisions/DEC-002-hold-bigquery.md")
 
@@ -121,6 +132,7 @@ Subcommands:
   universe  build a candidate asset universe ("keel universe -h")
   scan      compute metrics for every active asset, store them in Postgres
   serve     run the read API ("keel serve -h")
+  backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    replay a ledger range through the historical adapter
 `)
 }

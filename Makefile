@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest
 
 # ---------------------------------------------------------------- Local
 
@@ -157,3 +157,26 @@ scan:
 
 serve:
 	go run ./cmd/keel serve
+
+# backtest writes the trade-implied history of a pair as two CSV files: one row
+# per trade and one row per UTC day. It needs no database and no BigQuery.
+#
+# IT IS NOT A REPLAY. Horizon serves the whole trade stream of a pair and no
+# order book at a past ledger, so this can bound depth from trades that happened
+# and cannot see the offers that were merely posted. On USTRY in February 2026
+# that difference is the whole of Deliverable 2's claim, and it is measured in
+# docs/evidences/2026-08-26-ustry-february-trades-implied.md rather than argued.
+#
+# FROM_LEDGER is a SEEK, not a boundary. Arriving early costs a few requests;
+# arriving late silently drops the front of the window, so the command prints the
+# first trade it kept. Read the close time off Horizon rather than computing it:
+#
+#   curl -s https://horizon.stellar.org/ledgers/60977383 \
+#     | python3 -c "import json,sys; print(json.load(sys.stdin)['closed_at'])"
+FROM ?= 2026-02-01
+TO ?= 2026-03-01
+MARK ?= 2026-02-22
+FROM_LEDGER ?= 60977383
+
+backtest:
+	go run ./cmd/keel backtest -pairs $(PAIRS) -from $(FROM) -to $(TO) -mark $(MARK) -from-ledger $(FROM_LEDGER)
