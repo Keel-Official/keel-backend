@@ -470,12 +470,41 @@ make fmt'                                                   && return 0
 # nothing. A decision record numbered later is a decision record that is numbered
 # when somebody happens to remember.
 #
-# It reads the zone map rather than docs/decisions/, because the map is what the
-# next reader consults and a dangling pointer there is the defect. The number
-# collision between the two DEC-003 documents is a separate question and not this
-# one.
+# RE-ANCHORED 26 AUGUST 2026, ONTO docs/decisions/, AND THE OLD ANCHOR IS THE REASON.
+# It read the zone map, on the stated grounds that the map is what the next reader
+# consults and a dangling pointer there is the defect. That was half true and the
+# wrong half was load-bearing: it matched the literal placeholder `DEC-00X`, so
+# DELETING the placeholder closed the finding whether or not a decision record had
+# been written. The pointer was the SYMPTOM. The missing decision is the defect, and
+# on 26 August 2026 the symptom was tidied away — correctly, since no record governs
+# the move and aiming the row at the nearest plausible one would have been worse —
+# which would have flipped this line to NOT and reported the largest loosening in the
+# repository as recorded. Fourth time this class of bug has been found in this file:
+# a check anchored on the shape of a defect reports it gone the moment the shape
+# changes.
+#
+# It now asks docs/decisions/ for a record that governs the move: one naming
+# compute.go alongside the zone it moved INTO. No edit to CLAUDE.md can satisfy it,
+# which is the point, and the number that record will carry is deliberately not
+# written here, because a check naming DEC-007 in advance is a check that whoever
+# writes DEC-007 has to come and edit.
+#
+# WHAT THIS CANNOT PROVE, stated because the limit is structural and is the same one
+# P2-9 carries: it proves a record names the file and the zone, never that the record
+# decides anything. A future document mentioning compute.go and the word yellow in
+# passing satisfies it. Matching the phrasing of a decision nobody has written yet
+# would be guessing at prose, so the weaker check is the honest one and this note is
+# what stands in for the strength it does not have.
+#
+# The number collision between the two DEC-003 documents is a separate question and
+# not this one.
 loosening_unnumbered(){
-  grep -qE 'DEC-00X|DEC-0\?\?|DEC-TBD' CLAUDE.md
+  local f
+  for f in docs/decisions/*.md; do
+    grep -qF 'compute.go' "$f" 2>/dev/null || continue
+    grep -qiE '\byellow\b' "$f" 2>/dev/null && return 1
+  done
+  return 0
 }
 # ADDED 25 AUGUST 2026. PROVEN while the rule that REPLACED the compute.go lock is
 # not written where the harness can see it.
@@ -627,7 +656,7 @@ check P2-6b "or the same hook refuses a yellow file next door, which gets it swi
 check P2-6c "or in-place formatting that names no .go file stops being Al's alone" sweep_not_refused
 check P2-6d "The same hook reads prose as a command, so a commit message quoting a zone is refused" red_zone_refuses_prose
 check P2-6e "or the fix for that reopens a route, because a newline or a heredoc hid the verb" red_zone_reopened_by_the_fix
-check P2-12 "The compute.go loosening points at a DEC number that does not exist" loosening_unnumbered
+check P2-12 "The compute.go move from RED to YELLOW is governed by no decision record" loosening_unnumbered
 check P2-13 "and the fixture-first rule that replaces its lock is not written in the zone map" ordering_rule_unwritten
 check P2-11 "The golden fixture and docs/context are red in the map and locked by nothing" red_tree_leaks
 check P2-11b "or that lock reaches reading, which is the whole job Claude has in the fixture" red_tree_over_refuses
