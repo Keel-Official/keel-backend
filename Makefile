@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay crosscheck
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay crosscheck divergence
 
 # ---------------------------------------------------------------- Local
 
@@ -212,3 +212,15 @@ replay:
 # it soon after the recording, not weeks later.
 crosscheck:
 	go run ./cmd/keel crosscheck -out docs/evidences/layer3-crosscheck-$(shell date -u +%Y-%m-%d).csv
+
+# divergence measures how far the order book mid sits from the pool spot price
+# across the demonstration set, which is what decides case 1 of the reference
+# price ladder. It MEASURES: no threshold is recommended and no branch is called
+# correct.
+#
+# The output directory is gitignored. The summary counts are the result and belong
+# in a commit message or a decision record; sixty raw Horizon bodies do not.
+#
+# 180 requests against the hourly budget, three per pair.
+divergence:
+	go run ./cmd/keel divergence -pairs $(or $(PAIRS),configs/demonstration-set.json) -out $(or $(OUT),measurements/divergence)

@@ -13,6 +13,7 @@
 //	keel backtest   the trade-implied history of a pair, as CSV
 //	keel replay     rebuild a pair's order book at a past ledger
 //	keel crosscheck compare the recordings against rebuilt books, validation Layer 3
+//	keel divergence measure book mid against pool spot across the demonstration set
 package main
 
 import (
@@ -130,6 +131,18 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "divergence":
+		// A MEASUREMENT and not a metric. Methodology 1.0.3 made case 1 of the
+		// reference price ladder branch on a comparison, and that branch was
+		// written from one market. This reads the live book and pools for every
+		// pair in the list, asks internal/domain which rung each sits on, and
+		// counts them. It states nothing about which branch is correct; see the
+		// header of divergence.go.
+		if err := runDivergence(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel divergence: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "help", "-h", "--help":
 		usage()
 
@@ -156,5 +169,6 @@ Subcommands:
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    rebuild a pair's order book at a past ledger ("keel replay -h")
   crosscheck compare the recordings against rebuilt books ("keel crosscheck -h")
+  divergence measure book mid against pool spot per pair ("keel divergence -h")
 `)
 }

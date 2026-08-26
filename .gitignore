@@ -47,6 +47,17 @@
 /recordings/*
 !/recordings/samples/
 
+# Measurement output. `keel divergence` writes one raw Horizon response per pair
+# plus a CSV and a summary here, and a sixty-pair run is sixty JSON bodies.
+#
+# The RESULT of a measurement is its summary counts, which go into a commit
+# message or a decision record where they can be argued with. The raw responses
+# are the evidence for one run against a market that has already moved by the time
+# anybody reads them, so they stay out of git for the same reason recordings/ does.
+# A reading that has to be permanent belongs in docs/evidences/ with a ledger
+# sequence attached, which is what that directory's zone row requires of it.
+/measurements/
+
 # Context files
 /docs/context/*
 
