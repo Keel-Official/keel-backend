@@ -194,16 +194,16 @@ and `@` does the opposite.
 
 ## Commit message conventions
 
-Selalu gunakan format Conventional Commits:
+Always use the Conventional Commits format:
 
 <type>(<scope>): <deskripsi singkat>
 
 - type: feat, fix, docs, style, refactor, test, chore
-- scope: opsional, area yang diubah (mis. auth, api, ui)
-- deskripsi: imperative mood, huruf kecil, tanpa titik di akhir
-- maksimal 72 karakter untuk baris pertama
-- tambahkan body jika perlu menjelaskan "kenapa", dipisah 1 baris kosong
+- scope: optional, the area being changed (e.g. auth, api, ui)
+- description: imperative mood, lowercase, no period at the end
+- maximum 72 characters for the first line
+- add a body if you need to explain the "why", separated by 1 blank line
 
-Contoh:
-feat(auth): tambah login via Google OAuth
-fix(api): tangani null response saat timeout
+Example:
+feat(auth): add login via Google Auth
+fix(api): handle null response on timeout
