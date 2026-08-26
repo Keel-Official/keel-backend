@@ -25,6 +25,12 @@ What does not exist yet, and the list is specific on purpose:
   `docs/methodology/07-supporting-metrics.md` is still a worksheet. Every result
   reports the six flags that depend on them as `unevaluated`, which is not the same
   claim as clear.
+- **Layer 3 at the full sample size.** `keel crosscheck` executes it and the first
+  run compared 37 of the 60 recordings with zero mismatches; the SOW asks for at
+  least 50. Nothing is broken: seven hours passed between the recording and the
+  comparison and 23 pairs had an offer move in the gap, four of them exactly one
+  offer. `docs/evidences/2026-08-26-layer3-crosscheck.md` section 4 has the fix,
+  and it is a step in the recorder workflow rather than code.
 - **Historical POOL reserves.** `keel replay` rebuilds a past ORDER BOOK from the
   operations that posted it, and reconstructs no pool at all, so the snapshot it
   returns carries none. That is not a claim that no pool existed.
@@ -62,6 +68,7 @@ What that means for the commands you can run:
 | `make scan` | works, computes and stores one result per asset per ledger. The supporting metric fields are stored null, because they are not computed yet. Needs the database |
 | `make backtest` | works, writes the trade-implied history of a pair as two CSV files. Needs `PAIRS`, `FROM`, `TO`. No database |
 | `make replay` | works, rebuilds a pair's order book at a past ledger from the operations that posted it. Needs `PAIRS` and `LEDGER`. No database. **Read the completeness line it prints**: a book missing an offer reads as a thin book |
+| `make crosscheck` | works, runs validation Layer 3 over the committed recordings. No database. First run, 26 August 2026: 60 recordings, 37 match, 0 mismatch, 23 partial |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
 built yet" apart from "failed". **No subcommand means "not built yet" any more**, as

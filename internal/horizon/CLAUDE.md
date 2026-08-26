@@ -281,3 +281,40 @@ page and turns the same limitation into a depth the file can report.
   claim that no pool existed. `/liquidity_pools/{id}/operations` can answer it and
   DEC-002 section 2.3 calls that side cleaner, because it has no discovery gap. Any
   depth computed from a replayed snapshot today is ORDER BOOK ONLY.
+
+## The same three sentences for the rewind, added 26 August 2026
+
+`rewind.go` rebuilds a RECENT book by carrying the live offer set back, and it
+exists because `replay.go` cannot afford to. The forward walk is priced by how busy
+the ACCOUNTS are rather than the pair: three of the quietest pairs in the
+demonstration set, at a target seven hours old, did not finish in ten minutes.
+
+The decision: the current offer set is the starting point and `last_modified_ledger`
+decides, per offer, whether it can be carried back unchanged, with everything else
+counted rather than reconstructed. The alternative rejected: rewinding the window's
+operations in reverse and un-applying each one. Why it was rejected: un-applying an
+UPDATE needs the state BEFORE it, which no result carries, so every reversed update
+sends you looking for the operation before it and the walk degenerates into the
+forward problem this file exists to escape, while `last_modified_ledger` answers the
+same question for free and for the 94.5 percent of offers that never moved.
+
+Two things about it that are decisions rather than gaps:
+
+- **A departed offer is COUNTED and never put back.** The first version
+  reconstructed it from the amount it sold and the price the trade reports, which is
+  a real lower bound on what it held and is still wrong: a trade cannot say whether
+  the offer it names was on the book at the TARGET or was created after it. Measured
+  before the fix, AFR came back with 99 ask levels against a recording of 77. Every
+  gap in this file now loses levels, so a rebuilt book is never DEEPER than the real
+  one, which is the one direction a warning product must not fail in.
+- **Both directions of `/offers` are read**, because a bid is an offer SELLING the
+  quote asset and the endpoint filters on what an offer sells. Asking one way round
+  returns half a book and no error, the same shape as trap 4.
+
+## What `/order_book` does not tell you, added the same day
+
+**It serves at most 200 levels a side and says nothing about having truncated.** A
+recorded side holding exactly `BookPageLimit` levels is a PREFIX of the real book,
+not the whole of it, and five of the sixty committed recordings are in that state.
+A comparison that requires the same count on both sides calls every deep market a
+mismatch. `keel crosscheck` compares the prefix and checks the count as "at least".

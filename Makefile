@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay crosscheck
 
 # ---------------------------------------------------------------- Local
 
@@ -201,3 +201,14 @@ TRADES_FROM ?= 0
 replay:
 	@test -n "$(LEDGER)" || { echo "replay: LEDGER is required, e.g. make replay PAIRS=... LEDGER=61340262"; exit 1; }
 	go run ./cmd/keel replay -pairs $(PAIRS) -ledger $(LEDGER) -since-ledger $(SINCE_LEDGER) -trades-from-ledger $(TRADES_FROM)
+
+# crosscheck is Layer 3 of docs/methodology/10-validation.md, executed. It reads
+# the committed recordings, rebuilds each book from Horizon today, and compares
+# them at the four depths that document names.
+#
+# IT GETS WEAKER WITH TIME AND THAT IS INHERENT. The rebuild carries a live offer
+# back only when the offer has not moved since the target, so every hour that
+# passes moves more offers and turns more pairs from comparable into partial. Run
+# it soon after the recording, not weeks later.
+crosscheck:
+	go run ./cmd/keel crosscheck -out docs/evidences/layer3-crosscheck-$(shell date -u +%Y-%m-%d).csv

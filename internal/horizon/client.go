@@ -55,7 +55,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -331,16 +330,15 @@ func (c *Client) GetSnapshot(ctx context.Context, base, quote domain.Asset) (Obs
 		return obs, fmt.Errorf("order book %s/%s: %w", base, quote, err)
 	}
 
-	var book orderBookResponse
-	if err := json.Unmarshal(bookBody, &book); err != nil {
-		return obs, fmt.Errorf("decode order book %s/%s: %w", base, quote, err)
-	}
-	// Horizon answers a request naming the wrong asset type with an EMPTY book
-	// and no error, so the echo is checked. An empty book that echoes the right
-	// pair is a legitimate answer and the most interesting one this product has.
-	if !book.Base.matches(base) || !book.Counter.matches(quote) {
-		return obs, fmt.Errorf("%w: asked %s/%s, got %s/%s",
-			ErrPairMismatch, base, quote, book.Base.describe(), book.Counter.describe())
+	// ONE DECODER, shared with the Layer 3 comparison, which reads a RECORDED
+	// body with the same function. Two decoders that agree today are two decoders
+	// that disagree the first time one of them is corrected. It also checks the
+	// echoed pair, because Horizon answers a wrong asset type with an EMPTY book
+	// and no error; an empty book that echoes the RIGHT pair is a legitimate
+	// answer and the most interesting one this product has.
+	parsedBook, err := ParseOrderBook(bookBody, base, quote, c.cfg.BidAmountUnit)
+	if err != nil {
+		return obs, err
 	}
 
 	poolQ := url.Values{}
@@ -368,17 +366,6 @@ func (c *Client) GetSnapshot(ctx context.Context, base, quote domain.Asset) (Obs
 		return obs, fmt.Errorf("ledger %d returned sequence %d", bookLedger, ledger.Sequence)
 	}
 
-	bids, err := c.levels(book.Bids, sideBid)
-	if err != nil {
-		return obs, fmt.Errorf("bids %s/%s: %w", base, quote, err)
-	}
-	asks, err := c.levels(book.Asks, sideAsk)
-	if err != nil {
-		return obs, fmt.Errorf("asks %s/%s: %w", base, quote, err)
-	}
-	sort.SliceStable(bids, func(i, j int) bool { return bids[i].Price.Cmp(bids[j].Price) > 0 })
-	sort.SliceStable(asks, func(i, j int) bool { return asks[i].Price.Cmp(asks[j].Price) < 0 })
-
 	reserves, err := poolReserves(pools, base, quote)
 	if err != nil {
 		return obs, fmt.Errorf("pools %s/%s: %w", base, quote, err)
@@ -389,7 +376,7 @@ func (c *Client) GetSnapshot(ctx context.Context, base, quote domain.Asset) (Obs
 		Quote:          quote,
 		LedgerSeq:      bookLedger,
 		LedgerClosedAt: ledger.ClosedAt,
-		Book:           domain.OrderBook{Bids: bids, Asks: asks},
+		Book:           parsedBook,
 		Pools:          reserves,
 		Source:         domain.DataSourceHorizon,
 	}

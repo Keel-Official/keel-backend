@@ -13,8 +13,10 @@
 package horizon
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -89,7 +91,89 @@ const (
 // quote amount to within that precision, which is well inside the fixture
 // tolerance of 1e-7 at these magnitudes, and the raw bytes keep the unrounded
 // figure regardless.
+// ParseOrderBook turns a raw /order_book body into a domain.OrderBook.
+//
+// IT IS THE ONE DECODER BOTH PATHS USE, and that is the point of exporting it.
+// GetSnapshot reads a live response with it and the Layer 3 comparison reads a
+// RECORDED response with it, so a difference between the two can only come from
+// the data. Two decoders that agree today are two decoders that disagree the
+// first time one of them is corrected, which is exactly what recording schema 2
+// exists to avoid: see the header of tick.go.
+//
+// The pair is checked against what the body echoes, because a wrong asset type
+// returns an empty book and no error, which is trap 4 of this zone.
+func ParseOrderBook(body []byte, base, quote domain.Asset, unit BidAmountUnit) (domain.OrderBook, error) {
+	var out domain.OrderBook
+
+	var book orderBookResponse
+	if err := json.Unmarshal(body, &book); err != nil {
+		return out, fmt.Errorf("decode order book %s/%s: %w", base, quote, err)
+	}
+	if !book.Base.matches(base) || !book.Counter.matches(quote) {
+		return out, fmt.Errorf("%w: asked %s/%s, got %s/%s",
+			ErrPairMismatch, base, quote, book.Base.describe(), book.Counter.describe())
+	}
+
+	bids, err := decodeLevels(book.Bids, sideBid, unit)
+	if err != nil {
+		return out, fmt.Errorf("bids %s/%s: %w", base, quote, err)
+	}
+	asks, err := decodeLevels(book.Asks, sideAsk, unit)
+	if err != nil {
+		return out, fmt.Errorf("asks %s/%s: %w", base, quote, err)
+	}
+	sort.SliceStable(bids, func(i, j int) bool { return bids[i].Price.Cmp(bids[j].Price) > 0 })
+	sort.SliceStable(asks, func(i, j int) bool { return asks[i].Price.Cmp(asks[j].Price) < 0 })
+
+	out.Bids, out.Asks = bids, asks
+	return out, nil
+}
+
+// PairFromOrderBook recovers the pair identity from a /order_book body.
+//
+// It exists so that a RECORDING can be read without being told what it is. The
+// body echoes the full asset type, code and issuer for both sides, and identity
+// is the pair (code, issuer) and never the ticker: reading the display string a
+// recording also carries would be matching on the ticker, which is the mistake
+// this repository has paid for more than once.
+func PairFromOrderBook(body []byte) (domain.Asset, domain.Asset, error) {
+	var book orderBookResponse
+	if err := json.Unmarshal(body, &book); err != nil {
+		return domain.Asset{}, domain.Asset{}, fmt.Errorf("decode order book: %w", err)
+	}
+	base, err := book.Base.asset()
+	if err != nil {
+		return domain.Asset{}, domain.Asset{}, fmt.Errorf("base: %w", err)
+	}
+	quote, err := book.Counter.asset()
+	if err != nil {
+		return domain.Asset{}, domain.Asset{}, fmt.Errorf("counter: %w", err)
+	}
+	return base, quote, nil
+}
+
+// asset rebuilds a domain.Asset from what the body echoed. The native asset
+// carries no code and no issuer on chain, and forcing one on it here is the bug
+// that made `keel assets` fail on pair 0 of the demonstration set.
+func (r assetRef) asset() (domain.Asset, error) {
+	switch domain.AssetType(r.AssetType) {
+	case domain.AssetTypeNative:
+		return domain.Asset{Type: domain.AssetTypeNative}, nil
+	case domain.AssetTypeAlphanum4, domain.AssetTypeAlphanum12:
+		if r.AssetCode == "" || r.AssetIssuer == "" {
+			return domain.Asset{}, fmt.Errorf("%s is missing a code or an issuer", r.AssetType)
+		}
+		return domain.Asset{Code: r.AssetCode, Issuer: r.AssetIssuer, Type: domain.AssetType(r.AssetType)}, nil
+	default:
+		return domain.Asset{}, fmt.Errorf("unknown asset type %q", r.AssetType)
+	}
+}
+
 func (c *Client) levels(in []priceLevel, s side) ([]domain.Level, error) {
+	return decodeLevels(in, s, c.cfg.BidAmountUnit)
+}
+
+func decodeLevels(in []priceLevel, s side, unit BidAmountUnit) ([]domain.Level, error) {
 	out := make([]domain.Level, 0, len(in))
 	for i, l := range in {
 		price, err := l.PriceR.price()
@@ -103,7 +187,7 @@ func (c *Client) levels(in []priceLevel, s side) ([]domain.Level, error) {
 		if !amount.IsPositive() {
 			return nil, fmt.Errorf("level %d: amount %q is not positive", i, l.Amount)
 		}
-		if s == sideBid && c.cfg.BidAmountUnit == BidAmountUnitQuote {
+		if s == sideBid && unit == BidAmountUnitQuote {
 			amount = amount.Mul(decimal.NewFromInt(price.D)).Div(decimal.NewFromInt(price.N))
 		}
 		out = append(out, domain.Level{Price: price, Amount: amount})

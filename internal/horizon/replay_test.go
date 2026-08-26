@@ -369,3 +369,30 @@ func TestTheInflationFlagIsSeparateFromTheOtherGaps(t *testing.T) {
 		t.Error("a whole-history trade walk raised the flag")
 	}
 }
+
+func TestOffersAtOnePriceBecomeOneLevel(t *testing.T) {
+	// /order_book returns one level per PRICE, not per offer, so a
+	// reconstruction that emits one level per offer cannot be compared against a
+	// recording level by level. That is comparison depth 1 and 2 of
+	// docs/methodology/10-validation.md section 3.
+	state := map[int64]*restingOffer{
+		1: {ID: 1, Selling: refOf(testUSTRY), Buying: refOf(testUSDC), Amount: decimal.New(10, 0), PriceN: 2, PriceD: 1},
+		2: {ID: 2, Selling: refOf(testUSTRY), Buying: refOf(testUSDC), Amount: decimal.New(5, 0), PriceN: 2, PriceD: 1},
+		// The SAME price written as a different fraction. Aggregating on the
+		// decimal would merge these by rounding luck; aggregating on the rational
+		// merges them because they are equal.
+		3: {ID: 3, Selling: refOf(testUSTRY), Buying: refOf(testUSDC), Amount: decimal.New(1, 0), PriceN: 3, PriceD: 1},
+	}
+	book := bookFromOffers(state, testUSTRY, testUSDC)
+
+	if len(book.Asks) != 2 {
+		t.Fatalf("book has %d ask level(s), want 2 for three offers at two prices", len(book.Asks))
+	}
+	if want := decimal.New(15, 0); !book.Asks[0].Amount.Equal(want) {
+		t.Errorf("cheapest level amount = %s, want %s, the sum of the two offers at that price",
+			book.Asks[0].Amount, want)
+	}
+	if book.Asks[0].Price.Cmp(book.Asks[1].Price) >= 0 {
+		t.Error("levels are not cheapest first after aggregation")
+	}
+}

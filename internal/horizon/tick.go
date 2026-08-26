@@ -124,6 +124,17 @@ const tickDateLayout = "2006-01-02"
 // into requesting different depths and producing files that are not comparable.
 const bookPageLimit = 200
 
+// BookPageLimit is bookPageLimit, exported so a reader of a RECORDING can tell a
+// short book from a truncated one.
+//
+// /order_book serves at most this many levels per side and says nothing about
+// having more, so a recorded side holding exactly this many is a PREFIX of the
+// real book and not the whole of it. A comparison that requires the same count on
+// both sides would call every deep market a mismatch; the Layer 3 comparison
+// compares the prefix instead. Five of the sixty committed recordings have a side
+// at the cap.
+const BookPageLimit = bookPageLimit
+
 // maxCollisionSuffix bounds the monotonic suffix search. It is a runaway guard
 // and not a real limit: reaching it means a thousand ticks were written for one
 // pair at one ledger on one day, which is a bug somewhere else.

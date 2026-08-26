@@ -771,6 +771,23 @@ func bookFromOffers(state map[int64]*restingOffer, base, quote domain.Asset) dom
 	baseRef := refOf(base)
 	quoteRef := refOf(quote)
 
+	// OFFERS AT ONE PRICE ARE ONE LEVEL, because that is what /order_book returns
+	// and a reconstruction that emits one level per offer cannot be compared
+	// against it level by level, which is comparison depth 1 and 2 of
+	// docs/methodology/10-validation.md section 3. The key is the exact rational
+	// and never the decimal: two offers at 1/3 and 2/6 are the same price and a
+	// decimal key would only agree by rounding luck.
+	asks := map[string]*domain.Level{}
+	bids := map[string]*domain.Level{}
+	add := (func(into map[string]*domain.Level, p domain.Price, amount decimal.Decimal) {
+		k := p.String()
+		if l, ok := into[k]; ok {
+			l.Amount = l.Amount.Add(amount)
+			return
+		}
+		into[k] = &domain.Level{Price: p, Amount: amount}
+	})
+
 	for _, id := range ids {
 		o := state[id]
 		if o.Amount.LessThanOrEqual(decimal.Zero) || o.PriceN <= 0 || o.PriceD <= 0 {
@@ -778,18 +795,19 @@ func bookFromOffers(state map[int64]*restingOffer, base, quote domain.Asset) dom
 		}
 		switch {
 		case sameAsset(o.Selling, baseRef) && sameAsset(o.Buying, quoteRef):
-			book.Asks = append(book.Asks, domain.Level{
-				Price:  domain.Price{N: o.PriceN, D: o.PriceD},
-				Amount: o.Amount,
-			})
+			add(asks, domain.Price{N: o.PriceN, D: o.PriceD}, o.Amount)
 		case sameAsset(o.Selling, quoteRef) && sameAsset(o.Buying, baseRef):
 			// price is base per quote, so the quote-per-base price is the flip,
 			// and the base amount is the quote amount times base per quote.
-			book.Bids = append(book.Bids, domain.Level{
-				Price:  domain.Price{N: o.PriceN, D: o.PriceD}.Invert(),
-				Amount: o.Amount.Mul(decimal.NewFromInt(o.PriceN)).DivRound(decimal.NewFromInt(o.PriceD), domain.Precision),
-			})
+			add(bids, domain.Price{N: o.PriceN, D: o.PriceD}.Invert(),
+				o.Amount.Mul(decimal.NewFromInt(o.PriceN)).DivRound(decimal.NewFromInt(o.PriceD), domain.Precision))
 		}
+	}
+	for _, l := range asks {
+		book.Asks = append(book.Asks, *l)
+	}
+	for _, l := range bids {
+		book.Bids = append(book.Bids, *l)
 	}
 
 	// Best first on both sides, the same order GetSnapshot produces, so the two

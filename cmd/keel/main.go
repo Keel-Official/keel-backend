@@ -12,6 +12,7 @@
 //	keel serve      run the read API
 //	keel backtest   the trade-implied history of a pair, as CSV
 //	keel replay     rebuild a pair's order book at a past ledger
+//	keel crosscheck compare the recordings against rebuilt books, validation Layer 3
 package main
 
 import (
@@ -108,6 +109,16 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "crosscheck":
+		// Layer 3 of docs/methodology/10-validation.md, executed rather than
+		// defined. It compares the committed recordings against books rebuilt from
+		// Horizon today, and reports at the four depths that document names. See
+		// the header of crosscheck.go.
+		if err := runCrosscheck(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel crosscheck: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "replay":
 		// The historical path, and it is NOT internal/hubble. DEC-002 section 2.3
 		// specified reconstruction from operations and gated it behind "only
@@ -144,5 +155,6 @@ Subcommands:
   serve     run the read API ("keel serve -h")
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    rebuild a pair's order book at a past ledger ("keel replay -h")
+  crosscheck compare the recordings against rebuilt books ("keel crosscheck -h")
 `)
 }
