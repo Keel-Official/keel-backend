@@ -1,10 +1,13 @@
 // The methodology computations.
 //
-// ZONE: YELLOW since 25 August 2026. It was the red zone until then, and the
-// header that said so outlived the move by a day; see the note at the end of this
-// comment. Edit and Write on this path are `ask` in .claude/settings.json rather
-// than `deny`, so every write still surfaces, and .claude/hooks/lindungi-zona-merah.sh
-// no longer carries a file rule or a directory rule for internal/domain.
+// ZONE: YELLOW since 25 August 2026, moved so that Deliverable 1 would not be gated
+// on a single writer. It was the red zone until then, and the header that said so
+// outlived the move by a day. Edit and Write on this path are `ask` in
+// .claude/settings.json rather than `deny`, so every write still surfaces, and
+// .claude/hooks/lindungi-zona-merah.sh no longer carries a file rule or a directory
+// rule for internal/domain. internal/domain/CLAUDE.md is the long account of the
+// move; no decision record governs it, which the root CLAUDE.md row says outright
+// and P2-12 in scripts/audit-verification.sh reports until one exists.
 //
 // WHAT REPLACED THE LOCK, and it is a rule no mechanism can enforce. A function
 // here may only be written AFTER its expected values exist in testdata/fixtures.
