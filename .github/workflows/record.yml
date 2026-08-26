@@ -8,8 +8,11 @@ name: record
 # that no amount of later effort recovers, which is why it runs on a schedule
 # instead of when somebody remembers.
 #
-# THE SCHEDULE IS COMMENTED OUT AND AL ENABLES IT. Uncomment the two lines under
-# `schedule:` below. Nothing else has to change.
+# THE SCHEDULE IS LIVE, enabled on 26 August 2026. What it replaces is a single
+# manual dispatch on 25 August that wrote eight ticks, which is one point and not
+# a series. Every hour the schedule does not run is an hour of Layer 3 ground
+# truth that no later effort recovers, and that is the whole argument for a cron
+# rather than a habit.
 #
 # NOTHING HERE MAY COMPUTE AN INTERVAL FROM THE CRON EXPRESSION. GitHub's cron is
 # best effort: it is delayed under load and skipped outright when the fleet is
@@ -18,12 +21,12 @@ name: record
 # only time truth this archive has.
 
 on:
-  # schedule:
-  #   # Hourly at seven minutes past. NOT on the hour: :00 is the most congested
-  #   # slot on the shared scheduler and the one most likely to be delayed or
-  #   # dropped. The offset buys nothing except a less crowded queue, and the
-  #   # recorder does not care what the offset is, because see above.
-  #   - cron: "7 * * * *"
+  schedule:
+    # Hourly at seven minutes past. NOT on the hour: :00 is the most congested
+    # slot on the shared scheduler and the one most likely to be delayed or
+    # dropped. The offset buys nothing except a less crowded queue, and the
+    # recorder does not care what the offset is, because see above.
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 # contents: write, and nothing else. The job commits recordings to an orphan
