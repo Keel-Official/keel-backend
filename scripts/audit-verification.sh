@@ -820,6 +820,93 @@ printf "       INFO  %s distinct author/committer email domains in history, acro
 printf "       INFO  domains: %s\n" "${ident_domain_list:-none}"
 echo "       Not scored. DEC-004 names no acceptable set, and until it does this is Al's call to make"
 
+section "Methodology completeness"
+# ADDED 26 AUGUST 2026. Nothing in this repository fails when a methodology file
+# ships with a blank in it, and docs/methodology/ is the PAID DELIVERABLE. Every
+# other check here guards code or contracts against the methodology; none of them
+# asks whether the methodology says anything yet. Two files currently announce in
+# their own status line "Do not ship this file with blanks", which is an instruction
+# with no enforcement behind it, and an instruction nothing enforces is the
+# arrangement the zone map calls a suggestion rather than a lock.
+#
+# THIS SECTION ONLY READS. docs/methodology/ is RED and deliberately not hook-locked,
+# because the map gives Claude a job inside it. That job is reporting, and this is the
+# reporting.
+
+# THE PER-FILE BREAKDOWN IS THE OUTPUT, not the total. Thirteen blanks across the
+# tree is a number nobody can act on; six in 02-pair-selection.md and seven in
+# 07-supporting-metrics.md tells Al which two documents to sit down with, and the
+# per-file counts go down independently as each is filled. Matched on the literal
+# marker the documents actually use.
+blank_marker='_to be written_'
+blanks_total(){ cat docs/methodology/*.md 2>/dev/null | grep -c "$blank_marker" || true; }
+blanks_by_file(){
+  local f n
+  for f in docs/methodology/*.md; do
+    n=$(grep -c "$blank_marker" "$f" 2>/dev/null || true)
+    [ "${n:-0}" -gt 0 ] && printf '%s\t%s\n' "${n}" "$(basename "$f")"
+  done
+}
+methodology_has_blanks(){ [ "$(blanks_total)" -gt 0 ]; }
+check P2-14 "A methodology file still carries an unfilled _to be written_ blank" \
+  methodology_has_blanks
+if methodology_has_blanks; then
+  printf "%s       %s blanks total, expected 0. The per-file counts are the finding:%s\n" \
+    "$red" "$(blanks_total)" "$off"
+  blanks_by_file | while IFS=$'\t' read -r n f; do
+    printf "        %s%s blanks%s in %s\n" "$dim" "$n" "$off" "$f"
+  done
+else
+  printf "%s       no _to be written_ blank left in docs/methodology/%s\n" "$green" "$off"
+fi
+
+# THE STATUS LINE IS LINE 4 IN ELEVEN OF THE THIRTEEN FILES AND IS NOT A STATUS LINE
+# IN THE OTHER TWO, so this reads line 4 and then checks what it actually got.
+# 09-flags-and-bands.md carries `**Supersedes:**` there and docs/methodology/README.md
+# carries `**In sync with:**`; neither file has a `**Status:**` line anywhere. Printing
+# line 4 verbatim for all thirteen would have reported "Supersedes: PRD sections 5.1
+# and 5.2" as that file's status, which is the failure mode this whole script exists
+# to catch, so a file with no status line is reported as having none rather than
+# having whatever line 4 happens to hold.
+#
+# A MISSING STATUS LINE IS INFO AND NOT A FAILURE. Only WORKSHEET fails, which is the
+# instruction, and inventing a second failing condition would be this check deciding a
+# documentation convention that nobody has written down. It is surfaced because Al may
+# want to decide it, not because this script has.
+#
+# `partial` IS DELIBERATELY NOT FLAGGED. 06-oracle-resilience.md is partial because the
+# VWAP window length is an open question against a third party, which is handoff item 6
+# and is honest rather than unfinished. A check that failed on it would be demanding a
+# certainty the document is right not to claim.
+status_line(){ sed -n '4p' "$1" 2>/dev/null; }
+status_text(){
+  local l; l=$(status_line "$1")
+  case $l in
+    '**Status:**'*) printf '%s' "${l#'**Status:** '}" ;;
+    *)              printf 'NO STATUS LINE, line 4 reads: %s' "$l" ;;
+  esac
+}
+worksheet_files(){
+  local f
+  for f in docs/methodology/*.md; do
+    status_line "$f" | grep -qiE '\*\*Status:\*\*.*WORKSHEET' && printf '%s\n' "$(basename "$f")"
+  done
+  return 0
+}
+methodology_has_worksheet(){ [ -n "$(worksheet_files)" ]; }
+check P2-15 "A methodology file is still a WORKSHEET, so its definitions are unmade" \
+  methodology_has_worksheet
+for mf in docs/methodology/*.md; do
+  mtext=$(status_text "$mf")
+  case $(status_line "$mf") in
+    *[Ww][Oo][Rr][Kk][Ss][Hh][Ee][Ee][Tt]*)
+      printf "%s        FAIL  %-34s %s%s\n" "$red" "$(basename "$mf")" "$mtext" "$off" ;;
+    *)
+      printf "        INFO  %-34s %s\n" "$(basename "$mf")" "$mtext" ;;
+  esac
+done
+echo "       partial is not a failure: 06-oracle-resilience.md is open against Reflector, handoff item 6"
+
 section "Golden fixture arithmetic, recomputed from scratch"
 python3 - <<'PY'
 import os
