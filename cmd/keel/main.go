@@ -11,7 +11,7 @@
 //	keel scan       compute metrics for every active asset, store them in Postgres
 //	keel serve      run the read API
 //	keel backtest   the trade-implied history of a pair, as CSV
-//	keel replay     replay a ledger range through the historical adapter
+//	keel replay     rebuild a pair's order book at a past ledger
 package main
 
 import (
@@ -25,6 +25,13 @@ import (
 // belumSiap is the exit code for a subcommand that has a place but no body yet.
 // It is distinct from exit code 1 (misuse) so that a scheduler can tell "not
 // built yet" apart from "failed".
+//
+// EVERY SUBCOMMAND HAS A BODY AS OF 26 AUGUST 2026, and `belum`, the helper that
+// printed the "not implemented yet" line and exited with this code, went with the
+// last one. The constant stays because `scan` still uses it, for a case that is
+// not "unbuilt" but reads the same way to a scheduler: a round where every asset
+// panicked has nothing to store and looping against a Horizon budget to store
+// nothing is not honest work. See decision 2 in the header of scan.go.
 const belumSiap = 3
 
 func main() {
@@ -102,7 +109,15 @@ func main() {
 		}
 
 	case "replay":
-		belum(perintah, "internal/hubble; deferred, see docs/decisions/DEC-002-hold-bigquery.md")
+		// The historical path, and it is NOT internal/hubble. DEC-002 section 2.3
+		// specified reconstruction from operations and gated it behind "only
+		// attempt this if 2.1 and 2.2 prove insufficient"; the measurement in
+		// docs/evidences/2026-08-26-ustry-february-trades-implied.md is that they
+		// are. This subcommand exited 3 until 26 August 2026. See replay.go.
+		if err := runReplay(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel replay: %v\n", err)
+			os.Exit(1)
+		}
 
 	case "help", "-h", "--help":
 		usage()
@@ -112,11 +127,6 @@ func main() {
 		usage()
 		os.Exit(1)
 	}
-}
-
-func belum(perintah, butuh string) {
-	fmt.Fprintf(os.Stderr, "keel %s: not implemented yet (needs %s)\n", perintah, butuh)
-	os.Exit(belumSiap)
 }
 
 func usage() {
@@ -133,6 +143,6 @@ Subcommands:
   scan      compute metrics for every active asset, store them in Postgres
   serve     run the read API ("keel serve -h")
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
-  replay    replay a ledger range through the historical adapter
+  replay    rebuild a pair's order book at a past ledger ("keel replay -h")
 `)
 }

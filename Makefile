@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay
 
 # ---------------------------------------------------------------- Local
 
@@ -180,3 +180,24 @@ FROM_LEDGER ?= 60977383
 
 backtest:
 	go run ./cmd/keel backtest -pairs $(PAIRS) -from $(FROM) -to $(TO) -mark $(MARK) -from-ledger $(FROM_LEDGER)
+
+# replay rebuilds a pair's order book at a past ledger from the operations that
+# posted it. No database, no BigQuery, and NOT a historical Horizon endpoint:
+# Horizon serves no past state and every past event, and a book is what the
+# events left behind. See internal/horizon/replay.go and DEC-002 section 2.3.
+#
+# READ THE COMPLETENESS LINE IT PRINTS. The reconstruction has three ways to be
+# incomplete and a missing offer reads as a THIN book, which is this product's
+# most interesting finding and so the worst thing to produce by accident.
+#
+# SINCE_LEDGER is the floor on each account's backwards walk. Raising it makes a
+# run cheap and makes every offer created below it invisible; 0 walks each
+# account to its first operation. LEDGER is the target and has no default,
+# because which ledger to rebuild is a question and not a setting.
+LEDGER ?=
+SINCE_LEDGER ?= 0
+TRADES_FROM ?= 0
+
+replay:
+	@test -n "$(LEDGER)" || { echo "replay: LEDGER is required, e.g. make replay PAIRS=... LEDGER=61340262"; exit 1; }
+	go run ./cmd/keel replay -pairs $(PAIRS) -ledger $(LEDGER) -since-ledger $(SINCE_LEDGER) -trades-from-ledger $(TRADES_FROM)

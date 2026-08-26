@@ -25,12 +25,17 @@ What does not exist yet, and the list is specific on purpose:
   `docs/methodology/07-supporting-metrics.md` is still a worksheet. Every result
   reports the six flags that depend on them as `unevaluated`, which is not the same
   claim as clear.
-- **The historical adapter.** `keel replay` exits 3. DEC-002 defers Hubble.
-  `keel backtest` is the DEC-002 section 2 substitute and it is not the same thing:
-  it reads the trade STREAM, which Horizon serves in full, and cannot see the order
-  book STATE, which Horizon does not serve for a past ledger.
-  `docs/evidences/2026-08-26-ustry-february-trades-implied.md` measures what that
-  costs on the one asset it matters for, and the answer is most of the claim.
+- **Historical POOL reserves.** `keel replay` rebuilds a past ORDER BOOK from the
+  operations that posted it, and reconstructs no pool at all, so the snapshot it
+  returns carries none. That is not a claim that no pool existed.
+  `/liquidity_pools/{id}/operations` can answer it and DEC-002 section 2.3 calls
+  that side the cleaner of the two, because it has no account discovery gap. Until
+  it is written, any depth computed from a replayed snapshot is order book only.
+- **Hubble.** Still deferred, DEC-002. What changed on 26 August 2026 is that it is
+  no longer the only route to a past book: `keel replay` is DEC-002 section 2.3,
+  and section 2.3's own precondition, "only attempt this if 2.1 and 2.2 prove
+  insufficient", was met and measured in
+  `docs/evidences/2026-08-26-ustry-february-trades-implied.md`.
 - **A hand computed check on the AMM half.**
   `testdata/fixtures/ustry_pre_exploit.md` records `Pools: []` while the pool that
   genuinely existed at that ledger is in `GoldenSnapshot()`, so the with-pool depth
@@ -56,11 +61,14 @@ What that means for the commands you can run:
 | `make store-test` | works, the `internal/store` integration tests. Needs the database |
 | `make scan` | works, computes and stores one result per asset per ledger. The supporting metric fields are stored null, because they are not computed yet. Needs the database |
 | `make backtest` | works, writes the trade-implied history of a pair as two CSV files. Needs `PAIRS`, `FROM`, `TO`. No database |
+| `make replay` | works, rebuilds a pair's order book at a past ledger from the operations that posted it. Needs `PAIRS` and `LEDGER`. No database. **Read the completeness line it prints**: a book missing an offer reads as a thin book |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
-built yet" apart from "failed". `keel replay` still uses it. `keel scan` now uses it
-only if EVERY asset in a round panicked, which would mean one formula breaking on
-the whole set at once.
+built yet" apart from "failed". **No subcommand means "not built yet" any more**, as
+of 26 August 2026, when `keel replay` got a body and the helper that printed that
+line went with it. `keel scan` still uses the code, for a case that is not unbuilt
+and reads the same way to a scheduler: a round where every asset panicked has
+nothing to store.
 
 ## Starting from nothing
 
@@ -214,9 +222,13 @@ To see what is still unsettled in this repository before contributing:
 bash scripts/audit-verification.sh
 ```
 
-That script re-runs every claim in `docs/internal/audit-2026-08-20.md` and prints
-which ones still hold. It also recomputes the golden fixture arithmetic from the
-raw `price_r` values, outside Go, as a cross-check.
+That script re-runs every claim of the repository audit and prints which ones still
+hold. The audit document itself is not in the repository and there is no point
+looking for it: `docs/internal/` is gitignored, because DEC-004 requires it out
+before the repository goes public. So the script IS the public form of the audit.
+Every line it prints carries its own finding id, and those ids are what the
+decision records in `docs/decisions/` cite. It also recomputes the golden fixture
+arithmetic from the raw `price_r` values, outside Go, as a cross-check.
 
 ## Layout
 

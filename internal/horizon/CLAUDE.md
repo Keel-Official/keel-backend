@@ -190,3 +190,94 @@ Three more things about it that are decisions rather than gaps:
   `internal/domain/TradeImpliedDepthBounds` groups on it, and
   `docs/evidences/2026-08-26-ustry-february-trades-implied.md` section 2 records
   the wrong number that grouping by operation alone produced.
+
+## An eighth trap, and it is the one that made `replay.go` possible at all
+
+8. **Horizon never tells you the id of an offer that was just created.** A
+   `manage_sell_offer` that creates comes back with `"offer_id": "0"`, and its
+   effects collection is EMPTY. Measured on operation 263453036239003649, the one
+   that posted the 106.7372828 ask of the incident. The id exists in exactly one
+   place Horizon serves: the transaction's `result_xdr`. So a reconstruction that
+   reads only the JSON can apply cancels and updates, which name their offer, and
+   cannot apply a single create.
+
+   There is a ninth thing in the same area, and it is not a trap so much as a
+   convention nobody writes down. **A trade names an offer id on both sides even
+   when one side never rested.** A taker that crosses the book completely has no
+   ledger offer, so Horizon synthesises one by OR-ing the operation's TOID with
+   bit 62:
+
+   ```
+   operation TOID       263454423513071617  0x03a7fa6700008001
+   counter_offer_id    4875140441940459521  0x43a7fa6700008001
+   ```
+
+   9,478 of the 10,077 distinct offer ids in USTRY/USDC's February 2026 trades are
+   synthetic. Treating them as resting offers makes every completeness check noise.
+
+## The same three sentences for the offer decoder, added 26 August 2026
+
+`offerxdr.go` reads one operation's `ManageOfferSuccessResult` out of a base64
+transaction result. It exists because of trap 8.
+
+The decision: a hand written XDR reader over the exact subset needed, skipping
+every earlier operation result by computing its width from an ALLOW LIST of types
+whose success body is void, and refusing anything it has not seen. The alternative
+rejected: importing `github.com/stellar/go-stellar-sdk/xdr`, which decodes all of
+it correctly. Why it was rejected: that module pulls a large dependency tree into a
+`go.mod` with two direct requirements, for one struct on one path, and the surface
+actually needed is under two hundred lines asserted against three transactions
+anybody can refetch; if a second XDR need appears the trade flips and this file
+should be deleted rather than extended.
+
+Two things about it that are decisions rather than gaps:
+
+- **The allow list runs the safe way round.** The first version treated "not a
+  type with a body" as void, which is wrong in the dangerous direction: a protocol
+  version adding an operation with a body would be skipped three int32s short, and
+  the bytes after it decode into a VALID LOOKING offer rather than into an error.
+  Unknown types now reach `ErrUnsizableResult` and the caller counts them.
+- **An AccountID inside an Asset is 36 bytes and not 32.** Reading it as 32 puts
+  every later field four bytes early, and it does not fail loudly: the second
+  asset's code decodes as printable text with the type integer glued to its front,
+  and the amount arrives as a plausible negative int64. It cost a debugging pass
+  and the file's header carries the note.
+
+## The same three sentences for the replay, added 26 August 2026
+
+`replay.go` rebuilds a pair's order book at a past ledger from the operations that
+posted it. Trap 3 still stands and this does not contradict it: Horizon serves no
+past STATE and serves every past EVENT, and this replays the events. It is DEC-002
+section 2.3, built once its own precondition was met, which
+`docs/evidences/2026-08-26-ustry-february-trades-implied.md` measured.
+
+The decision: accounts are discovered from the trade stream and the live offer
+book, their operations are walked BACKWARDS from the target, and every
+approximation is counted into the result rather than logged. The alternative
+rejected: walking forward from a fixed start ledger over every account that ever
+touched the asset, which is the shape DEC-002 section 2.3 describes. Why it was
+rejected: forward from a fixed start silently loses every offer created before that
+start and still resting, and the loss looks exactly like a thin book, which is this
+product's most interesting finding and therefore the worst thing to produce by
+accident; backwards puts the operations that decide the target state on the first
+page and turns the same limitation into a depth the file can report.
+
+- **Consumption comes from the trade stream and never from `offersClaimed`**, even
+  though the claims are decoded and carry exact stroop amounts. A resting offer can
+  be taken by a manage offer, by a path payment either way, or by one that also
+  crosses a pool, and only the first is a result this decoder reads. All of them
+  produce a trade on the pair. One mechanism for all consumption is what stops an
+  offer being decremented twice or not at all.
+- **Inside one operation its trades are applied FIRST and its own result LAST.**
+  The result is the ledger's statement of what the submitting offer looked like when
+  the operation finished, so writing it last is correct even though that
+  operation's trades appear to touch it.
+- **The bid side is not the ask side with a sign flipped.** An ask sells the base,
+  so its price is already quote per base and its amount already in base units. A
+  bid sells the QUOTE: its price reads base per quote and inverts, and its amount is
+  in quote units and converts. That is trap 5 read from the other direction, and
+  `TestTheTwoCreatesRebuildTheFixtureBookExactly` is the assertion that holds it.
+- **POOLS ARE NOT RECONSTRUCTED.** The snapshot carries none, and that is not a
+  claim that no pool existed. `/liquidity_pools/{id}/operations` can answer it and
+  DEC-002 section 2.3 calls that side cleaner, because it has no discovery gap. Any
+  depth computed from a replayed snapshot today is ORDER BOOK ONLY.
