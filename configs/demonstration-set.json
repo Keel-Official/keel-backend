@@ -1,0 +1,785 @@
+{
+  "note": "PROVISIONAL DEMONSTRATION SET, 60 pairs, generated 26 August 2026. IT PROPOSES AND DOES NOT SELECT. Superseded by docs/methodology/02-pair-selection.md section 5 the moment that section is written. HOW THE UNIVERSE WAS REACHED: every constant-product liquidity pool on Horizon holding USDC was enumerated, 879 of them, and the 60 with the largest USDC reserve were kept. That is a COMPLETE enumeration of one venue and not a sample of it. WHAT IT MISSES, stated because it is not small: an asset with a USDC order book but NO USDC pool cannot be reached this way. Horizon offers no way to enumerate the counterparties of an asset: /trades, /trade_aggregations and /order_book all refuse a request naming only one side, and a full /assets sweep returned 26600 records without leaving the letter A. Closing that gap needs a ticker list from outside Horizon, which is a decision for 02 section 5 and not for this file. THE FOUR BUCKETS ARE MEASURED, THEIR BOUNDARIES ARE NOT METHODOLOGY: deep is a two-sided book under 1 percent spread with at least 10000 USDC pooled, moderate is a two-sided book under 10 percent, thin is one side only or a wider spread, dormant is no order book at all on either side. Those cutoffs were chosen to make the four groups in 10-validation.md section 3 visible, not derived from anything. ASSET TYPE IS READ FROM HORIZON AND NEVER INFERRED FROM CODE LENGTH: yUSDC is five characters and credit_alphanum12. TWO CODES APPEAR TWICE WITH DIFFERENT ISSUERS, EURC and GOLD, and they are different assets. REPRODUCE IT WITH: horizon /liquidity_pools?reserves=USDC:GA5ZSEJY... paginated, then scripts/candidate-survey.sh over the result.",
+  "pairs": [
+    {
+      "base": {
+        "code": "",
+        "issuer": "",
+        "type": "native"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket deep. USDC pooled 2284832.6381290, book 200 bids and 200 asks, spread 0.13 percent, 1934524 trades in 30 days, authorized trustlines n/a, native. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "yUSDC",
+        "issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket deep. USDC pooled 57184.8521574, book 43 bids and 21 asks, spread 0.06 percent, 198605 trades in 30 days, authorized trustlines 34877. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "BTC",
+        "issuer": "GDPJALI4AZKUU2W426U5WKMAT6CN3AJRPIIRYR2YM54TL2GDWO5O2MZM",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket deep. USDC pooled 53527.6200862, book 200 bids and 31 asks, spread 0.48 percent, 42084 trades in 30 days, authorized trustlines 19667. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "yXLM",
+        "issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket deep. USDC pooled 26825.5575688, book 56 bids and 44 asks, spread 0.30 percent, 416382 trades in 30 days, authorized trustlines 53908. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "AQUA",
+        "issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket deep. USDC pooled 19005.1677139, book 57 bids and 200 asks, spread 0.61 percent, 122213 trades in 30 days, authorized trustlines 191847. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "USDZ",
+        "issuer": "GAKTLPC4ZV37SSCITQ5IS5AQ4WPF4CF4VZJQPPAROSGXMYOATF5U6XPR",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket deep. USDC pooled 18074.2423459, book 13 bids and 16 asks, spread 0.22 percent, 33025 trades in 30 days, authorized trustlines 181058. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "SHX",
+        "issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 16406.1720514, book 103 bids and 200 asks, spread 4.46 percent, 56242 trades in 30 days, authorized trustlines 91349. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "AUDD",
+        "issuer": "GDC7X2MXTYSAKUUGAIQ7J7RPEIM7GXSAIWFYWWH4GLNFECQVJJLB2EEU",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 9888.0371058, book 11 bids and 5 asks, spread 0.62 percent, 63989 trades in 30 days, authorized trustlines 1462. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "IDRT",
+        "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 7552.6056882, book 10 bids and 6 asks, spread 4.26 percent, 6335 trades in 30 days, authorized trustlines 8839. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "EURC",
+        "issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 2437.5637060, book 64 bids and 85 asks, spread 0.22 percent, 86099 trades in 30 days, authorized trustlines 26563. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "AFR",
+        "issuer": "GBX6YI45VU7WNAAKA3RBFDR3I3UKNFHTJPQ5F6KOOKSGYIAM4TRQN54W",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 1071.3865569, book 24 bids and 77 asks, spread 6.37 percent, 26020 trades in 30 days, authorized trustlines 38167. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "USDGLO",
+        "issuer": "GBBS25EGYQPGEZCGCFBKG4OAGFXU6DSOQBGTHELLJT3HZXZJ34HWS6XV",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 1007.0379188, book 5 bids and 2 asks, spread 1.11 percent, 6049 trades in 30 days, authorized trustlines 626. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "XRP",
+        "issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 530.8366011, book 185 bids and 119 asks, spread 0.50 percent, 200701 trades in 30 days, authorized trustlines 56847. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "SCROOGE",
+        "issuer": "GD2TQV2VEAVBXMPR6YKFJLPXTA6AUBIWZ753NVLAKKAG6KVLJ5SPE6YA",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 491.0617218, book 16 bids and 29 asks, spread 1.85 percent, 2547 trades in 30 days, authorized trustlines 57. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "sUSD",
+        "issuer": "GCHW7CWI7GMIYQYFXMFJNJX5645XGWIINIAEQK3SABQO6CAYL5T7JYIH",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 477.1235160, book 17 bids and 39 asks, spread 0.38 percent, 34323 trades in 30 days, authorized trustlines 940. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "VELO",
+        "issuer": "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 415.5948697, book 75 bids and 200 asks, spread 5.99 percent, 99753 trades in 30 days, authorized trustlines 41181. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "VAQM",
+        "issuer": "GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 355.8300741, book 2 bids and 2 asks, spread 3.98 percent, 5568 trades in 30 days, authorized trustlines 109. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "USDM",
+        "issuer": "GDHDC4GBNPMENZAOBB4NCQ25TGZPDRK6ZGWUGSI22TVFATOLRPSUUSDM",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 317.8152449, book 7 bids and 7 asks, spread 1.39 percent, 5274 trades in 30 days, authorized trustlines 2564. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "GOLD",
+        "issuer": "GBC5ZGK6MQU3XG5Y72SXPA7P5R5NHYT2475SNEJB2U3EQ6J56QLVGOLD",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 276.3882151, book 32 bids and 18 asks, spread 4.08 percent, 7616 trades in 30 days, authorized trustlines 13705. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "LIBRE",
+        "issuer": "GAYCCWKECNGDRHYU3UTREBD2XLC3CUQN6FV22TKM4WCQER3IWR7TF5CY",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 249.3147890, book 5 bids and 8 asks, spread 2.00 percent, 98531 trades in 30 days, authorized trustlines 283. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "TFT",
+        "issuer": "GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 6497.1941601, book 16 bids and 40 asks, spread 55.11 percent, 12855 trades in 30 days, authorized trustlines 20141. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "XTAR",
+        "issuer": "GAORYJ3KBDGIM7FFSKVUJHJ5NEFWIRDIAGGBJBJS7TY6ECZS53257IG4",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 5831.2083378, book 4 bids and 46 asks, spread 75.86 percent, 28603 trades in 30 days, authorized trustlines 9593. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "SSLX",
+        "issuer": "GBHFGY3ZNEJWLNO4LBUKLYOCEK4V7ENEBJGPRHHX7JU47GWHBREH37UR",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 5706.8548172, book 7 bids and 52 asks, spread 158.38 percent, 69607 trades in 30 days, authorized trustlines 21705. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "LSP",
+        "issuer": "GAB7STHVD5BDH3EEYXPI3OM7PCS4V443PYB5FNT6CFGJVPDLMKDM24WK",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1956.6120764, book 30 bids and 120 asks, spread 111.11 percent, 20807 trades in 30 days, authorized trustlines 19600. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "AMM",
+        "issuer": "GARQ7O5JPBD2DDVEFFZ2LVWH77BYSC7K7RMGI7W5GLRVSWPHZBNGBDOQ",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1940.2134729, book 1 bids and 6 asks, spread 195.29 percent, 7352 trades in 30 days, authorized trustlines 5418. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "eBTC",
+        "issuer": "GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1643.1166936, book 0 bids and 1 asks, spread n/a percent, 6683 trades in 30 days, authorized trustlines 192. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "AIus",
+        "issuer": "GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1300.2467755, book 1 bids and 152 asks, spread 200.00 percent, 13753 trades in 30 days, authorized trustlines 76. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "ETH",
+        "issuer": "GBFXOHVAS43OIWNIO7XLRJAHT3BICFEIKOJLZVXNT572MISM4CMGSOCC",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1164.5304510, book 164 bids and 34 asks, spread 45.82 percent, 9190 trades in 30 days, authorized trustlines 16140. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "GROG",
+        "issuer": "GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1085.1866884, book 1 bids and 9 asks, spread 66.67 percent, 1706 trades in 30 days, authorized trustlines 351. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "GQX",
+        "issuer": "GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1054.7031177, book 1 bids and 1 asks, spread 30.86 percent, 15538 trades in 30 days, authorized trustlines 1673. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "REAL8",
+        "issuer": "GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 1027.1309065, book 0 bids and 6 asks, spread n/a percent, 2537 trades in 30 days, authorized trustlines 219. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "XH5",
+        "issuer": "GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 886.9579041, book 1 bids and 8 asks, spread 200.00 percent, 14009 trades in 30 days, authorized trustlines 336. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "FRED",
+        "issuer": "GCA73U2PZFWAXJSNVMEVPNPPJCZGETWPWZC6E4DJAIWP3ZW3BAGYZLV6",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 869.6986548, book 9 bids and 17 asks, spread 17.84 percent, 6232 trades in 30 days, authorized trustlines 11745. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "neco",
+        "issuer": "GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 840.0824447, book 0 bids and 1 asks, spread n/a percent, 3729 trades in 30 days, authorized trustlines 3209. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "UAF",
+        "issuer": "GDT5EUZMXIABSKZAQA4HNTWYOJI2D64DATP6KNVTV4WDZJ3K7FZDRC5E",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 717.5847310, book 1 bids and 9 asks, spread 190.34 percent, 4427 trades in 30 days, authorized trustlines 1469. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "XAG",
+        "issuer": "GB4I3O6EGAQU2HV62DKBPQXBCQVSCUHB3TLOGEPTVKFCZMPNGKYCLXAG",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 676.9637550, book 1 bids and 1 asks, spread 200.00 percent, 16733 trades in 30 days, authorized trustlines 321. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "USDT",
+        "issuer": "GCQTGZQQ5G4PTM2GL7CDIFKUBIPEC52BROAQIAPW53XBRJVN6ZJVTG6V",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 505.1476787, book 13 bids and 78 asks, spread 70.82 percent, 3037 trades in 30 days, authorized trustlines 7591. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "RBT",
+        "issuer": "GCMSCRWZ3QBOI6AF75B5ZWDBXOSMIRW4FSBZH5OI65Y4H4GVH7LPSOYS",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 470.1215655, book 1 bids and 4 asks, spread 200.00 percent, 2810 trades in 30 days, authorized trustlines 1961. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "BTCLN",
+        "issuer": "GDPKQ2TSNJOFSEE7XSUXPWRP27H6GFGLWD7JCHNEYYWQVGFA543EVBVT",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 391.2543506, book 11 bids and 17 asks, spread 135.67 percent, 5043 trades in 30 days, authorized trustlines 8878. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "X",
+        "issuer": "GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 359.9399084, book 0 bids and 1 asks, spread n/a percent, 4681 trades in 30 days, authorized trustlines 40. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "DicInu",
+        "issuer": "GDMNBJWZBNQFCDUDPTG4DFLLUT6WPTMALBNX63OIM2YP5RLULTCFCNEA",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 347.1312202, book 3 bids and 1 asks, spread 199.15 percent, 4706 trades in 30 days, authorized trustlines 1789. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "EMN",
+        "issuer": "GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 251.8230378, book 0 bids and 3 asks, spread n/a percent, 0 trades in 30 days, authorized trustlines 13. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "BEER",
+        "issuer": "GBL2VH6MT5QGTNQ7P725U2U6HI4MXEAKDCX3NO7OHAM2B6JNZSXLSHNN",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 244.3103282, book 0 bids and 3 asks, spread n/a percent, 2787 trades in 30 days, authorized trustlines 11127. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "SLVR",
+        "issuer": "GBZVELEQD3WBN3R3VAG64HVBDOZ76ZL6QPLSFGKWPFED33Q3234NSLVR",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 243.7376434, book 27 bids and 37 asks, spread 34.68 percent, 7020 trades in 30 days, authorized trustlines 13492. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "XAU",
+        "issuer": "GBCB4WO6J4ET55RWK2SVX76LUQ4PQ7TCDHG2YFILQML7D6XR3HACLXAU",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 234.2463534, book 0 bids and 1 asks, spread n/a percent, 13509 trades in 30 days, authorized trustlines 910. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "EURC",
+        "issuer": "GAQRF3UGHBT6JYQZ7YSUYCIYWAF4T2SAA5237Q5LIQYJOHHFAWDXZ7NM",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 210.6724810, book 13 bids and 10 asks, spread 22.04 percent, 3332 trades in 30 days, authorized trustlines 12811. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "SOLS",
+        "issuer": "GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 208.3747489, book 0 bids and 4 asks, spread n/a percent, 3043 trades in 30 days, authorized trustlines 5369. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "ACT",
+        "issuer": "GAHHULDPDVGB5WS5PH7BCGLJ7ZHECDBIIMKB62UPVDUOCHNFL7HX3FS7",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 187.9290929, book 5 bids and 18 asks, spread 159.58 percent, 5320 trades in 30 days, authorized trustlines 1887. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "GZC",
+        "issuer": "GCGZCF3IK52DJ6JAFAMDQUGSSTFXNCCLZI5YL2WQZ4SJ4B66T4FRIGZC",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 2894.1539730, book 0 bids and 0 asks, spread n/a percent, 3062 trades in 30 days, authorized trustlines 141. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "TGM",
+        "issuer": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 2807.6994799, book 0 bids and 0 asks, spread n/a percent, 427191 trades in 30 days, authorized trustlines 7. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "BASH",
+        "issuer": "GBQ42A3K32ZFOKGB3JJCDXJW7LNAS3GEPQM7J43KYCR7OKVIUON7D65N",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 2528.2759383, book 0 bids and 0 asks, spread n/a percent, 9360 trades in 30 days, authorized trustlines 62. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "THE1",
+        "issuer": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 2351.0090213, book 0 bids and 0 asks, spread n/a percent, 118043 trades in 30 days, authorized trustlines 5. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "PAYBO",
+        "issuer": "GDNUDY5LNUVCO55LLK6H2RCOILB6EO7UOVAOGDTV3FB7Y2U45TMAXD3D",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 880.8358471, book 0 bids and 0 asks, spread n/a percent, 4063 trades in 30 days, authorized trustlines 2088. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "FUNT",
+        "issuer": "GBUYUAI75XXWDZEKLY66CFYKQPET5JR4EENXZBUZ3YXZ7DS56Z4OKOFU",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 733.9383832, book 0 bids and 0 asks, spread n/a percent, 0 trades in 30 days, authorized trustlines 79. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "GOLD",
+        "issuer": "GBCB4WO6J4ET55RWK2SVX76LUQ4PQ7TCDHG2YFILQML7D6XR3HACLXAU",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 620.4992790, book 0 bids and 0 asks, spread n/a percent, 178033 trades in 30 days, authorized trustlines 377. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "XLMFISHz",
+        "issuer": "GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 395.6342593, book 0 bids and 0 asks, spread n/a percent, 1989 trades in 30 days, authorized trustlines 15. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "HU",
+        "issuer": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 374.6950873, book 0 bids and 0 asks, spread n/a percent, 666311 trades in 30 days, authorized trustlines 4. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "RCW",
+        "issuer": "GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 310.9711605, book 0 bids and 0 asks, spread n/a percent, 2203 trades in 30 days, authorized trustlines 27. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "TRNPC",
+        "issuer": "GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 251.0339236, book 0 bids and 0 asks, spread n/a percent, 1649 trades in 30 days, authorized trustlines 42. Measured on Horizon 26 August 2026."
+    },
+    {
+      "base": {
+        "code": "JDMC",
+        "issuer": "GDZ7MGCU3TH4EVXU6S7EZSCRH6VCL36L4Q436MNVLEEFFVXRLRMHGZX2",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 228.0472789, book 0 bids and 0 asks, spread n/a percent, 3071 trades in 30 days, authorized trustlines 46. Measured on Horizon 26 August 2026."
+    }
+  ]
+}
