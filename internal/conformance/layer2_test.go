@@ -156,7 +156,7 @@ func eqOptional(t *testing.T, sc Layer2Scenario, label string, got *decimal.Deci
 	eqDec(t, label, *got, decimal.RequireFromString(*want))
 }
 
-func eqField(t *testing.T, sc Layer2Scenario, label, delta string, got decimal.Decimal, want *string) {
+func eqField(t *testing.T, _ Layer2Scenario, label, delta string, got decimal.Decimal, want *string) {
 	t.Helper()
 	if want == nil {
 		return

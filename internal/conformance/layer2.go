@@ -20,6 +20,11 @@
 // zone, which is the wrong side of the line the zone map draws. Reading JSON at
 // run time keeps the numbers in the red directory where they belong and leaves
 // this package able to load them without holding them.
+//
+// The package comment proper is in fixture.go. This block is detached from the
+// clause below on purpose: two package comments in one package is what revive's
+// package-comments rule reports, and fixture.go is the right home for it.
+
 package conformance
 
 import (
@@ -210,6 +215,8 @@ type Layer2Expected struct {
 	Flags             []string         `json:"flags"`
 }
 
+// Layer2DepthRow is one rung of the hand computed depth ladder. Every figure is
+// a pointer, so a rung may state some values and leave the rest uncomputed.
 type Layer2DepthRow struct {
 	Delta    string  `json:"delta"`
 	BuySide  *string `json:"buySide"`
@@ -438,12 +445,12 @@ func propBothPoolsCounted(s domain.Snapshot, r domain.AssetRisk, p domain.Params
 
 func ammTotal(r domain.AssetRisk) (decimal.Decimal, bool) {
 	var sum decimal.Decimal
-	var any bool
+	var seen bool
 	for _, d := range r.Depth {
 		sum = sum.Add(d.FromAmm)
-		any = true
+		seen = true
 	}
-	return sum, any
+	return sum, seen
 }
 
 func propFlagRaised(want domain.Flag) func(domain.Snapshot, domain.AssetRisk, domain.Params) error {
