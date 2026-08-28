@@ -907,6 +907,48 @@ for mf in docs/methodology/*.md; do
 done
 echo "       partial is not a failure: 06-oracle-resilience.md is open against Reflector, handoff item 6"
 
+# ---- P2-18: Layer 2 of the validation protocol has no fixtures ----
+#
+# ADDED 28 AUGUST 2026, alongside the harness in internal/conformance/layer2.go. The
+# harness reports 0 of 10 as ten SKIPPED subtests, and a skip is easy to stop noticing,
+# which is the whole reason this check exists beside it rather than instead of it.
+#
+# NEITHER SIDE OF THIS CHECK CAN BE EDITED TO SATISFY IT, which is the property four
+# earlier checks in this file lacked and were bitten for. The required count is read out
+# of the PROTOCOL, section 2 of 10-validation.md, and the actual count is read off DISK.
+# Writing a fixture closes it. Rewording either document does not, and deleting the
+# harness does not either, because the protocol still asks for ten.
+layer2_required(){
+  # "Sample size | 10 scenarios" in the Layer 2 property table. Matched on the words
+  # rather than on the row position, so reordering that table cannot make this read 0.
+  awk '/^## 2\. Layer 2/{f=1} f && /Sample size/{ for(i=1;i<=NF;i++) if($i ~ /^[0-9]+$/){print $i; exit} } /^## 3\./{if(f) exit}' \
+    docs/methodology/10-validation.md
+}
+layer2_present(){ ls docs/../testdata/fixtures/layer2/*.json 2>/dev/null | wc -l | tr -d ' '; }
+layer2_with_numbers(){ grep -l '"expected"' testdata/fixtures/layer2/*.json 2>/dev/null | wc -l | tr -d ' '; }
+layer2_incomplete(){
+  local req act
+  req=$(layer2_required); act=$(layer2_present)
+  [ -n "$req" ] || return 0          # protocol unreadable is reported, not passed
+  [ "$act" -lt "$req" ]
+}
+check P2-18 "Layer 2 of the validation protocol has fewer fixtures than it requires" \
+  layer2_incomplete
+l2req=$(layer2_required); l2act=$(layer2_present); l2num=$(layer2_with_numbers)
+printf "        %s%s of %s scenario(s) present, %s of those carry hand computed expectations%s\n" \
+  "$dim" "${l2act:-0}" "${l2req:-?}" "${l2num:-0}" "$off"
+if [ "${l2act:-0}" -lt "${l2req:-0}" ]; then
+  echo "       missing, by the slug the harness looks for:"
+  # The slugs come from the harness, so a scenario renamed there is renamed here too.
+  grep -o 'Slug: "[a-z0-9-]*"' internal/conformance/layer2.go | sed 's/.*"\(.*\)"/\1/' \
+  | while read -r slug; do
+      [ -n "$slug" ] || continue
+      ls testdata/fixtures/layer2/*-"$slug".json >/dev/null 2>&1 || printf "        %s\n" "$slug"
+    done
+fi
+echo "       testdata/fixtures/layer2/ is RED. Al creates each state on testnet, records the"
+echo "       transaction that created it, and works the expected values by hand"
+
 section "Methodology and contract agreement"
 # ADDED 27 AUGUST 2026, extending the methodology section above. That section asks
 # whether the methodology says anything yet. This one asks whether it and the contract

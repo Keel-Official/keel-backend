@@ -2,8 +2,9 @@
 
 **Methodology version:** 1.0.3-draft
 **Status:** protocol defined. Layer 3 EXECUTED 26 August 2026 and tabulated in
-section 3, 60 recordings, 37 match, 0 mismatch, 23 partial. The Layer 1 and Layer 2
-results tables are still empty and their definition of done in section 6 is unmet.
+section 3, 60 recordings, 37 match, 0 mismatch, 23 partial. Layer 2 has a harness
+and 0 of 10 fixtures, finding P2-18. Layer 1 has neither. Their definition of done
+in section 6 is unmet.
 
 The SOW promises "cross-validation passed on at least 50 sample ledgers" without defining
 what is validated against what. That definition is made here, because it determines how
@@ -74,9 +75,87 @@ that sums SDEX and AMM independently returns a non-zero `fromAmm` and fails only
 
 **Results**
 
-| Scenario | Testnet tx | Expected | Actual | Result |
+**0 of 10. The harness exists and the fixtures do not.**
+`internal/conformance/layer2.go` carries all ten scenarios, in this section's
+numbering, and `internal/conformance/layer2_test.go` runs each one. Every
+scenario currently SKIPS, naming the file it looked for. Finding P2-18 in
+`scripts/audit-verification.sh` reports the tally, because a skip is easy to
+stop noticing.
+
+The harness holds no figures and must never hold any. Each scenario reads
+`testdata/fixtures/layer2/NN-slug.json`, which is RED: Al creates the state on
+testnet, records the transaction that created it, and works the expected values
+by hand. Same rule as the golden fixture and for the same reason, which section
+1 states.
+
+| # | Slug, and the file the harness reads | Testnet tx | Expected | Result |
 |---|---|---|---|---|
-| | | | | |
+| 1 | `01-two-sided-book-no-pool.json` | | | not provided |
+| 2 | `02-one-sided-book-no-pool.json` | | | not provided |
+| 3 | `03-empty-book-active-pool.json` | | | not provided |
+| 4 | `04-no-book-no-pool.json` | | | not provided |
+| 5 | `05-pool-above-target.json` | | | not provided |
+| 6 | `06-two-pools-one-pair.json` | | | not provided |
+| 7 | `07-divergence-conflict.json` | | | not provided |
+| 8 | `08-target-above-every-ask.json` | | | not provided |
+| 9 | `09-active-pool-nulls-max-reachable.json` | | | not provided |
+| 10 | `10-monotonic-ladder.json` | | | not provided |
+
+**A fixture is useful before its numbers are.** Each scenario carries the
+property this section states in WORDS, and the harness checks it against the
+computed result with no hand figure involved: scenario 5's `fromAmm` must be
+exactly zero, scenario 4's `priceSource` must be `none`, scenario 9's
+`maxReachablePrice` must be null, scenario 10's ladder must not fall. So an
+input alone already tests the thing the scenario exists for, and the hand
+computation that follows tests the magnitudes. Two of the ten, 1 and 2, have a
+property that is structural rather than numeric; the rest check a stated rule.
+
+**The file shape**, defined by `Layer2Fixture` in `internal/conformance/layer2.go`,
+which is the authority if this drifts:
+
+```json
+{
+  "scenario": 5,
+  "slug": "pool-above-target",
+  "testnetTx": "the transaction that created this state, REQUIRED",
+  "ledgerSeq": 0,
+  "ledgerClosedAt": "2026-08-28T00:00:00Z",
+  "base":  {"code": "TEST", "issuer": "G...", "type": "credit_alphanum4"},
+  "quote": {"code": "USDC", "issuer": "G...", "type": "credit_alphanum4"},
+  "book": {
+    "bids": [{"priceN": 9, "priceD": 10, "amount": "5.0000000"}],
+    "asks": [{"priceN": 11, "priceD": 10, "amount": "5.0000000"}]
+  },
+  "pools": [{"poolId": "...", "reserveBase": "1000.0000000",
+             "reserveQuote": "1000.0000000", "feeBp": 30}],
+
+  "expected": {
+    "priceSource": "book",
+    "midPrice": "1.0000000",
+    "spreadPct": "20.0000000",
+    "maxReachablePrice": "null",
+    "depth": [{"delta": "0.02", "buySide": "...", "sellSide": "...",
+               "fromSdex": "...", "fromAmm": "0"}],
+    "flags": ["PRICE_SOURCE_CONFLICT"]
+  }
+}
+```
+
+Four rules the loader enforces rather than trusts, each one a way a hand written
+fixture goes wrong:
+
+1. **Every decimal is a string, and a price is the `n/d` fraction**, never the
+   decimal string beside it. Rule 5 of the non-negotiables, and a JSON number is
+   a float64 on the way in.
+2. **`expected` is optional and every field inside it is nullable.** A field left
+   out is not checked. "Not computed yet" and "computed to be zero" are different
+   claims and the loader keeps them apart; an empty decimal string is refused
+   rather than read as zero.
+3. **`testnetTx` may not be empty.** This section asks for the transaction that
+   created each scenario, and a state nobody can go and look at is a number
+   somebody typed.
+4. **An unknown key is an error.** A misspelled field would otherwise be a silent
+   zero in a hand computation.
 
 ---
 
@@ -227,7 +306,8 @@ known outcome, and by publishing the methodology openly so others can dispute it
       **0 of 5.** `testdata/manual/` does not exist. The golden fixture is Layer 1
       applied to one asset and its with-pool tables are not computed
 - [ ] Layer 2 complete for all 10 scenarios
-      **0 of 10.** No testnet fixture exists in the repository
+      **0 of 10.** The harness is built and every scenario skips; see the results
+      table in section 2 and finding P2-18. No testnet fixture exists yet
 - [x] Layer 3 complete for at least 50 pairs
       **60 reported**, section 3. Read the qualification there rather than this box:
       37 of the 60 were actually comparable, and 23 were not testable because of the
