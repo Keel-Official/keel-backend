@@ -82,10 +82,13 @@
 # August 2026 and not executed. verify-clean.sh is a scanner, so it carries every
 # marker it hunts for as literal text, and the runbook quotes the same markers
 # while explaining the exposure: the personal email present as author and committer
-# in 59 commits when this was written and in 98 of 102 on 28 August 2026, the
-# counterparty named in the SoW, the budget figure, and the internal document
-# names. That count rises with every commit until the rewrite lands or the git
-# config changes; see section 9.3 of the local runbook.
+# in 59 commits when this was written and in all but four of them by 28 August 2026,
+# the counterparty named in the SoW, the budget figure, and the internal document
+# names. NO EXACT FIGURE IS WRITTEN HERE ON PURPOSE: the count rises with every
+# commit until the rewrite lands or the git config changes, so a number pinned here
+# is stale the same day. Measure it, do not read it: `git rev-list --all
+# --format='%ae' | grep -v '^commit ' | sort | uniq -c`. Section 9.3 of the local
+# runbook has the standing figure and the reason.
 #
 # Committing them would publish exactly the strings the runbook exists to remove,
 # in a repository that has been public since 2026-08-18T15:47:52Z, and would add
