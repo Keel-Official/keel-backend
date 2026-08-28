@@ -65,7 +65,7 @@
       "delta": 100,
       "targetPrice": "287.0349300",
       "cost": "61044180.2200000",
-      "reachable": false
+      "reachable": true
     }
   ],
   "manipulationCostOrderbookOnly": [
@@ -94,8 +94,8 @@
       "reachable": false
     }
   ],
-  "maxReachablePrice": "41.8842000",
-  "costToMaxReachablePrice": "60893877.4400000",
+  "maxReachablePrice": null,
+  "costToMaxReachablePrice": null,
   "oracleResistance": {
     "criticalDelta": 0.5,
     "manipulationCost": "3910442.1180000",
@@ -126,6 +126,6 @@
   "band": "LOW",
   "bandConfidence": "full",
   "warnings": [
-    "The delta 100 rung was not reached. Every ask is exhausted at a price of 41.8842000, below the target price of 287.0349300."
+    "maxReachablePrice and costToMaxReachablePrice are null because an active pool is present: under a constant product curve the price tends to infinity as the base reserve tends to zero, so every target is reachable and a highest price has no meaning"
   ]
 }

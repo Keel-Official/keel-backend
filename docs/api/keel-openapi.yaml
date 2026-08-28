@@ -2,6 +2,18 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.4.3, 28 August 2026. maxReachablePrice is null when a pool is PRESENT, not only
+  # when it is the sole venue. No schema change; the description and one example
+  # changed, and the example change is BREAKING FOR ANY CONSUMER that read
+  # AssetHealthy as showing a non-null maxReachablePrice on a market with both venues.
+  # It never should have. docs/methodology/05-manipulation-cost.md section 5 has keyed
+  # this on presence since 1.0.3 and internal/domain.maxReachable implements presence,
+  # so the contract was the only place carrying the other rule, and its AssetHealthy
+  # example was built on it: a non-null maxReachablePrice, a combined delta 100 rung
+  # marked unreachable, and a warning explaining the unreachability. All three were the
+  # old reading and all three are corrected together. The warning now carries the text
+  # internal/domain emits verbatim. Finding P2-16 in scripts/audit-verification.sh.
+  #
   # 1.4.2, 27 August 2026. priceDivergencePct added to the /methodology example. No
   # schema change and no breaking change: the Thresholds schema has declared the key
   # since methodology 1.0.3, and `thresholds` is documented as open ended with
@@ -17,7 +29,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.3-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.4.2
+  version: 1.4.3
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -835,9 +847,21 @@ components:
             Every `manipulationCostOrderbookOnly` entry whose `targetPrice` sits above this
             value is necessarily `reachable: false`.
 
-            Null in two situations: there is no ask at all on this pair, or all the
-            liquidity comes from an AMM. A constant product curve has no upper
-            price bound, so there is no maximum that can be reported.
+            Null in two situations: there is no ask at all on this pair, or an
+            active pool is present on it. Both fields are meaningful only for a
+            pure orderbook market. Under a constant product curve the price tends
+            to infinity as the base reserve tends to zero, so every target is
+            reachable and a highest price has no meaning.
+
+            THE RULE IS PRESENCE, NOT EXCLUSIVITY, and the difference is the
+            whole of it. A pair carrying BOTH a book and an active pool reports
+            null here, not the book's highest ask. Until contract 1.4.3 this
+            description keyed the null on the pool being the sole source of
+            liquidity, which gives the opposite answer on exactly that market,
+            and the AssetHealthy example below was built on the old reading.
+            `docs/methodology/05-manipulation-cost.md` section 5 is the binding
+            definition and `internal/domain.maxReachable` already implemented it;
+            this description was the only place that disagreed.
         oracleResistance:
           oneOf: [$ref: '#/components/schemas/OracleResistance', type: 'null']
           description: |
@@ -1249,7 +1273,7 @@ components:
           - delta: 100
             targetPrice: '287.0349300'
             cost: '61044180.2200000'
-            reachable: false
+            reachable: true
         manipulationCostOrderbookOnly:
           - delta: 0.5
             targetPrice: '4.2628950'
@@ -1267,8 +1291,8 @@ components:
             targetPrice: '287.0349300'
             cost: '61044180.2200000'
             reachable: false
-        maxReachablePrice: '41.8842000'
-        costToMaxReachablePrice: '60893877.4400000'
+        maxReachablePrice: null
+        costToMaxReachablePrice: null
         oracleResistance:
           criticalDelta: 0.5
           manipulationCost: '3910442.1180000'
@@ -1297,8 +1321,10 @@ components:
         bandConfidence: full
         warnings:
           - >-
-            The delta 100 rung was not reached. Every ask is exhausted at a price
-            of 41.8842000, below the target price of 287.0349300.
+            maxReachablePrice and costToMaxReachablePrice are null because an
+            active pool is present: under a constant product curve the price
+            tends to infinity as the base reserve tends to zero, so every target
+            is reachable and a highest price has no meaning
 
     AssetPoolOnly:
       summary: An asset with no orderbook, only an AMM pool
