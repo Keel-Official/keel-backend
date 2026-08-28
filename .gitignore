@@ -81,9 +81,11 @@
 # scripts/history-migration/ holds RUNBOOK.md and verify-clean.sh, prepared on 25
 # August 2026 and not executed. verify-clean.sh is a scanner, so it carries every
 # marker it hunts for as literal text, and the runbook quotes the same markers
-# while explaining the exposure: the personal email present in all 59 commits as
-# author and committer, the counterparty named in the SoW, the budget figure, and
-# the internal document names.
+# while explaining the exposure: the personal email present as author and committer
+# in 59 commits when this was written and in 98 of 102 on 28 August 2026, the
+# counterparty named in the SoW, the budget figure, and the internal document
+# names. That count rises with every commit until the rewrite lands or the git
+# config changes; see section 9.3 of the local runbook.
 #
 # Committing them would publish exactly the strings the runbook exists to remove,
 # in a repository that has been public since 2026-08-18T15:47:52Z, and would add
