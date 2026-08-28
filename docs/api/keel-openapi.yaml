@@ -2,6 +2,17 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.4.4, 28 August 2026. `reachable` on manipulationCostCombined is documented as
+  # unconditionally true whenever an active pool is present, and the four-row
+  # interpretation table is scoped to manipulationCostOrderbookOnly. Description only:
+  # no schema change, no example change, no breaking change. The behaviour is not new.
+  # internal/domain.ComputeManipulationCost has set it unconditionally since the
+  # combined variant existed, types.go and compute.go both state it, and
+  # TestAnActivePoolMakesEveryTargetReachable locks it; the contract was the only place
+  # that did not say so, and a reader could reasonably take a field that is always true
+  # for a check that had been performed. This is the same presence rule 1.4.3 applied to
+  # maxReachablePrice, written from the other side. DEC-007.
+  #
   # 1.4.3, 28 August 2026. maxReachablePrice is null when a pool is PRESENT, not only
   # when it is the sole venue. No schema change; the description and one example
   # changed, and the example change is BREAKING FOR ANY CONSUMER that read
@@ -29,7 +40,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.3-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.4.3
+  version: 1.4.4
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -70,10 +81,13 @@ info:
     from an asset with no price. See the `assetBrokenBook` example response.
 
     **7. `cost` inside `manipulationCost` must never be read on its own.** Always
-    read it together with `reachable`. A zero cost with `reachable: true` means the
+    read it together with `reachable`, and read both from
+    `manipulationCostOrderbookOnly`. A zero cost with `reachable: true` means the
     target price is free. A zero cost with `reachable: false` means there is no
     liquidity at all in that range, so the price cannot be walked up to it. Two
-    states with opposite meanings.
+    states with opposite meanings. On `manipulationCostCombined`, `reachable` is
+    unconditionally true whenever the pair has an active pool, so that
+    distinction cannot be drawn there at all.
 
   contact:
     name: Ciganytry
@@ -591,6 +605,26 @@ components:
             | 0 | false | there is no liquidity at all in that range |
             | > 0 | true | a real cost to reach the target |
             | > 0 | false | the cost exhausts every ask and still does not reach the target |
+
+            THE TABLE ABOVE APPLIES TO `manipulationCostOrderbookOnly` ONLY. On
+            `manipulationCostCombined` this field is unconditionally `true`
+            whenever an active pool is present on the pair, because a constant
+            product curve has no upper price bound: the marginal price grows
+            without limit as the base reserve is drained, so no target is out of
+            reach. A `true` there is a property of the curve and not a
+            measurement of this asset, and none of the four rows above can be
+            distinguished on that ladder.
+
+            Consumers deciding whether a target is attainable MUST read
+            `manipulationCostOrderbookOnly`. That is the ladder Keel itself uses:
+            `maxSafeCollateralManipulation` and `oracleResistance.reachable` both
+            take their value from it, because an attacker takes the cheapest path
+            and orderbook-only is never above combined.
+
+            This is the same presence rule as `maxReachablePrice`, pointing the
+            other way. Presence of an active pool removes the upper bound, which
+            makes a highest price meaningless there and makes every target
+            reachable here.
 
             See also `maxReachablePrice`.
 
