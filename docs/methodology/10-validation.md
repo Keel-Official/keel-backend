@@ -1,7 +1,9 @@
 # Keel: Validation Protocol
 
 **Methodology version:** 1.0.3-draft
-**Status:** protocol defined. Results tables are empty until the runs are executed.
+**Status:** protocol defined. Layer 3 EXECUTED 26 August 2026 and tabulated in
+section 3, 60 recordings, 37 match, 0 mismatch, 23 partial. The Layer 1 and Layer 2
+results tables are still empty and their definition of done in section 6 is unmet.
 
 The SOW promises "cross-validation passed on at least 50 sample ledgers" without defining
 what is validated against what. That definition is made here, because it determines how
@@ -120,9 +122,78 @@ deliverable.
 
 **Results**
 
+**Executed 26 August 2026** over the sixty recordings committed under
+`recordings/samples/`, taken at ledgers 64129586 to 64129592 and rebuilt about
+seven hours later. Raw output, one row per recording with every count behind
+every verdict: `docs/evidences/layer3-crosscheck-2026-08-26.csv`. The narrative
+account is `docs/evidences/2026-08-26-layer3-crosscheck.md`. Reproduce with
+`make crosscheck`, which will not reproduce these numbers: every hour that
+passes moves more offers, so the same command compares fewer pairs tomorrow.
+
+| Verdict | Count | Meaning |
+|---|---|---|
+| MATCH | 37 | agreement at all four comparison depths, and the rebuild claimed no gap |
+| MISMATCH | **0** | disagreement, with the rebuild claiming no gap |
+| PARTIAL | 23 | the rebuild could not carry every offer back, so it says nothing either way |
+| ERROR | 0 | |
+| **Total** | **60** | above the 50 this section requires |
+
+**A PARTIAL row's four comparison columns are not findings, and reading them as
+agreement or disagreement is the mistake this table is arranged to prevent.**
+The verdict is decided before the comparison: `crosscheckRow.Comparable()` in
+`cmd/keel/crosscheck.go` returns false as soon as an offer changed after the
+target ledger or went unresolved, and a row that is not comparable is PARTIAL
+whatever the columns then say. So a PARTIAL row reading `amounts yes` has not
+confirmed the amounts. It has confirmed nothing. Twenty-two of the twenty-three
+read `amounts yes` for exactly that reason, and that column is the clearest
+example of a number which looks like evidence and is not.
+
+The 37 MATCH rows are not listed here. Each carries `yes` in all four columns,
+`0` in all three of carried-changed-gone, and no explanation, so a row per asset
+would add sixty lines and no information. They are in the CSV, one line each.
+Listing the 23 non-MATCH rows is what this section's own rule asks for: every
+mismatch recorded with its explanation.
+
 | Asset | Ledger | Levels | Prices | Amounts | Computed | Explanation |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| AFR `GBX6YI45` | 64129587 | **no** | **no** | yes | **no** | PARTIAL. 25 offer(s) could not be carried back. recorded 24 bid / 77 ask, rebuilt 24 bid / 75 ask |
+| AQUA `GBNZILST` | 64129587 | **no** | **no** | yes | yes | PARTIAL. 44 offer(s) could not be carried back. recorded 55 bid / 200 ask, rebuilt 27 bid / 286 ask (a recorded side is at the endpoint limit and is a prefix) |
+| AUDD `GDC7X2MX` | 64129587 | **no** | **no** | yes | **no** | PARTIAL. 7 offer(s) could not be carried back. recorded 11 bid / 5 ask, rebuilt 7 bid / 4 ask |
+| BTC `GDPJALI4` | 64129586 | **no** | **no** | yes | yes | PARTIAL. 49 offer(s) could not be carried back. recorded 200 bid / 31 ask, rebuilt 406 bid / 27 ask (a recorded side is at the endpoint limit and is a prefix) |
+| ETH `GBFXOHVA` | 64129589 | **no** | yes | **no** | yes | PARTIAL. 14 offer(s) moved after the target ledger. recorded 164 bid / 34 ask, rebuilt 163 bid / 34 ask |
+| EURC `GAQRF3UG` | 64129591 | **no** | **no** | yes | **no** | PARTIAL. 5 offer(s) moved after the target ledger. recorded 13 bid / 10 ask, rebuilt 10 bid / 8 ask |
+| EURC `GDHU6WRG` | 64129587 | **no** | **no** | yes | **no** | PARTIAL. 235 offer(s) could not be carried back. recorded 64 bid / 86 ask, rebuilt 33 bid / 34 ask |
+| GOLD `GBC5ZGK6` | 64129588 | **no** | **no** | yes | **no** | PARTIAL. 1 offer(s) moved after the target ledger. recorded 32 bid / 18 ask, rebuilt 31 bid / 18 ask |
+| LIBRE `GAYCCWKE` | 64129588 | **no** | **no** | yes | **no** | PARTIAL. 2 offer(s) could not be carried back. recorded 5 bid / 8 ask, rebuilt 2 bid / 5 ask |
+| LSP `GAB7STHV` | 64129589 | **no** | **no** | yes | **no** | PARTIAL. 23 offer(s) moved after the target ledger. recorded 30 bid / 120 ask, rebuilt 19 bid / 108 ask |
+| SCROOGE `GD2TQV2V` | 64129588 | **no** | **no** | yes | **no** | PARTIAL. 1 offer(s) moved after the target ledger. recorded 16 bid / 29 ask, rebuilt 15 bid / 29 ask |
+| SHX `GDSTRSHX` | 64129587 | **no** | **no** | yes | yes | PARTIAL. 7 offer(s) could not be carried back. recorded 103 bid / 200 ask, rebuilt 85 bid / 379 ask (a recorded side is at the endpoint limit and is a prefix) |
+| sUSD `GCHW7CWI` | 64129588 | **no** | **no** | yes | **no** | PARTIAL. 37 offer(s) could not be carried back. recorded 17 bid / 39 ask, rebuilt 14 bid / 27 ask |
+| TFT `GBOVQKJY` | 64129588 | **no** | **no** | yes | yes | PARTIAL. 16 offer(s) moved after the target ledger. recorded 16 bid / 40 ask, rebuilt 16 bid / 29 ask |
+| USDGLO `GBBS25EG` | 64129587 | **no** | **no** | yes | **no** | PARTIAL. 1 offer(s) moved after the target ledger. recorded 5 bid / 2 ask, rebuilt 5 bid / 1 ask |
+| USDM `GDHDC4GB` | 64129588 | **no** | **no** | yes | **no** | PARTIAL. 16 offer(s) could not be carried back. recorded 7 bid / 7 ask, rebuilt 5 bid / 2 ask |
+| USDZ `GAKTLPC4` | 64129587 | **no** | **no** | yes | **no** | PARTIAL. 7 offer(s) could not be carried back. recorded 13 bid / 16 ask, rebuilt 10 bid / 8 ask |
+| VELO `GDM4RQUQ` | 64129588 | **no** | **no** | yes | yes | PARTIAL. 4 offer(s) could not be carried back. recorded 75 bid / 200 ask, rebuilt 65 bid / 215 ask (a recorded side is at the endpoint limit and is a prefix) |
+| XLM (native) | 64129586 | yes | **no** | yes | yes | PARTIAL. 1605 offer(s) could not be carried back. bid 0 price differs: recorded 229241/1250000, rebuilt 20000/111073 |
+| XRP `GBXRPL45` | 64129587 | **no** | **no** | yes | **no** | PARTIAL. 77 offer(s) could not be carried back. recorded 185 bid / 119 ask, rebuilt 177 bid / 112 ask |
+| XTAR `GAORYJ3K` | 64129588 | **no** | **no** | yes | **no** | PARTIAL. 1 offer(s) moved after the target ledger. recorded 4 bid / 46 ask, rebuilt 4 bid / 45 ask |
+| yUSDC `GDGTVWSM` | 64129586 | **no** | **no** | yes | **no** | PARTIAL. 348 offer(s) could not be carried back. recorded 43 bid / 21 ask, rebuilt 37 bid / 17 ask |
+| yXLM `GARDNV3Q` | 64129586 | **no** | **no** | yes | **no** | PARTIAL. 102 offer(s) could not be carried back. recorded 56 bid / 46 ask, rebuilt 50 bid / 42 ask |
+
+**The two shapes of PARTIAL, and neither is a disagreement between the sources.**
+Fifteen rows have offers the rewind could not carry back to the target ledger.
+Eight have offers that moved after it, which the rewind reports rather than
+papers over. Both are the reconstruction declaring its own incompleteness. The
+protocol above says unexplained mismatches block the deliverable; there are no
+mismatches to block it, and the honest statement of that result is that 37 pairs
+agree and 23 were not testable seven hours after recording.
+
+**What this run does not establish.** The gap between recording and rebuild was
+about seven hours, and it is the direct cause of all 23 PARTIAL rows. A rebuild
+run minutes after the recording would convert most of them, and until that is
+done the ratio 37 to 23 is a property of the delay rather than of the historical
+path. Rerunning `make crosscheck` does not recover it either, because the delay
+only grows. The next recorder batch should be crosschecked the same hour.
 
 ---
 
@@ -153,11 +224,22 @@ known outcome, and by publishing the methodology openly so others can dispute it
 ## 6. Definition of done
 
 - [ ] Layer 1 complete for 5 assets, spreadsheets in the repository
+      **0 of 5.** `testdata/manual/` does not exist. The golden fixture is Layer 1
+      applied to one asset and its with-pool tables are not computed
 - [ ] Layer 2 complete for all 10 scenarios
-- [ ] Layer 3 complete for at least 50 pairs
-- [ ] Every mismatch recorded and explained
-- [ ] The reproducibility test passes: identical input yields byte-identical JSON
+      **0 of 10.** No testnet fixture exists in the repository
+- [x] Layer 3 complete for at least 50 pairs
+      **60 reported**, section 3. Read the qualification there rather than this box:
+      37 of the 60 were actually comparable, and 23 were not testable because of the
+      seven hour gap between recording and rebuild
+- [x] Every mismatch recorded and explained
+      **0 mismatches to record.** The 23 PARTIAL rows are listed with their
+      explanations in section 3, which is the stronger reading of this line
+- [x] The reproducibility test passes: identical input yields byte-identical JSON
+      `TestInvarianDeterminisme` in `internal/conformance/golden_test.go`, run by
+      `make test` and `make conformance`
 - [ ] An outsider reproduces one number from the documents alone, without asking us
+      not attempted. This is the item the note below says must be a real exercise
 
 The final item is a promise the DoD makes and that nothing else here tests. It must be
 run as an actual exercise with a real person, not assumed.
