@@ -33,7 +33,7 @@ the `conformance` job in CI is green without `continue-on-error`.
 
 | File | Reason |
 |---|---|
-| `docs/context/Keel_SoW.pdf` | Contains the 126 hour, $2,268 budget and the terms agreed with the funder. That is a document between Al and Instawards, not material the public needs in order to assess the methodology |
+| `docs/context/Keel_SoW.pdf` | Carries the commercial terms agreed with the funder: the hour allocation, the fee, and the conditions attached to them. That is a document between Al and the funder, not material the public needs in order to assess the methodology. The specific terms are deliberately not restated here; see the amendment in section 6 |
 | `docs/internal/` | The pre-development memo, the execution plan, and the repository audit. They contain criticism of the repository itself, corrections to the SOW, and an allocation of working hours |
 
 Note that **`git rm` alone is not sufficient.** Both are already in the history as
@@ -92,3 +92,52 @@ conformance` passing without a build tag, and not as a property of a directory.
 That is why a package being renamed and then deleted underneath this record left
 the condition intact and only made the prose wrong. A condition phrased as "when
 package X is done" would have had to be renegotiated here.
+
+---
+
+## 6. Second amendment, 28 August 2026
+
+**Section 2 disclosed the commercial terms it argues should not be public.** The
+row for `docs/context/Keel_SoW.pdf` quoted the hour allocation and the fee as its
+reason for excluding the file that carries them. Anyone reading this record
+learned the number the record exists to keep out of it. The row now names the
+CLASS of term rather than its value, and the reasoning is unchanged because the
+reasoning never depended on the figure.
+
+**This amendment deliberately does not restate what was removed, and that
+restraint is the whole technique.** An amendment reading "the figures X and Y were
+taken out" reintroduces X and Y one paragraph below where they were deleted, in
+the same public file, and leaves the record worse than before it was touched. So
+the change is described and the values are not. Whoever needs them reads the SoW,
+which is where they belong.
+
+**A history rewrite would not have fixed this.** The runbook in
+`scripts/history-migration/` removes `docs/context/` and `docs/internal/` from the
+history. It does not touch a current, tracked, deliberately public file, and this
+row was one. That is the general point worth keeping: the migration addresses what
+is readable at old commits, and a marker sitting in today's working tree is a
+separate problem with a separate fix, which is an ordinary edit.
+
+**What this amendment does NOT do.** It does not reverse or soften the decision in
+section 2. Both files still have to come out before the repository is public, for
+the same reasons, and `git rm` alone is still not sufficient.
+
+**Two things next to this are Al's and are left open rather than decided here.**
+
+1. **The funder is still named in two tracked public files**, `docs/api/Keel_PRD.md`
+   at two lines and `docs/api/keel-openapi.yaml` at one. It is no longer named in
+   this record, which is a side effect of rewording the row above and not a
+   decision that it should go: naming who funded the work is
+   ordinary attribution and is a different thing from disclosing the terms, which
+   is what section 2 protects. This record does not decide it, and removing the
+   name from one of those files while the other carries it would achieve nothing.
+   `scripts/history-migration/verify-clean.sh` treats the name as a marker, which
+   is the scanner being blunt on purpose rather than a finding against these files.
+2. **The Decision line and the Status line of this record are contradicted by
+   measurement.** They say the repository stays private and that this was in force
+   from 20 August 2026, the first commit. `gh api` reports a `PublicEvent` at
+   2026-08-18T15:47:52Z, identical to the repository's `created_at`, two days
+   before the first commit landed. The decision was never in force in fact.
+   Recording that is a reversal, and a reversal is Al's to make and is recorded as
+   a reversal rather than applied by editing the old text away. Section 0.1 of the
+   local migration runbook holds the evidence.
