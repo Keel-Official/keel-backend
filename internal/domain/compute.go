@@ -6,8 +6,10 @@
 // .claude/settings.json rather than `deny`, so every write still surfaces, and
 // .claude/hooks/lindungi-zona-merah.sh no longer carries a file rule or a directory
 // rule for internal/domain. internal/domain/CLAUDE.md is the long account of the
-// move; no decision record governs it, which the root CLAUDE.md row says outright
-// and P2-12 in scripts/audit-verification.sh reports until one exists.
+// move and DEC-008 is the record that governs it, accepted 31 August 2026 after
+// six days in which nothing did. Read DEC-008 section 6 before adding a function:
+// it names which of these functions have a hand computed oracle and which do not,
+// and that list is the price of this file being writable.
 //
 // WHAT REPLACED THE LOCK, and it is a rule no mechanism can enforce. A function
 // here may only be written AFTER its expected values exist in testdata/fixtures.

@@ -1,6 +1,6 @@
 # DEC-008: `compute.go` moved from RED to YELLOW, and what replaced its lock
 
-**Status:** Proposed (awaiting Al's ratification)
+**Status:** **Accepted** by Al on 2026-08-31, the day it was drafted
 **Date:** 2026-08-31
 **Kind:** Retrospective ratification. The move was decided and executed by Al on
 25 August 2026. This record does not make the decision and could not; it writes
@@ -285,3 +285,4 @@ fact that it was wrong is the finding.
 | Date | Amendment |
 | --- | --- |
 | 2026-08-31 | Created as Proposed, six days after the move it records |
+| 2026-08-31 | Accepted by Al. Section 11 item 1 is closed. The three pointer edits in section 10 were made in the commit that carries this row, which is the commit after the one that created the record, so that no file cited this record as authority while it was still Proposed |

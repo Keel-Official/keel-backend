@@ -2,6 +2,12 @@
 
 **THIS PACKAGE HOLDS NO RED FILE ANY MORE.** Every file here is YELLOW.
 
+**The move that made that true is governed by DEC-008 since 31 August 2026.** This
+document is the long account and stays the long account; DEC-008 is the record, and
+where the two disagree the record wins. It was written six days after the move, and
+this file's own account of being stale for a day is why nobody assumed a record
+existed.
+
 | File | Zone | Owner |
 | --- | --- | --- |
 | `compute.go` | YELLOW since 25 August 2026 | Al and Claude both. Every write still surfaces: the entry in `.claude/settings.json` became `ask`, not nothing |
