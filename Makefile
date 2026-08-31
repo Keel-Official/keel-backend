@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test manual-check ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay crosscheck divergence
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test manual-check ci api-mocks api-mocks-check record record-once record-holders record-batch survey assets scan serve backtest replay crosscheck divergence
 
 # ---------------------------------------------------------------- Local
 
@@ -162,6 +162,47 @@ HOLDER_PAGES ?= 0
 
 record-holders:
 	go run ./cmd/keel record -pairs $(PAIRS) -once -holders -holder-pages $(HOLDER_PAGES)
+
+# record-batch is the same-hour cross-check, and it is the one that tests the
+# attribution rather than assuming it.
+#
+# WHAT IT IS FOR. The first Layer 3 run compared the sixty committed recordings
+# against books rebuilt about seven hours later: 37 match, 0 mismatch, 23 partial.
+# All 23 are attributed to those seven hours, in 10-validation.md, in the evidence
+# note and in the README, and nothing has tested that attribution. Every row in
+# that run had the SAME delay, so it holds no contrast to test it with. This target
+# records a batch and compares it inside the same hour, which is the second arm.
+#
+# CROSSCHECK_AFTER is the variable under test. The binary's default is five
+# minutes and its ceiling is one hour; both are printed at startup and the measured
+# gap is stamped on every row and written to the CSV, so two batches at two delays
+# can be put side by side.
+#
+# READ THE TWO NUMBERS TOGETHER AND STOP THERE. One batch is one sample. A partial
+# rate quoted without the delay it was measured at is the sentence this target
+# exists to make checkable.
+#
+# It writes recordings under RECORD_OUT, which is gitignored: a batch recorded to
+# test the instrument is not the archive the deliverable is checked against, and
+# only recordings/samples/ is that. Around 900 Horizon requests for the sixty pair
+# demonstration set, against an hourly budget of 3000.
+CROSSCHECK_AFTER ?= 5m
+CROSSCHECK_OUT ?= measurements/crosscheck/samehour-$(shell date -u +%Y-%m-%dT%H%M%SZ).csv
+RECORD_OUT ?= measurements/recordings
+
+# THE PAIR LIST DEFAULTS TO THE SIXTY AND NOT TO $(PAIRS), which is the one place
+# this target departs from every other one here. PAIRS defaults to the single-pair
+# example, and a batch of one cannot be set beside a batch of sixty: the two rates
+# would differ by sampling before they differed by delay. An explicit
+# `make record-batch PAIRS=...` on the command line is still honoured, which is
+# what $(origin) distinguishes.
+BATCH_PAIRS ?= $(if $(filter command line,$(origin PAIRS)),$(PAIRS),configs/demonstration-set.json)
+
+record-batch:
+	@mkdir -p $(dir $(CROSSCHECK_OUT)) $(RECORD_OUT)
+	go run ./cmd/keel record -pairs $(BATCH_PAIRS) -once \
+		-out $(RECORD_OUT) \
+		-crosscheck -crosscheck-after $(CROSSCHECK_AFTER) -crosscheck-out $(CROSSCHECK_OUT)
 
 # survey asks Horizon four cheap questions about every pair in PAIRS and prints one
 # row each, so the four liquidity buckets in 10-validation.md section 3 are filled

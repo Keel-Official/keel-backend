@@ -51,6 +51,14 @@ func runRecord(args []string) error {
 	holderInterval := fs.Duration("holder-interval", 0,
 		"how often to read holders. 0 means every -interval round, which is rarely what you want: a trustline "+
 			"balance moves over days and an order book moves in seconds")
+	crosscheck := fs.Bool("crosscheck", false,
+		"after each recording is written, schedule the Layer 3 rebuild-and-compare for that same recording. "+
+			"Off by default: it spends the same Horizon budget the recorder does")
+	crosscheckAfter := fs.Duration("crosscheck-after", defaultCrosscheckDelay,
+		fmt.Sprintf("how long after a recording its rebuild runs. Default %s, must be under %s, and 0 means "+
+			"immediately. This is the variable the same-hour experiment is testing", defaultCrosscheckDelay, maxCrosscheckDelay))
+	crosscheckOut := fs.String("crosscheck-out", "",
+		"append one CSV row per comparison to this file, flushed per row. Optional; the rows are printed either way")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel record - record raw Horizon snapshots for cross-validation
@@ -78,6 +86,15 @@ not recoverable from it by any route. It is off by default because its cost grow
 with the asset, one request per 200 accounts, where a pair snapshot is always
 three.
 
+WITH -crosscheck each recording is paired with a rebuild of the same book,
+scheduled -crosscheck-after later and compared by exactly the code behind
+"keel crosscheck". Every row carries the elapsed time between the recording and
+the rebuild, which is the variable under test: the first Layer 3 run put 23 of 60
+PARTIAL rows down to a seven hour gap, and no row in it recorded a gap at all.
+The delay is under an hour by construction, so a batch is recorded and compared
+inside the same hour. It costs one rebuild's worth of Horizon requests per
+recording, out of the same -budget the recorder is spending.
+
 Give -holders its own -holder-interval. Without one it reads holders on every
 -interval round, which sets the cadence of a balance that moves over days by the
 cadence of a book that moves in seconds, and writes a near-identical file each
@@ -100,6 +117,33 @@ time in the one format here whose size grows with the asset.
 	}
 	if *schema != 1 && *schema != horizon.TickSchemaVersion {
 		return fmt.Errorf("record: -schema must be 1 or %d", horizon.TickSchemaVersion)
+	}
+	// The delay is validated whether or not the pairing is on, because a value
+	// that would be refused when it is used is not a value worth accepting when
+	// it is ignored. The upper bound is what makes "the same hour" a property of
+	// the flags; see maxCrosscheckDelay.
+	if *crosscheckAfter < 0 || *crosscheckAfter >= maxCrosscheckDelay {
+		return fmt.Errorf("record: -crosscheck-after must be at least 0 and less than %s, got %s. "+
+			"The point of this pairing is a comparison inside the hour the recording was taken",
+			maxCrosscheckDelay, *crosscheckAfter)
+	}
+	if *crosscheck {
+		// Schema 1 writes the parsed conclusions beside the bytes under a
+		// different name and layout, and the comparison reads a schema 2 tick.
+		// Refusing is better than comparing a file whose shape is not what the
+		// reader assumes and reporting the difference as a finding about Horizon.
+		if *schema != horizon.TickSchemaVersion {
+			return fmt.Errorf("record: -crosscheck needs schema %d, got %d", horizon.TickSchemaVersion, *schema)
+		}
+		// The paired loop is this binary's own, because the recorder's loop
+		// reports a round as a count and keeps the paths. That loop is the one
+		// place the holder cadence lives, so a continuous paired run would have
+		// to reimplement it and the two would drift. -once takes its holder
+		// reading in this file already, so that combination is allowed.
+		if *holders && !*once {
+			return errors.New("record: -holders and -crosscheck can only be combined with -once, because " +
+				"the holder cadence lives in the recorder's own loop and the paired loop is a different one")
+		}
 	}
 
 	pairs, err := horizon.LoadPairs(*pairsPath)
@@ -162,9 +206,57 @@ time in the one format here whose size grows with the asset.
 			len(assets), cadence, assetList(assets))
 	}
 
+	var runner *sameHourRunner
+	if *crosscheck {
+		var appender *crosscheckAppender
+		if *crosscheckOut != "" {
+			appender, err = openCrosscheckAppender(*crosscheckOut)
+			if err != nil {
+				return fmt.Errorf("record: %w", err)
+			}
+			defer func() { _ = appender.Close() }()
+		}
+		runner = newSameHourRunner(sameHourConfig{
+			Recorder: rec,
+			// The SAME client, so the rebuilds and the recordings spend one
+			// budget. Two clients would each believe they had 3000 requests an
+			// hour and the shared IP would find out otherwise.
+			Client: client,
+			Unit:   unit,
+			Delay:  *crosscheckAfter,
+			Out:    os.Stdout,
+			Logf:   logger.Printf,
+			CSV:    appender,
+		})
+		logger.Printf("same-hour crosscheck on: every recording is rebuilt and compared %s after it was "+
+			"recorded (default %s, ceiling %s)", *crosscheckAfter, defaultCrosscheckDelay, maxCrosscheckDelay)
+		if *crosscheckOut != "" {
+			logger.Printf("comparison rows append to %s", *crosscheckOut)
+		}
+		// On stdout as well as in the log, in the flat key=value form the round
+		// tally already uses, so the delay a batch was measured at is in the same
+		// stream as the batch. A rate quoted without its delay is the sentence
+		// this whole change exists to make checkable.
+		fmt.Fprintf(os.Stdout, "crosscheck_delay=%s crosscheck_delay_default=%s crosscheck_delay_max=%s\n",
+			*crosscheckAfter, defaultCrosscheckDelay, maxCrosscheckDelay)
+	}
+
 	if *once {
-		unwritten := recordOneRound(ctx, rec, *schema, os.Stdout)
+		unwritten, results := recordOneRound(ctx, rec, *schema, os.Stdout)
 		holderFailed := rec.ReportHolders(rec.RecordHoldersOnce(ctx))
+		if runner != nil {
+			// The comparison runs AFTER the holder reading, so a -holders round
+			// does not sit on the queue while it pages through trustlines.
+			//
+			// IT NEVER DECIDES THE EXIT CODE. The recording is the half that
+			// cannot be taken again, and a comparison that stopped early can be
+			// run against the file on disk afterwards, at a longer gap. The two
+			// lines below this one are still the only things that redden a round.
+			if err := runner.runOnce(ctx, results); err != nil && !errors.Is(err, context.Canceled) {
+				logger.Printf("crosscheck: stopped early: %v", err)
+			}
+			runner.summarise(os.Stdout)
+		}
 		if unwritten > 0 {
 			return fmt.Errorf("record: %d of %d pair(s) wrote nothing", unwritten, len(pairs))
 		}
@@ -175,7 +267,12 @@ time in the one format here whose size grows with the asset.
 	}
 
 	logger.Printf("interval %s, Ctrl-C to stop", *interval)
-	err = rec.Run(ctx, *interval)
+	if runner != nil {
+		err = runner.run(ctx, *interval)
+		runner.summarise(os.Stdout)
+	} else {
+		err = rec.Run(ctx, *interval)
+	}
 	if errors.Is(err, context.Canceled) {
 		logger.Print("stopped")
 		return nil
@@ -196,17 +293,22 @@ time in the one format here whose size grows with the asset.
 // read the numbers without parsing the log. It is deliberately a flat key=value
 // line and not JSON: the only consumer is a shell step in a workflow, and a
 // shell reading JSON needs a JSON parser installed on the runner.
-func recordOneRound(ctx context.Context, rec *horizon.Recorder, schema int, w io.Writer) int {
+// It also returns the round's per-pair results, which is what the same-hour
+// pairing schedules from: it needs the PATH of each file that was just written,
+// and a directory sweep afterwards cannot tell this round's files from the ones
+// already there. Schema 1 returns none, and -crosscheck is refused with it.
+func recordOneRound(ctx context.Context, rec *horizon.Recorder, schema int, w io.Writer) (int, []horizon.TickResult) {
 	if schema == 1 {
-		return rec.Report(rec.RecordOnce(ctx))
+		return rec.Report(rec.RecordOnce(ctx)), nil
 	}
-	round := rec.ReportTicks(rec.RecordTicksOnce(ctx))
+	results := rec.RecordTicksOnce(ctx)
+	round := rec.ReportTicks(results)
 	// The tally is a convenience for a workflow step. Failing to print it must
 	// not turn a round that reached disk into a failure, so the error is
 	// discarded deliberately rather than by omission.
 	_, _ = fmt.Fprintf(w, "ticks_written=%d ticks_degraded=%d ticks_straddled=%d ticks_collided=%d ticks_unwritten=%d\n",
 		round.Written, round.Degraded, round.Straddled, round.Collided, round.Unwritten)
-	return round.Unwritten
+	return round.Unwritten, results
 }
 
 // assetList names the assets a holder round will read, so the line that says a

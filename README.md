@@ -31,6 +31,12 @@ What does not exist yet, and the list is specific on purpose:
   comparison and 23 pairs had an offer move in the gap, four of them exactly one
   offer. `docs/evidences/2026-08-26-layer3-crosscheck.md` section 4 has the fix,
   and it is a step in the recorder workflow rather than code.
+  **That sentence is a hypothesis and, until 31 August 2026, nothing had tested
+  it.** Every row in that run had the same seven hour delay, so the run holds no
+  contrast, and no row recorded its delay, so a second run could not have been
+  compared against it. `make record-batch` is the second arm: it records a batch
+  and rebuilds it inside the same hour, and every comparison row now carries the
+  measured gap. Two batches at two delays, and one batch is one sample.
 - **Historical POOL reserves.** `keel replay` rebuilds a past ORDER BOOK from the
   operations that posted it, and reconstructs no pool at all, so the snapshot it
   returns carries none. That is not a claim that no pool existed.
@@ -70,6 +76,7 @@ What that means for the commands you can run:
 | `make backtest` | works, writes the trade-implied history of a pair as two CSV files. Needs `PAIRS`, `FROM`, `TO`. No database |
 | `make replay` | works, rebuilds a pair's order book at a past ledger from the operations that posted it. Needs `PAIRS` and `LEDGER`. No database. **Read the completeness line it prints**: a book missing an offer reads as a thin book |
 | `make crosscheck` | works, runs validation Layer 3 over the committed recordings. No database. First run, 26 August 2026: 60 recordings, 37 match, 0 mismatch, 23 partial |
+| `make record-batch` | works, records a batch and cross-checks it inside the same hour, one CSV row per comparison carrying the measured gap. `CROSSCHECK_AFTER` is the delay, default 5m and refused at an hour. No database. Writes under gitignored `measurements/` |
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
 built yet" apart from "failed". **No subcommand means "not built yet" any more**, as

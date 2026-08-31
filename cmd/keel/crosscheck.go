@@ -28,6 +28,23 @@
 // that can and cannot see. Both produce dataSource offers-implied and neither is
 // a measurement.
 //
+// EVERY ROW CARRIES THE ELAPSED TIME BETWEEN THE RECORDING AND THE REBUILD, and
+// that field is the reason this file was touched on 31 August 2026. The first run
+// over the sixty committed recordings returned 23 PARTIAL rows and attributed all
+// 23 to the seven hours that had passed since they were recorded. That attribution
+// is a HYPOTHESIS and nothing in the output could test it, because no row said how
+// long the gap was: a run minutes after the recording and a run seven hours after
+// it produced rows of exactly the same shape. The gap is now measured, stamped on
+// every row, and written to the CSV, so two runs at two different delays can be
+// put side by side.
+//
+// THE COMPARISON ITSELF DID NOT CHANGE, and that is deliberate rather than
+// incidental. Changing what is compared in the same commit that changes when it is
+// compared makes the difference between two runs uninterpretable, because either
+// change could explain it. compareRecording, riskAgrees, countAgrees,
+// layer3Tolerance and the verdict rules are untouched; what is new is a field, its
+// two output columns, and the stamping step in compareOne.
+//
 // POOLS ARE EXCLUDED FROM BOTH SIDES. The recordings carry the pool response and
 // the rewind reconstructs no pool, so comparing risk with pools on one side only
 // would measure the missing pool rather than the book. Depth 4 runs over
@@ -40,12 +57,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/Keel-Official/keel-backend/internal/domain"
 	"github.com/Keel-Official/keel-backend/internal/horizon"
@@ -72,6 +91,13 @@ from Horizon today, and compares them at four depths. Reports each depth
 separately, and prints the reconstruction's completeness counters beside every
 verdict, because a reconstruction that admits it is incomplete and one that
 disagrees with the recording are not the same finding.
+
+EVERY ROW CARRIES THE GAP between when the recording was taken and when the
+rebuild ran, in seconds, and the summary states the PARTIAL rate beside the span
+of that gap. The two belong together: the first run of this command attributed 23
+PARTIAL rows out of 60 to a seven hour gap and had no column to check that
+against. Recording and comparing inside the same hour is what tests it, and that
+is "keel record -crosscheck".
 
 `)
 		fs.PrintDefaults()
@@ -104,7 +130,7 @@ disagrees with the recording are not the same finding.
 	fmt.Fprintf(os.Stdout, "Layer 3 over %d recording(s) from %s\n\n", len(paths), *dir)
 	rows := make([]crosscheckRow, 0, len(paths))
 	for i, p := range paths {
-		row := compareRecording(ctx, client, p, unit)
+		row := compareOne(ctx, client, p, unit, time.Now)
 		rows = append(rows, row)
 		fmt.Fprintf(os.Stdout, "[%3d/%d] %s\n", i+1, len(paths), row.line())
 		if ctx.Err() != nil {
@@ -154,6 +180,23 @@ type crosscheckRow struct {
 	Requests int
 	Err      string
 
+	// RecordedAt, RebuiltAt and Elapsed are THE VARIABLE UNDER TEST. RecordedAt
+	// is the recording's own recorded_at, RebuiltAt is when the rebuild that
+	// this row compares against was started, and Elapsed is the difference.
+	//
+	// They are stamped by compareOne AFTER compareRecording has returned, and
+	// nothing in the comparison reads them. A row is not more or less of a match
+	// because of how long the gap was; the gap is the thing being measured
+	// ABOUT the row, which is why it sits beside the verdict rather than in it.
+	//
+	// ElapsedKnown is false when the recording carried no parseable recorded_at.
+	// A zero duration and an unknown one are different findings and an
+	// experiment that prints 0 for both has lost the one it cares about.
+	RecordedAt   time.Time
+	RebuiltAt    time.Time
+	Elapsed      time.Duration
+	ElapsedKnown bool
+
 	// Explanation is the first difference found, in words, so the results table
 	// carries the protocol's required explanation rather than a bare NO.
 	Explanation string
@@ -176,16 +219,99 @@ func (r crosscheckRow) verdict() string {
 	}
 }
 
+// elapsedSeconds is the gap in seconds, to the millisecond, as a decimal.
+//
+// A decimal and not a float64, and not because a duration is money. Non-negotiable
+// rule 6 of this repository is that no float appears in a computed output at all,
+// and `Elapsed.Seconds()` returns a float64. Milliseconds are an integer count, so
+// dividing them by 1000 in decimal is exact and needs no rounding rule.
+func (r crosscheckRow) elapsedSeconds() decimal.Decimal {
+	return decimal.NewFromInt(r.Elapsed.Milliseconds()).Div(decimal.NewFromInt(1000))
+}
+
+// elapsedText renders the gap for a human. Empty when it is not known, which is
+// deliberately different from "0s".
+func (r crosscheckRow) elapsedText() string {
+	if !r.ElapsedKnown {
+		return "elapsed unknown"
+	}
+	return "elapsed " + r.Elapsed.Truncate(time.Second).String()
+}
+
+// stampTiming records when this row's rebuild happened and how long after the
+// recording it was. It is called by compareOne once compareRecording has
+// returned, so the comparison never sees it.
+//
+// A zero recordedAt means the recording could not tell us when it was taken, and
+// the row then says the gap is unknown rather than inventing one.
+//
+// THE GAP IS ACCURATE TO THE SECOND AND NO FINER, because recorded_at is written
+// as RFC3339 and RFC3339 has no sub-second field. It is stated here rather than
+// discovered from a row reading 0.512 that looks more precise than it is. At the
+// scale this measurement is arguing about, minutes against seven hours, one second
+// is not a source of doubt.
+func (r *crosscheckRow) stampTiming(recordedAt, rebuiltAt time.Time) {
+	r.RebuiltAt = rebuiltAt.UTC()
+	if recordedAt.IsZero() {
+		return
+	}
+	r.RecordedAt = recordedAt.UTC()
+	r.Elapsed = r.RebuiltAt.Sub(r.RecordedAt)
+	r.ElapsedKnown = true
+}
+
 func (r crosscheckRow) line() string {
-	head := fmt.Sprintf("%-9s %-8s ledger %d  recorded %d/%d  rebuilt %d/%d",
-		r.verdict(), shortPair(r.Pair), r.Ledger,
+	head := fmt.Sprintf("%-9s %-8s ledger %d mv %s  recorded %d/%d  rebuilt %d/%d",
+		r.verdict(), shortPair(r.Pair), r.Ledger, domain.MethodologyVersion,
 		r.RecordedBids, r.RecordedAsks, r.RebuiltBids, r.RebuiltAsks)
-	tail := fmt.Sprintf("  [carried %d, changed %d, gone %d, %d req]",
-		r.Carried, r.Changed, r.Gone, r.Requests)
+	tail := fmt.Sprintf("  [carried %d, changed %d, gone %d, %d req, %s]",
+		r.Carried, r.Changed, r.Gone, r.Requests, r.elapsedText())
 	if r.Explanation != "" {
 		return head + tail + "\n          " + r.Explanation
 	}
 	return head + tail
+}
+
+// compareOne is compareRecording with the timing stamped on the row it returns.
+// It is the ONLY entry point either caller uses, so a batch run and a same-hour
+// run cannot end up measuring the gap from two different instants.
+//
+// THE INSTANT IT MEASURES TO is the moment before the rebuild starts, not the
+// moment it finishes. The rebuild reads the live offer set and carries back what
+// has not moved since the target ledger, so the question every offer is asked is
+// "have you moved since then", asked of the book as it stands when the reading
+// begins. A rebuild that takes four minutes did not have a four minute gap.
+//
+// IT READS THE RECORDING TWICE, once here for recorded_at and once inside
+// compareRecording for the bodies. That costs one gzip decode and no Horizon
+// request. The cheaper shape would have compareRecording return the tick, and
+// that is a change to the comparison, which this change is not allowed to make:
+// changing what is compared while changing when it is compared makes the two runs
+// uninterpretable. See the header.
+func compareOne(ctx context.Context, c *horizon.Client, path string, unit horizon.BidAmountUnit, now func() time.Time) crosscheckRow {
+	recordedAt := recordedAtOf(path)
+	start := now().UTC()
+	row := compareRecording(ctx, c, path, unit)
+	row.stampTiming(recordedAt, start)
+	return row
+}
+
+// recordedAtOf reads a recording's own recorded_at stamp.
+//
+// It returns the zero time on any failure and reports no error, because a
+// recording that cannot be read at all is compareRecording's finding to make and
+// this function must not pre-empt it with a different message. The row it produces
+// says the gap is unknown, which is the honest answer here either way.
+func recordedAtOf(path string) time.Time {
+	tick, err := horizon.ReadTick(path)
+	if err != nil {
+		return time.Time{}
+	}
+	at, err := time.Parse(time.RFC3339, tick.RecordedAt)
+	if err != nil {
+		return time.Time{}
+	}
+	return at.UTC()
 }
 
 func compareRecording(ctx context.Context, c *horizon.Client, path string, unit horizon.BidAmountUnit) crosscheckRow {
@@ -408,7 +534,7 @@ func recordedBook(t horizon.RawTick, base, quote domain.Asset, unit horizon.BidA
 
 // ---------------------------------------------------------------- output
 
-func summarise3(w *os.File, rows []crosscheckRow) {
+func summarise3(w io.Writer, rows []crosscheckRow) {
 	var match, mismatch, partial, failed int
 	for _, r := range rows {
 		switch r.verdict() {
@@ -428,10 +554,104 @@ func summarise3(w *os.File, rows []crosscheckRow) {
 	fmt.Fprintf(w, "  MISMATCH they disagree, and the rebuild claimed no gap. Each one needs an explanation\n")
 	fmt.Fprintf(w, "  PARTIAL  the rebuild could not carry every offer back, so it says nothing either way\n")
 
+	// The PARTIAL rate beside the gap that produced it. These two numbers are
+	// the whole experiment: a rate quoted without the delay it was measured at
+	// is the sentence that put twenty-three rows down to a cause nobody had
+	// measured. Neither line concludes anything; a run is one sample.
+	fmt.Fprintf(w, "\n%s\n", partialRateLine(partial, len(rows)))
+	fmt.Fprintf(w, "%s\n", elapsedSpanLine(rows))
+	fmt.Fprintf(w, "  methodology %s. One batch is one sample: state the rate and the delay together, "+
+		"and do not conclude from a single batch\n", domain.MethodologyVersion)
+
 	// The SOW promises cross-validation on at least 50 pairs, and a partial row
 	// is not one of them. Saying which number counts is the point of printing it.
 	fmt.Fprintf(w, "\n%d of the %d recording(s) were comparable at all. 10-validation.md section 3 asks for at least 50\n",
 		match+mismatch, len(rows))
+}
+
+// partialRateLine states the PARTIAL count as a share of the rows, in decimal.
+// Integer arithmetic in decimal.Decimal rather than a percentage in float64, for
+// the reason given on elapsedSeconds.
+func partialRateLine(partial, total int) string {
+	if total == 0 {
+		return "  PARTIAL rate: no rows"
+	}
+	pct := decimal.NewFromInt(int64(partial)).
+		Div(decimal.NewFromInt(int64(total))).
+		Mul(decimal.NewFromInt(100))
+	return fmt.Sprintf("  PARTIAL rate: %d of %d recording(s), %s per cent", partial, total, pct.StringFixed(1))
+}
+
+// elapsedSpanLine states the delay the rate above was measured at, as the span
+// from the shortest gap to the longest.
+//
+// A span and not a mean. Rows recorded in one round are rebuilt within minutes of
+// each other and a mean would hide the one row that waited, which on a run that is
+// testing the delay is the row worth seeing.
+func elapsedSpanLine(rows []crosscheckRow) string {
+	var known int
+	var shortest, longest time.Duration
+	for _, r := range rows {
+		if !r.ElapsedKnown {
+			continue
+		}
+		if known == 0 || r.Elapsed < shortest {
+			shortest = r.Elapsed
+		}
+		if known == 0 || r.Elapsed > longest {
+			longest = r.Elapsed
+		}
+		known++
+	}
+	if known == 0 {
+		return "  measured at: no row carried a readable recorded_at, so the delay is unknown"
+	}
+	unknown := ""
+	if n := len(rows) - known; n > 0 {
+		unknown = fmt.Sprintf(", %d row(s) with no readable recorded_at", n)
+	}
+	return fmt.Sprintf("  measured at: %s to %s after recording, over %d row(s)%s",
+		shortest.Truncate(time.Second), longest.Truncate(time.Second), known, unknown)
+}
+
+// crosscheckCSVHeader is the column list, named once so that the batch writer and
+// the same-hour appender cannot drift into writing two different tables.
+//
+// THE FOUR NEW COLUMNS ARE APPENDED AT THE END and nothing before them moved, so
+// docs/evidences/layer3-crosscheck-2026-08-26.csv and a file written today are
+// read the same way column by column up to `recording`.
+var crosscheckCSVHeader = []string{
+	"verdict", "pair", "ledger",
+	"recorded_bids", "recorded_asks", "rebuilt_bids", "rebuilt_asks",
+	"levels_match", "prices_match", "amounts_match", "risk_match",
+	"offers_carried", "offers_changed_after_target", "offers_gone_unresolved",
+	"requests", "explanation", "error", "recording",
+	"methodology_version", "recorded_at", "rebuilt_at", "elapsed_seconds",
+}
+
+// csvRecord renders one row in the order of crosscheckCSVHeader.
+//
+// elapsed_seconds is EMPTY, not zero, when the gap is unknown. A spreadsheet that
+// averages this column must skip those rows rather than average a zero into them.
+func (r crosscheckRow) csvRecord() []string {
+	recordedAt, elapsed := "", ""
+	if r.ElapsedKnown {
+		recordedAt = r.RecordedAt.Format(time.RFC3339)
+		elapsed = r.elapsedSeconds().String()
+	}
+	rebuiltAt := ""
+	if !r.RebuiltAt.IsZero() {
+		rebuiltAt = r.RebuiltAt.Format(time.RFC3339)
+	}
+	return []string{
+		r.verdict(), r.Pair, fmt.Sprintf("%d", r.Ledger),
+		fmt.Sprintf("%d", r.RecordedBids), fmt.Sprintf("%d", r.RecordedAsks),
+		fmt.Sprintf("%d", r.RebuiltBids), fmt.Sprintf("%d", r.RebuiltAsks),
+		yn(r.LevelsMatch), yn(r.PricesMatch), yn(r.AmountsMatch), yn(r.RiskMatch),
+		fmt.Sprintf("%d", r.Carried), fmt.Sprintf("%d", r.Changed), fmt.Sprintf("%d", r.Gone),
+		fmt.Sprintf("%d", r.Requests), r.Explanation, r.Err, r.Path,
+		domain.MethodologyVersion, recordedAt, rebuiltAt, elapsed,
+	}
 }
 
 func writeCrosscheckCSV(path string, rows []crosscheckRow) error {
@@ -442,24 +662,11 @@ func writeCrosscheckCSV(path string, rows []crosscheckRow) error {
 	defer func() { _ = f.Close() }()
 
 	w := csv.NewWriter(f)
-	if err := w.Write([]string{
-		"verdict", "pair", "ledger",
-		"recorded_bids", "recorded_asks", "rebuilt_bids", "rebuilt_asks",
-		"levels_match", "prices_match", "amounts_match", "risk_match",
-		"offers_carried", "offers_changed_after_target", "offers_gone_unresolved",
-		"requests", "explanation", "error", "recording",
-	}); err != nil {
+	if err := w.Write(crosscheckCSVHeader); err != nil {
 		return err
 	}
 	for _, r := range rows {
-		if err := w.Write([]string{
-			r.verdict(), r.Pair, fmt.Sprintf("%d", r.Ledger),
-			fmt.Sprintf("%d", r.RecordedBids), fmt.Sprintf("%d", r.RecordedAsks),
-			fmt.Sprintf("%d", r.RebuiltBids), fmt.Sprintf("%d", r.RebuiltAsks),
-			yn(r.LevelsMatch), yn(r.PricesMatch), yn(r.AmountsMatch), yn(r.RiskMatch),
-			fmt.Sprintf("%d", r.Carried), fmt.Sprintf("%d", r.Changed), fmt.Sprintf("%d", r.Gone),
-			fmt.Sprintf("%d", r.Requests), r.Explanation, r.Err, r.Path,
-		}); err != nil {
+		if err := w.Write(r.csvRecord()); err != nil {
 			return err
 		}
 	}

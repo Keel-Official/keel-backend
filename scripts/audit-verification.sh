@@ -1231,6 +1231,49 @@ check P2-20 "a pool-only manipulation cost ladder is stored in types, contract o
 printf "        %sread: %s%s\n" "$dim" "$(pool_only_ladder_targets | tr '\n' ' ')" "$off"
 echo "       the identity that decides whether this is a defect is DEC-006 section 8, handed back to Al in DEC-009 section 9 item 1"
 
+# ---- P2-21: the delay behind the 23 PARTIAL rows is not recorded on any row ----
+#
+# WHAT THIS IS ABOUT. The first Layer 3 run returned 37 MATCH, 0 MISMATCH and 23
+# PARTIAL, and all 23 are attributed to the seven hours between the recording and
+# the rebuild. That attribution is written down as settled in three places:
+# 10-validation.md section 3, docs/evidences/2026-08-26-layer3-crosscheck.md
+# section 4, and the README. It is a HYPOTHESIS. Every row in that run had the same
+# delay, so the run contains no contrast that could test it, and no row recorded
+# what its delay was, so a second run at a different delay could not have been
+# compared against it either.
+#
+# The finding is therefore not "the attribution is wrong". It is that the variable
+# it names was not stored, which is what makes it untestable. This line flips to
+# NOT once a comparison row carries its own elapsed time.
+#
+# IT MATCHES THE COLUMN AND NOT A FILE NAME, so moving the comparison to another
+# file in cmd/keel does not make the finding disappear.
+crosscheck_row_has_no_elapsed(){ ! grep -rq 'elapsed_seconds' cmd/keel; }
+check P2-21 "no Layer 3 comparison row records the gap between the recording and the rebuild, so the cause the 23 PARTIAL rows are attributed to is not stored anywhere in the output" \
+  crosscheck_row_has_no_elapsed
+echo "       what it cannot prove: that the number in that column was measured from the right instant. It proves the column exists"
+
+# ---- P2-22: the delay under test is a magic number ----
+#
+# The same-hour pairing has exactly one independent variable and this is it. A
+# delay written as a literal at the flag site is an experiment whose variable is not
+# named anywhere, which is how a run gets reported without the setting it was run
+# at; the whole defect above is one sentence quoting a rate with no delay beside it.
+#
+# Two constants, because a default alone does not make "the same hour" checkable.
+# maxCrosscheckDelay is what refuses a delay that would put the comparison outside
+# the hour the recording was taken in, and without it the phrase is a promise.
+samehour_delay_unnamed(){
+  ! { grep -rq 'defaultCrosscheckDelay' cmd/keel && grep -rq 'maxCrosscheckDelay' cmd/keel; }
+}
+check P2-22 "the same-hour crosscheck delay is a literal rather than a named default with a ceiling, so the one variable the experiment moves is not named in the code" \
+  samehour_delay_unnamed
+if [ -d cmd/keel ]; then
+  printf "        %s%s%s\n" "$dim" \
+    "$(grep -rhE '^const (default|max)CrosscheckDelay' cmd/keel | tr '\n' ' ' | sed 's/  */ /g')" "$off"
+fi
+echo "       same limitation as P2-13: it proves the constants exist, never that a run used them"
+
 section "Layer 1 hand recomputation, acceptance criterion 4"
 
 # ---- P2-23: Layer 1 has no hand recomputations, and the directory is absent ----
