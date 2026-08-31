@@ -1,6 +1,6 @@
 # DEC-007: Pool presence is reserve-based, and `reachable` stays a plain boolean
 
-- **Status:** Proposed (awaiting Al's confirmation)
+- **Status:** Approved by AL
 - **Date:** 2026-08-28
 - **Kind:** Ratification of existing behaviour, plus one reversal (section 5)
 - **Related:** DEC-003 (contract freeze conditions), DEC-006, R-7 Steps 3 and 4
