@@ -56,6 +56,7 @@ What that means for the commands you can run:
 | `make test` | works, and must be green |
 | `make ci` | works, and must be green |
 | `make arch` | works, enforces purity of `internal/domain` |
+| `make manual-check` | works, and **exits non-zero on purpose**: it counts the Layer 1 hand recomputations under `testdata/manual/`, and 0 of 5 exist. Deliberately not part of `make ci`, because a gate that is permanently red stops being read. The standing record is P2-23 in `scripts/audit-verification.sh`, and CI runs it in its own expected-red job |
 | `make up` | works, starts local Postgres |
 | `make conformance` | **green since 26 August 2026.** Fourteen tests against the golden fixture. The build tag came out the same day, so these also run inside `make test` and CI; this target runs the package alone and verbosely |
 | `make record-once` | works, records one round of live Horizon snapshots and exits |

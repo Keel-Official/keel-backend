@@ -57,6 +57,39 @@ jobs:
 
       - run: go test ./... -race -count=1
 
+  # Layer 1 of the validation protocol, acceptance criterion 4. It asks whether the
+  # five hand recomputations exist under testdata/manual/ and whether each one names
+  # an asset and a ledger sequence. Needs no Go, so it checks out and runs.
+  #
+  # IT IS EXPECTED RED AND IT CARRIES continue-on-error: true. That flag is not a
+  # way to hide a failure. It is here because Layer 1 is a SPECIFICATION WAITING TO
+  # BE MET, exactly as the golden fixture was when the conformance job sat in this
+  # file with the same flag and the same reason. 0 of 5 recomputations exist and the
+  # directory that holds them is red, so nothing on Claude's side of the wall can
+  # turn this green; only Al working the five books by hand can.
+  #
+  # THE LESSON FROM THE JOB THIS COPIES. That conformance job was, in the words of
+  # the comment that replaced it, "a job nobody was expected to read", and it was
+  # only folded into `build` once its removal condition was actually met. So this
+  # one does not stand alone as the record of the absence: P2-23 in
+  # scripts/audit-verification.sh reports it as a standing finding, which is the
+  # place this repository goes to read what is still owed.
+  #
+  # REMOVAL CONDITION, stated so the flag has an end rather than a habit: when the
+  # script exits 0, delete continue-on-error and move this into the `build` job, and
+  # promote `manual-check` into the `ci` target in the Makefile at the same time.
+  # Deleting the flag before then turns main red without a line of code changing,
+  # which drains the meaning out of a CI failure the same way an unpinned linter
+  # does.
+  manual-recomputation:
+    name: layer 1 hand recomputation (expected red until 5 of 5 land)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: five hand recomputations exist, each naming an asset and a ledger
+        run: bash scripts/check-manual-recomputation.sh
+
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest

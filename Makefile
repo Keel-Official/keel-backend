@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay crosscheck divergence
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test manual-check ci api-mocks api-mocks-check record record-once record-holders survey assets scan serve backtest replay crosscheck divergence
 
 # ---------------------------------------------------------------- Local
 
@@ -101,6 +101,29 @@ api-mocks-check:
 		diff -r -x README.md docs/api/mocks "$$tmp" || true; \
 		exit 1; \
 	fi
+
+# manual-check reports how many of the Layer 1 hand recomputations exist under
+# testdata/manual/ and, for each one, whether it names an asset and a ledger
+# sequence. The required count is read out of docs/methodology/10-validation.md
+# section 1, so this target has no number of its own to be edited.
+#
+# IT EXITS NON-ZERO TODAY, and it is meant to: 0 of 5 exist. Acceptance criterion 4
+# is worth 10 of 100 and PRD section 12 lists it among the four that are never
+# cuttable, so the absence gets a command rather than a paragraph.
+#
+# IT IS DELIBERATELY NOT IN `ci` BELOW, and this is a decision with an end
+# condition rather than an exemption. `make ci` is the gate that is expected to be
+# green, and a gate that is permanently red stops being read: that is the lesson
+# this repository already paid for with the conformance job, which sat in CI with
+# continue-on-error for days and was a job nobody was expected to look at. The
+# standing report of this absence is P2-23 in scripts/audit-verification.sh, and CI
+# runs this script in its own job on every push.
+#
+# PROMOTION CONDITION: when this target exits 0, move it into `ci` and delete this
+# paragraph. That is the same shape of instruction the conformance job carried, and
+# it is written here so that the temporary allowance has an owner and an end.
+manual-check:
+	@bash scripts/check-manual-recomputation.sh
 
 ci: vet arch test
 

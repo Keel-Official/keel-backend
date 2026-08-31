@@ -1231,6 +1231,56 @@ check P2-20 "a pool-only manipulation cost ladder is stored in types, contract o
 printf "        %sread: %s%s\n" "$dim" "$(pool_only_ladder_targets | tr '\n' ' ')" "$off"
 echo "       the identity that decides whether this is a defect is DEC-006 section 8, handed back to Al in DEC-009 section 9 item 1"
 
+section "Layer 1 hand recomputation, acceptance criterion 4"
+
+# ---- P2-23: Layer 1 has no hand recomputations, and the directory is absent ----
+#
+# ADDED 31 AUGUST 2026. This is the check C-20 promised and did not deliver: that
+# item added P2-18 for Layer 2, said in its own status line that the
+# testdata/manual/ check was not written, and left it there.
+#
+# WHY IT MATTERS MORE THAN ITS TEN POINTS. Criterion 4 scores 10 of 100 and PRD
+# section 12 lists it among the four that are never cuttable. Layer 1 is the only
+# layer that asks whether the FORMULA is correct; Layers 2 and 3 both ask whether
+# the implementation matches the formula, so if the formula is wrong they agree with
+# each other and are both wrong. 10-validation.md section 5 says this in its own
+# words. With compute.go yellow since 25 August 2026, these five recomputations and
+# the golden fixture are the whole of the independent oracle.
+#
+# THE ID IS P2-23 AND P2-3 IS STILL FREE, deliberately. Other documents cite these
+# ids by number, so a gap that is backfilled makes every earlier citation ambiguous
+# about which check it meant. The numbering appends.
+#
+# WHY THIS DELEGATES INSTEAD OF GREPPING. The count lives in
+# scripts/check-manual-recomputation.sh, which is also what CI runs and what
+# `make manual-check` runs. One fact, one home. A second copy of the matcher here
+# is how P2-18's shape would have drifted from the harness beside it, and this
+# repository has lost to the second-home pattern more often than to any other.
+#
+# NEITHER SIDE CAN BE EDITED TO SATISFY IT. That script reads the required sample
+# size out of the protocol and the actual count off disk, so it holds no expected
+# value that could be lowered. See its header.
+manual_layer1_report=$(bash scripts/check-manual-recomputation.sh 2>&1)
+manual_layer1_rc=$?
+manual_layer1_incomplete(){ [ "$manual_layer1_rc" -ne 0 ]; }
+check P2-23 "Layer 1 of the validation protocol has fewer hand recomputations than it requires, or one of them names no asset and no ledger sequence" \
+  manual_layer1_incomplete
+# Exit 2 means the script could not read its own requirement. That is reported as
+# the finding STANDING rather than as a pass, the same way P2-20 treats an
+# unreadable target: a check that verified nothing must not read as reassurance.
+if [ "$manual_layer1_rc" -eq 2 ]; then
+  printf "        %sthe protocol could not be read, so this line reports the finding standing rather than passing%s\n" "$red" "$off"
+else
+  printf "        %s%s%s\n" "$dim" \
+    "$(printf '%s\n' "$manual_layer1_report" | grep -E '^[0-9]+ of [0-9]+ present' | head -1)" "$off"
+  printf '%s\n' "$manual_layer1_report" | grep -E '^  [a-zA-Z0-9._-]+ +(yes|no)' \
+    | while IFS= read -r row; do printf "      %s%s%s\n" "$dim" "$row" "$off"; done
+fi
+echo "       testdata/manual/ is RED. Al works each recomputation by hand from a raw book, and the"
+echo "       required shape of a file is specified in testdata/manual/README.md"
+echo "       what it cannot prove: that a figure inside one of those files is correct, or that it was"
+echo "       computed independently of compute.go. It proves the evidence exists and says what it is about"
+
 section "Summary"
 printf "  %s%d claims proven%s, %s%d not%s\n" "$green" "$proven" "$off" "$red" "$not" "$off"
 echo "  The full audit: docs/internal/audit-2026-08-20.md"
