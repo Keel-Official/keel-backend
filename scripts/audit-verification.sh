@@ -1143,6 +1143,94 @@ echo "       5.3475699 USDC exchanged for 0.0501003 USTRY at 106.7372828. This i
 echo "       Against roughly 10.97 million dollars borrowed, the ratio is about 1 to 2.05 million."
 echo "       Not 1 to 22 million as DEC-001 states."
 
+section "Manipulation cost stated per venue, DEC-009"
+
+# ---- P2-19: section 1 of the owning file still defines MC over asks alone ----
+#
+# ADDED 31 AUGUST 2026 alongside DEC-009.
+#
+# WHAT THIS CHECKS, AND WHAT IT CANNOT. It cannot verify the rule is correct. Only
+# a human can, and that is the whole reason section 1 of that file is RED. What it
+# reports is whether the rule was generalised AT ALL, because the gap is silent:
+# 05-manipulation-cost.md section 1 defines MC and Reachable over asks, section 3
+# of the same file introduces two venue forms, compute.go implements both, and
+# nothing in the build fails while the definition covers one of them. A gap that
+# fails nothing is the gap this repository keeps rediscovering.
+#
+# This is a TRIPWIRE. It is expected to read PROVEN on the commit that adds it and
+# to flip to NOT once Al has written section 1. Do not reword the section to
+# satisfy it; write the rule.
+#
+# Assertion (a) is deliberately weak. It cannot be strengthened without this
+# script prescribing the wording of a RED section, which is the zone model
+# defeated by a grep.
+mc_section_one(){
+  awk '/^## 1\./{f=1;next} /^## /{f=0} f' docs/methodology/05-manipulation-cost.md
+}
+mc_section_one_asks_only(){
+  [ -f docs/methodology/05-manipulation-cost.md ] || return 0
+  local s; s="$(mc_section_one)"
+  [ -n "$s" ] || return 0            # heading renamed is reported, not passed
+  # (a) no venue other than the order book named, so the combined form has no
+  # written definition. (b) Reachable's active-pool consequence is not stated
+  # here, and it currently lives only in DEC-003 (API contract v1.1) section 4.3,
+  # in compute.go and in a test, none of which is the owning file.
+  ! printf '%s' "$s" | grep -Eqi '(liquidity pool|\bpool\b|\bAMM\b|\bvenue\b)'
+}
+check P2-19 "section 1 of 05-manipulation-cost.md defines manipulation cost over asks alone, while section 3 and compute.go carry two venue forms" \
+  mc_section_one_asks_only
+if [ -f docs/methodology/05-manipulation-cost.md ]; then
+  s1="$(mc_section_one)"
+  printf "        %ssection 1 names a second venue: %s. states Reachable under an active pool: %s%s\n" \
+    "$dim" \
+    "$(printf '%s' "$s1" | grep -Eqi '(liquidity pool|\bpool\b|\bAMM\b|\bvenue\b)' && echo yes || echo no)" \
+    "$(printf '%s' "$s1" | grep -Eqi 'reachable' && printf '%s' "$s1" | grep -Eqi '(liquidity pool|\bpool\b|\bAMM\b)' && echo yes || echo no)" \
+    "$off"
+  echo "       DEC-009 section 2 records the reading Al chose, reading A. The wording of the rule is his"
+fi
+
+# ---- P2-20: a pool-only manipulation ladder has appeared in a stored position ----
+#
+# WHY THIS REPORTS RATHER THAN PROHIBITS. Whether combined minus orderbookOnly IS
+# the pool term by definition is OPEN. DEC-006 section 8 asks it as handoff item 17
+# and DEC-009 section 9 item 1 hands it back to Al explicitly, saying the identity
+# would be definitional under reading A and that this record does not decide it.
+# So this line does not forbid a third ladder. It reports one arriving, because if
+# the identity is definitional then a stored pool-only figure is a third home for a
+# fact already stored twice, and this repository has lost to the second-home
+# pattern more often than to any other. Al reads the line and decides.
+#
+# WHAT IT MATCHES. Field names, column names and schema properties only, in the
+# three places a third ladder would actually have to appear. Prose in docs/ is NOT
+# matched: discussing the identity is the opposite of the thing being watched for,
+# and a check that fired on its own decision record would be silenced within a week
+# and then trusted anyway.
+#
+# WHAT IT CANNOT DO. It cannot see the same quantity arriving under a name nobody
+# thought to grep for. It watches the obvious door, not every door.
+pool_only_ladder_targets(){
+  local f
+  for f in internal/domain/types.go docs/api/keel-openapi.yaml; do
+    [ -f "$f" ] && printf '%s\n' "$f"
+  done
+  [ -d migrations ] && find migrations -name '*.sql' -type f | sort
+}
+pool_only_ladder_stored(){
+  local -a files=()
+  while IFS= read -r f; do [ -n "$f" ] && files+=("$f"); done < <(pool_only_ladder_targets)
+  # No readable target means this line is verifying nothing, which is reported as
+  # the finding standing rather than quietly as a pass.
+  [ "${#files[@]}" -gt 0 ] || return 0
+  grep -REqn \
+    -e 'manipulation[_-]?[Cc]ost[_-]?[Pp]ool[_-]?[Oo]nly' \
+    -e '[Pp]ool[_-]?[Oo]nly[_-]?([Cc]ost|[Ll]adder)' \
+    "${files[@]}"
+}
+check P2-20 "a pool-only manipulation cost ladder is stored in types, contract or migrations, which is a third home for the pool term" \
+  pool_only_ladder_stored
+printf "        %sread: %s%s\n" "$dim" "$(pool_only_ladder_targets | tr '\n' ' ')" "$off"
+echo "       the identity that decides whether this is a defect is DEC-006 section 8, handed back to Al in DEC-009 section 9 item 1"
+
 section "Summary"
 printf "  %s%d claims proven%s, %s%d not%s\n" "$green" "$proven" "$off" "$red" "$not" "$off"
 echo "  The full audit: docs/internal/audit-2026-08-20.md"
