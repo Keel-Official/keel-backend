@@ -1,0 +1,11 @@
+# Provenance for USTRY.GCRYUGD5-USDC.GA5ZSEJY-trades-2026-08-01_2026-09-01.csv
+# Written beside the CSV rather than inside it: csv.DictReader reads a
+# leading '#' line as the header. Compare max_closed_at_utc against
+# window_to_utc to see how far the file actually reaches.
+window_from_utc: 2026-08-01T00:00:00Z
+window_to_utc: 2026-09-01T00:00:00Z
+rows: 56863
+min_closed_at_utc: 2026-08-01T00:02:30Z
+max_closed_at_utc: 2026-08-31T23:49:01Z
+stopped_past_window: true
+truncated: false

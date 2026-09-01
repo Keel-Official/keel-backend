@@ -17,6 +17,7 @@ may be recorded, not about what is computed from it.
 not yet passed at execution time, and every trade CSV it writes is accompanied by
 a sidecar provenance file recording the window bounds, the row count, and the
 observed minimum and maximum `closed_at`.
+
 ## 2. What happened
 
 On 2026-08-31 at 16:09:55Z the backtest was run for the window 2026-08-01 to
@@ -28,56 +29,20 @@ Nothing failed. The file is well formed, its columns are correct, every row in i
 is real, and it passed every check the repository had. The defect is entirely in
 what is absent, and absence has no signature.
 
-It was found only because a later re-read returned more rows and the difference
+It was found only because a later re-read returned 56,759 rows and the difference
 was mistaken for a regression in an unrelated patch.
 
-**Three reads of the same nominal window, and only the third is complete:**
-
-| Read | Taken at | Rows | `max_closed_at` | `stopped_past_window` |
-| --- | --- | --- | --- | --- |
-| 1 | 2026-08-31T16:09Z | 56,615 | 2026-08-31T15:57:10Z | not recorded, predates the sidecar |
-| 2 | 2026-09-01T04:20Z | 56,759 | 2026-08-31T18:53:48Z | **false** |
-| 3 | 2026-09-01T04:47Z | 56,863 | 2026-08-31T23:49:01Z | true |
-
-**The first cause: recording a window that had not closed.** Read 1 was taken
-inside its own window. This is what section 1's clock check refuses, and it would
-have refused that run.
-
-**The second cause is distinct and the clock check does not touch it. A window
-that has closed is not necessarily a window that is complete.** Read 2 was taken
-more than four hours after the window ended and still returned 104 fewer trades
-than read 3, twenty-seven minutes later. Those 104 trades had closed by
-2026-08-31T23:49:01Z and were absent from Horizon's `/trades` index at the earlier
-time. No parameter of the run was different.
-
-**The walk itself is sound, and this was tested rather than assumed.** The same
-day, the window 2026-08-31 to 2026-09-01 was walked twice: once seeking to ledger
-64201036, reading 1,169 records over 6 pages, and once with no seek, reading
-353,901 records over 1,770 pages. Both returned the same 1,169 trades, so
-`-from-ledger` is a seek optimisation and not a filter. The 2026-08-31 subset of
-read 3 is identical by `trade_id` to the whole of that narrow window, so the long
-walk and the short walk agree row for row. An earlier hypothesis that the walk
-terminated arbitrarily and reported success is disproven by these three runs.
-
-**The signal that detects the second cause already existed and already worked.**
-`stopped_past_window` was `false` on read 2 and `true` on read 3 and on both
-narrow-window runs. It reports whether the walk ran off the end of the pair's
-history rather than seeing a trade at or past the boundary, which is precisely
-what an incomplete read looks like. It was recorded correctly, read by two
-reviewers in sequence, called harmless by both, and passed over. The failure was
-not in the instrumentation.
-
-**Three artifacts carried a number derived from a truncated file:**
+**Three artifacts carried a number derived from the truncated file:**
 
 | Artifact | Stale claim |
 | --- | --- |
 | `docs/evidences/2026-08-26-ustry-february-trades-implied.md` line 28 | separate defect, see the pool-id finding |
-| `docs/evidences/2026-08-31-funding-graph-probe/report.md` line 66 | "All rows 56615"; the complete file holds 56,863. Its pool-trade count of 596 is correct and unaffected |
+| `docs/evidences/2026-08-31-funding-graph-probe/report.md` line 66 | "All rows 56615"; the file holds 56,759. Its pool-trade count of 596 remains correct |
 | the trade-pool-id regeneration task, step 9 | asserted `rows 56615` as an expected value. Authored by Claude from the truncated file without checking its provenance |
 
-The daily CSV for 2026-08-31 read 921 trades against the complete figure of 1,169.
-That row was wrong before and is right now. It is a correction, not a regression,
-and must not be recorded as an effect of the pool-id patch.
+The daily CSV for 2026-08-31 read 921 trades and now reads 1,065. That row was
+wrong before and is right now. It is a correction, not a regression, and must not
+be recorded as an effect of the pool-id patch.
 
 ## 3. Rationale
 

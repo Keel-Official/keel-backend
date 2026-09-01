@@ -1324,6 +1324,78 @@ echo "       required shape of a file is specified in testdata/manual/README.md"
 echo "       what it cannot prove: that a figure inside one of those files is correct, or that it was"
 echo "       computed independently of compute.go. It proves the evidence exists and says what it is about"
 
+# ---- P2-24: a committed trades CSV carries no proof that its window was whole ----
+#
+# ADDED 1 SEPTEMBER 2026, and it is the third mechanism aimed at one defect class
+# because the first two both act at a moment that leaves no trace in the
+# repository. DEC-010 section 1 refuses a window that has not closed, which
+# catches the read taken at 2026-08-31T16:09Z. cmd/keel/backtest.go warns on
+# stderr when the walk never saw past the window end, which is the read taken at
+# 2026-09-01T04:20Z: closed for four hours, 104 trades short, because Horizon's
+# index had not caught up. Neither one asks the question this check asks, which is
+# whether the file that ENDED UP IN GIT is the complete one.
+#
+# THE CASE IT EXISTS FOR IS stopped_past_window FALSE ON A CLOSED WINDOW. That is
+# the hardest shape to dismiss a file over, because every other property of it is
+# right: the window is legitimate, the rows are real, the columns are correct, the
+# clock check passes. What is wrong is only what is absent, and absence has no
+# signature. The field reported it correctly on 2026-09-01 and two reviewers in
+# sequence called it harmless.
+#
+# WHY THE AUDIT AND NOT A THIRD WARNING. The two existing mechanisms fire once,
+# into a terminal, at the moment of the run. This repository's record of that
+# mechanism is one dismissal per reader. The audit is read against the repository
+# as it stands, at any later time, by anyone, and a file cannot scroll off the top
+# of it. It also covers files that PREDATE both mechanisms, which is the whole of
+# docs/evidences/ today and is exactly where the incomplete August read is.
+#
+# IT ASKS git ls-files AND NOT THE FILESYSTEM. A sidecar that is on disk and not
+# in the repository proves nothing to a clone, and a clone is what a reader of the
+# paid deliverable has. Same reasoning as P2-9, and the opposite failure: there it
+# cost the check a directory, here it would credit a file with provenance nobody
+# else can see.
+evidence_report=""
+evidence_unproven=0
+evidence_unproven_count=0
+evidence_csv_count=0
+while IFS= read -r evidence_csv; do
+  [ -n "$evidence_csv" ] || continue
+  evidence_csv_count=$((evidence_csv_count + 1))
+  evidence_meta="${evidence_csv%.csv}.meta.txt"
+  if ! git ls-files --error-unmatch "$evidence_meta" >/dev/null 2>&1; then
+    evidence_verdict="NO SIDECAR in the repository, so the file makes no coverage claim at all"
+    evidence_unproven=1; evidence_unproven_count=$((evidence_unproven_count + 1))
+  elif grep -q '^stopped_past_window: true$' "$evidence_meta"; then
+    evidence_verdict="stopped_past_window: true, the walk saw past the window end"
+  else
+    evidence_verdict="stopped_past_window is NOT true, so this row count is a floor and not a total"
+    evidence_unproven=1; evidence_unproven_count=$((evidence_unproven_count + 1))
+  fi
+  evidence_report="${evidence_report}  $(basename "$evidence_csv")
+    ${evidence_verdict}
+"
+done < <(git ls-files 'docs/evidences/*-trades-*.csv')
+evidence_window_unproven() { [ "$evidence_unproven" -eq 1 ]; }
+check P2-24 "a trades CSV in the repository carries no sidecar, or one that does not prove the walk reached its window end, so a file named for a whole window may hold part of one" \
+  evidence_window_unproven
+# Zero matches is reported rather than passed. A check that examined nothing must
+# not read as reassurance, the same way P2-23 treats an unreadable protocol.
+if [ "$evidence_csv_count" -eq 0 ]; then
+  printf "        %sno trades CSV is tracked under docs/evidences, so this line examined nothing%s\n" "$red" "$off"
+else
+  printf "        %s%d tracked trades CSV, %d without proof of a whole window%s\n" "$dim" \
+    "$evidence_csv_count" "$evidence_unproven_count" "$off"
+  printf '%s' "$evidence_report" | while IFS= read -r evidence_row; do
+    printf "      %s%s%s\n" "$dim" "$evidence_row" "$off"
+  done
+fi
+echo "       the sidecar is written by cmd/keel/backtest.go beside every CSV it produces, and every field"
+echo "       in it is derived from the records rather than the clock, so a re-read of a closed window"
+echo "       produces identical bytes. See DEC-010 section 5"
+echo "       what it cannot prove: that a CSV whose sidecar says true is the file that sidecar describes."
+echo "       Nothing binds the two beyond a shared basename, and a hand-edited recording is out of scope"
+echo "       here rather than covered. scripts/s3-archive/verify-manifest.sh is the check that binds bytes"
+
 section "Summary"
 printf "  %s%d claims proven%s, %s%d not%s\n" "$green" "$proven" "$off" "$red" "$not" "$off"
 echo "  The full audit: docs/internal/audit-2026-08-20.md"
