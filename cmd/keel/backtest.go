@@ -43,6 +43,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -61,6 +62,11 @@ const dayLayout = "2006-01-02"
 // file has. It is a variable so a test can pin it: a check that refuses a future
 // window is untestable against the real clock, because the fixture would expire.
 var backtestNow = func() time.Time { return time.Now().UTC() }
+
+// backtestStderr is where the coverage warning goes. It is a variable for the
+// same reason backtestNow is: a warning that is only ever written to the real
+// os.Stderr cannot be asserted on.
+var backtestStderr io.Writer = os.Stderr
 
 // errWindowNotClosed refuses a window whose end instant has not yet passed.
 var errWindowNotClosed = errors.New("window has not closed yet")
@@ -173,7 +179,7 @@ because liquidity added the next day would make a carried bound false.
 
 	for _, p := range pairs {
 		if err := backtestPair(ctx, client, p, window{from: from, to: to, mark: mark},
-			uint32(*fromLedger), *out, os.Stdout); err != nil {
+			uint32(*fromLedger), *out, os.Stdout, backtestStderr); err != nil {
 			return fmt.Errorf("backtest %s: %w", p, err)
 		}
 	}
@@ -191,7 +197,7 @@ func (w window) contains(t time.Time) bool {
 }
 
 func backtestPair(ctx context.Context, c *horizon.Client, p horizon.Pair, w window,
-	fromLedger uint32, outDir string, log *os.File) error {
+	fromLedger uint32, outDir string, log, warn io.Writer) error {
 
 	// The walk stops on ledger_close_time, which is the only clock this endpoint
 	// has. It does NOT stop on a cursor computed from w.to, because converting a
@@ -223,6 +229,20 @@ func backtestPair(ctx context.Context, c *horizon.Client, p horizon.Pair, w wind
 	}
 	if reading.Truncated {
 		fmt.Fprintf(log, "  WARNING: the walk hit its page cap. This file is INCOMPLETE\n")
+	}
+	if !reading.Stopped {
+		// THIS IS A WARNING AND MUST NOT BECOME AN ERROR. A pair whose trading
+		// genuinely ended before the window trips this on every run, forever: no
+		// later read can produce a trade at or after the window end when none
+		// will ever exist. Promoting it to a non-zero exit would make dead pairs
+		// unrecordable, which is a worse failure than the one it prevents.
+		//
+		// It goes to STDERR rather than to the per-pair report above, because
+		// that report is routinely piped and read on its own, and this has to
+		// survive being separated from it. It was a sidecar field before, read
+		// correctly by two people and dismissed by both; what was missing was
+		// prominence, not information.
+		warnWindowEndUnproven(warn, p, w, maxClosedAt(inWindow))
 	}
 	if len(inWindow) > 0 && fromLedger > 0 {
 		// The one failure this command cannot detect from its own output is a
@@ -423,6 +443,39 @@ func writeTradesCSV(path string, trades []domain.Trade) error {
 	return w.Error()
 }
 
+// warnWindowEndUnproven reports that the walk never saw past the window end.
+//
+// WHAT IT IS ACTUALLY CLAIMING. The walk ends either because it saw a trade at
+// or after the window end, or because it ran out of records. Only the first
+// proves Horizon's index had reached the end of the window. The second is
+// consistent with a pair that stopped trading AND with an index that is simply
+// behind, and the walk cannot tell those apart from the inside.
+//
+// The wording is deliberately flat. An earlier form of this fact was read by
+// two people who called it harmless, so nothing here offers the reader a way to
+// agree with themselves and move on: it states what is not proven, states that
+// the row count is a floor rather than a total, and ends on the one action that
+// settles it.
+func warnWindowEndUnproven(warn io.Writer, p horizon.Pair, w window, maxClosed time.Time) {
+	fmt.Fprintf(warn, "WARNING: the window end is UNPROVEN for %s\n", p)
+	fmt.Fprintf(warn, "  window ends at:   %s\n", w.to.UTC().Format(time.RFC3339))
+	if maxClosed.IsZero() {
+		fmt.Fprintf(warn, "  last trade seen:  none, the walk found no trade inside this window\n")
+		fmt.Fprintf(warn, "  gap:              the whole window\n")
+	} else {
+		fmt.Fprintf(warn, "  last trade seen:  %s\n", maxClosed.UTC().Format(time.RFC3339))
+		fmt.Fprintf(warn, "  gap:              %s of the window has no trade in this file\n",
+			w.to.Sub(maxClosed).Round(time.Second))
+	}
+	fmt.Fprintf(warn, "  The walk reached the end of Horizon's records without seeing a trade at or\n")
+	fmt.Fprintf(warn, "  after the window end, so nothing here shows the index had caught up. Trades\n")
+	fmt.Fprintf(warn, "  that had already closed inside this window can still be missing from it. The\n")
+	fmt.Fprintf(warn, "  row count is a floor, not a total, and every number derived from it inherits\n")
+	fmt.Fprintf(warn, "  that.\n")
+	fmt.Fprintf(warn, "  NEXT: re-run this exact window later and compare the row count. If it grew,\n")
+	fmt.Fprintf(warn, "  this file was incomplete and whatever was computed from it must be redone.\n")
+}
+
 // maxClosedAt is the latest ledger close time in a set of trades, or the zero
 // time when the set is empty. Trades arrive ascending, but this does not assume
 // it: the cost of a scan is nothing and an assumption here would be silent.
@@ -617,7 +670,7 @@ func optional(d *decimal.Decimal) string {
 // crossed, relative to a date the caller named. It prints it twice, once per kind
 // of bound, because the two answer different questions and on this data they give
 // different dates.
-func summarise(log *os.File, rows []dailyRow, p domain.Params, w window) {
+func summarise(log io.Writer, rows []dailyRow, p domain.Params, w window) {
 	rs := rungs(p)
 	fiveKey := rungKey(rs, "0.05")
 	critKey := p.ManipulationCriticalDelta.String()

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -200,5 +201,117 @@ func TestTradesMetaIsReproducible(t *testing.T) {
 	}
 	if !strings.Contains(first, "max_closed_at_utc:") {
 		t.Errorf("sidecar does not record max_closed_at_utc:\n%s", first)
+	}
+}
+
+// tradeRec is one /trades record for the pair the test pairs file names. The
+// issuers must match, or the adapter refuses the record as inverted before any
+// of this file's assertions get a chance to run.
+func tradeRec(token, closedAt string) string {
+	return fmt.Sprintf(`{
+	  "paging_token": %q,
+	  "ledger_close_time": %q,
+	  "trade_type": "orderbook",
+	  "base_account": "GBASE", "base_offer_id": "1",
+	  "base_amount": "1.0000000",
+	  "base_asset_type": "credit_alphanum12", "base_asset_code": "USTRY",
+	  "base_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+	  "counter_account": "GCOUNTER", "counter_offer_id": "2",
+	  "counter_amount": "1.0700000",
+	  "counter_asset_type": "credit_alphanum4", "counter_asset_code": "USDC",
+	  "counter_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+	  "price": {"n": "107", "d": "100"}
+	}`, token, closedAt)
+}
+
+// pageOf serves one page with no next link. The walk ends on it either way: on
+// an empty page because that is the end of the collection, and on a full one
+// because there is no link to follow.
+func pageOf(records ...string) string {
+	return `{"_embedded":{"records":[` + strings.Join(records, ",") + `]}}`
+}
+
+// runWithWalk runs a backtest against a fake serving one fixed page, and
+// returns whatever went to stderr.
+func runWithWalk(t *testing.T, page string) (string, error) {
+	t.Helper()
+	pinNow(t, "2026-09-01T14:22:31Z")
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(page))
+	}))
+	t.Cleanup(srv.Close)
+
+	var stderr strings.Builder
+	prev := backtestStderr
+	backtestStderr = &stderr
+	t.Cleanup(func() { backtestStderr = prev })
+
+	dir := t.TempDir()
+	err := runBacktest([]string{
+		"-pairs", writePairsFile(t, dir),
+		"-from", "2026-08-01", "-to", "2026-09-01",
+		"-out", dir, "-horizon", srv.URL,
+	})
+	return stderr.String(), err
+}
+
+// TestWarnsWhenTheWindowEndIsUnproven is the whole task. The walk ends because
+// it ran out of records rather than because it saw past the window end, which
+// is the shape that returned 56,759 rows at 04:20Z and 56,863 at 04:47Z.
+func TestWarnsWhenTheWindowEndIsUnproven(t *testing.T) {
+	stderr, err := runWithWalk(t, pageOf(
+		tradeRec("273765875486744579-1", "2026-08-01T00:02:30Z"),
+		tradeRec("275800000000000000-0", "2026-08-31T18:53:48Z"),
+	))
+	// A warning is not a failure. A pair that genuinely stopped trading trips
+	// this forever, so a non-zero exit here would make dead pairs unrecordable.
+	if err != nil {
+		t.Fatalf("the warning must not fail the run: %v", err)
+	}
+	if stderr == "" {
+		t.Fatal("no warning was written to stderr")
+	}
+	for _, want := range []string{
+		"USTRY",                // the pair
+		"2026-09-01T00:00:00Z", // the window end instant
+		"2026-08-31T18:53:48Z", // the observed max closed_at
+		"5h6m12s",              // the gap between them
+		"NEXT:",                // what the operator does next
+	} {
+		if !strings.Contains(stderr, want) {
+			t.Errorf("warning does not name %q:\n%s", want, stderr)
+		}
+	}
+}
+
+// TestNoWarningWhenTheWalkSawPastTheWindow is the other half. Without it the
+// check passes trivially by warning on every run.
+func TestNoWarningWhenTheWalkSawPastTheWindow(t *testing.T) {
+	stderr, err := runWithWalk(t, pageOf(
+		tradeRec("273765875486744579-1", "2026-08-01T00:02:30Z"),
+		// At the window end, so StopAfter fires and the walk is Stopped. This
+		// trade is excluded from the file; it exists to prove coverage.
+		tradeRec("275900000000000000-0", "2026-09-01T00:00:00Z"),
+	))
+	if err != nil {
+		t.Fatalf("backtest: %v", err)
+	}
+	if stderr != "" {
+		t.Errorf("warned about a window the walk demonstrably covered:\n%s", stderr)
+	}
+}
+
+// TestTheWarningGoesToStderrAndNotStdout pins the routing. The per-pair report
+// on stdout is routinely piped and read alone, and the warning has to survive
+// being separated from it.
+func TestTheWarningGoesToStderrAndNotStdout(t *testing.T) {
+	stderr, err := runWithWalk(t, pageOf(tradeRec("273765875486744579-1", "2026-08-01T00:02:30Z")))
+	if err != nil {
+		t.Fatalf("backtest: %v", err)
+	}
+	if !strings.Contains(stderr, "UNPROVEN") {
+		t.Fatalf("the warning did not reach the stderr writer:\n%s", stderr)
 	}
 }
