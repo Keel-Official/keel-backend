@@ -57,6 +57,44 @@ import (
 
 const dayLayout = "2006-01-02"
 
+// backtestNow is the clock the window check reads, and the only wall clock this
+// file has. It is a variable so a test can pin it: a check that refuses a future
+// window is untestable against the real clock, because the fixture would expire.
+var backtestNow = func() time.Time { return time.Now().UTC() }
+
+// errWindowNotClosed refuses a window whose end instant has not yet passed.
+var errWindowNotClosed = errors.New("window has not closed yet")
+
+// checkWindowClosed refuses a window that is still open on the right.
+//
+// A WINDOW MUST BE CLOSED BEFORE IT IS READ, and this is a hard error rather
+// than a warning because the failure it prevents is silent. /trades keeps
+// returning new records until the window's end instant has passed, so a run
+// started inside the window writes a file that looks complete, carries no mark
+// saying otherwise, and disagrees with the same command run an hour later. A
+// warning would be printed once into a terminal and lost; the file would
+// survive and be cited. There is deliberately no override, because every
+// override of this check produces exactly the file it exists to prevent.
+//
+// The comparison is against the END INSTANT and not the end day. -to is
+// exclusive, so -to=2026-09-01 covers up to 2026-08-31T23:59:59Z and becomes
+// readable the moment 2026-09-01T00:00:00Z passes.
+func checkWindowClosed(to, now time.Time) error {
+	if !to.After(now) {
+		return nil
+	}
+	// The latest end instant that would be accepted is the most recent midnight
+	// that has already passed, which is today's date in UTC.
+	latest := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	return fmt.Errorf("%w: -to %s ends at %s, which is still in the future at %s. "+
+		"Reading it now would write a partial window that looks complete. The latest -to that would be accepted is %s",
+		errWindowNotClosed,
+		to.Format(dayLayout),
+		to.Format(time.RFC3339),
+		now.Format(time.RFC3339),
+		latest.Format(dayLayout))
+}
+
 func runBacktest(args []string) error {
 	fs := flag.NewFlagSet("backtest", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
@@ -106,6 +144,12 @@ because liquidity added the next day would make a carried bound false.
 	}
 	if !to.After(from) {
 		return fmt.Errorf("backtest: -to %s is not after -from %s", *toDay, *fromDay)
+	}
+	// BEFORE ANY NETWORK CALL. Refusing here rather than after the walk means a
+	// rejected run costs nothing and, more to the point, cannot leave a partial
+	// file behind on the way out.
+	if err := checkWindowClosed(to, backtestNow()); err != nil {
+		return fmt.Errorf("backtest: %w", err)
 	}
 	var mark time.Time
 	if *markDay != "" {
@@ -197,6 +241,12 @@ func backtestPair(ctx context.Context, c *horizon.Client, p horizon.Pair, w wind
 		return err
 	}
 	fmt.Fprintf(log, "  wrote %s\n", tradesPath)
+
+	metaPath := filepath.Join(outDir, slug+"-trades-"+stamp+".meta.txt")
+	if err := writeTradesMeta(metaPath, w, inWindow, reading); err != nil {
+		return err
+	}
+	fmt.Fprintf(log, "  wrote %s (max closed_at %s)\n", metaPath, formatClosedAt(maxClosedAt(inWindow)))
 
 	bounds := domain.TradeImpliedDepthBounds(inWindow)
 	params := domain.DefaultParams()
@@ -371,6 +421,85 @@ func writeTradesCSV(path string, trades []domain.Trade) error {
 	}
 	w.Flush()
 	return w.Error()
+}
+
+// maxClosedAt is the latest ledger close time in a set of trades, or the zero
+// time when the set is empty. Trades arrive ascending, but this does not assume
+// it: the cost of a scan is nothing and an assumption here would be silent.
+func maxClosedAt(trades []domain.Trade) time.Time {
+	var max time.Time
+	for _, t := range trades {
+		if t.ClosedAt.After(max) {
+			max = t.ClosedAt
+		}
+	}
+	return max
+}
+
+// formatClosedAt renders a close time, or "none" for the zero time. An empty
+// window has no maximum and must not be reported as year 1.
+func formatClosedAt(t time.Time) string {
+	if t.IsZero() {
+		return "none"
+	}
+	return t.UTC().Format(time.RFC3339)
+}
+
+// writeTradesMeta writes the sidecar that says how far the CSV beside it
+// actually reaches.
+//
+// IT IS A SIDECAR AND NOT A COMMENT LINE IN THE CSV, because the one consumer
+// of these files, scripts/funding-graph-probe.sh, reads them with Python's
+// csv.DictReader, which has no notion of a comment. A leading '#' line is taken
+// as the header row, and every subsequent lookup raises KeyError. Adding
+// provenance inside the file would therefore have broken the reader that exists
+// in order to record provenance.
+//
+// EVERY FIELD IS DERIVED FROM THE DATA AND NONE FROM THE WALL CLOCK. A closed
+// window re-read tomorrow produces a byte-identical sidecar, so a diff against
+// it means the underlying records changed, which is the only thing worth being
+// told. A generated_at stamp would have made every re-read differ and the
+// signal would be gone.
+//
+// stopped_past_window is the field that matters most, and it is here because
+// max_closed_at cannot answer the question on its own. The walk excludes the
+// trade that tripped its stop, so its last record is always the last in-window
+// one and a walk-wide maximum would be a second copy of the same number. True
+// means the walk did see a trade at or after the window's end and therefore
+// covers the whole of it. False means it ran off the end of the pair's history
+// instead, so the last day may be partial even though the window has closed.
+func writeTradesMeta(path string, w window, trades []domain.Trade, reading horizon.TradeReading) error {
+	var b []byte
+	add := func(format string, args ...any) {
+		b = append(b, fmt.Sprintf(format, args...)...)
+	}
+
+	add("# Provenance for %s\n", filepath.Base(path[:len(path)-len(".meta.txt")]+".csv"))
+	add("# Written beside the CSV rather than inside it: csv.DictReader reads a\n")
+	add("# leading '#' line as the header. Compare max_closed_at_utc against\n")
+	add("# window_to_utc to see how far the file actually reaches.\n")
+	add("window_from_utc: %s\n", w.from.UTC().Format(time.RFC3339))
+	add("window_to_utc: %s\n", w.to.UTC().Format(time.RFC3339))
+	add("rows: %d\n", len(trades))
+	add("min_closed_at_utc: %s\n", formatClosedAt(minClosedAt(trades)))
+	add("max_closed_at_utc: %s\n", formatClosedAt(maxClosedAt(trades)))
+	add("stopped_past_window: %t\n", reading.Stopped)
+	add("truncated: %t\n", reading.Truncated)
+
+	return os.WriteFile(path, b, 0o644)
+}
+
+// minClosedAt is the earliest close time in a set of trades, or the zero time
+// when the set is empty. It is here so the sidecar can state both ends of what
+// the file covers rather than only the far one.
+func minClosedAt(trades []domain.Trade) time.Time {
+	var min time.Time
+	for _, t := range trades {
+		if min.IsZero() || t.ClosedAt.Before(min) {
+			min = t.ClosedAt
+		}
+	}
+	return min
 }
 
 func writeDailyCSV(path string, rows []dailyRow, p domain.Params) error {
