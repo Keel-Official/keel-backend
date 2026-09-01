@@ -1,0 +1,51 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=yUSDC\u0026asset_issuer=GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=yUSDC\u0026asset_issuer=GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF\u0026cursor=yUSDC_GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF_credit_alphanum12\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=yUSDC\u0026asset_issuer=GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF\u0026cursor=yUSDC_GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF_credit_alphanum12\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ultracapital.xyz/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum12",
+        "asset_code": "yUSDC",
+        "asset_issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF",
+        "paging_token": "yUSDC_GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF_credit_alphanum12",
+        "contract_id": "CDOFW7HNKLUZRLFZST4EW7V3AV4JI5IHMT6BPXXSY2IEFZ4NE5TWU2P4",
+        "num_claimable_balances": 35,
+        "num_liquidity_pools": 475,
+        "num_contracts": 28,
+        "accounts": {
+          "authorized": 34866,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "205.6685651",
+        "liquidity_pools_amount": "85011.8757545",
+        "contracts_amount": "495051.8735982",
+        "balances": {
+          "authorized": "2734176.7711637",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

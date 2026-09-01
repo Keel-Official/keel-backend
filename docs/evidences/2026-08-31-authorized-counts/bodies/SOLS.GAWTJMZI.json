@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=SOLS\u0026asset_issuer=GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=SOLS\u0026asset_issuer=GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED\u0026cursor=SOLS_GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=SOLS\u0026asset_issuer=GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED\u0026cursor=SOLS_GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://solsbank.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "SOLS",
+        "asset_issuer": "GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED",
+        "paging_token": "SOLS_GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED_credit_alphanum4",
+        "num_claimable_balances": 609,
+        "num_liquidity_pools": 56,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 5367,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "7669897.9837311",
+        "liquidity_pools_amount": "1678252252.5905092",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "6385956038.3995541",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

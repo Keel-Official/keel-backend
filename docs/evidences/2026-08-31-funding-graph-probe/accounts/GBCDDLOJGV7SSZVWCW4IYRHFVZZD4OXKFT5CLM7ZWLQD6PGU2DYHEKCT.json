@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBCDDLOJGV7SSZVWCW4IYRHFVZZD4OXKFT5CLM7ZWLQD6PGU2DYHEKCT/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBCDDLOJGV7SSZVWCW4IYRHFVZZD4OXKFT5CLM7ZWLQD6PGU2DYHEKCT/operations?cursor=248698586627649537\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBCDDLOJGV7SSZVWCW4IYRHFVZZD4OXKFT5CLM7ZWLQD6PGU2DYHEKCT/operations?cursor=248698586627649537\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248698586627649537"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/78ce4bc8e6843e4a941a9ae9d35946982cfb3cd89c5d715b44b1fc1a81b5ba59"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248698586627649537/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248698586627649537"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248698586627649537"
+          }
+        },
+        "id": "248698586627649537",
+        "paging_token": "248698586627649537",
+        "transaction_successful": true,
+        "source_account": "GBCDDLOJGV7SSZVWCW4IYRHFVZZD4OXKFT5CLM7ZWLQD6PGU2DYHEKCT",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:50:36Z",
+        "transaction_hash": "78ce4bc8e6843e4a941a9ae9d35946982cfb3cd89c5d715b44b1fc1a81b5ba59",
+        "asset_type": "native",
+        "from": "GBCDDLOJGV7SSZVWCW4IYRHFVZZD4OXKFT5CLM7ZWLQD6PGU2DYHEKCT",
+        "to": "GBCDDLOJGV7SSZVWCW4IYRHFVZZD4OXKFT5CLM7ZWLQD6PGU2DYHEKCT",
+        "amount": "0.0500158",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "AFR",
+            "asset_issuer": "GBX6YI45VU7WNAAKA3RBFDR3I3UKNFHTJPQ5F6KOOKSGYIAM4TRQN54W"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "AHNL",
+            "asset_issuer": "GCJFH6HI5UPQVTUUOAS7JPOEPCQZCNGM63GWMBL6ULGUL4XUXRIXXIEQ"
+          }
+        ],
+        "source_amount": "0.0500000",
+        "destination_min": "0.0500000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

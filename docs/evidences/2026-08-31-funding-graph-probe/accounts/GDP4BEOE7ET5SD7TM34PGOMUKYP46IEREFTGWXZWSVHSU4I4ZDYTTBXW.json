@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDP4BEOE7ET5SD7TM34PGOMUKYP46IEREFTGWXZWSVHSU4I4ZDYTTBXW/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDP4BEOE7ET5SD7TM34PGOMUKYP46IEREFTGWXZWSVHSU4I4ZDYTTBXW/operations?cursor=248695674638725121\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDP4BEOE7ET5SD7TM34PGOMUKYP46IEREFTGWXZWSVHSU4I4ZDYTTBXW/operations?cursor=248695674638725121\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695674638725121"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c707c3fbbfa675a3de1d6f84bb9eedfcaa0ec82507c72bdb2da7264cb755f414"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695674638725121/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695674638725121"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695674638725121"
+          }
+        },
+        "id": "248695674638725121",
+        "paging_token": "248695674638725121",
+        "transaction_successful": true,
+        "source_account": "GDP4BEOE7ET5SD7TM34PGOMUKYP46IEREFTGWXZWSVHSU4I4ZDYTTBXW",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-08T05:45:17Z",
+        "transaction_hash": "c707c3fbbfa675a3de1d6f84bb9eedfcaa0ec82507c72bdb2da7264cb755f414",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "from": "GDP4BEOE7ET5SD7TM34PGOMUKYP46IEREFTGWXZWSVHSU4I4ZDYTTBXW",
+        "to": "GDP4BEOE7ET5SD7TM34PGOMUKYP46IEREFTGWXZWSVHSU4I4ZDYTTBXW",
+        "amount": "108.9184384",
+        "path": [
+          {
+            "asset_type": "native"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XTAR",
+            "asset_issuer": "GAORYJ3KBDGIM7FFSKVUJHJ5NEFWIRDIAGGBJBJS7TY6ECZS53257IG4"
+          }
+        ],
+        "source_amount": "108.4415296",
+        "source_max": "108.9176443",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "AQUA",
+        "source_asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDB3RGT23S4CZLOWXDG63WLVW3MQJJ2ADPC2JPWW46EZDNKNU3XVBARS/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDB3RGT23S4CZLOWXDG63WLVW3MQJJ2ADPC2JPWW46EZDNKNU3XVBARS/operations?cursor=262633951615606785\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDB3RGT23S4CZLOWXDG63WLVW3MQJJ2ADPC2JPWW46EZDNKNU3XVBARS/operations?cursor=262633951615606785\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/262633951615606785"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/64bd6d293c8a90ab6fcbbb0ccb39559a655ddef697fe8695e77542f26288d3d9"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/262633951615606785/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=262633951615606785"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=262633951615606785"
+          }
+        },
+        "id": "262633951615606785",
+        "paging_token": "262633951615606785",
+        "transaction_successful": true,
+        "source_account": "GAG2KBHTPWUFOFS6PEHGZDZSGIQ5KAE4LNEGMUCTBKGZMHAJ5EXJBARS",
+        "type": "create_account",
+        "type_i": 0,
+        "created_at": "2026-02-09T03:34:57Z",
+        "transaction_hash": "64bd6d293c8a90ab6fcbbb0ccb39559a655ddef697fe8695e77542f26288d3d9",
+        "starting_balance": "150.0000000",
+        "funder": "GAG2KBHTPWUFOFS6PEHGZDZSGIQ5KAE4LNEGMUCTBKGZMHAJ5EXJBARS",
+        "account": "GDB3RGT23S4CZLOWXDG63WLVW3MQJJ2ADPC2JPWW46EZDNKNU3XVBARS"
+      }
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDQY3T2ZJXVGV23R32AIHKPC2RLMMYSEK3EGRZ4MA2CYEGXHE63BLEND/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDQY3T2ZJXVGV23R32AIHKPC2RLMMYSEK3EGRZ4MA2CYEGXHE63BLEND/operations?cursor=248696778446315521\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDQY3T2ZJXVGV23R32AIHKPC2RLMMYSEK3EGRZ4MA2CYEGXHE63BLEND/operations?cursor=248696778446315521\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696778446315521"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/5ff4d5ca6c69a9f1ee882637c529f14dc88018c76b40a49ab15cb073f5746846"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696778446315521/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696778446315521"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696778446315521"
+          }
+        },
+        "id": "248696778446315521",
+        "paging_token": "248696778446315521",
+        "transaction_successful": true,
+        "source_account": "GDQY3T2ZJXVGV23R32AIHKPC2RLMMYSEK3EGRZ4MA2CYEGXHE63BLEND",
+        "type": "invoke_host_function",
+        "type_i": 24,
+        "created_at": "2025-07-08T06:09:53Z",
+        "transaction_hash": "5ff4d5ca6c69a9f1ee882637c529f14dc88018c76b40a49ab15cb073f5746846",
+        "function": "HostFunctionTypeHostFunctionTypeInvokeContract",
+        "parameters": [
+          {
+            "value": "AAAAEgAAAAGEJEJDQtEzsZ94ZLqOfWIlLH468xubivw/09TDpXow4w==",
+            "type": "Address"
+          },
+          {
+            "value": "AAAADwAAAAtuZXdfYXVjdGlvbgA=",
+            "type": "Sym"
+          },
+          {
+            "value": "AAAAAwAAAAI=",
+            "type": "U32"
+          },
+          {
+            "value": "AAAAEgAAAAEhCPZWDdSDZU8ORn2pnTQ6ak3qD9ICiQ1eQi7a70qibQ==",
+            "type": "Address"
+          },
+          {
+            "value": "AAAAEAAAAAEAAAABAAAAEgAAAAElsq/TXlQzGkiQw2MZ957bGPB4nkf8OHs7MO8uaaVNGg==",
+            "type": "Vec"
+          },
+          {
+            "value": "AAAAEAAAAAEAAAABAAAAEgAAAAGt785ZruUpaPdgYdSUwlJbdWWfpClqZfSZ7ynlZHfklg==",
+            "type": "Vec"
+          },
+          {
+            "value": "AAAAAwAAAGQ=",
+            "type": "U32"
+          }
+        ],
+        "address": "",
+        "salt": "",
+        "asset_balance_changes": []
+      }
+    ]
+  }
+}

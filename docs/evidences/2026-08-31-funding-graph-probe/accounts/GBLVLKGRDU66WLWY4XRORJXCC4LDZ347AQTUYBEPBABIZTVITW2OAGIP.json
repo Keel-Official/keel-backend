@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP/operations?cursor=248695103408840705\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP/operations?cursor=248695103408840705\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695103408840705"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/56243da49f42ccf4b8ae4e21089440596b39903a033645e5ba238a8edb50bccb"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695103408840705/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695103408840705"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695103408840705"
+          }
+        },
+        "id": "248695103408840705",
+        "paging_token": "248695103408840705",
+        "transaction_successful": true,
+        "source_account": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:32:51Z",
+        "transaction_hash": "56243da49f42ccf4b8ae4e21089440596b39903a033645e5ba238a8edb50bccb",
+        "asset_type": "native",
+        "from": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+        "to": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+        "amount": "0.0002565",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "OCEANTOKEN",
+            "asset_issuer": "GCWYGXMLDEQBIXT5IRLP6H3YYTJ6N43U2XX2EGJENNF4ACP7WOFCVYGO"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SOLS",
+            "asset_issuer": "GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED"
+          }
+        ],
+        "source_amount": "0.0002288",
+        "destination_min": "0.0002288",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

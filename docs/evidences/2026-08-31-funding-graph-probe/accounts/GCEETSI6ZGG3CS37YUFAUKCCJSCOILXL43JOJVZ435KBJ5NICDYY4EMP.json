@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP/operations?cursor=248695103408152577\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP/operations?cursor=248695103408152577\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695103408152577"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/37cdfd40fd3b085cec15307eaae876e7400d2cedce19cbe48d27896c017aeb4b"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695103408152577/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695103408152577"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695103408152577"
+          }
+        },
+        "id": "248695103408152577",
+        "paging_token": "248695103408152577",
+        "transaction_successful": true,
+        "source_account": "GCU7LJ5S6U3YCTSLLZNMRHJBSXVI6O5WPQIJ2ESLYTYIUJ7WMSXNYERD",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T05:32:51Z",
+        "transaction_hash": "37cdfd40fd3b085cec15307eaae876e7400d2cedce19cbe48d27896c017aeb4b",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GCU7LJ5S6U3YCTSLLZNMRHJBSXVI6O5WPQIJ2ESLYTYIUJ7WMSXNYERD",
+        "to": "GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP",
+        "amount": "10.3022465"
+      }
+    ]
+  }
+}

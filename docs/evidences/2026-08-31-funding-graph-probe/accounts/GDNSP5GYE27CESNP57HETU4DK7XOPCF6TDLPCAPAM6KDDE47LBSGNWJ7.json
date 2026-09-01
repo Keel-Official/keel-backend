@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDNSP5GYE27CESNP57HETU4DK7XOPCF6TDLPCAPAM6KDDE47LBSGNWJ7/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDNSP5GYE27CESNP57HETU4DK7XOPCF6TDLPCAPAM6KDDE47LBSGNWJ7/operations?cursor=248713795105476626\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDNSP5GYE27CESNP57HETU4DK7XOPCF6TDLPCAPAM6KDDE47LBSGNWJ7/operations?cursor=248713795105476626\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248713795105476626"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/67ae749b31288fc75fbc21c4e7530d171ec11f69a20c4b27657770a04ec568d0"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248713795105476626/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248713795105476626"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248713795105476626"
+          }
+        },
+        "id": "248713795105476626",
+        "paging_token": "248713795105476626",
+        "transaction_successful": true,
+        "source_account": "GANESLOXBZWPLB5ZM2KFUTBGSBGISB7JTWFXO67G4TGQINWRMI6766GV",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T12:25:42Z",
+        "transaction_hash": "67ae749b31288fc75fbc21c4e7530d171ec11f69a20c4b27657770a04ec568d0",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GANESLOXBZWPLB5ZM2KFUTBGSBGISB7JTWFXO67G4TGQINWRMI6766GV",
+        "to": "GDNSP5GYE27CESNP57HETU4DK7XOPCF6TDLPCAPAM6KDDE47LBSGNWJ7",
+        "amount": "0.0003484"
+      }
+    ]
+  }
+}

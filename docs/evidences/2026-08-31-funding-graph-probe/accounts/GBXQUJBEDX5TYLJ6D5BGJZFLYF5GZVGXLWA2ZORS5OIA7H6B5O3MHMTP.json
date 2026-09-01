@@ -1,0 +1,67 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP/operations?cursor=248695176422240257\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP/operations?cursor=248695176422240257\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695176422240257"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/cc3f62c3f8580ed7113af210fda16b990188abd5f6743ad9aafd2560f8c5fb39"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695176422240257/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695176422240257"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695176422240257"
+          }
+        },
+        "id": "248695176422240257",
+        "paging_token": "248695176422240257",
+        "transaction_successful": true,
+        "source_account": "GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-08T05:34:26Z",
+        "transaction_hash": "cc3f62c3f8580ed7113af210fda16b990188abd5f6743ad9aafd2560f8c5fb39",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "from": "GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP",
+        "to": "GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP",
+        "amount": "1418.2723508",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XRP",
+            "asset_issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "USDC",
+            "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          }
+        ],
+        "source_amount": "1417.7683732",
+        "source_max": "1418.2715116",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "AQUA",
+        "source_asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+      }
+    ]
+  }
+}

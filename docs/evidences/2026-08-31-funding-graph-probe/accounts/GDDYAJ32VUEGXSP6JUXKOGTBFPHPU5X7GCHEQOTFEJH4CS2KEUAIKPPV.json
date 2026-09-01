@@ -1,0 +1,60 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDDYAJ32VUEGXSP6JUXKOGTBFPHPU5X7GCHEQOTFEJH4CS2KEUAIKPPV/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDDYAJ32VUEGXSP6JUXKOGTBFPHPU5X7GCHEQOTFEJH4CS2KEUAIKPPV/operations?cursor=248696125612429313\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDDYAJ32VUEGXSP6JUXKOGTBFPHPU5X7GCHEQOTFEJH4CS2KEUAIKPPV/operations?cursor=248696125612429313\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696125612429313"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/ade84f43f86e7e59dae3e4bd105b4728af68d4ee2473cd901e41fe0fa6fef2c2"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696125612429313/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696125612429313"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696125612429313"
+          }
+        },
+        "id": "248696125612429313",
+        "paging_token": "248696125612429313",
+        "transaction_successful": true,
+        "source_account": "GDDYAJ32VUEGXSP6JUXKOGTBFPHPU5X7GCHEQOTFEJH4CS2KEUAIKPPV",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:55:13Z",
+        "transaction_hash": "ade84f43f86e7e59dae3e4bd105b4728af68d4ee2473cd901e41fe0fa6fef2c2",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GDDYAJ32VUEGXSP6JUXKOGTBFPHPU5X7GCHEQOTFEJH4CS2KEUAIKPPV",
+        "to": "GDDYAJ32VUEGXSP6JUXKOGTBFPHPU5X7GCHEQOTFEJH4CS2KEUAIKPPV",
+        "amount": "0.1300554",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XRP",
+            "asset_issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5"
+          }
+        ],
+        "source_amount": "0.1300000",
+        "destination_min": "0.1300000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCD3Y47RXFP3T535AQJXEPEXNCNQVTVGIBBVYWGF2XED42NBED2VW7W7/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCD3Y47RXFP3T535AQJXEPEXNCNQVTVGIBBVYWGF2XED42NBED2VW7W7/operations?cursor=248946036872634369\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCD3Y47RXFP3T535AQJXEPEXNCNQVTVGIBBVYWGF2XED42NBED2VW7W7/operations?cursor=248946036872634369\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248946036872634369"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8c9b418808438dfdb8831cc5ecd21d556858ab0acdbbc7d2a820178914ed301d"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248946036872634369/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248946036872634369"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248946036872634369"
+          }
+        },
+        "id": "248946036872634369",
+        "paging_token": "248946036872634369",
+        "transaction_successful": true,
+        "source_account": "GCD3Y47RXFP3T535AQJXEPEXNCNQVTVGIBBVYWGF2XED42NBED2VW7W7",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-12T03:04:39Z",
+        "transaction_hash": "8c9b418808438dfdb8831cc5ecd21d556858ab0acdbbc7d2a820178914ed301d",
+        "asset_type": "native",
+        "from": "GCD3Y47RXFP3T535AQJXEPEXNCNQVTVGIBBVYWGF2XED42NBED2VW7W7",
+        "to": "GCD3Y47RXFP3T535AQJXEPEXNCNQVTVGIBBVYWGF2XED42NBED2VW7W7",
+        "amount": "1.8301454",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "WHIPLASH",
+            "asset_issuer": "GC7NQHBFYMXLFFUAYDTGCVVJ7YEH4LTCUELK3P5B6IJTNZ7S7ALBMDZJ"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "GUARDIAN",
+            "asset_issuer": "GB2Z42DRDOLLRLH62JFM3EC35DHD2KPETP6KKMX7EYKLFZEUXGGXG7L6"
+          }
+        ],
+        "source_amount": "1.7697499",
+        "source_max": "1.8301454",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

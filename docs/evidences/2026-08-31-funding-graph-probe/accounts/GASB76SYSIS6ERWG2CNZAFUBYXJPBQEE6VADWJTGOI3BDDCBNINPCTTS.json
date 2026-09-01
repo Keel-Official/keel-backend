@@ -1,0 +1,70 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS/operations?cursor=248695928041525249\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS/operations?cursor=248695928041525249\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695928041525249"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/b0cdcd1d1aedbe11f39ac75de2d3fd650aa4d79d36ff6b6aa4c66ea490a4fe07"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695928041525249/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695928041525249"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695928041525249"
+          }
+        },
+        "id": "248695928041525249",
+        "paging_token": "248695928041525249",
+        "transaction_successful": true,
+        "source_account": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:50:50Z",
+        "transaction_hash": "b0cdcd1d1aedbe11f39ac75de2d3fd650aa4d79d36ff6b6aa4c66ea490a4fe07",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "from": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+        "to": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+        "amount": "0.4381676",
+        "path": [
+          {
+            "asset_type": "native"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "APHP",
+            "asset_issuer": "GCJFH6HI5UPQVTUUOAS7JPOEPCQZCNGM63GWMBL6ULGUL4XUXRIXXIEQ"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "AFR",
+            "asset_issuer": "GBX6YI45VU7WNAAKA3RBFDR3I3UKNFHTJPQ5F6KOOKSGYIAM4TRQN54W"
+          }
+        ],
+        "source_amount": "0.3641869",
+        "destination_min": "0.4278553",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "EURC",
+        "source_asset_issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2"
+      }
+    ]
+  }
+}

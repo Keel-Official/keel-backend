@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV/operations?cursor=248695103408754689\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV/operations?cursor=248695103408754689\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695103408754689"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/934a58045e43bee83b70b59365af6a6eaf80d7b3a0eb849bab6c0e0766dbc088"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695103408754689/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695103408754689"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695103408754689"
+          }
+        },
+        "id": "248695103408754689",
+        "paging_token": "248695103408754689",
+        "transaction_successful": true,
+        "source_account": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:32:51Z",
+        "transaction_hash": "934a58045e43bee83b70b59365af6a6eaf80d7b3a0eb849bab6c0e0766dbc088",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "818",
+        "asset_issuer": "GBACAAL2B4E3B2CFEODT22E7R6W4THW5B7QPJUJXCBJP6TWKL4ZR6ILY",
+        "from": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV",
+        "to": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV",
+        "amount": "156894758.5146132",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "AQUA",
+            "asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "TwiNz",
+            "asset_issuer": "GDKS7XTNEVCPGVUT2ZPPOU5CHHF3NH6NX7P3ROSFSDAO6NQDS3C74Y6C"
+          }
+        ],
+        "source_amount": "0.1000000",
+        "destination_min": "1.0000000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

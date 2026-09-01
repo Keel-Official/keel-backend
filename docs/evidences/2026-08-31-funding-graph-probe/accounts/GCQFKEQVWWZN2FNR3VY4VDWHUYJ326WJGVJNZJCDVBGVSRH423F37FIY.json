@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCQFKEQVWWZN2FNR3VY4VDWHUYJ326WJGVJNZJCDVBGVSRH423F37FIY/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCQFKEQVWWZN2FNR3VY4VDWHUYJ326WJGVJNZJCDVBGVSRH423F37FIY/operations?cursor=248696198624722945\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCQFKEQVWWZN2FNR3VY4VDWHUYJ326WJGVJNZJCDVBGVSRH423F37FIY/operations?cursor=248696198624722945\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696198624722945"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/86a6dc0da8ea65b936a1ed5db03f681b27325963dd246ae6ad236810a488d011"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696198624722945/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696198624722945"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696198624722945"
+          }
+        },
+        "id": "248696198624722945",
+        "paging_token": "248696198624722945",
+        "transaction_successful": true,
+        "source_account": "GCQFKEQVWWZN2FNR3VY4VDWHUYJ326WJGVJNZJCDVBGVSRH423F37FIY",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:56:51Z",
+        "transaction_hash": "86a6dc0da8ea65b936a1ed5db03f681b27325963dd246ae6ad236810a488d011",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GCQFKEQVWWZN2FNR3VY4VDWHUYJ326WJGVJNZJCDVBGVSRH423F37FIY",
+        "to": "GCQFKEQVWWZN2FNR3VY4VDWHUYJ326WJGVJNZJCDVBGVSRH423F37FIY",
+        "amount": "0.1900462",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XRP",
+            "asset_issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "DOGET",
+            "asset_issuer": "GDOEVDDBU6OBWKL7VHDAOKD77UP4DKHQYKOKJJT5PR3WRDBTX35HUEUX"
+          }
+        ],
+        "source_amount": "0.1900000",
+        "destination_min": "0.1900000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

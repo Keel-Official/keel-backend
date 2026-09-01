@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GB76OPKFMAYOITZHML3ZLGC6MQMVESBOM6WELSYED5ZO63VYJ3HEETRM/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GB76OPKFMAYOITZHML3ZLGC6MQMVESBOM6WELSYED5ZO63VYJ3HEETRM/operations?cursor=248700149994897409\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GB76OPKFMAYOITZHML3ZLGC6MQMVESBOM6WELSYED5ZO63VYJ3HEETRM/operations?cursor=248700149994897409\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248700149994897409"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/e8ac15c5fa804668b52eee1b7a46ff6ad65ab433a27ada322c1ab7c3f0e0e4a8"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248700149994897409/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248700149994897409"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248700149994897409"
+          }
+        },
+        "id": "248700149994897409",
+        "paging_token": "248700149994897409",
+        "transaction_successful": true,
+        "source_account": "GB76OPKFMAYOITZHML3ZLGC6MQMVESBOM6WELSYED5ZO63VYJ3HEETRM",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T07:25:21Z",
+        "transaction_hash": "e8ac15c5fa804668b52eee1b7a46ff6ad65ab433a27ada322c1ab7c3f0e0e4a8",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GB76OPKFMAYOITZHML3ZLGC6MQMVESBOM6WELSYED5ZO63VYJ3HEETRM",
+        "to": "GB76OPKFMAYOITZHML3ZLGC6MQMVESBOM6WELSYED5ZO63VYJ3HEETRM",
+        "amount": "0.1903039",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "RIO",
+            "asset_issuer": "GBNLJIYH34UWO5YZFA3A3HD3N76R6DOI33N4JONUOHEEYZYCAYTEJ5AK"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SHX",
+            "asset_issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH"
+          }
+        ],
+        "source_amount": "0.1900000",
+        "destination_min": "0.1900000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

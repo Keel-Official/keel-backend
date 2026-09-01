@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCUG6ZQIVQ3SJNCLI4P7FALJODPBIBWGCDFOQ2YYQR7AS7ZROXRGPCTE/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCUG6ZQIVQ3SJNCLI4P7FALJODPBIBWGCDFOQ2YYQR7AS7ZROXRGPCTE/operations?cursor=248696035416043527\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCUG6ZQIVQ3SJNCLI4P7FALJODPBIBWGCDFOQ2YYQR7AS7ZROXRGPCTE/operations?cursor=248696035416043527\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696035416043527"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/cbbc4b849924dfcdec303baac0cc035379a586de266b26b2c24508b72ad75646"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696035416043527/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696035416043527"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696035416043527"
+          }
+        },
+        "id": "248696035416043527",
+        "paging_token": "248696035416043527",
+        "transaction_successful": true,
+        "source_account": "GB5JKIWGD74MFEOK6KQNFVMGA2LJ4SCQUS7QYXMVVPZEDJI3SP354B3A",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T05:53:10Z",
+        "transaction_hash": "cbbc4b849924dfcdec303baac0cc035379a586de266b26b2c24508b72ad75646",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "ACT",
+        "asset_issuer": "GAHHULDPDVGB5WS5PH7BCGLJ7ZHECDBIIMKB62UPVDUOCHNFL7HX3FS7",
+        "from": "GB5JKIWGD74MFEOK6KQNFVMGA2LJ4SCQUS7QYXMVVPZEDJI3SP354B3A",
+        "to": "GCUG6ZQIVQ3SJNCLI4P7FALJODPBIBWGCDFOQ2YYQR7AS7ZROXRGPCTE",
+        "amount": "0.1637519"
+      }
+    ]
+  }
+}

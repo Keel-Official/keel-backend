@@ -1,0 +1,58 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GA7O3ZGCR6TL6PSSJJYGEPQRYF4JOPGWULTFTZVSVSGXUZIFNYH7SH3L/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GA7O3ZGCR6TL6PSSJJYGEPQRYF4JOPGWULTFTZVSVSGXUZIFNYH7SH3L/operations?cursor=248864677307146241\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GA7O3ZGCR6TL6PSSJJYGEPQRYF4JOPGWULTFTZVSVSGXUZIFNYH7SH3L/operations?cursor=248864677307146241\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248864677307146241"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/703ce49d07612c3971907892926037007bc2edb4a53f8ce17bbb3a340b672459"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248864677307146241/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248864677307146241"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248864677307146241"
+          }
+        },
+        "id": "248864677307146241",
+        "paging_token": "248864677307146241",
+        "transaction_successful": true,
+        "source_account": "GA7O3ZGCR6TL6PSSJJYGEPQRYF4JOPGWULTFTZVSVSGXUZIFNYH7SH3L",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-10T20:28:03Z",
+        "transaction_hash": "703ce49d07612c3971907892926037007bc2edb4a53f8ce17bbb3a340b672459",
+        "asset_type": "native",
+        "from": "GA7O3ZGCR6TL6PSSJJYGEPQRYF4JOPGWULTFTZVSVSGXUZIFNYH7SH3L",
+        "to": "GA7O3ZGCR6TL6PSSJJYGEPQRYF4JOPGWULTFTZVSVSGXUZIFNYH7SH3L",
+        "amount": "0.2575452",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "DXLM",
+            "asset_issuer": "GAE6DWVMZDAOBU4IIPGDM2EJ65PWZQ5X7MI7PUURWKTEVZSEJHRYI247"
+          }
+        ],
+        "source_amount": "0.2412713",
+        "source_max": "0.2575452",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

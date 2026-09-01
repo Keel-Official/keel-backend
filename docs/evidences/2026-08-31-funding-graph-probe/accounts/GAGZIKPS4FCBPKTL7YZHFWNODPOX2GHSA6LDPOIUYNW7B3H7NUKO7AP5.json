@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GAGZIKPS4FCBPKTL7YZHFWNODPOX2GHSA6LDPOIUYNW7B3H7NUKO7AP5/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GAGZIKPS4FCBPKTL7YZHFWNODPOX2GHSA6LDPOIUYNW7B3H7NUKO7AP5/operations?cursor=248696761265725441\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GAGZIKPS4FCBPKTL7YZHFWNODPOX2GHSA6LDPOIUYNW7B3H7NUKO7AP5/operations?cursor=248696761265725441\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696761265725441"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/cafebb2f1158aa3585ef554c1faebd10d81e19ecbde3454018d8503720561382"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696761265725441/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696761265725441"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696761265725441"
+          }
+        },
+        "id": "248696761265725441",
+        "paging_token": "248696761265725441",
+        "transaction_successful": true,
+        "source_account": "GAGZIKPS4FCBPKTL7YZHFWNODPOX2GHSA6LDPOIUYNW7B3H7NUKO7AP5",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:09:31Z",
+        "transaction_hash": "cafebb2f1158aa3585ef554c1faebd10d81e19ecbde3454018d8503720561382",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "from": "GAGZIKPS4FCBPKTL7YZHFWNODPOX2GHSA6LDPOIUYNW7B3H7NUKO7AP5",
+        "to": "GAGZIKPS4FCBPKTL7YZHFWNODPOX2GHSA6LDPOIUYNW7B3H7NUKO7AP5",
+        "amount": "9.7461894",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "axlUSDC",
+            "asset_issuer": "GATO4FH7SYMV36YP3UREDNZTOB3KHXNK5CMB3YRKOCOK3JOPWDJOL7ZV"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SHX",
+            "asset_issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH"
+          }
+        ],
+        "source_amount": "0.0337109",
+        "destination_min": "9.6487961",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

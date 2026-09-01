@@ -1,0 +1,56 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GC7KIV7YN26V4YV5IPSEIFSCV6TKRQ3C6E2MZHDE7OFZGGPYW4OSRE66/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GC7KIV7YN26V4YV5IPSEIFSCV6TKRQ3C6E2MZHDE7OFZGGPYW4OSRE66/operations?cursor=249773226098851841\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GC7KIV7YN26V4YV5IPSEIFSCV6TKRQ3C6E2MZHDE7OFZGGPYW4OSRE66/operations?cursor=249773226098851841\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249773226098851841"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/d10ef06eab217430337fa6d1ad1536eb65a3e49105dfa2d0eb71414a6bc23775"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249773226098851841/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249773226098851841"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249773226098851841"
+          }
+        },
+        "id": "249773226098851841",
+        "paging_token": "249773226098851841",
+        "transaction_successful": true,
+        "source_account": "GC7KIV7YN26V4YV5IPSEIFSCV6TKRQ3C6E2MZHDE7OFZGGPYW4OSRE66",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-24T23:04:07Z",
+        "transaction_hash": "d10ef06eab217430337fa6d1ad1536eb65a3e49105dfa2d0eb71414a6bc23775",
+        "asset_type": "credit_alphanum12",
+        "asset_code": "LibreVault",
+        "asset_issuer": "GDID3VFXZ6BZXIBVCQXUYVUEOVPZHNBQUGDNZ43GIYD2F4QM2YBO4MF5",
+        "from": "GC7KIV7YN26V4YV5IPSEIFSCV6TKRQ3C6E2MZHDE7OFZGGPYW4OSRE66",
+        "to": "GC7KIV7YN26V4YV5IPSEIFSCV6TKRQ3C6E2MZHDE7OFZGGPYW4OSRE66",
+        "amount": "144.7032615",
+        "path": [],
+        "source_amount": "140.0000000",
+        "destination_min": "140.0070000",
+        "source_asset_type": "credit_alphanum12",
+        "source_asset_code": "LIBRE",
+        "source_asset_issuer": "GAYCCWKECNGDRHYU3UTREBD2XLC3CUQN6FV22TKM4WCQER3IWR7TF5CY"
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=eBTC\u0026asset_issuer=GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=eBTC\u0026asset_issuer=GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC\u0026cursor=eBTC_GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=eBTC\u0026asset_issuer=GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC\u0026cursor=eBTC_GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ebtc.fredenergy.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "eBTC",
+        "asset_issuer": "GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC",
+        "paging_token": "eBTC_GCEAHWRSUTM2T6ATHI7DFGLXV4COMFL4OGJLAELLJIE6S6AWBGUEEBTC_credit_alphanum4",
+        "num_claimable_balances": 2446,
+        "num_liquidity_pools": 34,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 189,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "742527.7731500",
+        "liquidity_pools_amount": "2371025.4558136",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "17886446.7663262",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GAY2KTP5NBJ2T6X5T2V7QWMXNUSAG7GTEESJDGEEBW4GAYXHVB7H4JGM/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GAY2KTP5NBJ2T6X5T2V7QWMXNUSAG7GTEESJDGEEBW4GAYXHVB7H4JGM/operations?cursor=249014674746257409\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GAY2KTP5NBJ2T6X5T2V7QWMXNUSAG7GTEESJDGEEBW4GAYXHVB7H4JGM/operations?cursor=249014674746257409\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249014674746257409"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/5ac301fb23c812e3469307e7971f9f7cfbda5f8dbdcfa3104f6456ceb967620e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249014674746257409/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249014674746257409"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249014674746257409"
+          }
+        },
+        "id": "249014674746257409",
+        "paging_token": "249014674746257409",
+        "transaction_successful": true,
+        "source_account": "GAY2KTP5NBJ2T6X5T2V7QWMXNUSAG7GTEESJDGEEBW4GAYXHVB7H4JGM",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-13T04:47:22Z",
+        "transaction_hash": "5ac301fb23c812e3469307e7971f9f7cfbda5f8dbdcfa3104f6456ceb967620e",
+        "asset_type": "native",
+        "from": "GAY2KTP5NBJ2T6X5T2V7QWMXNUSAG7GTEESJDGEEBW4GAYXHVB7H4JGM",
+        "to": "GAY2KTP5NBJ2T6X5T2V7QWMXNUSAG7GTEESJDGEEBW4GAYXHVB7H4JGM",
+        "amount": "1.6316080",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "yUSDC",
+            "asset_issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "GOLD",
+            "asset_issuer": "GBC5ZGK6MQU3XG5Y72SXPA7P5R5NHYT2475SNEJB2U3EQ6J56QLVGOLD"
+          }
+        ],
+        "source_amount": "1.6302163",
+        "source_max": "1.6316080",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

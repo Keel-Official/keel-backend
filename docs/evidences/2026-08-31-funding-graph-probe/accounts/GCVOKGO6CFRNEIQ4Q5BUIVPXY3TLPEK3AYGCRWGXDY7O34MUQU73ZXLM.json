@@ -1,0 +1,78 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCVOKGO6CFRNEIQ4Q5BUIVPXY3TLPEK3AYGCRWGXDY7O34MUQU73ZXLM/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCVOKGO6CFRNEIQ4Q5BUIVPXY3TLPEK3AYGCRWGXDY7O34MUQU73ZXLM/operations?cursor=248695708998184961\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCVOKGO6CFRNEIQ4Q5BUIVPXY3TLPEK3AYGCRWGXDY7O34MUQU73ZXLM/operations?cursor=248695708998184961\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695708998184961"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/fead0d8128c73e03e431f65bbb5804636e20e3bc29ff3930bb072da992dfb6a1"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695708998184961/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695708998184961"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695708998184961"
+          }
+        },
+        "id": "248695708998184961",
+        "paging_token": "248695708998184961",
+        "transaction_successful": true,
+        "source_account": "GCVOKGO6CFRNEIQ4Q5BUIVPXY3TLPEK3AYGCRWGXDY7O34MUQU73ZXLM",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:46:01Z",
+        "transaction_hash": "fead0d8128c73e03e431f65bbb5804636e20e3bc29ff3930bb072da992dfb6a1",
+        "asset_type": "native",
+        "from": "GCVOKGO6CFRNEIQ4Q5BUIVPXY3TLPEK3AYGCRWGXDY7O34MUQU73ZXLM",
+        "to": "GCVOKGO6CFRNEIQ4Q5BUIVPXY3TLPEK3AYGCRWGXDY7O34MUQU73ZXLM",
+        "amount": "0.0014149",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "GOLDBANK058",
+            "asset_issuer": "GDEUQ2MX3YXMITFOTC3CO3GW5V3XE3IVG7JKLZZAOZ7WFYIN256INDUS"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "WGUARDIAN",
+            "asset_issuer": "GBYBVWOOVC4EJVRIF4HMWG5B7POLCS7JRPY5KYR3BCLEK24IJQOGUARD"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "yXLM",
+            "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "FiaT",
+            "asset_issuer": "GAVVNJKEM4XFXBPYITFCDVKOZRI3PAXJHDH666MDQIXJAJ4H7HO3722C"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "EURT",
+            "asset_issuer": "GAP5LETOV6YIE62YAM56STDANPRDO7ZFDBGSNHJQIYGGKSMOZAHOOS2S"
+          }
+        ],
+        "source_amount": "0.0013278",
+        "destination_min": "0.0013278",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR/operations?cursor=249851781050753025\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR/operations?cursor=249851781050753025\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249851781050753025"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/b65e9b66be84ed2131626356d4400d3c3b1a9cd812f55709f680a41805f81a9d"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249851781050753025/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249851781050753025"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249851781050753025"
+          }
+        },
+        "id": "249851781050753025",
+        "paging_token": "249851781050753025",
+        "transaction_successful": true,
+        "source_account": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-26T04:07:16Z",
+        "transaction_hash": "b65e9b66be84ed2131626356d4400d3c3b1a9cd812f55709f680a41805f81a9d",
+        "asset_type": "credit_alphanum12",
+        "asset_code": "Radi8",
+        "asset_issuer": "GBBBMSNN6ASLP36IB577XDUQTSLLSLAFHZTWNZO6AXTZ2KWTOJOM3AVX",
+        "from": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO",
+        "to": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+        "amount": "999999.0000000"
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBTWHF4V2KFMQ3D3MLC4XBYT3PFH7KXF22GYAPDZF3BHRELD6HHQZU5R/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBTWHF4V2KFMQ3D3MLC4XBYT3PFH7KXF22GYAPDZF3BHRELD6HHQZU5R/operations?cursor=248774740691599361\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBTWHF4V2KFMQ3D3MLC4XBYT3PFH7KXF22GYAPDZF3BHRELD6HHQZU5R/operations?cursor=248774740691599361\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248774740691599361"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/eb01d2d31df6c38a616b3ed22354b637344486a028574f1c5dcf3fc2421a186c"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248774740691599361/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248774740691599361"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248774740691599361"
+          }
+        },
+        "id": "248774740691599361",
+        "paging_token": "248774740691599361",
+        "transaction_successful": true,
+        "source_account": "GBTWHF4V2KFMQ3D3MLC4XBYT3PFH7KXF22GYAPDZF3BHRELD6HHQZU5R",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-09T10:57:44Z",
+        "transaction_hash": "eb01d2d31df6c38a616b3ed22354b637344486a028574f1c5dcf3fc2421a186c",
+        "asset_type": "native",
+        "from": "GBTWHF4V2KFMQ3D3MLC4XBYT3PFH7KXF22GYAPDZF3BHRELD6HHQZU5R",
+        "to": "GBTWHF4V2KFMQ3D3MLC4XBYT3PFH7KXF22GYAPDZF3BHRELD6HHQZU5R",
+        "amount": "583.7272138",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "USDC",
+            "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          }
+        ],
+        "source_amount": "583.6908261",
+        "source_max": "583.7272138",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

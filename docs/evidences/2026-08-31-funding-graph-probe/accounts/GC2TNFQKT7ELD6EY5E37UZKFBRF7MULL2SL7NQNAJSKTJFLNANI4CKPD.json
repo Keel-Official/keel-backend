@@ -1,0 +1,60 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GC2TNFQKT7ELD6EY5E37UZKFBRF7MULL2SL7NQNAJSKTJFLNANI4CKPD/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GC2TNFQKT7ELD6EY5E37UZKFBRF7MULL2SL7NQNAJSKTJFLNANI4CKPD/operations?cursor=248698260208971777\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GC2TNFQKT7ELD6EY5E37UZKFBRF7MULL2SL7NQNAJSKTJFLNANI4CKPD/operations?cursor=248698260208971777\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248698260208971777"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/80ff113f25abe71784ed565853cd772baabc0ef88ae8d63123773037ceb37aa7"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248698260208971777/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248698260208971777"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248698260208971777"
+          }
+        },
+        "id": "248698260208971777",
+        "paging_token": "248698260208971777",
+        "transaction_successful": true,
+        "source_account": "GC2TNFQKT7ELD6EY5E37UZKFBRF7MULL2SL7NQNAJSKTJFLNANI4CKPD",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:43:15Z",
+        "transaction_hash": "80ff113f25abe71784ed565853cd772baabc0ef88ae8d63123773037ceb37aa7",
+        "asset_type": "native",
+        "from": "GC2TNFQKT7ELD6EY5E37UZKFBRF7MULL2SL7NQNAJSKTJFLNANI4CKPD",
+        "to": "GC2TNFQKT7ELD6EY5E37UZKFBRF7MULL2SL7NQNAJSKTJFLNANI4CKPD",
+        "amount": "3.1400067",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "VELO",
+            "asset_issuer": "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M"
+          }
+        ],
+        "source_amount": "3.1400000",
+        "destination_min": "3.1400000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

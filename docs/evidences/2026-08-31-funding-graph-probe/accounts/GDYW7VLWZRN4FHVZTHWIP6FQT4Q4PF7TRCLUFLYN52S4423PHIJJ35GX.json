@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDYW7VLWZRN4FHVZTHWIP6FQT4Q4PF7TRCLUFLYN52S4423PHIJJ35GX/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDYW7VLWZRN4FHVZTHWIP6FQT4Q4PF7TRCLUFLYN52S4423PHIJJ35GX/operations?cursor=248695717588463617\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDYW7VLWZRN4FHVZTHWIP6FQT4Q4PF7TRCLUFLYN52S4423PHIJJ35GX/operations?cursor=248695717588463617\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695717588463617"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/ff9468745c6e70f3e360163d14eece11ff249a2c58dcf377a8d8cf27175176de"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695717588463617/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695717588463617"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695717588463617"
+          }
+        },
+        "id": "248695717588463617",
+        "paging_token": "248695717588463617",
+        "transaction_successful": true,
+        "source_account": "GDYW7VLWZRN4FHVZTHWIP6FQT4Q4PF7TRCLUFLYN52S4423PHIJJ35GX",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:46:13Z",
+        "transaction_hash": "ff9468745c6e70f3e360163d14eece11ff249a2c58dcf377a8d8cf27175176de",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GDYW7VLWZRN4FHVZTHWIP6FQT4Q4PF7TRCLUFLYN52S4423PHIJJ35GX",
+        "to": "GDYW7VLWZRN4FHVZTHWIP6FQT4Q4PF7TRCLUFLYN52S4423PHIJJ35GX",
+        "amount": "0.1200387",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "yUSDC",
+            "asset_issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "OVRL",
+            "asset_issuer": "GBZH36ATUXJZKFRMQTAAW42MWNM34SOA4N6E7DQ62V3G5NVITC3QOVRL"
+          }
+        ],
+        "source_amount": "0.1200000",
+        "destination_min": "0.1200000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

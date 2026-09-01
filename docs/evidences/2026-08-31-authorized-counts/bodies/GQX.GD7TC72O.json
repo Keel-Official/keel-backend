@@ -1,0 +1,51 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=GQX\u0026asset_issuer=GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=GQX\u0026asset_issuer=GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF\u0026cursor=GQX_GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=GQX\u0026asset_issuer=GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF\u0026cursor=GQX_GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://kingtroll.stellarmint.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "GQX",
+        "asset_issuer": "GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF",
+        "paging_token": "GQX_GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF_credit_alphanum4",
+        "contract_id": "CAZQYRFG7A2CZTZ2NEODHZGIOORFFKOEFV7WWZOBJEYXER56ASCUBD7P",
+        "num_claimable_balances": 2,
+        "num_liquidity_pools": 90,
+        "num_contracts": 7,
+        "accounts": {
+          "authorized": 1673,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "30.0000001",
+        "liquidity_pools_amount": "2578.4598087",
+        "contracts_amount": "4.0940130",
+        "balances": {
+          "authorized": "11049404.0495506",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

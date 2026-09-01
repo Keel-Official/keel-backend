@@ -1,0 +1,56 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW/operations?cursor=249469872558645249\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW/operations?cursor=249469872558645249\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249469872558645249"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/e0e68d88e9a2358b84cefcb046ca265764e6f42a994728b5bfe310a8b4bbde7a"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249469872558645249/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249469872558645249"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249469872558645249"
+          }
+        },
+        "id": "249469872558645249",
+        "paging_token": "249469872558645249",
+        "transaction_successful": true,
+        "source_account": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-20T06:26:01Z",
+        "transaction_hash": "e0e68d88e9a2358b84cefcb046ca265764e6f42a994728b5bfe310a8b4bbde7a",
+        "asset_type": "credit_alphanum12",
+        "asset_code": "bubba",
+        "asset_issuer": "GDKS7XTNEVCPGVUT2ZPPOU5CHHF3NH6NX7P3ROSFSDAO6NQDS3C74Y6C",
+        "from": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "to": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "amount": "53848.1889991",
+        "path": [],
+        "source_amount": "2.5000000",
+        "destination_min": "1.0000000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "NABU",
+        "source_asset_issuer": "GCYVCYS772DF2GJ376O4UQPRUD2GDS5NKY3DMW7L5R62PLR5WWNF7QFB"
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GAELEOBSLSTTEOZNHLYQ4NM7AW54HZW7KHJPPCNPT3SSCS2ZXIPZI6IE/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GAELEOBSLSTTEOZNHLYQ4NM7AW54HZW7KHJPPCNPT3SSCS2ZXIPZI6IE/operations?cursor=249091584724738049\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GAELEOBSLSTTEOZNHLYQ4NM7AW54HZW7KHJPPCNPT3SSCS2ZXIPZI6IE/operations?cursor=249091584724738049\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249091584724738049"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c533b77a99fe47ee65a2ac225b91439d03799799d6793a76a1e2c0860895ff06"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249091584724738049/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249091584724738049"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249091584724738049"
+          }
+        },
+        "id": "249091584724738049",
+        "paging_token": "249091584724738049",
+        "transaction_successful": true,
+        "source_account": "GAELEOBSLSTTEOZNHLYQ4NM7AW54HZW7KHJPPCNPT3SSCS2ZXIPZI6IE",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-14T09:39:57Z",
+        "transaction_hash": "c533b77a99fe47ee65a2ac225b91439d03799799d6793a76a1e2c0860895ff06",
+        "asset_type": "native",
+        "from": "GAELEOBSLSTTEOZNHLYQ4NM7AW54HZW7KHJPPCNPT3SSCS2ZXIPZI6IE",
+        "to": "GAELEOBSLSTTEOZNHLYQ4NM7AW54HZW7KHJPPCNPT3SSCS2ZXIPZI6IE",
+        "amount": "34.1627847",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "EURC",
+            "asset_issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2"
+          }
+        ],
+        "source_amount": "34.1533019",
+        "source_max": "34.1627847",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

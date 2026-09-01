@@ -1,0 +1,62 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBTVBYH3ZBLGTH5NTEJUEXVT3GPW7A72QDUXCMH3CL2JN2YWU74YD7VB/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBTVBYH3ZBLGTH5NTEJUEXVT3GPW7A72QDUXCMH3CL2JN2YWU74YD7VB/operations?cursor=248696619531960321\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBTVBYH3ZBLGTH5NTEJUEXVT3GPW7A72QDUXCMH3CL2JN2YWU74YD7VB/operations?cursor=248696619531960321\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696619531960321"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/7876516c376e12c7c7ca9dcfdd873f83c5f5fb76c595d46bcc9d421d57a712b9"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696619531960321/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696619531960321"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696619531960321"
+          }
+        },
+        "id": "248696619531960321",
+        "paging_token": "248696619531960321",
+        "transaction_successful": true,
+        "source_account": "GBTVBYH3ZBLGTH5NTEJUEXVT3GPW7A72QDUXCMH3CL2JN2YWU74YD7VB",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:06:18Z",
+        "transaction_hash": "7876516c376e12c7c7ca9dcfdd873f83c5f5fb76c595d46bcc9d421d57a712b9",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "from": "GBTVBYH3ZBLGTH5NTEJUEXVT3GPW7A72QDUXCMH3CL2JN2YWU74YD7VB",
+        "to": "GBTVBYH3ZBLGTH5NTEJUEXVT3GPW7A72QDUXCMH3CL2JN2YWU74YD7VB",
+        "amount": "0.0029552",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "yXLM",
+            "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+          }
+        ],
+        "source_amount": "2.4644575",
+        "destination_min": "0.0029551",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "LSP",
+        "source_asset_issuer": "GAB7STHVD5BDH3EEYXPI3OM7PCS4V443PYB5FNT6CFGJVPDLMKDM24WK"
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=EMN\u0026asset_issuer=GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=EMN\u0026asset_issuer=GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I\u0026cursor=EMN_GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=EMN\u0026asset_issuer=GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I\u0026cursor=EMN_GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://emine.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "EMN",
+        "asset_issuer": "GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I",
+        "paging_token": "EMN_GAKIOVTNEZUTBT7EZMGAIGNW536KS7JBPBBLEBN6ZPWKVGW45TDPV74I_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 13,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "2.3872886",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "342.1127114",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

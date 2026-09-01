@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=BRL\u0026asset_issuer=GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=BRL\u0026asset_issuer=GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP\u0026cursor=BRL_GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=BRL\u0026asset_issuer=GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP\u0026cursor=BRL_GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ntokens.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "BRL",
+        "asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP",
+        "paging_token": "BRL_GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP_credit_alphanum4",
+        "num_claimable_balances": 10,
+        "num_liquidity_pools": 53,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 6987,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 17
+        },
+        "claimable_balances_amount": "3047.7120133",
+        "liquidity_pools_amount": "2430.2510868",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "84982.8823220",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0005360"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      }
+    ]
+  }
+}

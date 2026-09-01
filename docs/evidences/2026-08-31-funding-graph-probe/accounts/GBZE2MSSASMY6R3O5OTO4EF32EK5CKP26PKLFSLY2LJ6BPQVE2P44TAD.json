@@ -1,0 +1,55 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBZE2MSSASMY6R3O5OTO4EF32EK5CKP26PKLFSLY2LJ6BPQVE2P44TAD/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBZE2MSSASMY6R3O5OTO4EF32EK5CKP26PKLFSLY2LJ6BPQVE2P44TAD/operations?cursor=248697804943245313\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBZE2MSSASMY6R3O5OTO4EF32EK5CKP26PKLFSLY2LJ6BPQVE2P44TAD/operations?cursor=248697804943245313\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248697804943245313"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/e113688726c4b6f593b03a6b18cf9fa97700610ff8bf05ff2712319b77337fed"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248697804943245313/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248697804943245313"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248697804943245313"
+          }
+        },
+        "id": "248697804943245313",
+        "paging_token": "248697804943245313",
+        "transaction_successful": true,
+        "source_account": "GBZE2MSSASMY6R3O5OTO4EF32EK5CKP26PKLFSLY2LJ6BPQVE2P44TAD",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2025-07-08T06:32:54Z",
+        "transaction_hash": "e113688726c4b6f593b03a6b18cf9fa97700610ff8bf05ff2712319b77337fed",
+        "amount": "3.0000000",
+        "price": "0.9999800",
+        "price_r": {
+          "n": 49999,
+          "d": 50000
+        },
+        "buying_asset_type": "native",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "yXLM",
+        "selling_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "offer_id": "0"
+      }
+    ]
+  }
+}

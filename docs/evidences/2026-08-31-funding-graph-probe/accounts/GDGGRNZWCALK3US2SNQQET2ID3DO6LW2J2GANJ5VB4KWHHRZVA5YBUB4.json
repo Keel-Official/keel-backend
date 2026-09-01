@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDGGRNZWCALK3US2SNQQET2ID3DO6LW2J2GANJ5VB4KWHHRZVA5YBUB4/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDGGRNZWCALK3US2SNQQET2ID3DO6LW2J2GANJ5VB4KWHHRZVA5YBUB4/operations?cursor=248713726386540554\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDGGRNZWCALK3US2SNQQET2ID3DO6LW2J2GANJ5VB4KWHHRZVA5YBUB4/operations?cursor=248713726386540554\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248713726386540554"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/dc4a0607bd0a4dbfe09a0224c2f03488eeec3ca3fb70e0993ee148e01b6ccd21"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248713726386540554/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248713726386540554"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248713726386540554"
+          }
+        },
+        "id": "248713726386540554",
+        "paging_token": "248713726386540554",
+        "transaction_successful": true,
+        "source_account": "GDYW6MND6EB32PNRZAMQNOTFLJOZEAFDG3DUWID7I7NRILFWJS66NOWB",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T12:24:10Z",
+        "transaction_hash": "dc4a0607bd0a4dbfe09a0224c2f03488eeec3ca3fb70e0993ee148e01b6ccd21",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "SSLX",
+        "asset_issuer": "GBHFGY3ZNEJWLNO4LBUKLYOCEK4V7ENEBJGPRHHX7JU47GWHBREH37UR",
+        "from": "GDYW6MND6EB32PNRZAMQNOTFLJOZEAFDG3DUWID7I7NRILFWJS66NOWB",
+        "to": "GDGGRNZWCALK3US2SNQQET2ID3DO6LW2J2GANJ5VB4KWHHRZVA5YBUB4",
+        "amount": "0.0100000"
+      }
+    ]
+  }
+}

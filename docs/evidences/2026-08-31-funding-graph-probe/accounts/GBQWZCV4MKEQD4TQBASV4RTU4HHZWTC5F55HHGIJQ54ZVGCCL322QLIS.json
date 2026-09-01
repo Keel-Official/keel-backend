@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBQWZCV4MKEQD4TQBASV4RTU4HHZWTC5F55HHGIJQ54ZVGCCL322QLIS/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBQWZCV4MKEQD4TQBASV4RTU4HHZWTC5F55HHGIJQ54ZVGCCL322QLIS/operations?cursor=249425230668972033\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBQWZCV4MKEQD4TQBASV4RTU4HHZWTC5F55HHGIJQ54ZVGCCL322QLIS/operations?cursor=249425230668972033\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249425230668972033"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c4d0fe6f4218ac646ef0d72c4617e53a7e67271b53b4eba812608188251f819c"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249425230668972033/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249425230668972033"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249425230668972033"
+          }
+        },
+        "id": "249425230668972033",
+        "paging_token": "249425230668972033",
+        "transaction_successful": true,
+        "source_account": "GDTYD6BWWZIOHD2PPLTFQYW3KVTT5YEF2EVWMTUJTVGQ4U2UBKFHHVYN",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-19T13:55:23Z",
+        "transaction_hash": "c4d0fe6f4218ac646ef0d72c4617e53a7e67271b53b4eba812608188251f819c",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDC",
+        "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "from": "GDTYD6BWWZIOHD2PPLTFQYW3KVTT5YEF2EVWMTUJTVGQ4U2UBKFHHVYN",
+        "to": "GBQWZCV4MKEQD4TQBASV4RTU4HHZWTC5F55HHGIJQ54ZVGCCL322QLIS",
+        "amount": "0.3671200"
+      }
+    ]
+  }
+}

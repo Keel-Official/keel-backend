@@ -1,0 +1,67 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ/operations?cursor=249773281934368769\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ/operations?cursor=249773281934368769\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249773281934368769"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/bbaaf1e46ec903439410d96afd4aa45593a3777756c56eae15ebd4df6738e765"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249773281934368769/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249773281934368769"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249773281934368769"
+          }
+        },
+        "id": "249773281934368769",
+        "paging_token": "249773281934368769",
+        "transaction_successful": true,
+        "source_account": "GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-24T23:05:20Z",
+        "transaction_hash": "bbaaf1e46ec903439410d96afd4aa45593a3777756c56eae15ebd4df6738e765",
+        "asset_type": "credit_alphanum12",
+        "asset_code": "LibreVault",
+        "asset_issuer": "GDID3VFXZ6BZXIBVCQXUYVUEOVPZHNBQUGDNZ43GIYD2F4QM2YBO4MF5",
+        "from": "GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ",
+        "to": "GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ",
+        "amount": "3.1095376",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "StellarNFT",
+            "asset_issuer": "GALZZQF5JXHPHGI5A2ZW2EPL76DU4DWSYYGTPLOAMMEQEEECFSSRIOZJ"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "Litquidity",
+            "asset_issuer": "GCMFRYWS6WG2KQXBN67J542TUQAL5WVB5UB77PPHAA2MYFNHS7ADIK37"
+          }
+        ],
+        "source_amount": "3.0000000",
+        "destination_min": "3.0001500",
+        "source_asset_type": "credit_alphanum12",
+        "source_asset_code": "LIBRE",
+        "source_asset_issuer": "GAYCCWKECNGDRHYU3UTREBD2XLC3CUQN6FV22TKM4WCQER3IWR7TF5CY"
+      }
+    ]
+  }
+}

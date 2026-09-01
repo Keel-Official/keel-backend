@@ -1,0 +1,62 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GB5RBKB44BIKSBM6EDU3VPCKYLMG6AUMSAUYFXNEY2D35DNNDS4TNB2Y/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GB5RBKB44BIKSBM6EDU3VPCKYLMG6AUMSAUYFXNEY2D35DNNDS4TNB2Y/operations?cursor=248695421235830785\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GB5RBKB44BIKSBM6EDU3VPCKYLMG6AUMSAUYFXNEY2D35DNNDS4TNB2Y/operations?cursor=248695421235830785\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695421235830785"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/19a7c899e560f22ff0610f66db494d25e9b0dc85af26a46134e899616e7dc619"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695421235830785/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695421235830785"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695421235830785"
+          }
+        },
+        "id": "248695421235830785",
+        "paging_token": "248695421235830785",
+        "transaction_successful": true,
+        "source_account": "GB5RBKB44BIKSBM6EDU3VPCKYLMG6AUMSAUYFXNEY2D35DNNDS4TNB2Y",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:39:47Z",
+        "transaction_hash": "19a7c899e560f22ff0610f66db494d25e9b0dc85af26a46134e899616e7dc619",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "RIO",
+        "asset_issuer": "GBNLJIYH34UWO5YZFA3A3HD3N76R6DOI33N4JONUOHEEYZYCAYTEJ5AK",
+        "from": "GB5RBKB44BIKSBM6EDU3VPCKYLMG6AUMSAUYFXNEY2D35DNNDS4TNB2Y",
+        "to": "GB5RBKB44BIKSBM6EDU3VPCKYLMG6AUMSAUYFXNEY2D35DNNDS4TNB2Y",
+        "amount": "0.0163335",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "Drop",
+            "asset_issuer": "GAPDWIB2O3TPRTURDYCP2WSUKOS265WEYX7CCIZEM3JWIQIJI5TAPXSD"
+          }
+        ],
+        "source_amount": "0.0043951",
+        "destination_min": "0.0163335",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "USDC",
+        "source_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      }
+    ]
+  }
+}

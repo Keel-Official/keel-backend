@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDWM7UKY3F6NCPIPKLNIM2MWBY5UNLBWYQLU4WSX2NVILOGHREKALJA5/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDWM7UKY3F6NCPIPKLNIM2MWBY5UNLBWYQLU4WSX2NVILOGHREKALJA5/operations?cursor=248696683955761153\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDWM7UKY3F6NCPIPKLNIM2MWBY5UNLBWYQLU4WSX2NVILOGHREKALJA5/operations?cursor=248696683955761153\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696683955761153"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c26824455fc4a014be9c6c9084490249b24d9e56061da68970a18baf730c7a87"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696683955761153/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696683955761153"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696683955761153"
+          }
+        },
+        "id": "248696683955761153",
+        "paging_token": "248696683955761153",
+        "transaction_successful": true,
+        "source_account": "GDWM7UKY3F6NCPIPKLNIM2MWBY5UNLBWYQLU4WSX2NVILOGHREKALJA5",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:07:44Z",
+        "transaction_hash": "c26824455fc4a014be9c6c9084490249b24d9e56061da68970a18baf730c7a87",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AQUA",
+        "asset_issuer": "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+        "from": "GDWM7UKY3F6NCPIPKLNIM2MWBY5UNLBWYQLU4WSX2NVILOGHREKALJA5",
+        "to": "GDWM7UKY3F6NCPIPKLNIM2MWBY5UNLBWYQLU4WSX2NVILOGHREKALJA5",
+        "amount": "50.0000257",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "TRUMP",
+            "asset_issuer": "GAP4Z7QQ62O6JKNBUEXMBXDVHT7B6DBB6JJQF3OOXCOJSNZC7TNRVD6F"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "ELON",
+            "asset_issuer": "GDJG2LADMZPHFAWVGPXUUDRUYKNNYML4DKDO7LMHZPWWPQ2Q3NP5GAL3"
+          }
+        ],
+        "source_amount": "0.1061041",
+        "destination_min": "30.8288847",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

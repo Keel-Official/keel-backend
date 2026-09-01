@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=GROG\u0026asset_issuer=GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=GROG\u0026asset_issuer=GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL\u0026cursor=GROG_GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=GROG\u0026asset_issuer=GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL\u0026cursor=GROG_GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellar-pirates.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "GROG",
+        "asset_issuer": "GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL",
+        "paging_token": "GROG_GBE2P44LQXAXCRGGQARWIIM6C6Y6MS3S5FE2RENGO3S5JZFA6H5YTECL_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 8,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 351,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "46116860184.0000000",
+        "liquidity_pools_amount": "12265941737.1239016",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "863939406982.7540432",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

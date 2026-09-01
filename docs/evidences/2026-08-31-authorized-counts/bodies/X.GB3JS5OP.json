@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=X\u0026asset_issuer=GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=X\u0026asset_issuer=GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA\u0026cursor=X_GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=X\u0026asset_issuer=GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA\u0026cursor=X_GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellardrones.keybase.pub/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "X",
+        "asset_issuer": "GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA",
+        "paging_token": "X_GB3JS5OPYP46NLVXWQ5V77B3NVDCEUKZ7JS77HJ76KHU5GIMCFJP4LEA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 39,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 40,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "1096856289.4572741",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "10104666225.8427259",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      }
+    ]
+  }
+}

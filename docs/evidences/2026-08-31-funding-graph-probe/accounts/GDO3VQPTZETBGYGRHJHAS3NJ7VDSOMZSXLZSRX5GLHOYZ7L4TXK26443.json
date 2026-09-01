@@ -1,0 +1,75 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDO3VQPTZETBGYGRHJHAS3NJ7VDSOMZSXLZSRX5GLHOYZ7L4TXK26443/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDO3VQPTZETBGYGRHJHAS3NJ7VDSOMZSXLZSRX5GLHOYZ7L4TXK26443/operations?cursor=248697323906523137\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDO3VQPTZETBGYGRHJHAS3NJ7VDSOMZSXLZSRX5GLHOYZ7L4TXK26443/operations?cursor=248697323906523137\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248697323906523137"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/d0dd6eb7ce12350c8394218d13433b1bf6f4fd9380a912cd80dc65647fcee655"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248697323906523137/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248697323906523137"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248697323906523137"
+          }
+        },
+        "id": "248697323906523137",
+        "paging_token": "248697323906523137",
+        "transaction_successful": true,
+        "source_account": "GDO3VQPTZETBGYGRHJHAS3NJ7VDSOMZSXLZSRX5GLHOYZ7L4TXK26443",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:22:00Z",
+        "transaction_hash": "d0dd6eb7ce12350c8394218d13433b1bf6f4fd9380a912cd80dc65647fcee655",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GDO3VQPTZETBGYGRHJHAS3NJ7VDSOMZSXLZSRX5GLHOYZ7L4TXK26443",
+        "to": "GDO3VQPTZETBGYGRHJHAS3NJ7VDSOMZSXLZSRX5GLHOYZ7L4TXK26443",
+        "amount": "12.1564443",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "VELO",
+            "asset_issuer": "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "Ouroboros",
+            "asset_issuer": "GBQPMQUWMJGLB5UVXKVVG62IY3LJW3ICJX5IRR6ACQVYRDTLWDI7NFPC"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "Uroboros",
+            "asset_issuer": "GBQPMQUWMJGLB5UVXKVVG62IY3LJW3ICJX5IRR6ACQVYRDTLWDI7NFPC"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SHX",
+            "asset_issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH"
+          }
+        ],
+        "source_amount": "12.0492285",
+        "destination_min": "12.0496416",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

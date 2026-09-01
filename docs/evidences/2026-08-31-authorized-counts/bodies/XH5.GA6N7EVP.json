@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=XH5\u0026asset_issuer=GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=XH5\u0026asset_issuer=GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF\u0026cursor=XH5_GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=XH5\u0026asset_issuer=GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF\u0026cursor=XH5_GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://cleanshave.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "XH5",
+        "asset_issuer": "GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF",
+        "paging_token": "XH5_GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF_credit_alphanum4",
+        "num_claimable_balances": 2,
+        "num_liquidity_pools": 133,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 336,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "2946.0087639",
+        "liquidity_pools_amount": "522017.9448073",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "23681.8217615",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

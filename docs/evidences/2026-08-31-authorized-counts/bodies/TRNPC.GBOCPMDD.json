@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=TRNPC\u0026asset_issuer=GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=TRNPC\u0026asset_issuer=GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K\u0026cursor=TRNPC_GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K_credit_alphanum12\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=TRNPC\u0026asset_issuer=GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K\u0026cursor=TRNPC_GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K_credit_alphanum12\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lu.meme/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum12",
+        "asset_code": "TRNPC",
+        "asset_issuer": "GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K",
+        "paging_token": "TRNPC_GBOCPMDDPVEROZINIDLCQYW3JVVKY7FWZTM2TSLLGAJ5OF4JB4WDHH7K_credit_alphanum12",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 8,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 42,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "2576606.7386696",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "2978948.2613304",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

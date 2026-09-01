@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=RCW\u0026asset_issuer=GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=RCW\u0026asset_issuer=GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG\u0026cursor=RCW_GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=RCW\u0026asset_issuer=GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG\u0026cursor=RCW_GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://kerleyrc.xmint.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "RCW",
+        "asset_issuer": "GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG",
+        "paging_token": "RCW_GCEDS7HGAF5OEPC6BRY42OOZF5IKLFNDGVQJ5AG767K6TNBWY26CFYXG_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 5,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 26,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "867.2858454",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "19132.7102881",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

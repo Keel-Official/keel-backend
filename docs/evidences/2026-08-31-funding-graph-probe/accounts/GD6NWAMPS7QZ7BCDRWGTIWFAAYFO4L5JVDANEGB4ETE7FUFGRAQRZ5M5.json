@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GD6NWAMPS7QZ7BCDRWGTIWFAAYFO4L5JVDANEGB4ETE7FUFGRAQRZ5M5/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GD6NWAMPS7QZ7BCDRWGTIWFAAYFO4L5JVDANEGB4ETE7FUFGRAQRZ5M5/operations?cursor=248696379013369921\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GD6NWAMPS7QZ7BCDRWGTIWFAAYFO4L5JVDANEGB4ETE7FUFGRAQRZ5M5/operations?cursor=248696379013369921\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696379013369921"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/57092bb44fc6c53592d313e73662b170f9e412d01cc022883a29e8852873bec7"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696379013369921/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696379013369921"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696379013369921"
+          }
+        },
+        "id": "248696379013369921",
+        "paging_token": "248696379013369921",
+        "transaction_successful": true,
+        "source_account": "GDDKQ3ZF6WNQRLL4GYLXFEENSEYUL6QB4NYGFPVFWZIKUG4UVVUOWIAS",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T06:00:52Z",
+        "transaction_hash": "57092bb44fc6c53592d313e73662b170f9e412d01cc022883a29e8852873bec7",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "XTAR",
+        "asset_issuer": "GAORYJ3KBDGIM7FFSKVUJHJ5NEFWIRDIAGGBJBJS7TY6ECZS53257IG4",
+        "from": "GDDKQ3ZF6WNQRLL4GYLXFEENSEYUL6QB4NYGFPVFWZIKUG4UVVUOWIAS",
+        "to": "GD6NWAMPS7QZ7BCDRWGTIWFAAYFO4L5JVDANEGB4ETE7FUFGRAQRZ5M5",
+        "amount": "27.0637990"
+      }
+    ]
+  }
+}

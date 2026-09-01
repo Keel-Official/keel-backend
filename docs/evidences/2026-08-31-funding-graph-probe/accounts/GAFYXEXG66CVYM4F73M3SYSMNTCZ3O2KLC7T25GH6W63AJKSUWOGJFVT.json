@@ -1,0 +1,75 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GAFYXEXG66CVYM4F73M3SYSMNTCZ3O2KLC7T25GH6W63AJKSUWOGJFVT/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GAFYXEXG66CVYM4F73M3SYSMNTCZ3O2KLC7T25GH6W63AJKSUWOGJFVT/operations?cursor=248695339631296513\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GAFYXEXG66CVYM4F73M3SYSMNTCZ3O2KLC7T25GH6W63AJKSUWOGJFVT/operations?cursor=248695339631296513\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695339631296513"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/549a304d2224ab1c621424fa668e8fd00a6955e6624944fa5907b8dc95951c68"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695339631296513/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695339631296513"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695339631296513"
+          }
+        },
+        "id": "248695339631296513",
+        "paging_token": "248695339631296513",
+        "transaction_successful": true,
+        "source_account": "GAFYXEXG66CVYM4F73M3SYSMNTCZ3O2KLC7T25GH6W63AJKSUWOGJFVT",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:38:02Z",
+        "transaction_hash": "549a304d2224ab1c621424fa668e8fd00a6955e6624944fa5907b8dc95951c68",
+        "asset_type": "native",
+        "from": "GAFYXEXG66CVYM4F73M3SYSMNTCZ3O2KLC7T25GH6W63AJKSUWOGJFVT",
+        "to": "GAFYXEXG66CVYM4F73M3SYSMNTCZ3O2KLC7T25GH6W63AJKSUWOGJFVT",
+        "amount": "3.0262982",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SLVR",
+            "asset_issuer": "GBZVELEQD3WBN3R3VAG64HVBDOZ76ZL6QPLSFGKWPFED33Q3234NSLVR"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "PLAT",
+            "asset_issuer": "GBIMVJJJOTAKJYWJIY5YEXDZ4QIWQZLRJ4BXVHKH6EXWQ3WAEYBTPLAT"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "GQX",
+            "asset_issuer": "GD7TC72O5HML5UMZXQCIXGBR4KJ3MYM2ICPOR4BBN56K6JUSRVWTDAQF"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XRP",
+            "asset_issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5"
+          }
+        ],
+        "source_amount": "3.0218750",
+        "destination_min": "3.0216145",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

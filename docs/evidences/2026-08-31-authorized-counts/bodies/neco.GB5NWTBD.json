@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=neco\u0026asset_issuer=GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=neco\u0026asset_issuer=GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S\u0026cursor=neco_GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=neco\u0026asset_issuer=GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S\u0026cursor=neco_GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://neurotems-coin.site/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "neco",
+        "asset_issuer": "GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S",
+        "paging_token": "neco_GB5NWTBDWP4S5YEPLXOPAUFAENOK7KM3Q6ZFZ55TGGQYIZEPFT22OL4S_credit_alphanum4",
+        "num_claimable_balances": 513,
+        "num_liquidity_pools": 45,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3209,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "9579798.5624000",
+        "liquidity_pools_amount": "179655.3129583",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "240437.7026656",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

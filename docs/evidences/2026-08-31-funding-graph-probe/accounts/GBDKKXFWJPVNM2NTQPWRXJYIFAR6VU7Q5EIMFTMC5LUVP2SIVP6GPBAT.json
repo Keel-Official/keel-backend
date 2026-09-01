@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBDKKXFWJPVNM2NTQPWRXJYIFAR6VU7Q5EIMFTMC5LUVP2SIVP6GPBAT/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBDKKXFWJPVNM2NTQPWRXJYIFAR6VU7Q5EIMFTMC5LUVP2SIVP6GPBAT/operations?cursor=248695300976672769\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBDKKXFWJPVNM2NTQPWRXJYIFAR6VU7Q5EIMFTMC5LUVP2SIVP6GPBAT/operations?cursor=248695300976672769\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695300976672769"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/246060e2bcedd55af0db710bea352a334308e9cfebae9c082da085b3e89265aa"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695300976672769/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695300976672769"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695300976672769"
+          }
+        },
+        "id": "248695300976672769",
+        "paging_token": "248695300976672769",
+        "transaction_successful": true,
+        "source_account": "GBDKKXFWJPVNM2NTQPWRXJYIFAR6VU7Q5EIMFTMC5LUVP2SIVP6GPBAT",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:37:10Z",
+        "transaction_hash": "246060e2bcedd55af0db710bea352a334308e9cfebae9c082da085b3e89265aa",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GBDKKXFWJPVNM2NTQPWRXJYIFAR6VU7Q5EIMFTMC5LUVP2SIVP6GPBAT",
+        "to": "GBDKKXFWJPVNM2NTQPWRXJYIFAR6VU7Q5EIMFTMC5LUVP2SIVP6GPBAT",
+        "amount": "0.1500648",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "FRED",
+            "asset_issuer": "GCA73U2PZFWAXJSNVMEVPNPPJCZGETWPWZC6E4DJAIWP3ZW3BAGYZLV6"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SCOP",
+            "asset_issuer": "GC6OYQJIZF3HFXCYPFCBXYXNGIBQ4TNSFUBUXQJOZWIP6F3YZK4QH3VQ"
+          }
+        ],
+        "source_amount": "0.1500000",
+        "destination_min": "0.1500000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

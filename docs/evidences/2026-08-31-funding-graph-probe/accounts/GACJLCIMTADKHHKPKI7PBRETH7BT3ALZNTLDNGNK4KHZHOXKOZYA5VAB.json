@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GACJLCIMTADKHHKPKI7PBRETH7BT3ALZNTLDNGNK4KHZHOXKOZYA5VAB/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GACJLCIMTADKHHKPKI7PBRETH7BT3ALZNTLDNGNK4KHZHOXKOZYA5VAB/operations?cursor=248697723338563585\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GACJLCIMTADKHHKPKI7PBRETH7BT3ALZNTLDNGNK4KHZHOXKOZYA5VAB/operations?cursor=248697723338563585\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248697723338563585"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/12132d6b2d06ccffe30657b371bc836d68cb17fb44d5aa54bb67d97fe89a1b1f"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248697723338563585/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248697723338563585"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248697723338563585"
+          }
+        },
+        "id": "248697723338563585",
+        "paging_token": "248697723338563585",
+        "transaction_successful": true,
+        "source_account": "GACJLCIMTADKHHKPKI7PBRETH7BT3ALZNTLDNGNK4KHZHOXKOZYA5VAB",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T06:31:02Z",
+        "transaction_hash": "12132d6b2d06ccffe30657b371bc836d68cb17fb44d5aa54bb67d97fe89a1b1f",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "SSLX",
+        "asset_issuer": "GBHFGY3ZNEJWLNO4LBUKLYOCEK4V7ENEBJGPRHHX7JU47GWHBREH37UR",
+        "from": "GACJLCIMTADKHHKPKI7PBRETH7BT3ALZNTLDNGNK4KHZHOXKOZYA5VAB",
+        "to": "GAFI2AOGBCKV7DWK2N77O34RD52C6O6QGGVEV5CEVFQTCHOOI3VOKP7G",
+        "amount": "1.0000000"
+      }
+    ]
+  }
+}

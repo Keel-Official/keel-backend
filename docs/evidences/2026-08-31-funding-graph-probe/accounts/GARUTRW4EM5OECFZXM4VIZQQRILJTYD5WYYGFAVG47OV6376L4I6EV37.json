@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GARUTRW4EM5OECFZXM4VIZQQRILJTYD5WYYGFAVG47OV6376L4I6EV37/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GARUTRW4EM5OECFZXM4VIZQQRILJTYD5WYYGFAVG47OV6376L4I6EV37/operations?cursor=248696705430671361\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GARUTRW4EM5OECFZXM4VIZQQRILJTYD5WYYGFAVG47OV6376L4I6EV37/operations?cursor=248696705430671361\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696705430671361"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/b07b3ed27c91b6fb5b6a6a6e36afc4d7f51bd3bdd58d0eafb81992e5bc97bf27"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696705430671361/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696705430671361"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696705430671361"
+          }
+        },
+        "id": "248696705430671361",
+        "paging_token": "248696705430671361",
+        "transaction_successful": true,
+        "source_account": "GARUTRW4EM5OECFZXM4VIZQQRILJTYD5WYYGFAVG47OV6376L4I6EV37",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:08:15Z",
+        "transaction_hash": "b07b3ed27c91b6fb5b6a6a6e36afc4d7f51bd3bdd58d0eafb81992e5bc97bf27",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GARUTRW4EM5OECFZXM4VIZQQRILJTYD5WYYGFAVG47OV6376L4I6EV37",
+        "to": "GARUTRW4EM5OECFZXM4VIZQQRILJTYD5WYYGFAVG47OV6376L4I6EV37",
+        "amount": "0.1900223",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "Boar",
+            "asset_issuer": "GDRQ4ANJ7ESDSVSG2CMKHQRA5V3IKJEJPKQY5TI7G37BYBY4WZBMVIEV"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "LSP",
+            "asset_issuer": "GAB7STHVD5BDH3EEYXPI3OM7PCS4V443PYB5FNT6CFGJVPDLMKDM24WK"
+          }
+        ],
+        "source_amount": "0.1900000",
+        "destination_min": "0.1900000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

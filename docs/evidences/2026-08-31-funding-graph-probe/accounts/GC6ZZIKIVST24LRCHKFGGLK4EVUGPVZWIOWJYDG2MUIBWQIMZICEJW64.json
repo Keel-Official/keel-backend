@@ -1,0 +1,60 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GC6ZZIKIVST24LRCHKFGGLK4EVUGPVZWIOWJYDG2MUIBWQIMZICEJW64/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GC6ZZIKIVST24LRCHKFGGLK4EVUGPVZWIOWJYDG2MUIBWQIMZICEJW64/operations?cursor=248695537200680961\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GC6ZZIKIVST24LRCHKFGGLK4EVUGPVZWIOWJYDG2MUIBWQIMZICEJW64/operations?cursor=248695537200680961\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695537200680961"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c4fa59cce8c82858d1c5ce8ab32f8b6fe3d9abc4b997beec8af7220b7693a751"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695537200680961/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695537200680961"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695537200680961"
+          }
+        },
+        "id": "248695537200680961",
+        "paging_token": "248695537200680961",
+        "transaction_successful": true,
+        "source_account": "GC6ZZIKIVST24LRCHKFGGLK4EVUGPVZWIOWJYDG2MUIBWQIMZICEJW64",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:42:18Z",
+        "transaction_hash": "c4fa59cce8c82858d1c5ce8ab32f8b6fe3d9abc4b997beec8af7220b7693a751",
+        "asset_type": "native",
+        "from": "GC6ZZIKIVST24LRCHKFGGLK4EVUGPVZWIOWJYDG2MUIBWQIMZICEJW64",
+        "to": "GC6ZZIKIVST24LRCHKFGGLK4EVUGPVZWIOWJYDG2MUIBWQIMZICEJW64",
+        "amount": "0.1401515",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XTAR",
+            "asset_issuer": "GAORYJ3KBDGIM7FFSKVUJHJ5NEFWIRDIAGGBJBJS7TY6ECZS53257IG4"
+          }
+        ],
+        "source_amount": "0.1400000",
+        "destination_min": "0.1400000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

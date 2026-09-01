@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCIMGUEF7AUB3JMN7MFNOHCS52E2GMSIW7DAWDFR4QWKQN662QBQ32P6/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCIMGUEF7AUB3JMN7MFNOHCS52E2GMSIW7DAWDFR4QWKQN662QBQ32P6/operations?cursor=248696237279707137\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCIMGUEF7AUB3JMN7MFNOHCS52E2GMSIW7DAWDFR4QWKQN662QBQ32P6/operations?cursor=248696237279707137\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696237279707137"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/dd92671496e1a245c2016c40a80aa126b6f9df241f8ed95a289fc38ac510ed03"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696237279707137/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696237279707137"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696237279707137"
+          }
+        },
+        "id": "248696237279707137",
+        "paging_token": "248696237279707137",
+        "transaction_successful": true,
+        "source_account": "GCIMGUEF7AUB3JMN7MFNOHCS52E2GMSIW7DAWDFR4QWKQN662QBQ32P6",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:57:43Z",
+        "transaction_hash": "dd92671496e1a245c2016c40a80aa126b6f9df241f8ed95a289fc38ac510ed03",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GCIMGUEF7AUB3JMN7MFNOHCS52E2GMSIW7DAWDFR4QWKQN662QBQ32P6",
+        "to": "GCIMGUEF7AUB3JMN7MFNOHCS52E2GMSIW7DAWDFR4QWKQN662QBQ32P6",
+        "amount": "0.1501225",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XTAR",
+            "asset_issuer": "GAORYJ3KBDGIM7FFSKVUJHJ5NEFWIRDIAGGBJBJS7TY6ECZS53257IG4"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "NLT",
+            "asset_issuer": "GAX25ZVO4JVPEDK3R7EUFCGVI5XCOQGMVGQNZVFLGY2RWTBIQBW2ZNLT"
+          }
+        ],
+        "source_amount": "0.1500000",
+        "destination_min": "0.1500000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

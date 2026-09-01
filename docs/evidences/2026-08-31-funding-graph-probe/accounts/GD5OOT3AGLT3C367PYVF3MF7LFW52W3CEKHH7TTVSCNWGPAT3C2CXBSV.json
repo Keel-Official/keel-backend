@@ -1,0 +1,63 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GD5OOT3AGLT3C367PYVF3MF7LFW52W3CEKHH7TTVSCNWGPAT3C2CXBSV/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GD5OOT3AGLT3C367PYVF3MF7LFW52W3CEKHH7TTVSCNWGPAT3C2CXBSV/operations?cursor=249073150724358145\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GD5OOT3AGLT3C367PYVF3MF7LFW52W3CEKHH7TTVSCNWGPAT3C2CXBSV/operations?cursor=249073150724358145\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/249073150724358145"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/d8870ccfb03fe8ccc91f567efad3498ac69c45f4229adddcb021b54bfa4f7a8e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/249073150724358145/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=249073150724358145"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=249073150724358145"
+          }
+        },
+        "id": "249073150724358145",
+        "paging_token": "249073150724358145",
+        "transaction_successful": true,
+        "source_account": "GD5OOT3AGLT3C367PYVF3MF7LFW52W3CEKHH7TTVSCNWGPAT3C2CXBSV",
+        "type": "path_payment_strict_receive",
+        "type_i": 2,
+        "created_at": "2025-07-14T02:46:45Z",
+        "transaction_hash": "d8870ccfb03fe8ccc91f567efad3498ac69c45f4229adddcb021b54bfa4f7a8e",
+        "asset_type": "native",
+        "from": "GD5OOT3AGLT3C367PYVF3MF7LFW52W3CEKHH7TTVSCNWGPAT3C2CXBSV",
+        "to": "GD5OOT3AGLT3C367PYVF3MF7LFW52W3CEKHH7TTVSCNWGPAT3C2CXBSV",
+        "amount": "15.8830348",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "VELO",
+            "asset_issuer": "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "USDC",
+            "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          }
+        ],
+        "source_amount": "15.8679740",
+        "source_max": "15.8830348",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

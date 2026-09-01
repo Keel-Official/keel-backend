@@ -1,0 +1,78 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GD327MCKE45GYHWG22L7EJFULEUDMNOWGWW5WFBE5QD3CYLCI44XITXN/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GD327MCKE45GYHWG22L7EJFULEUDMNOWGWW5WFBE5QD3CYLCI44XITXN/operations?cursor=248697023258791937\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GD327MCKE45GYHWG22L7EJFULEUDMNOWGWW5WFBE5QD3CYLCI44XITXN/operations?cursor=248697023258791937\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248697023258791937"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/a4061c39eeac6c94a7b8a0cd1d610861e12c371f2833b26f2dc158ab7a739ea3"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248697023258791937/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248697023258791937"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248697023258791937"
+          }
+        },
+        "id": "248697023258791937",
+        "paging_token": "248697023258791937",
+        "transaction_successful": true,
+        "source_account": "GD327MCKE45GYHWG22L7EJFULEUDMNOWGWW5WFBE5QD3CYLCI44XITXN",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:15:16Z",
+        "transaction_hash": "a4061c39eeac6c94a7b8a0cd1d610861e12c371f2833b26f2dc158ab7a739ea3",
+        "asset_type": "native",
+        "from": "GD327MCKE45GYHWG22L7EJFULEUDMNOWGWW5WFBE5QD3CYLCI44XITXN",
+        "to": "GD327MCKE45GYHWG22L7EJFULEUDMNOWGWW5WFBE5QD3CYLCI44XITXN",
+        "amount": "6.0806180",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XH5",
+            "asset_issuer": "GA6N7EVPWJL4266JTJN52TRIRPDAKMUJWFZ5Q2RN4Z23KXCKPUTURFBF"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "Aquaboros",
+            "asset_issuer": "GBQPMQUWMJGLB5UVXKVVG62IY3LJW3ICJX5IRR6ACQVYRDTLWDI7NFPC"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "Uroboros",
+            "asset_issuer": "GBQPMQUWMJGLB5UVXKVVG62IY3LJW3ICJX5IRR6ACQVYRDTLWDI7NFPC"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SHX",
+            "asset_issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "yXLM",
+            "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+          }
+        ],
+        "source_amount": "6.0767035",
+        "destination_min": "6.0767035",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

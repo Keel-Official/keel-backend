@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GALHF53GCYWGURCXO55SJ45PG2UV2SX3W4ACYLGVLJ4PEIEJ2ZZQ74IT/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GALHF53GCYWGURCXO55SJ45PG2UV2SX3W4ACYLGVLJ4PEIEJ2ZZQ74IT/operations?cursor=248695107703136257\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GALHF53GCYWGURCXO55SJ45PG2UV2SX3W4ACYLGVLJ4PEIEJ2ZZQ74IT/operations?cursor=248695107703136257\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695107703136257"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c5f09e4caba8cd01c990d9124c231405dbbaafbbb3d3b4eb15c94651cb29e273"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695107703136257/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695107703136257"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695107703136257"
+          }
+        },
+        "id": "248695107703136257",
+        "paging_token": "248695107703136257",
+        "transaction_successful": true,
+        "source_account": "GDQZZQHZL63YUQYTK6O4PN53Y2VSMMUAWFSQFKNKH5XZYWLUSB4CQK26",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T05:32:57Z",
+        "transaction_hash": "c5f09e4caba8cd01c990d9124c231405dbbaafbbb3d3b4eb15c94651cb29e273",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "VELO",
+        "asset_issuer": "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M",
+        "from": "GDQZZQHZL63YUQYTK6O4PN53Y2VSMMUAWFSQFKNKH5XZYWLUSB4CQK26",
+        "to": "GALHF53GCYWGURCXO55SJ45PG2UV2SX3W4ACYLGVLJ4PEIEJ2ZZQ74IT",
+        "amount": "0.0031895"
+      }
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GAYHC7JEABJ7IF4HFTJU73XJLFJCCYT77ZGPVHOYPXPLVMYRAFIYHPVF/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GAYHC7JEABJ7IF4HFTJU73XJLFJCCYT77ZGPVHOYPXPLVMYRAFIYHPVF/operations?cursor=248697800648704009\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GAYHC7JEABJ7IF4HFTJU73XJLFJCCYT77ZGPVHOYPXPLVMYRAFIYHPVF/operations?cursor=248697800648704009\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248697800648704009"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/74f58db4f7366cf67db9d17b2d942fc9e970cf3855492df5610803535b75175e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248697800648704009/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248697800648704009"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248697800648704009"
+          }
+        },
+        "id": "248697800648704009",
+        "paging_token": "248697800648704009",
+        "transaction_successful": true,
+        "source_account": "GAFI2AOGBCKV7DWK2N77O34RD52C6O6QGGVEV5CEVFQTCHOOI3VOKP7G",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T06:32:48Z",
+        "transaction_hash": "74f58db4f7366cf67db9d17b2d942fc9e970cf3855492df5610803535b75175e",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "SSLX",
+        "asset_issuer": "GBHFGY3ZNEJWLNO4LBUKLYOCEK4V7ENEBJGPRHHX7JU47GWHBREH37UR",
+        "from": "GAFI2AOGBCKV7DWK2N77O34RD52C6O6QGGVEV5CEVFQTCHOOI3VOKP7G",
+        "to": "GAYHC7JEABJ7IF4HFTJU73XJLFJCCYT77ZGPVHOYPXPLVMYRAFIYHPVF",
+        "amount": "2.7000000"
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GBWGVYDWPX3APD77SJ4HFS63VN4IZMHYDRVU6CONEEKJJWPYENU73LIJ/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GBWGVYDWPX3APD77SJ4HFS63VN4IZMHYDRVU6CONEEKJJWPYENU73LIJ/operations?cursor=248701679002939393\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GBWGVYDWPX3APD77SJ4HFS63VN4IZMHYDRVU6CONEEKJJWPYENU73LIJ/operations?cursor=248701679002939393\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248701679002939393"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/f972bdff331e42acee1c07c29932f132d515e6ab3b71caa1539a0f3eaeefa773"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248701679002939393/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248701679002939393"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248701679002939393"
+          }
+        },
+        "id": "248701679002939393",
+        "paging_token": "248701679002939393",
+        "transaction_successful": true,
+        "source_account": "GBWGVYDWPX3APD77SJ4HFS63VN4IZMHYDRVU6CONEEKJJWPYENU73LIJ",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T07:59:16Z",
+        "transaction_hash": "f972bdff331e42acee1c07c29932f132d515e6ab3b71caa1539a0f3eaeefa773",
+        "asset_type": "native",
+        "from": "GBWGVYDWPX3APD77SJ4HFS63VN4IZMHYDRVU6CONEEKJJWPYENU73LIJ",
+        "to": "GBWGVYDWPX3APD77SJ4HFS63VN4IZMHYDRVU6CONEEKJJWPYENU73LIJ",
+        "amount": "0.2500734",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "USDC",
+            "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "TREAD",
+            "asset_issuer": "GANMKTF7SVYEHZ4CTLRKT2MG2OUJNDEA3JGZGTUTHQZOZSWJHHUF6VLM"
+          }
+        ],
+        "source_amount": "0.2500000",
+        "destination_min": "0.2500000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

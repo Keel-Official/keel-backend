@@ -1,0 +1,51 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=REAL8\u0026asset_issuer=GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=REAL8\u0026asset_issuer=GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD\u0026cursor=REAL8_GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD_credit_alphanum12\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=REAL8\u0026asset_issuer=GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD\u0026cursor=REAL8_GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD_credit_alphanum12\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://real8.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum12",
+        "asset_code": "REAL8",
+        "asset_issuer": "GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD",
+        "paging_token": "REAL8_GBVYYQ7XXRZW6ZCNNCL2X2THNPQ6IM4O47HAA25JTAG7Z3CXJCQ3W4CD_credit_alphanum12",
+        "contract_id": "CD5DHFTAIWW6EL5BDCIH4OM3XHB6K5DKCBHSTWTZZPSHQ3NVVEGFQIU3",
+        "num_claimable_balances": 3,
+        "num_liquidity_pools": 6,
+        "num_contracts": 5,
+        "accounts": {
+          "authorized": 219,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 6
+        },
+        "claimable_balances_amount": "34909087.3855058",
+        "liquidity_pools_amount": "10355183.7003649",
+        "contracts_amount": "39514.7242653",
+        "balances": {
+          "authorized": "8649358859.0713855",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "194226234.8028161"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

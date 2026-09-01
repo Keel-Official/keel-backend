@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=AIus\u0026asset_issuer=GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=AIus\u0026asset_issuer=GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU\u0026cursor=AIus_GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=AIus\u0026asset_issuer=GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU\u0026cursor=AIus_GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellardrones.keybase.pub/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "AIus",
+        "asset_issuer": "GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU",
+        "paging_token": "AIus_GDBYZGMIKX6AVEH53TH2MEXQVUPSWOMSDBTRNAEYTKSHYNBLQK3Z4QWU_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 98,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 76,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "8820436.4524234",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "325516063.5475766",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

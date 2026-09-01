@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCXPS7AVWSHBCUOIEGIOOJBKZWRKOUTT26MGUNBFN3XB3X3JV3XVBH3Y/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCXPS7AVWSHBCUOIEGIOOJBKZWRKOUTT26MGUNBFN3XB3X3JV3XVBH3Y/operations?cursor=248696185740906497\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCXPS7AVWSHBCUOIEGIOOJBKZWRKOUTT26MGUNBFN3XB3X3JV3XVBH3Y/operations?cursor=248696185740906497\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696185740906497"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/c6b7644ba9ee33d06bfba19fd485cbb0f4afda82162e355b6d5f9ba2faaac241"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696185740906497/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696185740906497"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696185740906497"
+          }
+        },
+        "id": "248696185740906497",
+        "paging_token": "248696185740906497",
+        "transaction_successful": true,
+        "source_account": "GCXPS7AVWSHBCUOIEGIOOJBKZWRKOUTT26MGUNBFN3XB3X3JV3XVBH3Y",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:56:34Z",
+        "transaction_hash": "c6b7644ba9ee33d06bfba19fd485cbb0f4afda82162e355b6d5f9ba2faaac241",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GCXPS7AVWSHBCUOIEGIOOJBKZWRKOUTT26MGUNBFN3XB3X3JV3XVBH3Y",
+        "to": "GCXPS7AVWSHBCUOIEGIOOJBKZWRKOUTT26MGUNBFN3XB3X3JV3XVBH3Y",
+        "amount": "0.1301289",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "SLVR",
+            "asset_issuer": "GB4I3O6EGAQU2HV62DKBPQXBCQVSCUHB3TLOGEPTVKFCZMPNGKYCLXAG"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "GOLD",
+            "asset_issuer": "GBCB4WO6J4ET55RWK2SVX76LUQ4PQ7TCDHG2YFILQML7D6XR3HACLXAU"
+          }
+        ],
+        "source_amount": "0.1300000",
+        "destination_min": "0.1300000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

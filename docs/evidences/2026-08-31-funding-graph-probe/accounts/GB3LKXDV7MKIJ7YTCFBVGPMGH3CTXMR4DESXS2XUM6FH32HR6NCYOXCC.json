@@ -1,0 +1,78 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GB3LKXDV7MKIJ7YTCFBVGPMGH3CTXMR4DESXS2XUM6FH32HR6NCYOXCC/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GB3LKXDV7MKIJ7YTCFBVGPMGH3CTXMR4DESXS2XUM6FH32HR6NCYOXCC/operations?cursor=248720783019216897\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GB3LKXDV7MKIJ7YTCFBVGPMGH3CTXMR4DESXS2XUM6FH32HR6NCYOXCC/operations?cursor=248720783019216897\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248720783019216897"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/cdc1912eb95243b9017806aa0016b2eceafe87137e0a36245299e1381d2078f3"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248720783019216897/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248720783019216897"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248720783019216897"
+          }
+        },
+        "id": "248720783019216897",
+        "paging_token": "248720783019216897",
+        "transaction_successful": true,
+        "source_account": "GB3LKXDV7MKIJ7YTCFBVGPMGH3CTXMR4DESXS2XUM6FH32HR6NCYOXCC",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T14:59:27Z",
+        "transaction_hash": "cdc1912eb95243b9017806aa0016b2eceafe87137e0a36245299e1381d2078f3",
+        "asset_type": "native",
+        "from": "GB3LKXDV7MKIJ7YTCFBVGPMGH3CTXMR4DESXS2XUM6FH32HR6NCYOXCC",
+        "to": "GB3LKXDV7MKIJ7YTCFBVGPMGH3CTXMR4DESXS2XUM6FH32HR6NCYOXCC",
+        "amount": "0.1001016",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "JOHN",
+            "asset_issuer": "GB5S34RQZKNFYEYW6V6N3DAJ3TIDOXPSDV75YY5DTT2J2NJWFDLALGEW"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "KXLM",
+            "asset_issuer": "GBC7MXB7VQ633E2SLAL4NYZYRKNMVL4SQ25QOYL4URCZACNOKWS446O2"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "BRAINFROG",
+            "asset_issuer": "GCB2CE4PWFOECXWHAPAANRN34BS2ECGUKXFO655MEB4X674QXKI7QXHR"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "BASH",
+            "asset_issuer": "GBQ42A3K32ZFOKGB3JJCDXJW7LNAS3GEPQM7J43KYCR7OKVIUON7D65N"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "BABY",
+            "asset_issuer": "GCFOKCCCFQUB4MTHOTMI6DSCRHH6LVVBGXOFO6V5OWA5R3ES7RJ2AWOK"
+          }
+        ],
+        "source_amount": "0.1000000",
+        "destination_min": "0.1000000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

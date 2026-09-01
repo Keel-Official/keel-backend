@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=XLMFISHz\u0026asset_issuer=GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=XLMFISHz\u0026asset_issuer=GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ\u0026cursor=XLMFISHz_GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ_credit_alphanum12\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=XLMFISHz\u0026asset_issuer=GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ\u0026cursor=XLMFISHz_GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ_credit_alphanum12\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://meme.xlm.fish/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum12",
+        "asset_code": "XLMFISHz",
+        "asset_issuer": "GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ",
+        "paging_token": "XLMFISHz_GBLLGU7TWV4QKUKNQ7IAXC7VA55PLBY7LZSAKUQW2WBLUVHI3475SLGZ_credit_alphanum12",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 5,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 15,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "1880.7491644",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "8919.2508356",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+configs/demonstration-set.json
+configs/recorder-pairs.json

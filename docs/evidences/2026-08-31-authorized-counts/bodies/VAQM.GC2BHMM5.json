@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=VAQM\u0026asset_issuer=GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD\u0026cursor=\u0026limit=10\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=VAQM\u0026asset_issuer=GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD\u0026cursor=VAQM_GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD_credit_alphanum4\u0026limit=10\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=VAQM\u0026asset_issuer=GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD\u0026cursor=VAQM_GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD_credit_alphanum4\u0026limit=10\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://vaqm.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "VAQM",
+        "asset_issuer": "GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD",
+        "paging_token": "VAQM_GC2BHMM5X2OYOVQPYC3PZ4SJ5BFF52QFWF2NRXFDOJ4NIS47PU5QBVCD_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 182,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 109,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "24490.6906352",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "374975505.6295272",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

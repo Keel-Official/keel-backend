@@ -1,0 +1,60 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GB7MUAU7CWAG4QNZQXFN66UC3RXAOWACX2ZINRDFFBXKKECQJTVTA4T6/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GB7MUAU7CWAG4QNZQXFN66UC3RXAOWACX2ZINRDFFBXKKECQJTVTA4T6/operations?cursor=248697800647270401\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GB7MUAU7CWAG4QNZQXFN66UC3RXAOWACX2ZINRDFFBXKKECQJTVTA4T6/operations?cursor=248697800647270401\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248697800647270401"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/84ca6d46f17d4874dac879a9c8b4cd7c67044299b14f656be77f48e7832dd51c"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248697800647270401/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248697800647270401"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248697800647270401"
+          }
+        },
+        "id": "248697800647270401",
+        "paging_token": "248697800647270401",
+        "transaction_successful": true,
+        "source_account": "GB7MUAU7CWAG4QNZQXFN66UC3RXAOWACX2ZINRDFFBXKKECQJTVTA4T6",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:32:48Z",
+        "transaction_hash": "84ca6d46f17d4874dac879a9c8b4cd7c67044299b14f656be77f48e7832dd51c",
+        "asset_type": "native",
+        "from": "GB7MUAU7CWAG4QNZQXFN66UC3RXAOWACX2ZINRDFFBXKKECQJTVTA4T6",
+        "to": "GB7MUAU7CWAG4QNZQXFN66UC3RXAOWACX2ZINRDFFBXKKECQJTVTA4T6",
+        "amount": "0.1900379",
+        "path": [
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "LIBRE",
+            "asset_issuer": "GAYCCWKECNGDRHYU3UTREBD2XLC3CUQN6FV22TKM4WCQER3IWR7TF5CY"
+          }
+        ],
+        "source_amount": "0.1900000",
+        "destination_min": "0.1900000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

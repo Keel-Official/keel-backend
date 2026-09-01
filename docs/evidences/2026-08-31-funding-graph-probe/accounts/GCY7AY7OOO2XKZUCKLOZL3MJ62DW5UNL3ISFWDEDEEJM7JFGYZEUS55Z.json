@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z/operations?cursor=248695116293730305\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z/operations?cursor=248695116293730305\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695116293730305"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/fdf5dffed9009b8b1e59f64ac52f296d696b9280fce8ea84dab5e43a1eff2de7"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695116293730305/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695116293730305"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695116293730305"
+          }
+        },
+        "id": "248695116293730305",
+        "paging_token": "248695116293730305",
+        "transaction_successful": true,
+        "source_account": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:33:09Z",
+        "transaction_hash": "fdf5dffed9009b8b1e59f64ac52f296d696b9280fce8ea84dab5e43a1eff2de7",
+        "asset_type": "native",
+        "from": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+        "to": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+        "amount": "0.0100452",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "POYE",
+            "asset_issuer": "GCANJQJUFIWG7TXKCAJPG726KWW5CXISB2KM2MZRYLVV6AMZENZQN2ZE"
+          },
+          {
+            "asset_type": "credit_alphanum12",
+            "asset_code": "TreehouseVI",
+            "asset_issuer": "GBVYKIM4QGW7NK3Q5S76GWMZMLAWYB6FB43JQ4J7ZOXHAA3LEZZGYHSD"
+          }
+        ],
+        "source_amount": "0.0100000",
+        "destination_min": "0.0100000",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "yXLM",
+        "source_asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+      }
+    ]
+  }
+}

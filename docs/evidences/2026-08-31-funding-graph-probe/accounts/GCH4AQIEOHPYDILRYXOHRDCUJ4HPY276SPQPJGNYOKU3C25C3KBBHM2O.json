@@ -1,0 +1,50 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GCH4AQIEOHPYDILRYXOHRDCUJ4HPY276SPQPJGNYOKU3C25C3KBBHM2O/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GCH4AQIEOHPYDILRYXOHRDCUJ4HPY276SPQPJGNYOKU3C25C3KBBHM2O/operations?cursor=248759270219542530\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GCH4AQIEOHPYDILRYXOHRDCUJ4HPY276SPQPJGNYOKU3C25C3KBBHM2O/operations?cursor=248759270219542530\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248759270219542530"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/cec50f65cde7cf0a9b6bbb8eb8ad7f802e25fa31fbc9f77b6d21890463d2f46c"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248759270219542530/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248759270219542530"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248759270219542530"
+          }
+        },
+        "id": "248759270219542530",
+        "paging_token": "248759270219542530",
+        "transaction_successful": true,
+        "source_account": "GANESLOXBZWPLB5ZM2KFUTBGSBGISB7JTWFXO67G4TGQINWRMI6766GV",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-09T05:13:53Z",
+        "transaction_hash": "cec50f65cde7cf0a9b6bbb8eb8ad7f802e25fa31fbc9f77b6d21890463d2f46c",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GANESLOXBZWPLB5ZM2KFUTBGSBGISB7JTWFXO67G4TGQINWRMI6766GV",
+        "to": "GCH4AQIEOHPYDILRYXOHRDCUJ4HPY276SPQPJGNYOKU3C25C3KBBHM2O",
+        "amount": "0.0004699"
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GC2NSWPYDKVVEKG5GWH7KB53NXI252LDGEPBWUVJVSJZSPUBBDZWS5A5/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GC2NSWPYDKVVEKG5GWH7KB53NXI252LDGEPBWUVJVSJZSPUBBDZWS5A5/operations?cursor=248696563698081793\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GC2NSWPYDKVVEKG5GWH7KB53NXI252LDGEPBWUVJVSJZSPUBBDZWS5A5/operations?cursor=248696563698081793\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696563698081793"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/ccd7f9050991fefda03a17a9c1df70d11c49130644a3cb4639ec2a7cf8692b5b"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696563698081793/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696563698081793"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696563698081793"
+          }
+        },
+        "id": "248696563698081793",
+        "paging_token": "248696563698081793",
+        "transaction_successful": true,
+        "source_account": "GC2NSWPYDKVVEKG5GWH7KB53NXI252LDGEPBWUVJVSJZSPUBBDZWS5A5",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T06:05:04Z",
+        "transaction_hash": "ccd7f9050991fefda03a17a9c1df70d11c49130644a3cb4639ec2a7cf8692b5b",
+        "asset_type": "credit_alphanum4",
+        "asset_code": "yXLM",
+        "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55",
+        "from": "GC2NSWPYDKVVEKG5GWH7KB53NXI252LDGEPBWUVJVSJZSPUBBDZWS5A5",
+        "to": "GC2NSWPYDKVVEKG5GWH7KB53NXI252LDGEPBWUVJVSJZSPUBBDZWS5A5",
+        "amount": "0.1001551",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "WXT",
+            "asset_issuer": "GASBLVHS5FOABSDNW5SPPH3QRJYXY5JHA2AOA2QHH2FJLZBRXSG4SWXT"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XAU",
+            "asset_issuer": "GBCB4WO6J4ET55RWK2SVX76LUQ4PQ7TCDHG2YFILQML7D6XR3HACLXAU"
+          }
+        ],
+        "source_amount": "0.1000000",
+        "destination_min": "0.1000000",
+        "source_asset_type": "native"
+      }
+    ]
+  }
+}

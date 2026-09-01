@@ -1,0 +1,65 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GAFIAE3DA3ZHGXVLVOAEYYBJM5ZQPCJZ4N6XGTI5UCQUVDX62F6HBB4R/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GAFIAE3DA3ZHGXVLVOAEYYBJM5ZQPCJZ4N6XGTI5UCQUVDX62F6HBB4R/operations?cursor=248695348221161473\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GAFIAE3DA3ZHGXVLVOAEYYBJM5ZQPCJZ4N6XGTI5UCQUVDX62F6HBB4R/operations?cursor=248695348221161473\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248695348221161473"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/d6f6817e5b8e7b3995c73287c7a13cf0b66c1665ac86b1214735b2d6bbbe13c1"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248695348221161473/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248695348221161473"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248695348221161473"
+          }
+        },
+        "id": "248695348221161473",
+        "paging_token": "248695348221161473",
+        "transaction_successful": true,
+        "source_account": "GAFIAE3DA3ZHGXVLVOAEYYBJM5ZQPCJZ4N6XGTI5UCQUVDX62F6HBB4R",
+        "type": "path_payment_strict_send",
+        "type_i": 13,
+        "created_at": "2025-07-08T05:38:13Z",
+        "transaction_hash": "d6f6817e5b8e7b3995c73287c7a13cf0b66c1665ac86b1214735b2d6bbbe13c1",
+        "asset_type": "native",
+        "from": "GAFIAE3DA3ZHGXVLVOAEYYBJM5ZQPCJZ4N6XGTI5UCQUVDX62F6HBB4R",
+        "to": "GAFIAE3DA3ZHGXVLVOAEYYBJM5ZQPCJZ4N6XGTI5UCQUVDX62F6HBB4R",
+        "amount": "0.6378384",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XAU",
+            "asset_issuer": "GBCB4WO6J4ET55RWK2SVX76LUQ4PQ7TCDHG2YFILQML7D6XR3HACLXAU"
+          },
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "XRP",
+            "asset_issuer": "GBXRPL45NPHCVMFFAYZVUVFFVKSIZ362ZXFP7I2ETNQ3QKZMFLPRDTD5"
+          }
+        ],
+        "source_amount": "15.0000000",
+        "destination_min": "0.6378139",
+        "source_asset_type": "credit_alphanum4",
+        "source_asset_code": "SHX",
+        "source_asset_issuer": "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH"
+      }
+    ]
+  }
+}

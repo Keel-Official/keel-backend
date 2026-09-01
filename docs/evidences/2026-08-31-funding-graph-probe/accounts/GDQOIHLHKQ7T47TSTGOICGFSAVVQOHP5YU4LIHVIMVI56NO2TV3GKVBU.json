@@ -1,0 +1,48 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GDQOIHLHKQ7T47TSTGOICGFSAVVQOHP5YU4LIHVIMVI56NO2TV3GKVBU/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GDQOIHLHKQ7T47TSTGOICGFSAVVQOHP5YU4LIHVIMVI56NO2TV3GKVBU/operations?cursor=248698960288702521\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GDQOIHLHKQ7T47TSTGOICGFSAVVQOHP5YU4LIHVIMVI56NO2TV3GKVBU/operations?cursor=248698960288702521\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248698960288702521"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/f4719fa71456c2472705894bd4f86c4abe48d60c8f1f14899ac670e18be022ce"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248698960288702521/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248698960288702521"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248698960288702521"
+          }
+        },
+        "id": "248698960288702521",
+        "paging_token": "248698960288702521",
+        "transaction_successful": true,
+        "source_account": "GAVZ2H2KIIGT7T5PH7NTNTTSXBHZLSCC37JCH46N5EPD67MH2QC7OFLZ",
+        "type": "payment",
+        "type_i": 1,
+        "created_at": "2025-07-08T06:58:50Z",
+        "transaction_hash": "f4719fa71456c2472705894bd4f86c4abe48d60c8f1f14899ac670e18be022ce",
+        "asset_type": "native",
+        "from": "GAVZ2H2KIIGT7T5PH7NTNTTSXBHZLSCC37JCH46N5EPD67MH2QC7OFLZ",
+        "to": "GDQOIHLHKQ7T47TSTGOICGFSAVVQOHP5YU4LIHVIMVI56NO2TV3GKVBU",
+        "amount": "0.0000040"
+      }
+    ]
+  }
+}

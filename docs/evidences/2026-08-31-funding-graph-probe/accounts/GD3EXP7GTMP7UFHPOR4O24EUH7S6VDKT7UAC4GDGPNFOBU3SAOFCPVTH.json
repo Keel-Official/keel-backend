@@ -1,0 +1,66 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH/operations?cursor=\u0026limit=1\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH/operations?cursor=248696379013730314\u0026limit=1\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH/operations?cursor=248696379013730314\u0026limit=1\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/248696379013730314"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/70a5f986731ef1db0b0818c3c9627aa36666cc5194ba69d5cae1fea71b8cf9ff"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/248696379013730314/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=248696379013730314"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=248696379013730314"
+          }
+        },
+        "id": "248696379013730314",
+        "paging_token": "248696379013730314",
+        "transaction_successful": true,
+        "source_account": "GAXSGZ2JM3LNWOO4WRGADISNMWO4HQLG4QBGUZRKH5ZHL3EQBGX73ICE",
+        "type": "create_claimable_balance",
+        "type_i": 14,
+        "created_at": "2025-07-08T06:00:52Z",
+        "transaction_hash": "70a5f986731ef1db0b0818c3c9627aa36666cc5194ba69d5cae1fea71b8cf9ff",
+        "sponsor": "GAXSGZ2JM3LNWOO4WRGADISNMWO4HQLG4QBGUZRKH5ZHL3EQBGX73ICE",
+        "asset": "dICE:GAXSGZ2JM3LNWOO4WRGADISNMWO4HQLG4QBGUZRKH5ZHL3EQBGX73ICE",
+        "amount": "18819492.1468876",
+        "claimants": [
+          {
+            "destination": "GBNDWRSUOVWHTD22STRCATZZGQ6G2E2JOSE7IWMY5L4FZJKIKTMYYLFX",
+            "predicate": {
+              "not": {
+                "unconditional": true
+              }
+            }
+          },
+          {
+            "destination": "GD3EXP7GTMP7UFHPOR4O24EUH7S6VDKT7UAC4GDGPNFOBU3SAOFCPVTH",
+            "predicate": {
+              "not": {
+                "abs_before": "2025-07-07T12:20:10Z",
+                "abs_before_epoch": "1751890810"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
