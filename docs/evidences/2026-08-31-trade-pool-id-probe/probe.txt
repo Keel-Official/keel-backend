@@ -1,0 +1,61 @@
+Probe supporting docs/evidences/2026-08-31-trade-pool-id-defect.md
+
+requested_at_utc: 2026-08-31T16:09:55Z
+received_at_utc:  2026-08-31T16:09:57Z
+http_status:      200
+horizon_date:     Mon, 31 Aug 2026 16:09:56 GMT
+latest_ledger:    NOT SENT ON THIS ENDPOINT
+
+  /trades returns no Latest-Ledger header. Only /order_book, /liquidity_pools
+  and /assets carry it, which internal/horizon/client.go line 117 already
+  records. Nothing is missing from this capture and nothing was dropped: the
+  header does not exist on this response. See pool-trades.headers.txt.
+
+  It matters less here than it did for the holder set. /accounts is current
+  state and cannot be re-read for a past ledger. These trades are closed
+  history addressed by an explicit cursor, so the same request returns the
+  same records; each record carries its own ledger in the high 32 bits of its
+  paging token and its own ledger_close_time. The evidence is the cursor, not
+  the wall clock.
+
+records_returned: 200 (all trade_type=liquidity_pool)
+ledger_close_time range: 2026-02-03T19:59:27Z .. 2026-05-26T10:23:47Z
+
+sha256(pool-trades.json): f7711972b2d2f061fc44e87811f8c2bba46b796ce70e8729c548e48d936a9b1c
+
+url: https://horizon.stellar.org/trades?base_asset_type=credit_alphanum12&base_asset_code=USTRY&base_asset_issuer=GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC&counter_asset_type=credit_alphanum4&counter_asset_code=USDC&counter_asset_issuer=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&trade_type=liquidity_pool&limit=200&order=asc&cursor=262289800181637120-0
+
+WHAT THIS BODY SHOWS, counted with jq and not by eye:
+
+  records with a top-level  liquidity_pool_id:  0
+  records with base_liquidity_pool_id:          171
+  records with counter_liquidity_pool_id:       29
+  records with BOTH side ids:                   0
+  records with NEITHER side id:                 0
+
+  distinct pool id across all 200:
+  27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb
+
+  every field name Horizon used, union across all 200 records:
+    _links
+    base_account
+    base_amount
+    base_asset_code
+    base_asset_issuer
+    base_asset_type
+    base_is_seller
+    base_liquidity_pool_id
+    base_offer_id
+    counter_account
+    counter_amount
+    counter_asset_code
+    counter_asset_issuer
+    counter_asset_type
+    counter_liquidity_pool_id
+    counter_offer_id
+    id
+    ledger_close_time
+    liquidity_pool_fee_bp
+    paging_token
+    price
+    trade_type

@@ -142,6 +142,16 @@ type Trade struct {
 	BaseOfferID     string
 	CounterOfferID  string
 	LiquidityPoolID string
+
+	// LiquidityPoolSide is "base", "counter" or "". A pool trade has an account
+	// on one side and a pool on the other, and which one it is changes what the
+	// trade means: the pool was the seller in one case and the buyer in the
+	// other. 49 of the 58 February pool trades had the pool on the base side.
+	LiquidityPoolSide string
+
+	// LiquidityPoolFeeBP is Horizon's liquidity_pool_fee_bp, 0 for an orderbook
+	// trade. Not applied to anything here.
+	LiquidityPoolFeeBP int
 }
 
 // BoundKind separates a bound whose cause is established from one whose cause is

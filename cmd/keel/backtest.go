@@ -339,6 +339,11 @@ func writeTradesCSV(path string, trades []domain.Trade) error {
 		"base_amount", "counter_amount",
 		"base_is_seller",
 		"base_account", "counter_account", "base_offer_id", "counter_offer_id", "liquidity_pool_id",
+		// APPENDED AT THE END, positions 18 and 19, rather than beside
+		// liquidity_pool_id. Columns 1..17 keep their names and their positions, so
+		// a consumer indexing by position reads the same field it read before. See
+		// docs/evidences/2026-08-31-trade-pool-id-defect.md section 7.
+		"liquidity_pool_side", "liquidity_pool_fee_bp",
 	}
 	if err := w.Write(header); err != nil {
 		return err
@@ -358,6 +363,7 @@ func writeTradesCSV(path string, trades []domain.Trade) error {
 			t.CounterAmount.String(),
 			fmt.Sprintf("%t", t.BaseIsSeller),
 			t.BaseAccount, t.CounterAccount, t.BaseOfferID, t.CounterOfferID, t.LiquidityPoolID,
+			t.LiquidityPoolSide, fmt.Sprintf("%d", t.LiquidityPoolFeeBP),
 		}
 		if err := w.Write(rec); err != nil {
 			return err

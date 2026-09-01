@@ -228,3 +228,138 @@ func TestARepeatedPagingTokenIsNotCountedTwice(t *testing.T) {
 		t.Errorf("want 1 trade after dedup, got %d", len(got.Trades))
 	}
 }
+
+// The two real pool bodies, copied verbatim out of
+// docs/evidences/2026-08-31-trade-pool-id-probe/pool-trades.json, minus only
+// their _links block. Both orientations are here because the defect they cover
+// is a NAME and not a value: a tag reading `liquidity_pool_id` matched neither
+// of these bodies, encoding/json reported no error, and the field was the empty
+// string on all 58 pool trades of the February CSV. See
+// docs/evidences/2026-08-31-trade-pool-id-defect.md.
+//
+// Note what is ABSENT rather than empty in each. The base-side record carries no
+// base_account and the counter-side record carries no counter_account, which is
+// the pattern the finding document counts 49 and 9 of. Nothing here reads that
+// hole: the side is asserted from the field Horizon states outright.
+const (
+	poolBaseSideJSON = `{
+	  "id": "262289800181637121-0",
+	  "paging_token": "262289800181637121-0",
+	  "ledger_close_time": "2026-02-03T19:59:27Z",
+	  "trade_type": "liquidity_pool",
+	  "liquidity_pool_fee_bp": 30,
+	  "base_liquidity_pool_id": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+	  "base_amount": "0.0000527",
+	  "base_asset_type": "credit_alphanum12",
+	  "base_asset_code": "USTRY",
+	  "base_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+	  "counter_offer_id": "4873975818609025025",
+	  "counter_account": "GBQ7SRTP7PNNSCNZFU3QMI4MJHC7CFAYITF4B2ZRLPUK7R62DJJQDP7K",
+	  "counter_amount": "0.0000558",
+	  "counter_asset_type": "credit_alphanum4",
+	  "counter_asset_code": "USDC",
+	  "counter_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+	  "base_is_seller": true,
+	  "price": {"n": "558", "d": "527"}
+	}`
+
+	poolCounterSideJSON = `{
+	  "id": "263504030385864713-1",
+	  "paging_token": "263504030385864713-1",
+	  "ledger_close_time": "2026-02-22T18:48:02Z",
+	  "trade_type": "liquidity_pool",
+	  "liquidity_pool_fee_bp": 30,
+	  "base_offer_id": "4875190048813252617",
+	  "base_account": "GB37DH4CM64RFUJ4LVNGTECDITMYELOBFUW7CR36644JZMFYZA3UBHQW",
+	  "base_amount": "0.8902170",
+	  "base_asset_type": "credit_alphanum12",
+	  "base_asset_code": "USTRY",
+	  "base_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+	  "counter_liquidity_pool_id": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+	  "counter_amount": "0.8860404",
+	  "counter_asset_type": "credit_alphanum4",
+	  "counter_asset_code": "USDC",
+	  "counter_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+	  "base_is_seller": false,
+	  "price": {"n": "8860404", "d": "8902170"}
+	}`
+
+	// The pool both bodies name. It is the USTRY/USDC pool DEC-003, DEC-006 and
+	// DEC-007 are about, and it was the one identifier the CSV dropped.
+	poolID = "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb"
+)
+
+// TestTradesNamesThePoolOnBothOrientations is the test section 4 of the finding
+// document says was missing.
+//
+// BOTH ORIENTATIONS ARE THE POINT AND NOT THOROUGHNESS. A poolID() reading only
+// BaseLiquidityPoolID passes the base-side case perfectly, so a test covering
+// that side alone is satisfied by half the fix. It also asserts the side and the
+// fee, because an id with no side leaves the reader re-deriving from a blank
+// account column, which is what section 8 objects to.
+func TestTradesNamesThePoolOnBothOrientations(t *testing.T) {
+	f := newFakeHorizon(t)
+	f.handler["/trades"] = func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprint(w, tradesPageJSON("", poolBaseSideJSON, poolCounterSideJSON))
+	}
+	c, _ := f.client()
+
+	got, err := c.Trades(context.Background(), testUSTRY, testUSDC, TradeQuery{})
+	if err != nil {
+		t.Fatalf("Trades: %v", err)
+	}
+	if len(got.Trades) != 2 {
+		t.Fatalf("want 2 trades, got %d", len(got.Trades))
+	}
+
+	for _, tc := range []struct {
+		name     string
+		tr       domain.Trade
+		wantSide string
+	}{
+		{"the pool was the base", got.Trades[0], "base"},
+		{"the pool was the counter", got.Trades[1], "counter"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.tr.Type != "liquidity_pool" {
+				t.Errorf("type = %q, want liquidity_pool", tc.tr.Type)
+			}
+			if tc.tr.LiquidityPoolID != poolID {
+				t.Errorf("pool id = %q, want %q", tc.tr.LiquidityPoolID, poolID)
+			}
+			if tc.tr.LiquidityPoolSide != tc.wantSide {
+				t.Errorf("pool side = %q, want %q", tc.tr.LiquidityPoolSide, tc.wantSide)
+			}
+			if tc.tr.LiquidityPoolFeeBP != 30 {
+				t.Errorf("fee bp = %d, want 30", tc.tr.LiquidityPoolFeeBP)
+			}
+		})
+	}
+}
+
+// TestAnOrderbookTradeNamesNoPool is the other half of the same claim. The
+// defect and a correct orderbook decode both produce the empty string, which is
+// section 4's account of why the existing fixtures could not tell them apart, so
+// this pins the empty case deliberately rather than leaving it implied.
+//
+// It also guards the alternative section 6.6 rejected. tradeJSON carries both
+// accounts, but nothing in poolSide() consults them, so a future orderbook
+// record with an absent account would still name no pool.
+func TestAnOrderbookTradeNamesNoPool(t *testing.T) {
+	f := newFakeHorizon(t)
+	f.handler["/trades"] = func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprint(w, tradesPageJSON("",
+			tradeJSON(honestToken, "2026-02-22T00:09:16Z", 266843207, 2500000, "0.0501003", "5.3475699")))
+	}
+	c, _ := f.client()
+
+	got, err := c.Trades(context.Background(), testUSTRY, testUSDC, TradeQuery{})
+	if err != nil {
+		t.Fatalf("Trades: %v", err)
+	}
+	tr := got.Trades[0]
+	if tr.LiquidityPoolID != "" || tr.LiquidityPoolSide != "" || tr.LiquidityPoolFeeBP != 0 {
+		t.Errorf("orderbook trade named a pool: id=%q side=%q fee=%d",
+			tr.LiquidityPoolID, tr.LiquidityPoolSide, tr.LiquidityPoolFeeBP)
+	}
+}

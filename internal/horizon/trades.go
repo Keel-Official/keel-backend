@@ -226,7 +226,20 @@ type tradeRecord struct {
 	CounterAssetCode  string `json:"counter_asset_code"`
 	CounterAssetIssue string `json:"counter_asset_issuer"`
 
-	LiquidityPoolID string `json:"liquidity_pool_id"`
+	// THE POOL IS NAMED BY SIDE AND THERE IS NO BARE liquidity_pool_id. Horizon
+	// sends base_liquidity_pool_id or counter_liquidity_pool_id and never both:
+	// 171 and 29 of 200 pool trades on this pair, 0 with both, 0 with neither.
+	// A tag reading `liquidity_pool_id` matches nothing, and encoding/json
+	// reports no error for a key it was never asked for, which is why this was
+	// the empty string on all 58 pool trades of the February CSV. See
+	// docs/evidences/2026-08-31-trade-pool-id-defect.md.
+	BaseLiquidityPoolID    string `json:"base_liquidity_pool_id"`
+	CounterLiquidityPoolID string `json:"counter_liquidity_pool_id"`
+
+	// Fee in basis points, sent only on a pool trade. A pool trade's price is
+	// quoted after this fee, so the genuine-trade rule in 07 section 1 has to
+	// decide whether it cares. Recorded rather than interpreted.
+	LiquidityPoolFeeBP int `json:"liquidity_pool_fee_bp"`
 
 	// BaseIsSeller is what separates a book walk from a path payment that buys
 	// the base asset on one venue and sells it on another inside one operation.
@@ -241,6 +254,31 @@ func (r tradeRecord) baseRef() assetRef {
 
 func (r tradeRecord) counterRef() assetRef {
 	return assetRef{AssetType: r.CounterAssetType, AssetCode: r.CounterAssetCode, AssetIssuer: r.CounterAssetIssue}
+}
+
+// poolID returns the pool this trade touched, or "" for an orderbook trade.
+//
+// It does NOT infer the pool from an empty account. An orderbook trade with a
+// missing account would then be read as a pool trade, and the two are not the
+// same claim. Horizon states the side; this reads what it stated.
+func (r tradeRecord) poolID() string {
+	if r.BaseLiquidityPoolID != "" {
+		return r.BaseLiquidityPoolID
+	}
+	return r.CounterLiquidityPoolID
+}
+
+// poolSide reports which side of the trade the pool was, "base", "counter", or
+// "" when no pool was involved.
+func (r tradeRecord) poolSide() string {
+	switch {
+	case r.BaseLiquidityPoolID != "":
+		return "base"
+	case r.CounterLiquidityPoolID != "":
+		return "counter"
+	default:
+		return ""
+	}
 }
 
 // trade converts one record, refusing anything it cannot orient.
@@ -275,21 +313,23 @@ func (r tradeRecord) trade(base, quote domain.Asset) (domain.Trade, error) {
 	opID, fill := splitPagingToken(r.PagingToken)
 
 	return domain.Trade{
-		ID:              r.PagingToken,
-		OperationID:     opID,
-		FillIndex:       fill,
-		BaseIsSeller:    r.BaseIsSeller,
-		LedgerSeq:       ledgerFromPagingToken(r.PagingToken),
-		ClosedAt:        r.LedgerCloseTime.UTC(),
-		Type:            r.TradeType,
-		Price:           p,
-		BaseAmount:      baseAmt,
-		CounterAmount:   counterAmt,
-		BaseAccount:     r.BaseAccount,
-		CounterAccount:  r.CounterAccount,
-		BaseOfferID:     r.BaseOfferID,
-		CounterOfferID:  r.CounterOfferID,
-		LiquidityPoolID: r.LiquidityPoolID,
+		ID:                 r.PagingToken,
+		OperationID:        opID,
+		FillIndex:          fill,
+		BaseIsSeller:       r.BaseIsSeller,
+		LedgerSeq:          ledgerFromPagingToken(r.PagingToken),
+		ClosedAt:           r.LedgerCloseTime.UTC(),
+		Type:               r.TradeType,
+		Price:              p,
+		BaseAmount:         baseAmt,
+		CounterAmount:      counterAmt,
+		BaseAccount:        r.BaseAccount,
+		CounterAccount:     r.CounterAccount,
+		BaseOfferID:        r.BaseOfferID,
+		CounterOfferID:     r.CounterOfferID,
+		LiquidityPoolID:    r.poolID(),
+		LiquidityPoolSide:  r.poolSide(),
+		LiquidityPoolFeeBP: r.LiquidityPoolFeeBP,
 	}, nil
 }
 
