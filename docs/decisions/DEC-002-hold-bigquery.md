@@ -269,3 +269,147 @@ oracle's reading, which is a different and also useful quantity, because it is t
 capital an attacker has to be able to move rather than to spend.
 
 Both belong in the report, labelled differently.
+
+---
+
+## 8. AMENDMENT, 3 September 2026: two acceptance criteria name Hubble, and this record does not know it
+
+**This section AMENDS and does not reverse.** The deferral in section 1 stands as
+written until Al says otherwise. `docs/decisions/` is YELLOW: Claude drafts and
+amends a record and must not create or reverse a decision. What follows is a finding
+and a re-costing handed over for a decision, and the decision is item B-8.
+
+### 8.1 What this record claims, and what the PRD says
+
+Section 1: "Exactly one thing is blocked without BigQuery: **the orderbook state at
+a past ledger**." Section 4: "Phases 1 and 2 cover **all of Deliverable 1 except
+precise replay**."
+
+Both sentences are about capability. Neither is about the acceptance criteria, and
+the acceptance criteria are what the deliverable is scored against. `docs/api/Keel_PRD.md`
+section 9 reads, verbatim:
+
+> - [ ] **Horizon versus Hubble** cross-validation on at least 50 pairs, results tabulated
+
+and section 4.2 reads:
+
+> | FR-13 | Read a historical ledger snapshot from **Hubble** for a given `ledgerSeq` | **M** |
+
+FR-13 is priority **M**, which the PRD defines as "without it the deliverable fails".
+`internal/hubble/` holds one file, `CLAUDE.md`, and no Go at all. So a MUST is at zero
+and an acceptance criterion names a source that does not exist in the repository.
+
+### 8.2 Where the word was lost, because it was not lost here
+
+This record never claimed the criteria were satisfiable without Hubble. The claim
+entered somewhere else and by paraphrase. `docs/internal/deliverable-1-breakdown-2026-08-28.md`
+renders criterion 3 as "Cross-validation on at least 50 pairs, tabulated", dropping
+the two words that name the second source, and the 31 August and 2 September
+breakdowns carry that paraphrase forward and score against it. Criterion 3 was scored
+85, then 90, then 91 on a reading that had the source removed from it.
+
+The 2 September breakdown also states that the PRD "lives in `docs/context/`, which
+is gitignored and is not on disk". That is false: it is tracked at
+`docs/api/Keel_PRD.md`, and section 9 is at line 312. The question the breakdown's
+section 4 describes as needing ten minutes with the PRD could have been answered on
+2 September from a committed file.
+
+### 8.3 The one thing this amendment cannot settle
+
+`10-validation.md` section 3 defines Layer 3 as "recorded Horizon versus
+reconstructed history" and says of it: "This is the layer that satisfies the SOW
+promise." So the methodology asserts a substitution. Whether the SOW permits it
+cannot be checked here, because `docs/context/` is not on disk in this working copy.
+
+Three readings, and only Al can close it:
+
+1. The SOW says cross-validation without naming a source, the PRD narrowed it to
+   Hubble on its own, and Layer 3 satisfies the SOW. Then criterion 3 is close to
+   done and the PRD's wording is what needs amending, with the client informed.
+2. The SOW names Hubble too. Then criterion 3 is not close to done and no amount of
+   Layer 3 work closes it.
+3. The SOW is silent and the PRD is the operative contract. Then the criterion means
+   what it says.
+
+**Under reading 1 or 3 the fix is a wording change to a client-facing document, which
+is not a repository matter and is not Claude's.** Lowering a bar because the work did
+not clear it is the move `internal/conformance` has a written rule against, and the
+difference between amending a criterion the client agreed and quietly rescoring it is
+the whole of the distinction.
+
+### 8.4 The re-costing, which is the reason this section exists
+
+The 2 September breakdown priced closing criterion 3 at **+1.3 overall points**, on
+the ground that criterion 3 was already at 91. With the criterion read as written it
+is not at 91, and the price changes:
+
+| Criterion | Scored 2 Sep | Read as written | What one Hubble adapter does |
+|---|---|---|---|
+| 2, FR-12 to FR-17 | 88 | ~70, FR-13 is an M at zero and FR-14 has no second source to compare | → ~95 |
+| 3, Horizon versus Hubble on 50+ pairs | 91 | ~40, the harness, recorder, tabulation and discipline all exist and carry over unchanged; the second reader does not exist | → ~100 |
+
+That is **about +12 overall points from one piece of work**, against +1.3 as priced.
+It is the largest single movement available to Claude on the whole board, and
+`internal/hubble/` is YELLOW, so the writing is Claude's rather than Al's.
+
+The three roads from B-8 are unchanged in kind and changed in weight:
+
+1. **Fix the second cause in the reconstruction.** Now known to be structural to
+   walking live offers backwards rather than a defect in it, so this road may not
+   exist. It also does not touch FR-13 or the word Hubble either way.
+2. **Take Hubble.** Reads the ledger as it was, walks nothing backwards, satisfies
+   FR-13 and FR-14 and criterion 3 as written, all with one adapter. This is the road
+   the evidence and now the criteria both point at.
+3. **Change what the protocol asks for.** See 8.3: legitimate only as an amendment
+   the client is told about, never as a rescoring.
+
+### 8.5 A fourth revisit trigger, which section 6 does not list
+
+Section 6 gives three conditions for activating Phase 3. None of them is "an
+acceptance criterion names Hubble". Proposed as a fourth, for Al to accept or reject:
+
+> 4. An acceptance criterion or a MUST-priority requirement names Hubble by name, so
+>    no substitute satisfies it however good the substitute is.
+
+Read against section 6 as it stands, trigger 2 is the closest fit and does not
+actually fire: no reviewer has asked for precise historical depth. The criteria asked
+first, in writing, before the sprint began, and this record's revisit list cannot see
+a requirement it was written to work around.
+
+### 8.6 What it would take to act, verified rather than assumed
+
+Checked on 3 September 2026 on the working machine:
+
+| Prerequisite | State |
+|---|---|
+| `gcloud` on PATH | absent |
+| `bq` on PATH | absent |
+| `~/.config/gcloud` | does not exist |
+| A GCP project with the BigQuery sandbox | unknown, Al owns any account |
+| `Bash(gcloud:*)` in `.claude/settings.json` | **deny** |
+| `Bash(bq:*)` in `.claude/settings.json` | **ask** |
+
+So the road is blocked twice over and only one of the two blocks is a decision. The
+deny on `gcloud` is correct and should stay: authenticating a cloud account is Al's,
+for the same reason `scripts/s3-archive/` splits PREPARE from APPLY. An agent that
+provisions the storage its own evidence comes from has no chain of custody. The
+interactive login is Al's to run.
+
+`internal/hubble/CLAUDE.md` already carries the cost rules a sandbox needs, written
+before any of this: partition filter first, explicit columns, dry run before every
+query. Nothing about those changes.
+
+### 8.7 One thing this record already asks for that is now Al's
+
+Section 5 assigns an edit to the PRD: "Add a note that historical metrics in v1 may
+be upper bounds rather than direct measurements". As of 3 September 2026
+`docs/api/Keel_PRD.md` is refused to Claude in both the deny list and the hook,
+because it is an input from outside and holds the criteria the work is scored
+against. That edit is therefore Al's to make.
+
+**It was never made.** Checked on 3 September 2026: `docs/api/Keel_PRD.md` contains
+no occurrence of "upper bound", "trades-implied" or "trades_implied". So a note this
+record asked for in August is still owed, and the contract carries the honesty that
+the PRD does not: `dataSource: "trades-implied"` is in `docs/api/keel-openapi.yaml`
+as section 5 also required. One of the two edits landed and the other did not, and
+the one that did not is the one facing the reader who judges the deliverable.
