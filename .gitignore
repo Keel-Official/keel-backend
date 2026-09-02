@@ -5,6 +5,14 @@
 /bin/
 /keel
 
+# Other command binaries built at the root. `go build ./scripts/holderstats`
+# drops a Mach-O executable called `holderstats` beside the source, and nothing
+# above catches it: /keel names one binary and /bin/ names a directory nobody
+# builds into. A compiled binary in a PUBLIC repository is the mistake this line
+# exists to stop, and it is added by name rather than by a wildcard so that a new
+# root binary shows up in `git status` and gets a decision instead of vanishing.
+/holderstats
+
 # Env
 .env
 .env.*
