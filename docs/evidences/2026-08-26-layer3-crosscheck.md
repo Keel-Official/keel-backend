@@ -8,6 +8,12 @@
 **Raw results:** `docs/evidences/layer3-crosscheck-2026-08-26.csv`, one row per
 recording with every count behind every verdict.
 
+**AMENDED 2 September 2026.** Section 4 predicted what a crosscheck run minutes
+after the recording would produce. That experiment was run on 31 August and the
+prediction is about half right. Section 4.1 below carries the correction and
+`docs/evidences/2026-08-31-samehour-crosscheck.md` carries the measurement. The
+original text of section 4 is left exactly as it was written.
+
 **Reproduce it:**
 
 ```bash
@@ -133,6 +139,45 @@ reconstruction to have to see through. Both are worth having, which is an argume
 for running the immediate one every hour AND keeping the committed recordings for
 occasional deep checks, not for choosing between them.
 
+### 4.1 AMENDMENT, 2 September 2026: the immediate run was tried and it stops at 49
+
+Two batches were run on 31 August 2026 over the same sixty pairs, at a measured
+delay of five minutes to six, an hour apart. Full measurement in
+`docs/evidences/2026-08-31-samehour-crosscheck.md`.
+
+| Run | Delay | MATCH | MISMATCH | PARTIAL |
+|---|---|---|---|---|
+| this document | ~7 hours | 37 | 0 | 23 |
+| 31 August, batch 1, ledgers 64205568 to 64205574 | 5m00s to 5m59s | **49** | 0 | 11 |
+| 31 August, batch 2, ledgers 64206210 to 64206216 | 5m00s to 6m00s | **48** | 0 | 12 |
+
+**What section 4 got right.** The delay is a real cause and shortening it is a real
+fix. The four pairs named above as failing on a single moved offer, GOLD, SCROOGE,
+USDGLO and XTAR, are all MATCH in both batches. Twelve of the twenty-three convert.
+
+**What section 4 got wrong, and it is the sentence naming two pairs.** "At the
+other end, XLM/USDC has 1,710 and yUSDC 390 ... Those pairs would have compared
+cleanly if the run had happened minutes after the recording instead of hours."
+Neither did. XLM/USDC fell from 105 changed and 1,605 gone to 35 and 4, and stayed
+PARTIAL in both batches. yUSDC fell from 42 and 348 to 7 and 0, and stayed PARTIAL
+in both. Eleven pairs survive both five minute batches, and it is the same eleven
+in each.
+
+**Why, in one sentence.** The reconstruction walks live offers backwards, so an
+offer that moved after the target ledger cannot be carried; that number falls with
+the delay but does not reach zero on a pair whose offers move inside five minutes.
+It tracks market activity and not only elapsed time, which is why the same eleven
+names come back an hour later.
+
+**What it costs.** 49 and 48 are both under the 50 comparable recordings that
+`10-validation.md` section 3 requires. Criterion 3 does not close by crosschecking
+faster, which is what section 4 above implied it would. That is handoff item B-8,
+and the roads open to it are set out in section 6 of the 31 August document.
+
+**Where else this correction is owed.** `docs/methodology/10-validation.md` around
+line 271 states the seven hour gap "is the direct cause of all 23 PARTIAL rows".
+That file is RED and the correction is Al's.
+
 ## 5. Why every gap here makes a book THINNER
 
 This matters more than the count. The rewind can miss offers in three ways and all
@@ -167,6 +212,9 @@ reconstruction was inventing levels. It was removed rather than bounded, and
   `last_modified_ledger` on a live offer, and an offer that stopped existing in
   February has no live record at all. `keel replay` is that route and its own
   evidence document is where its limits are.
+- **The count of comparable pairs is bounded by market activity, not by the
+  schedule.** Measured on 31 August 2026 and recorded in section 4.1. This document
+  reads as though the delay were the only obstacle, and it is not the only one.
 - **Zero mismatches is not proof that the two paths agree in general.** It is 37
   pairs at one moment. What would make it stronger is the hourly run in section 4,
   because a sample accumulated over weeks catches a disagreement that depends on
