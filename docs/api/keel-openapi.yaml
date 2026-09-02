@@ -2,6 +2,23 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.4.5, 2 September 2026. The oracle window in every example moves from 300 seconds
+  # to 900, so the contract stops disagreeing with the methodology about it. No schema
+  # change. BREAKING FOR ANY CONSUMER that hardcoded 300 rather than reading
+  # oracleWindowSeconds from GET /methodology, which is why the field is served at all.
+  # docs/methodology/06-oracle-resilience.md section 1 states a 15 minute default and
+  # has since 1.0.3; the contract carried 5 minutes in one /methodology example, one
+  # schema example, three oracleResistance examples and two prose sentences, and
+  # docs/api/mocks/methodology.json is generated from the first of those, so a frontend
+  # was building against a window this API's own methodology does not use. Finding
+  # P2-17 in scripts/audit-verification.sh.
+  #
+  # THIS DOES NOT DECIDE THE WINDOW. 06-oracle-resilience.md calls 15 minutes an
+  # assumption in as many words, it is marked partial for that reason, and handoff item
+  # B-6 is open against Reflector for the real figure. The contract follows the
+  # methodology here rather than leading it, and if B-6 comes back with a third number
+  # both move together. What is fixed is the disagreement, not the value.
+  #
   # 1.4.4, 28 August 2026. `reachable` on manipulationCostCombined is documented as
   # unconditionally true whenever an active pool is present, and the four-row
   # interpretation table is scoped to manipulationCostOrderbookOnly. Description only:
@@ -40,7 +57,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.3-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.4.4
+  version: 1.4.5
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -177,7 +194,7 @@ paths:
                   washTradeSuspectedPct: '50.0'
                   spreadExtremePct: '20.0'
                   priceDivergencePct: '10.0'
-                  oracleWindowSeconds: 300
+                  oracleWindowSeconds: 900
                   ammFeeBp: 30
         '429':
           $ref: '#/components/responses/RateLimited'
@@ -672,7 +689,7 @@ components:
             The length of the observation window in seconds, equal to
             `oracleWindowSeconds` at GET /methodology. It is repeated here so that
             the response can be read without calling another endpoint.
-          example: 300
+          example: 900
         ratio:
           oneOf: [$ref: '#/components/schemas/Decimal', type: 'null']
           description: |
@@ -1332,7 +1349,7 @@ components:
           manipulationCost: '3910442.1180000'
           reachable: true
           genuineVolume: '184402.9100000'
-          windowSeconds: 300
+          windowSeconds: 900
           ratio: '21.2060000'
           totalAttackCost: '4094845.0280000'
         maxSafeCollateral: '419502.2756400'
@@ -1438,7 +1455,7 @@ components:
           manipulationCost: '24418.0900000'
           reachable: true
           genuineVolume: '0.0000000'
-          windowSeconds: 300
+          windowSeconds: 900
           ratio: null
           totalAttackCost: '24418.0900000'
         maxSafeCollateral: '2677.9400000'
@@ -1471,7 +1488,7 @@ components:
             maxReachablePrice is null because an AMM curve has no upper price bound,
             so every manipulation rung is reachable and only the cost differs.
           - >-
-            There was no genuine trade within the 300 second oracle window, so the
+            There was no genuine trade within the 900 second oracle window, so the
             oracle resistance ratio cannot be computed.
 
     AssetNoPrice:
@@ -1622,7 +1639,7 @@ components:
           manipulationCost: '892.4100000'
           reachable: true
           genuineVolume: '0.0000000'
-          windowSeconds: 300
+          windowSeconds: 900
           ratio: null
           totalAttackCost: '892.4100000'
         maxSafeCollateral: '95.1100000'
@@ -1658,7 +1675,7 @@ components:
             is the cost of exhausting the book, not the cost of reaching the target
             price.
           - >-
-            There was no genuine trade within the 300 second oracle window, so the
+            There was no genuine trade within the 900 second oracle window, so the
             oracle resistance ratio cannot be computed.
 
     AssetBrokenBook:

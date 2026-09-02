@@ -101,7 +101,7 @@
     "manipulationCost": "892.4100000",
     "reachable": true,
     "genuineVolume": "0.0000000",
-    "windowSeconds": 300,
+    "windowSeconds": 900,
     "ratio": null,
     "totalAttackCost": "892.4100000"
   },
@@ -136,6 +136,6 @@
   "warnings": [
     "There was no AMM liquidity for this pair at that ledger.",
     "The delta 10 and 100 rungs were not reached. Every ask is exhausted at a price of 0.0891000. The cost of 2210.4400000 on both of those rungs is the cost of exhausting the book, not the cost of reaching the target price.",
-    "There was no genuine trade within the 300 second oracle window, so the oracle resistance ratio cannot be computed."
+    "There was no genuine trade within the 900 second oracle window, so the oracle resistance ratio cannot be computed."
   ]
 }

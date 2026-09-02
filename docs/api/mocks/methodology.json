@@ -16,7 +16,7 @@
     "washTradeSuspectedPct": "50.0",
     "spreadExtremePct": "20.0",
     "priceDivergencePct": "10.0",
-    "oracleWindowSeconds": 300,
+    "oracleWindowSeconds": 900,
     "ammFeeBp": 30
   }
 }

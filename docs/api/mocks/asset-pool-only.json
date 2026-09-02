@@ -101,7 +101,7 @@
     "manipulationCost": "24418.0900000",
     "reachable": true,
     "genuineVolume": "0.0000000",
-    "windowSeconds": 300,
+    "windowSeconds": 900,
     "ratio": null,
     "totalAttackCost": "24418.0900000"
   },
@@ -134,6 +134,6 @@
     "There is no SDEX orderbook. The reference price is taken from the pool spot price.",
     "The liquidity comes from a single AMM pool.",
     "spreadPct is null because there are not two sides of a book. maxReachablePrice is null because an AMM curve has no upper price bound, so every manipulation rung is reachable and only the cost differs.",
-    "There was no genuine trade within the 300 second oracle window, so the oracle resistance ratio cannot be computed."
+    "There was no genuine trade within the 900 second oracle window, so the oracle resistance ratio cannot be computed."
   ]
 }

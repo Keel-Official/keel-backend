@@ -101,7 +101,7 @@
     "manipulationCost": "3910442.1180000",
     "reachable": true,
     "genuineVolume": "184402.9100000",
-    "windowSeconds": 300,
+    "windowSeconds": 900,
     "ratio": "21.2060000",
     "totalAttackCost": "4094845.0280000"
   },
