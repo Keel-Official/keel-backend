@@ -1,7 +1,7 @@
 # Keel: Supporting Metrics
 
-**Methodology version:** 1.0.5-draft
-**Status:** Sections 1–5 defined and run over the USTRY history where data allows. Holder-dependent results (holder concentration, volume-to-supply ratio) are pending the first holder pull. Ready for review.
+**Methodology version:** 1.0.8-draft
+**Status:** Sections 1–5 defined and run over the USTRY history. The first holder pull (31 August 2026) has been recorded, so holder concentration (section 2) and the volume-to-supply ratio (section 3) are now measured, not pending. The pull's non-atomic snapshot is resolved by DEC-011 (accepted): it carries `snapshot_ledger = 64211133` and a `mixed` label. Ready for review.
 
 The SOW promises holder concentration, volume-to-supply ratio, and time since the last
 genuine trade. It defines none of them. The definitions are the intellectual content of
@@ -30,7 +30,7 @@ All three are on-chain and already in hand.
 
 Specimen B looked like the hard one — the two sides are different accounts, so a same-account rule cannot reach it. It is caught cheaply anyway: at 106.74 against a daily median near 1.06 it is the single February trade the price-deviation criterion removes (1 trade, 0.0014% of volume). The same-account rule missing it costs nothing here, because a later, equally cheap condition catches it.
 
-Specimen C is the real judgment call. Its shape rules out wash trading — no account sits on both sides of any ledger — but the same evidence rules out two-sided market making, since the flow is one-directional (4 sellers against 336 buyers). Deciding wrongly makes a dead market look alive or a functioning one look rigged; the defensible move is to count C's genuine matches and state that what the pattern *is* remains unestablished.
+Specimen C is the real judgment call. Its shape rules out wash trading — no account sits on both sides of any ledger. Within the USTRY/USDC pair the flow looks one-sided (4 sellers against 336 buyers in August), but that appearance does not settle what the market *is*: an account routing through USTRY buys and sells it in one operation across two different pairs, and only one leg lands in this file. What the pattern is stays undetermined (see DEC-012); the defensible move is to count C's genuine matches and stop there.
 
 ### Candidate exclusion criteria
 
@@ -106,7 +106,7 @@ The two periods are not one market seen twice. Total trades roughly quadrupled (
 
 - **A** (22 Feb, 0.0000080 USTRY, both sides attacker-controlled) — excluded by condition 2 at 0.0000084 USDC.
 - **B** (22 Feb, matched against the seller's own offer) — excluded by condition 5, the only trade that condition catches in all of February. The same-account rule cannot reach it because the two accounts differ; its price of 106.74 against a daily median near 1.06 is what removes it.
-- **C** (19 Aug) — the evidence supports one claim only: not wash trading. Round-trips are zero *within a ledger* — none of the 31,692 ledgers in the window has one account on both sides. Across the whole month only two accounts ever appear on both sides at all: `GD3EXP7GTMP7` (one buy on 6 Aug, then 172 sells from 18 Aug) and `GBLKUBEVO32T` (8 sells on 13–18 Aug, one buy on 19 Aug) — each a buy-once/sell-many pattern separated by days, not the paired reversals wash trading produces. What the flow *is* stays undetermined, and it is one-directional rather than two-sided: August shows 4 sellers against 336 buyers, and `GABFRFPYM2` appears in 45,133 trades without buying once. That rules out two-sided liquidity provision as firmly as it rules out wash trading, so C's true character is left unestablished — a stronger statement than a guess. The genuine-trade rule tests genuineness, not intent: of C's 604 trades (67 against the pool), 139 are removed as dust and 4 fall into the ±15-min Unevaluated set, leaving **461 counted as Genuine**.
+- **C** (19 Aug) — the evidence supports one claim only: not wash trading. Round-trips are zero *within a ledger* — none of the 31,692 ledgers in the window has one account on both sides. Across the whole month only two accounts ever appear on both sides at all: `GD3EXP7GTMP7` (one buy on 6 Aug, then 172 sells from 18 Aug) and `GBLKUBEVO32T` (8 sells on 13–18 Aug, one buy on 19 Aug) — each a buy-once/sell-many pattern separated by days, not the paired reversals wash trading produces. Within the USTRY/USDC pair the flow is one-sided, the same shape in both periods: 4 sellers against 336 buyers in August, 5 against 189 in February. Its largest seller, `GABFRFPYM2`, sells 45,133 times in August without buying once (it buys twice in February; 55,197 sell-side appearances across the two months). This does not establish that these accounts are not two-sided market makers. An account routing XLM→USTRY→XLM trades the opposite USTRY leg on a different pair, so only one leg is recorded here and a one-sided appearance in USTRY/USDC is exactly what routing would produce; the observation is scoped to this pair, and the accounts' behavior elsewhere is unrecorded (see DEC-012, which also notes that for the twelve busiest such accounts "no USTRY trustline" is verified only over their first 200 operations, not their lifetimes). What C's flow *is* stays undetermined — a stronger statement than a guess. The genuine-trade rule tests genuineness, not intent: of C's 604 trades (67 against the pool), 139 are removed as dust and 4 fall into the ±15-min Unevaluated set, leaving **461 counted as Genuine**.
 
 ---
 
@@ -125,12 +125,12 @@ The two periods are not one market seen twice. Total trades roughly quadrupled (
 Holder concentration is measured over the accounts holding a **non-zero** balance of `USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC`, matched on asset code **and** issuer, with three groups removed from the population:
 
 - **The issuer account**, which holds unissued supply and is not a holder.
-- **Zero-balance trustlines.** Horizon `/accounts?asset=` returns every trustline, not every holder — the first record it returns holds 0.0000000 USTRY. Accounts with a zero balance are dropped before any measure is computed.
+- **Zero-balance trustlines.** Horizon `/accounts?asset=` returns every trustline, not every holder: the 31 August pull returned 875 trustlines, of which **612 (69.94%) hold 0.0000000 USTRY**. Accounts with a zero balance are dropped before any measure is computed.
 - **Pool reserves.** Assets locked in a pool are held by the pool, not a holder. Two positions are excluded, and they are **not** `G...` account IDs:
   - the AMM pool, identified by pool ID `27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb`;
   - the Blend V2 (YieldBlox) position, at Soroban contract `CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS`.
 
-  Because neither is an account ID, how each surfaces in `/accounts?asset=` — as a contract-address record, some other form, or not at all — must be confirmed against the first real holder pull before the exclusion is wired. Whatever form they take, both must be removed from the holder population **and** subtracted from the circulating denominator in section 3; the two sections must exclude the same set.
+  The first holder pull settles how each surfaces: **neither appears at all.** All 875 trustlines returned are 56-character `G...` account IDs; the issuer, the pool ID, and the Blend contract are absent in every form. The exclusion is therefore a no-op against this endpoint — `/accounts?asset=` never returns pool or contract positions, so pool-held supply is excluded from the section 3 denominator by construction rather than by subtraction. The exclusion stays wired anyway: it is a cheap guard, and an asset whose pool position did surface would need it. Both sections still agree on pool-held supply (checklist item 5), here trivially, because neither section ever sees a pool position to disagree about.
 
 The match is on asset code, not issuer alone: `GCRYUGD5…` also issues CETES, so a query keyed only on the issuer would fold a second asset's holders into the population — a silent error, since the numbers still look valid.
 
@@ -150,7 +150,7 @@ Three measures are reported together, all from the same filtered set:
 
 **Rationale**
 
-*Zero-balance trustlines are excluded.* One API call proves the need: the first record Horizon returns for `order=desc` holds 0.0000000 USTRY. `/accounts?asset=` enumerates trustlines, not holders, and an unfiltered population would be padded with empty accounts that pull every share and the HHI toward zero — making a concentrated asset look distributed.
+*Zero-balance trustlines are excluded.* The 31 August pull proves the need directly: 612 of the 875 trustlines returned (69.94%) hold 0.0000000 USTRY. `/accounts?asset=` enumerates trustlines, not holders, and an unfiltered population would be padded with empty accounts that pull every share and the HHI toward zero — making a concentrated asset look distributed.
 
 *An explicit exclusion list, not automated pool detection.* The list can be audited line by line; a heuristic guessing which accounts are pools cannot. Its cost is asset-specificity, accepted for the same reason section 1 accepts not testing economic independence — a stated limit beats a silent one.
 
@@ -160,7 +160,34 @@ Three measures are reported together, all from the same filtered set:
 
 **Result when run over the USTRY history**
 
-Not yet run. Holder concentration requires the first daily holder pull; until `/accounts?asset=` has been fetched and recorded once, there is no population to measure. The absence is expected, not an omission. Because the endpoint is current-state only, this pull cannot be backfilled — it should begin immediately (see Historical availability).
+Run over the first holder pull, `/accounts?asset=USTRY:GCRYUGD5…`, recorded 2026-08-31 between 16:00:22Z and 16:01:53Z. The pull returned **875 trustlines across 875 unique accounts**, paged ascending by `account_id` over five pages (200 / 200 / 200 / 200 / 75); the short final page indicates the set is complete. Removing the 612 zero-balance trustlines leaves a measured population of **263 accounts** (875 − 612 = 263) holding **10,432,382.3504695 USTRY** of circulating supply. The issuer and the two pool exclusions subtract nothing here: as noted above, none of the three appears in the set, so the only removal that fires is the zero-balance filter.
+
+| Measure | Value |
+|---|---|
+| Top 1 | 91.5406% |
+| Top 10 | 99.9475% |
+| HHI | 8,410.8452 |
+
+Ten largest holders:
+
+| # | Account | Balance (USTRY) | Share |
+|---|---|---|---|
+| 1 | `GA727XJU…CSAS` | 9,549,864.6630000 | 91.5406% |
+| 2 | `GABFRFPYM2…DWWN` | 466,575.1270394 | 4.4724% |
+| 3 | `GBFECMJN…HL4R` | 345,090.0000000 | 3.3079% |
+| 4 | `GBSYZQFW…NQSV` | 46,889.9441205 | 0.4495% |
+| 5 | `GA6PLM43…FIFO` | 14,135.3769581 | 0.1355% |
+| 6 | `GDQQBII7…42VN` | 1,391.7955400 | 0.0133% |
+| 7 | `GB526LHG…SXFZ` | 964.1415519 | 0.0092% |
+| 8 | `GAIN2HU2…YHNF` | 915.9913951 | 0.0088% |
+| 9 | `GCTSFIIC…JUF6` | 559.0000000 | 0.0054% |
+| 10 | `GDAQL5DL…CFYI` | 520.8811947 | 0.0050% |
+
+The distribution is extreme. One account holds 91.54% of circulating supply and the top ten hold 99.95%; the HHI of 8,410 sits far above the 2,500 that conventionally marks a highly concentrated market. The tail is long and thin — the median non-zero balance is 1.6581273 USTRY, and 12 accounts hold under 0.0001 USTRY.
+
+Per the Custodial holdings note above, these figures describe trustlines, not people. The top holder `GA727XJU…CSAS` is not yet identified; until it is, the 91.54% share is a statement about one trustline, not about beneficial ownership. The second-largest holder is `GABFRFPYM2…DWWN` — the same account section 1 flags as selling 45,133 times in August without buying once. That the address most active in the order book without ever accumulating is also the second-largest holder is recorded here for section 1's benefit; the two observations describe one address.
+
+**Snapshot integrity.** The pull is not atomic: its five pages span ledgers 64211133 to 64211152 (19 ledgers, 91 seconds), so no single `LedgerSeq` describes the whole population. DEC-011 resolves this. The pull carries one `snapshot_ledger`, the minimum `latest_ledger` across its pages (64211133), and any row whose `last_modified_ledger` exceeds it provably changed mid-pull. Exactly one row does — `GCSO6DAFG52J…` at ledger 64211140, balance 0.0000001 USTRY — so this pull is labelled `mixed`, not `atomic`. That row's share rounds to 0.0000% at four decimals, so every figure above stands; the label records only that the population mixes pre- and post-change state. Going forward the recorder refuses any pull whose ledger span exceeds 24 ledgers (DEC-011).
 
 ---
 
@@ -194,7 +221,7 @@ All three yield an Unevaluated ratio, but they are different failures and are no
 
 **Result when run over the USTRY history**
 
-The numerator has been run over August; the ratio has not, because the denominator waits on the first holder pull (section 2).
+Both terms are now available: the numerator from August's genuine trades (section 1) and the denominator, **10,432,382.3504695 USTRY**, from the 31 August holder pull (section 2).
 
 Genuine volume by window, August, in USTRY:
 
@@ -208,7 +235,21 @@ Total genuine volume for the month is 5,723.2370064 USTRY. The same 14,478 trade
 
 Zero days in August had no genuine volume, so the measured-zero condition never fired in this data, though it is the condition that will matter most on a dead asset. The shape is the argument for the middle window: the first half of August sits flat, then rises sharply from 20 August. The 24-hour window swings 318x and reads as broken; the 30-day window is nearly flat at 1.06x and hides the shift; only the 7-day window shows it as it happens.
 
-**Volume-to-supply ratio: not yet computable.** Once the holder pull provides circulating supply in USTRY, the ratio follows immediately from the numerator above.
+**Volume-to-supply ratio, August.** Dividing each window's genuine volume by the 10,432,382.3504695 USTRY circulating supply:
+
+| Window | Genuine volume (USTRY) | Ratio | % of supply |
+|---|---|---|---|
+| 24h — min day | 4.9114975 | 0.000000471 | 0.0000471% |
+| 24h — max day | 1,561.8888048 | 0.000149715 | 0.0149715% |
+| 7d — min | 156.9581635 | 0.000015045 | 0.0015045% |
+| 7d — max | 3,431.1261575 | 0.000328892 | 0.0328892% |
+| 30d — min | 5,380.1440098 | 0.000515716 | 0.0515716% |
+| 30d — max | 5,718.2355575 | 0.000548124 | 0.0548124% |
+| Whole month | 5,723.2370064 | 0.000548603 | 0.0548603% |
+
+Turnover is minute: even the busiest 24 hours moved 0.015% of circulating supply, and the whole month turned over 0.055%. Read against section 2, this follows — with 91.54% of supply sitting in one trustline that did not trade in either recorded window, only a thin float circulates, so genuine volume stays a small fraction of the total regardless of window.
+
+**Anchoring caveat.** These ratios are indicative, not yet compliant with this section's own anchoring rule. The Definition requires each window to be measured from the output ledger's close time with a denominator drawn as of that ledger; the denominator here is a single snapshot taken 31 August 16:01 UTC and applied to every August window, including windows that closed weeks earlier. Section 2 is current-state only and cannot be read historically, so a per-window denominator for a past month does not exist — one snapshot is the only denominator a backfilled period can have. In live operation numerator and denominator both anchor to the output ledger and the rule holds; for this backfill the ratios carry the snapshot's date as their denominator and should be read as of it. The `snapshot_ledger` and the `mixed` label from section 2 (DEC-011) carry to this denominator too, since it is drawn from the same 19-ledger pull.
 
 **Rationale**
 
@@ -305,3 +346,6 @@ Each metric must state which condition makes it unevaluated.
 | 1.0.3-draft | Worksheet created. No definitions recorded yet |
 | 1.0.4-draft | Section 1 genuine-trade rule defined; run over February and August USTRY history; per-condition results and specimen outcomes recorded |
 | 1.0.5-draft | Sections 2 (holder concentration), 3 (volume-to-supply), 4 (oracle-window volume), and 5 (unevaluated conditions) defined and run over the USTRY history where data allowed; holder-dependent results pending the first pull |
+| 1.0.6-draft | First holder pull (31 Aug 2026) recorded and run: section 2 holder concentration (263 holders, top-1 91.54%, HHI 8,410.85) and section 3 volume-to-supply ratio (0.0548603% of supply over August) now measured. Corrected the zero-balance example — 612 of 875 trustlines are zero, not "the first record"; resolved the pool-surface open question — issuer and both pool positions never appear in `/accounts?asset=`, so the section 3 denominator excludes pool supply by construction; flagged the non-atomic snapshot (19-ledger span, no single `LedgerSeq`) for DEC-011 |
+| 1.0.7-draft | Section 1 specimen C narrowed after directional verification (`base_is_seller`): the one-sided flow is scoped to the USTRY/USDC pair and the "not two-sided market making" inference is withdrawn, because routing accounts trade the opposite USTRY leg on a pair this file does not record (see DEC-012). Added February's split (5 sellers vs 189 buyers) alongside August's (4 vs 336); clarified that `GABFRFPYM2`'s 45,133 no-buy sells are August-only (55,197 sell-side appearances across both months) |
+| 1.0.8-draft | DEC-011 accepted (`MaxLedgerSpan` = 24 ledgers). Section 2 now reports the 31 August pull's `snapshot_ledger` (min `latest_ledger` = 64211133) and its `mixed` label: one row (`GCSO6DAFG52J…`, 0.0000001 USTRY) changed mid-pull, immaterial at four decimals, so all figures stand. References to DEC-011 (§2, §3) and DEC-012 (§1) now resolve to published records |
