@@ -31,6 +31,8 @@
       "Write(testdata/manual/**)",
       "Edit(docs/context/**)",
       "Write(docs/context/**)",
+      "Edit(docs/api/Keel_PRD.md)",
+      "Write(docs/api/Keel_PRD.md)",
       "Read(.env)",
       "Read(.env.*)",
       "Bash(rm -rf:*)",

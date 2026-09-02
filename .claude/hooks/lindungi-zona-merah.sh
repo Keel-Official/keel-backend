@@ -167,7 +167,34 @@ line=$(printf '%s ' "$body" | tr '\n' ';')
 # below reads it to find a REDIRECT into a zone, and because a further family may be
 # added here later. `echo x > testdata/fixtures/f.md` carries no mutating verb for
 # rule C to catch; left out of this variable, that write walks straight through.
-zone_any='(testdata/fixtures|testdata/manual|docs/context)[^[:alnum:]_]'
+#
+# THE FOURTH ENTRY IS A FILE, NOT A DIRECTORY, AND IT IS THE FIRST ONE THAT IS.
+# Added 3 September 2026. docs/api/Keel_PRD.md is an input from outside in the same
+# sense docs/context/ is: section 9 holds the acceptance criteria the work is scored
+# against, and Claude is one of the two things they score. It was filed in docs/api/,
+# which the zone map calls YELLOW and describes as "the contract", and the PRD is not
+# the contract. So the definition of DONE sat inside the writable surface, which is
+# the defect class the map closed on 24 August 2026 when .claude/ itself had no row.
+#
+# Adding it here is TIGHTENING and is therefore Claude's to do. Moving the file to
+# docs/context/ where its class belongs, or giving docs/api/ a second row, is a zone
+# decision and is Al's. P2-27 and P2-28 in scripts/audit-verification.sh are the two
+# halves of that: the first goes NOT once both permission files lock it, the second
+# stays PROVEN until the map names it, because a lock the map does not mention is
+# how a guardrail comes to look like it is misfiring.
+#
+# THE COST IS NAMED RATHER THAN HIDDEN. The PRD is not inert: 09-flags-and-bands.md
+# supersedes its sections 5.1 and 5.2, and a future restructure of that kind now
+# needs Al's hands. That is a real loss of throughput, accepted because a document
+# that says what finished means must not be editable by the party being measured.
+# The escape is the ordinary one and it is in the message below: read it, quote it,
+# grep it, and report the disagreement instead of editing it away.
+#
+# It is written as a FULL FILENAME, never as a docs/api prefix. The contract, the
+# generated mocks and everything else in that directory stay Claude's, and a prefix
+# here would take all of them silently, which is the mistake the testdata entries
+# above are spelled out in full to avoid.
+zone_any='(testdata/fixtures|testdata/manual|docs/context|docs/api/Keel_PRD\.md)[^[:alnum:]_]'
 
 # P2-6d fix, part 2: command position anchor. A verb is only a verb at the start of
 # the line or after a shell separator (|, ;, &, &&, ||, an opening paren, and a
@@ -253,7 +280,7 @@ fi
 
 # Everything below concerns a red path, so one message serves both remaining rules.
 message="testdata/fixtures/, testdata/manual/ and docs/context/ are RED ZONES, red
-all the way down.
+all the way down, and docs/api/Keel_PRD.md is one file held to the same rule.
 
 The golden fixture's numbers are computed BY HAND before any implementation exists,
 and internal/conformance/fixture.go says it in its own header: do not adjust these
@@ -271,6 +298,14 @@ guard working early rather than a stale rule.
 
 docs/context/ holds the SoW and the execution plan, which are inputs from outside
 and are read, never written.
+
+docs/api/Keel_PRD.md is that same class of document wearing a different directory.
+Section 9 holds the acceptance criteria, section 4 the functional requirements, and
+section 12 the scope cutting order, so it is the file that says what FINISHED means
+and Claude is one of the two things it measures. It was writable until 3 September
+2026 for no better reason than that it was filed beside the API contract, which IS
+Claude's. Only this one filename is held; keel-openapi.yaml and the generated mocks
+next to it are untouched by this rule.
 
 What you may do there: read them, quote them, grep them, and report where the code
 and the fixture disagree. That disagreement IS the finding, and editing either side
