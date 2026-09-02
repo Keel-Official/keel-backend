@@ -13,7 +13,11 @@
 // three states, the tiers, and every threshold; this file owns none of them.
 package domain
 
-import "github.com/shopspring/decimal"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 // The two deltas the flag rules name by value rather than by parameter.
 //
@@ -94,6 +98,18 @@ type flagInput struct {
 	OrderbookOnly      []ManipulationPoint
 	HasActivePool      bool
 	PriceDivergencePct *decimal.Decimal
+
+	// Supporting is nil when the caller supplied no trade history and no
+	// trustline pull, which is every caller that has only a Snapshot. The five
+	// flags that read it stay unevaluated in that case, which is the state this
+	// package produced for all of them before FR-8 to FR-10 existed.
+	Supporting *SupportingMetrics
+
+	// Anchor is the output ledger's close time, and it is what the two staleness
+	// flags measure an age against. Zero means no anchor was given and those two
+	// flags stay unevaluated rather than being aged against a zero time, which
+	// would report every asset as stale by two thousand years.
+	Anchor time.Time
 }
 
 // flagState is the three-state result from section 2. It was two states until
@@ -119,9 +135,16 @@ func evaluateFlags(in flagInput, p Params) (triggered, unevaluated []Flag, band 
 	t := p.Thresholds
 
 	// The six flags that need supply, trade history or trustline distribution.
-	// None of them can be judged from a Snapshot, so all six are unevaluated on
-	// every result this package produces today. 09-flags-and-bands.md section 3
-	// is the table that says which.
+	// None of them can be judged from a Snapshot alone, which is what
+	// 09-flags-and-bands.md section 3's table says, so all six start unevaluated
+	// and five of them are then answered below IF the caller supplied the
+	// supporting metrics.
+	//
+	// UNEVALUATED REMAINS THE DEFAULT AND THAT IS THE POINT. A caller with no
+	// trade history or no trustline pull gets exactly the behaviour this package
+	// had before the supporting metrics existed, rather than a silent zero. An
+	// asset with no trustline data must not look identical to one whose holder
+	// distribution was checked and found safe.
 	states := map[Flag]flagState{
 		FlagManipulationRatioLow:       stateUnevaluated,
 		FlagNoGenuineTrade30D:          stateUnevaluated,
@@ -129,6 +152,50 @@ func evaluateFlags(in flagInput, p Params) (triggered, unevaluated []Flag, band 
 		FlagHolderConcentrationExtreme: stateUnevaluated,
 		FlagHolderConcentrationHigh:    stateUnevaluated,
 		FlagWashTradeSuspected:         stateUnevaluated,
+	}
+
+	// The five that FR-8 and FR-10 answer. Each rule below is transcribed from
+	// 09-flags-and-bands.md section 4 and nothing here invents a threshold.
+	//
+	// MANIPULATION_RATIO_LOW IS DELIBERATELY LEFT UNEVALUATED even though its
+	// input, circulating supply, is now available. Section 4 states it as
+	// "Cost(d) / circulating_supply_value < Thresholds.ManipulationRatioLowPct",
+	// and that comparison has a units problem: the left side is a bare ratio and
+	// the threshold is named Pct and set to 1.0, so the rule is either "under one
+	// per cent" or "under a factor of one" and those differ by a hundredfold. It
+	// has no hand computed oracle either, because the golden fixture carries it
+	// unevaluated. Guessing would put a fabricated number into a HIGH tier flag,
+	// so it stays unevaluated and the ambiguity is reported instead. See the
+	// finding filed with this work.
+	if sup := in.Supporting; sup != nil {
+		if sup.HolderTop1Pct != nil {
+			states[FlagHolderConcentrationExtreme] =
+				boolState(sup.HolderTop1Pct.GreaterThan(t.HolderTop1ExtremePct))
+		}
+		if sup.HolderTop10Pct != nil {
+			states[FlagHolderConcentrationHigh] =
+				boolState(sup.HolderTop10Pct.GreaterThan(t.HolderTop10HighPct))
+		}
+		if sup.TradesExcludedPct != nil {
+			// By VOLUME, not by count. Section 1's Required output is explicit:
+			// "1.70 percent of August volume excluded as non-genuine". By count
+			// the same month is 74.5 per cent, which would cross this threshold
+			// and fire the flag on a market whose excluded volume is trivial.
+			states[FlagWashTradeSuspected] =
+				boolState(sup.TradesExcludedPct.GreaterThan(t.WashTradeSuspectedPct))
+		}
+		// The two staleness flags read one reference and are unevaluated together
+		// when it is absent. Nil means no genuine trade exists in the fetched
+		// history, so there is no timestamp to measure from; it does NOT mean the
+		// asset last traded a long time ago, which is a measured value and the
+		// signal these flags exist to surface.
+		if sup.LastGenuineTrade != nil && !in.Anchor.IsZero() {
+			age := in.Anchor.Sub(sup.LastGenuineTrade.At)
+			states[FlagNoGenuineTrade30D] =
+				boolState(age > time.Duration(t.GenuineTradeStaleDays)*24*time.Hour)
+			states[FlagNoGenuineTrade7D] =
+				boolState(age > time.Duration(t.GenuineTradeWarnDays)*24*time.Hour)
+		}
 	}
 
 	// NO_EXECUTABLE_PRICE: priceSource == none.

@@ -530,6 +530,27 @@ func ComputeMaxSafeCollateral(depth []DepthPoint, mc []ManipulationPoint, p Para
 // handoff item B-2. Nil means unknown, and the six flags that depend on them are
 // reported as unevaluated rather than clear.
 func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
+	return ComputeAssetRiskWith(s, p, nil)
+}
+
+// ComputeAssetRiskWith is ComputeAssetRisk plus the supporting metrics, FR-8 to
+// FR-10, which a Snapshot cannot carry because they need trade history and a
+// trustline pull.
+//
+// IT IS A SECOND ENTRY POINT RATHER THAN A CHANGED SIGNATURE, and that is the
+// design decision. ComputeAssetRisk has callers in internal/api, cmd/keel and
+// internal/conformance, and every one of them would have had to grow a nil
+// argument to say "I have no trade history", which is a change to five call sites
+// that says nothing. The alternative rejected was adding Trades and Holders to
+// Snapshot: a Snapshot is the book and the pools at one ledger, a trade history is
+// a range of ledgers and a trustline pull is current-state-only and has no ledger
+// at all, so putting all three in one struct would have made LedgerSeq mean three
+// different things.
+//
+// sup nil is the pre-existing behaviour exactly: five flags unevaluated, every
+// SupportingMetrics field nil, and bandConfidence partial for the reason it was
+// already partial. Nothing about a caller that does not pass it changes.
+func ComputeAssetRiskWith(s Snapshot, p Params, sup *SupportingMetrics) (AssetRisk, error) {
 	risk := AssetRisk{
 		Base:               s.Base,
 		Quote:              s.Quote,
@@ -550,9 +571,18 @@ func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
 		// flags that read those ladders become unevaluated rather than zero.
 		risk.Warnings = append(risk.Warnings,
 			"no executable price: the book is empty on both sides and no active pool exists, so no depth, manipulation cost or collateral figure was computed")
+		// The supporting metrics survive a missing price and are attached here
+		// too. Holder concentration and trade staleness do not depend on there
+		// being an executable price, and an asset with no price is exactly the
+		// one whose concentration a reader most wants to see.
+		if sup != nil {
+			risk.Supporting = *sup
+		}
 		risk.Flags, risk.UnevaluatedFlags, risk.Band, risk.BandConfidence = evaluateFlags(flagInput{
 			PriceSource: src,
 			HasLadders:  false,
+			Supporting:  sup,
+			Anchor:      s.LedgerClosedAt,
 		}, p)
 		return risk, nil
 	}
@@ -591,6 +621,9 @@ func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
 	risk.MaxSafeCollateralManipulation = man
 	risk.Warnings = append(risk.Warnings, warnings...)
 
+	if sup != nil {
+		risk.Supporting = *sup
+	}
 	risk.Flags, risk.UnevaluatedFlags, risk.Band, risk.BandConfidence = evaluateFlags(flagInput{
 		PriceSource:        src,
 		HasLadders:         true,
@@ -599,6 +632,11 @@ func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
 		OrderbookOnly:      orderbookOnly,
 		HasActivePool:      len(s.ActivePools()) > 0,
 		PriceDivergencePct: divergence,
+		Supporting:         sup,
+		// The output ledger's close time, which is the anchor the two staleness
+		// flags age against. It comes off the Snapshot rather than a clock, so
+		// two runs over one snapshot age a trade identically. NFR-9.
+		Anchor: s.LedgerClosedAt,
 	}, p)
 
 	return risk, nil
