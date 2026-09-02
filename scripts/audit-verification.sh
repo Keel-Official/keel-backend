@@ -1396,6 +1396,190 @@ echo "       what it cannot prove: that a CSV whose sidecar says true is the fil
 echo "       Nothing binds the two beyond a shared basename, and a hand-edited recording is out of scope"
 echo "       here rather than covered. scripts/s3-archive/verify-manifest.sh is the check that binds bytes"
 
+# ---------------------------------------------------------------------------
+# P2-25 and P2-26. Decision record numbering.
+#
+# This pair was written after the defect it describes had already fired twice and
+# been caught by neither the harness nor a reader. DEC-003 is used by two records,
+# which DEC-009 section 9 item 3 records. DEC-011 was then used by two more on the
+# same day, 1 September 2026, and the second one overwrote the first ON DISK before
+# it was ever committed, so git holds no copy of it. It exists today only because a
+# session transcript had read it in full, and it is in the repository as
+# DEC-0XX-...RECONSTRUCTED.md with its number deliberately left unassigned.
+#
+# THE COST OF THE MISSING CHECK IS THE WHOLE POINT. A collision is not a filing
+# annoyance. The second one destroyed a record. Writing the check is under an hour
+# and it was not written after the first collision, which is why there was a second.
+#
+# WHY IT READS THE HEADING AND NOT ONLY THE FILENAME, and this is what makes it
+# catch the second collision rather than only the first. Renaming a file moves the
+# number in the filename and leaves the number in the `# DEC-NNN:` heading where it
+# was. That is exactly the state the repository is in now: the reconstructed record
+# is FILED as 0XX and still CLAIMS DEC-011 in its own first line, while an accepted
+# record of a different subject holds DEC-011 too. A check that read filenames
+# alone would report the second collision resolved. It is not resolved, it is
+# renamed, and the two are different things.
+#
+# WHAT NEITHER LINE CAN PROVE. That the number a record claims is the RIGHT one.
+# Both are satisfied by renumbering, and renumbering without deciding which record
+# owns the number is the failure this file has been defeated by five times in other
+# forms. The fix is Al's: DEC-013 is free, and section 6 of the 2 September
+# breakdown asks for that decision rather than for a rename.
+dec_claims=""
+dec_mismatch_report=""
+dec_placeholder_report=""
+dec_file_count=0
+dec_mismatch_count=0
+dec_placeholder_count=0
+while IFS= read -r dec_file; do
+  [ -n "$dec_file" ] || continue
+  dec_file_count=$((dec_file_count + 1))
+  dec_base=$(basename "$dec_file")
+  dec_fname_num=$(printf '%s' "$dec_base" | sed -n 's/^DEC-\([^-]*\)-.*/\1/p')
+  dec_head_num=$(sed -n 's/^# DEC-\([0-9A-Za-z]*\)[:[:space:]].*/\1/p' "$dec_file" | head -1)
+
+  [ -n "$dec_fname_num" ] && dec_claims="${dec_claims}${dec_fname_num}	${dec_base}
+"
+  if [ -n "$dec_head_num" ] && [ "$dec_head_num" != "$dec_fname_num" ]; then
+    dec_claims="${dec_claims}${dec_head_num}	${dec_base}
+"
+    dec_mismatch_count=$((dec_mismatch_count + 1))
+    dec_mismatch_report="${dec_mismatch_report}  ${dec_base}
+    filed as DEC-${dec_fname_num}, claims DEC-${dec_head_num} in its own heading
+"
+  fi
+  case "$dec_fname_num" in
+    ''|*[!0-9]*)
+      dec_placeholder_count=$((dec_placeholder_count + 1))
+      dec_placeholder_report="${dec_placeholder_report}  ${dec_base}
+    filed under the placeholder DEC-${dec_fname_num}, so it is a record no decision can be cited as
+"
+      ;;
+  esac
+done < <(git ls-files 'docs/decisions/DEC-*.md')
+
+# A number is collided when two DIFFERENT files claim it. The sort -u first is
+# what stops a file whose filename and heading agree from colliding with itself.
+dec_collisions=$(printf '%s' "$dec_claims" | sort -u | cut -f1 | sort | uniq -d)
+dec_collision_count=$(printf '%s' "$dec_collisions" | grep -c '[^[:space:]]')
+
+dec_number_collision() { [ "$dec_collision_count" -gt 0 ]; }
+dec_number_unfiled()   { [ "$dec_mismatch_count" -gt 0 ] || [ "$dec_placeholder_count" -gt 0 ]; }
+
+check P2-25 "two decision records claim the same number, counting the filename and the record's own heading, so citing that number names two documents" \
+  dec_number_collision
+if [ "$dec_file_count" -eq 0 ]; then
+  printf "        %sno decision record is tracked under docs/decisions, so this line examined nothing%s\n" "$red" "$off"
+else
+  printf "        %s%d tracked records, %d number(s) claimed by more than one%s\n" "$dim" \
+    "$dec_file_count" "$dec_collision_count" "$off"
+  printf '%s\n' "$dec_collisions" | while IFS= read -r dec_num; do
+    [ -n "$dec_num" ] || continue
+    printf "      %sDEC-%s is claimed by:%s\n" "$dim" "$dec_num" "$off"
+    printf '%s' "$dec_claims" | sort -u | awk -F'\t' -v n="$dec_num" '$1 == n { print "        " $2 }'
+  done
+fi
+echo "       DEC-009 section 9 item 3 records the first collision. The second destroyed a record on"
+echo "       disk before it was committed, and it survives only as a reconstruction from a transcript"
+echo "       what it cannot prove: that the number a record claims is the right one. Renumbering"
+echo "       satisfies this line, and renumbering without deciding which record owns the number is"
+echo "       the pattern this file has been defeated by before. DEC-013 is free and the call is Al's"
+
+check P2-26 "a decision record is filed under a number its own heading contradicts, or under a placeholder, so the filename and the record disagree about what it is" \
+  dec_number_unfiled
+if [ "$dec_mismatch_count" -eq 0 ] && [ "$dec_placeholder_count" -eq 0 ]; then
+  printf "        %severy tracked record's filename number matches the number in its heading%s\n" "$dim" "$off"
+else
+  printf "        %s%d filename/heading disagreement(s), %d placeholder(s)%s\n" "$dim" \
+    "$dec_mismatch_count" "$dec_placeholder_count" "$off"
+  printf '%s%s' "$dec_mismatch_report" "$dec_placeholder_report" | while IFS= read -r dec_row; do
+    [ -n "$dec_row" ] || continue
+    printf "      %s%s%s\n" "$dim" "$dec_row" "$off"
+  done
+fi
+echo "       this is the line that separates renamed from resolved. A collision cleared by moving the"
+echo "       filename and leaving the heading is still a collision, and P2-25 alone would call it fixed"
+
+# ---------------------------------------------------------------------------
+# P2-27 and P2-28. The PRD, and the directory it is filed in.
+#
+# docs/api/Keel_PRD.md holds the acceptance criteria in section 9, the functional
+# requirements in section 4, and the scope cutting order in section 12. It is an
+# INPUT FROM OUTSIDE in exactly the sense the zone map means when it makes
+# docs/context/ red and enforced: it is the document the work is scored against,
+# and Claude is one of the two things it scores.
+#
+# It is filed in docs/api/, which the zone map makes YELLOW and describes as "the
+# contract". The PRD is not the contract. So until 3 September 2026 the criteria
+# that measure Claude's work sat in a directory Claude may write, and nothing in
+# either permission file said otherwise.
+#
+# THIS IS THE SAME DEFECT CLASS THE MAP CLOSED ON 24 AUGUST 2026, when fourteen
+# directories including .claude/ itself had no row, so the file that defined the
+# zones was outside the zones. Here the file that defines DONE was inside a
+# writable one. Neither was exploited and neither needed to be: the map's own note
+# says a path with no owner is a path where nobody agreed what may be written.
+#
+# WHAT THE FIX IS AND IS NOT. Adding a deny rule and a hook path is TIGHTENING, so
+# it is Claude's to do, and it was done on 3 September 2026. Moving the file into
+# docs/context/ where its class belongs, or giving docs/api/ a second row, is a
+# zone decision and is Al's. The pair below is arranged so the second half stays
+# PROVEN while only the first half has been done, because a lock the map does not
+# mention is the failure this repository has already paid for once in the other
+# direction: five references to a retired red zone that would each have gone on
+# refusing work the map permitted, and none of which would have failed.
+prd_in_deny(){
+  awk '/"deny"[[:space:]]*:/{f=1} f{print} f && /\]/{exit}' .claude/settings.json \
+    | grep -q 'Keel_PRD\.md'
+}
+prd_hook_locked(){
+  hook_absent && return 1
+  hook_refuses 'sed -i "" s/a/b/ docs/api/Keel_PRD.md'
+}
+# The probe list is the one P2-6e paid for: the ordinary forms, not the exotic
+# ones. A redirect carries no mutating verb, and `cat > file` is how a document
+# gets rewritten wholesale rather than edited.
+prd_writable(){
+  prd_in_deny && prd_hook_locked && return 1
+  return 0
+}
+prd_lock_unmapped(){
+  prd_hook_locked || return 1
+  grep -q 'Keel_PRD\.md' CLAUDE.md && return 1
+  return 0
+}
+check P2-27 "the PRD, which holds the acceptance criteria the work is scored against, is writable by Claude in at least one of the two permission files, so the definition of done sits inside the writable surface" \
+  prd_writable
+if prd_in_deny; then
+  printf "        %sdeny list: locked%s\n" "$dim" "$off"
+else
+  printf "        %sdeny list: NOT locked, so the Edit and Write tools reach it%s\n" "$red" "$off"
+fi
+if prd_hook_locked; then
+  printf "        %shook: refuses a mutating command that names it%s\n" "$dim" "$off"
+else
+  printf "        %shook: does NOT refuse it, so Bash reaches it%s\n" "$red" "$off"
+fi
+echo "       neither file closes the other's route: the deny list does not see Bash, and the hook"
+echo "       does not see Edit. Same reasoning as P2-6, and it is why both halves are probed"
+echo "       what it cannot prove: that the criteria inside it are the right ones, or that they"
+echo "       match the SOW. docs/context/ is not on disk, so no check here can compare the two"
+
+check P2-28 "the harness refuses the PRD while no row in the CLAUDE.md zone map names it, so the lock is invisible to the document people actually read" \
+  prd_lock_unmapped
+if prd_hook_locked && grep -q 'Keel_PRD\.md' CLAUDE.md; then
+  printf "        %sthe map names the file, so the harness and the map agree%s\n" "$dim" "$off"
+elif ! prd_hook_locked; then
+  printf "        %snothing to map: the harness does not lock it yet, which is P2-27%s\n" "$dim" "$off"
+else
+  printf "        %sthe harness locks it and the map's docs/api row does not mention it%s\n" "$red" "$off"
+fi
+echo "       a lock the map does not mention surfaces later as a guardrail misfiring rather than as"
+echo "       a document being wrong, and that is what gets guardrails switched off. The hook's own"
+echo "       header names that as the worst outcome"
+echo "       what it cannot prove: that the row says the right thing. Reclassifying the file, or"
+echo "       moving it to where its class belongs, is a zone decision and is Al's"
+
 section "Summary"
 printf "  %s%d claims proven%s, %s%d not%s\n" "$green" "$proven" "$off" "$red" "$not" "$off"
 echo "  The full audit: docs/internal/audit-2026-08-20.md"
