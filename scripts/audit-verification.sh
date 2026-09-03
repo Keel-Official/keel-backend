@@ -1282,13 +1282,26 @@ section "Layer 1 hand recomputation, acceptance criterion 4"
 # item added P2-18 for Layer 2, said in its own status line that the
 # testdata/manual/ check was not written, and left it there.
 #
-# WHY IT MATTERS MORE THAN ITS TEN POINTS. Criterion 4 scores 10 of 100 and PRD
-# section 12 lists it among the four that are never cuttable. Layer 1 is the only
-# layer that asks whether the FORMULA is correct; Layers 2 and 3 both ask whether
-# the implementation matches the formula, so if the formula is wrong they agree with
-# each other and are both wrong. 10-validation.md section 5 says this in its own
-# words. With compute.go yellow since 25 August 2026, these five recomputations and
-# the golden fixture are the whole of the independent oracle.
+# WHY IT MATTERS MORE THAN ITS TEN POINTS, and the reason is NOT the one this
+# comment used to give. Layer 1 is the only layer that asks whether the FORMULA is
+# correct; Layers 2 and 3 both ask whether the implementation matches the formula,
+# so if the formula is wrong they agree with each other and are both wrong.
+# 10-validation.md section 5 says this in its own words. With compute.go yellow
+# since 25 August 2026, these five recomputations and the golden fixture are the
+# whole of the independent oracle.
+#
+# CORRECTED 3 SEPTEMBER 2026. This paragraph also said "PRD section 12 lists it
+# among the four that are never cuttable". It does not. That list is the Blend
+# backtest, the methodology document, the cross-validation, and the limitations
+# section; the cross-validation is Layer 3 and Layer 1 is on no such list.
+#
+# The argument above never needed it and stands unchanged, which is the point of
+# separating them: a claim about a document was propping up a claim about the
+# validation protocol, and only one of the two was true. Section 12 is what governs
+# a decision made under time pressure, so the honest reading is that Layer 1 is
+# MORE exposed than this comment implied, not less. See also the same wrong sentence
+# in scripts/check-manual-recomputation.sh and in the Makefile, corrected the same
+# day, and DEC-002 section 8 for the other PRD paraphrase found wrong that day.
 #
 # THE ID IS P2-23 AND P2-3 IS STILL FREE, deliberately. Other documents cite these
 # ids by number, so a gap that is backfilled makes every earlier citation ambiguous

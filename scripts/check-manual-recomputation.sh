@@ -6,8 +6,27 @@
 # take a raw order book, transcribe it into a spreadsheet, compute depth BY HAND,
 # and compare against engine output. The protocol requires five assets and names
 # testdata/manual/ as where the evidence lives. Criterion 4 of the acceptance
-# criteria scores that work 10 of 100 and PRD section 12 lists it among the four
-# that are never cuttable.
+# criteria scores that work 10 of 100.
+#
+# CORRECTED 3 SEPTEMBER 2026. This paragraph used to add "and PRD section 12 lists
+# it among the four that are never cuttable", and that is false. Section 12's list
+# is the Blend backtest, the methodology document, the cross-validation, and the
+# limitations section. Layer 1 is none of those: the cross-validation is Layer 3,
+# and the methodology document is the document rather than the evidence its
+# protocol asks for.
+#
+# THE CORRECTION MAKES THE CASE FOR THIS SCRIPT STRONGER, NOT WEAKER, which is why
+# it is written out instead of deleted. Section 12 is the list that governs
+# decisions made under time pressure, and Layer 1 is NOT on it. What protects Layer
+# 1 is an acceptance criterion, a box that has to be ticked for the deliverable to
+# be accepted, and a criterion at 10 of 100 fourteen days in is not protected by
+# much. So the absence this script reports is more fragile than the sentence it
+# used to carry implied, not less.
+#
+# It is the second paraphrase of docs/api/Keel_PRD.md found wrong in this
+# repository on one day. The other dropped the word "Hubble" from criterion 3 and
+# three plans scored against the result; DEC-002 section 8 records it. Quote that
+# file, do not summarise it.
 #
 # This script reports how many of the required recomputations are actually present
 # and, for each one, whether it identifies WHAT was computed and AT WHICH LEDGER.

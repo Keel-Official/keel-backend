@@ -108,8 +108,18 @@ api-mocks-check:
 # section 1, so this target has no number of its own to be edited.
 #
 # IT EXITS NON-ZERO TODAY, and it is meant to: 0 of 5 exist. Acceptance criterion 4
-# is worth 10 of 100 and PRD section 12 lists it among the four that are never
-# cuttable, so the absence gets a command rather than a paragraph.
+# is worth 10 of 100, and the absence gets a command rather than a paragraph
+# because a criterion that has not moved since 28 August needs a number somebody
+# can run, not a note somebody can skim.
+#
+# CORRECTED 3 SEPTEMBER 2026. The clause "and PRD section 12 lists it among the four
+# that are never cuttable" was here and is false: that list is the Blend backtest,
+# the methodology document, the cross-validation, and the limitations section, and
+# Layer 1 is on none of them. Same wrong sentence in
+# scripts/check-manual-recomputation.sh and scripts/audit-verification.sh, corrected
+# the same day. Layer 1 is protected by an acceptance criterion and not by the list
+# that governs cutting under pressure, which makes this target more worth running
+# rather than less.
 #
 # IT IS DELIBERATELY NOT IN `ci` BELOW, and this is a decision with an end
 # condition rather than an exemption. `make ci` is the gate that is expected to be
