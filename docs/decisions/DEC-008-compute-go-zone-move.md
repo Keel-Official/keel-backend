@@ -272,6 +272,9 @@ be cited as authority by the files it governs.
    for that reason. DEC-009 section 9 item 3 records the collision and it is not
    resolved here.
 
+   **CLOSED 5 September 2026.** The API contract record keeps DEC-003; the pool record
+   became DEC-013. Al's call, recorded in the ratification sheet for that day.
+
 ---
 
 ## 12. Amendment history

@@ -1,8 +1,25 @@
-# DEC-003: USTRY/USDC Pool at Ledger 61340263
+# DEC-013: USTRY/USDC Pool at Ledger 61340263
 
 **Status:** VERIFIED from on-chain data
 **Date:** August 2026
 **Impact:** golden fixture, reference price rule, manipulation cost definition, limitations section
+
+
+**RENUMBERED 5 September 2026, and it was DEC-003 until then.** Two records claimed
+DEC-003: the API contract record and this one, which DEC-009 section 9 item 3 and
+DEC-008 section 10 item 5 both recorded and neither resolved. Al settled it on
+5 September: the API contract record keeps DEC-003 because it is cited by number
+across the contract, the audit and the plans, and this record takes DEC-013, which
+was the free number. Nothing in the reading below changed.
+
+**One citation was wrong because of the collision, and it is worth naming rather
+than quietly fixing.** DEC-009 cited "DEC-003 (API contract v1.1) section 4.3" twice
+for the consequence that an active pool makes `Reachable` unconditionally true on the
+buy side. The API contract record has no section 4.3. Section 4.3 is in THIS record,
+`MaxReachablePrice semantics`, and that is where the consequence is stated. Both
+citations now name DEC-013. That is exactly the failure P2-25 was written to catch: a
+number that names two documents lets a pointer land on the wrong one and read as
+authority anyway.
 
 ---
 

@@ -45,7 +45,7 @@ Two readings of the combined form were put to Al.
 
 `Reachable` is confirmed unchanged. It remains an existential statement, and the
 already recorded consequence that an active pool makes it unconditionally true on
-the buy side, currently stated in DEC-003 (API contract v1.1) section 4.3 and in
+the buy side, currently stated in DEC-013 (the USTRY/USDC pool record, numbered DEC-003 until 5 September 2026) section 4.3 and in
 `compute.go`, is carried into the owning methodology file rather than left in those
 two places.
 
@@ -165,7 +165,7 @@ not have to be reconstructed.
 
 | File | Zone | Change |
 | --- | --- | --- |
-| `docs/methodology/05-manipulation-cost.md` | RED | Section 1 is generalised across venues, and the active pool consequence moves here from DEC-003 (API contract v1.1) section 4.3. Written by Al |
+| `docs/methodology/05-manipulation-cost.md` | RED | Section 1 is generalised across venues, and the active pool consequence moves here from DEC-013 (the USTRY/USDC pool record, numbered DEC-003 until 5 September 2026) section 4.3. Written by Al |
 | `scripts/audit-verification.sh` | GREEN | New check P2-19, a tripwire that reads PROVEN while section 1 still speaks of one venue. New check P2-20 reports a pool-only ladder arriving in a stored position, and reports rather than forbids because the identity behind it is section 9 item 1 below, which is Al's |
 | `docs/api/keel-openapi.yaml` | YELLOW | The `reachable` description on `manipulationCostCombined` states the degeneracy explicitly. Deferred until section 1 is written, so that the contract quotes the methodology and not this record |
 | `docs/methodology/README.md` | RED | No version history entry, per section 7 |
@@ -201,6 +201,11 @@ not have to be reconstructed.
    USTRY/USDC pool ledger 61340263 record. This record cites both by their subject
    for that reason. The collision is not resolved here.
 
+   **CLOSED 5 September 2026.** Al settled it: the API contract record keeps DEC-003
+   and the pool record became DEC-013. The two citations in this record that meant the
+   pool record were pointing at a section the contract record does not have, which is
+   recorded in the amendment history above.
+
 ---
 
 ## 10. Amendment history
@@ -216,3 +221,4 @@ that it was wrong is the finding.
 | 28 August 2026 | Record created. Reading A accepted by Al |
 | 28 August 2026 | Section 4.2 rewritten before first commit. The draft argued from non-negotiable rule 4, which DEC-006 section 8 explicitly fences to depth and warns against borrowing for manipulation cost. The conclusion is unchanged; the argument is now the quantifier asymmetry and DEC-006's own statement. Section 4.3 demoted from argument to corroboration for the same reason |
 | 28 August 2026 | Section 7 added. Al decided the change is editorial and `MethodologyVersion` does not move. Section 9 item 1 opened: reading A makes the DEC-006 section 8 additive identity decidable |
+| 5 September 2026 | Two pointers corrected in place, in section 4 and in the section 8 table. Both read "DEC-003 (API contract v1.1) section 4.3"; the API contract record has no section 4.3 and never did. The active-pool consequence is stated in section 4.3 of the USTRY/USDC pool record, which Al renumbered to DEC-013 on 5 September. The correction is made in place rather than appended below, because the rename breaks the pointer either way and an append-only rule that leaves a reader following a dead number protects the wrong thing. What the rule does protect is the reasoning, and no sentence of it moved. This is the failure P2-25 exists to catch, and item 3 of section 9 below is now closed |

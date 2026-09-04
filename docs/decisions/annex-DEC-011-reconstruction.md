@@ -8,7 +8,17 @@
 > number in the filename is deliberately left as `0XX`: DEC-011 is now an accepted
 > record about holder pull atomicity, and renumbering this draft is Al's call.
 
-# DEC-011: The ordering rule extends to `internal/domain`, and `07` is the oracle for the supporting metrics
+# Annex to DEC-011: the reconstructed text of the ordering-rule record
+
+**This file claims no decision number, by filename or by heading, and that is the
+resolution rather than an omission.** It is the reconstructed text of the record that
+became `DEC-011-supporting-metrics-ordering-rule.md`, kept because the original was
+destroyed on disk before it was committed and this is the only copy of what it said.
+It is history attached to DEC-011, not a second decision, so citing it as a decision
+number was never right. Al settled this on 5 September 2026. Its original heading read
+"DEC-011: The ordering rule extends to `internal/domain`, and `07` is the oracle for
+the supporting metrics", and that line is preserved here rather than deleted, because
+what this file is FOR is recording what the lost record said.
 
 - **Status:** Proposed
 - **Date:** 2026-09-01
@@ -23,9 +33,12 @@ everything else in this file is drafting.
 - **Methodology version:** `1.0.3-draft` in `internal/domain/types.go` line 29,
 `1.0.5-draft` in `docs/methodology/07-supporting-metrics.md` line 3. This record
 does not resolve that split. See section 10 item 4.
-- **Number:** DEC-011. DEC-010 is the highest number in use. Note that DEC-003 is
-used twice, on the API contract record and on the USTRY/USDC pool ledger record,
-which DEC-009 section 9 item 3 records and this record does not repeat.
+- **Number:** none. This is an annex to DEC-011 and claims no number of its own.
+  The text below was drafted when DEC-010 was the highest number in use, and it
+  noted that DEC-003 was then used twice, on the API contract record and on the
+  USTRY/USDC pool ledger record. Both collisions were resolved on 5 September 2026:
+  the pool record became DEC-013 and this file stopped claiming a number. DEC-014 is
+  the next free number.
 
 ---
 

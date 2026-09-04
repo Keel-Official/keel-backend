@@ -107,7 +107,7 @@ The distinct pool id across all 200 records is a single value:
 
 That is the USTRY/USDC pool this repository already has decisions about. It is
 named in `docs/methodology/01-data-sources.md`, `docs/methodology/10-validation.md`,
-`DEC-003`, `DEC-006` and `DEC-007`. **The one identifier the CSV drops is the one
+`DEC-013` (`DEC-003` until 5 September 2026), `DEC-006` and `DEC-007`. **The one identifier the CSV drops is the one
 identifier the methodology is built on.**
 
 ---

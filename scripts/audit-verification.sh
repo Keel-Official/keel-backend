@@ -1420,6 +1420,17 @@ echo "       here rather than covered. scripts/s3-archive/verify-manifest.sh is 
 # session transcript had read it in full, and it is in the repository as
 # DEC-0XX-...RECONSTRUCTED.md with its number deliberately left unassigned.
 #
+# RESOLVED 5 SEPTEMBER 2026, AND THIS PAIR IS KEPT RATHER THAN DELETED. Al decided
+# both collisions: the API contract record keeps DEC-003, the USTRY/USDC pool record
+# became DEC-013, and the reconstruction became annex-DEC-011-reconstruction.md, which
+# claims no number by filename or by heading and is therefore not a record this loop
+# reads at all. DEC-014 is the next free number. Both lines now read NOT, and they stay
+# because the next collision is the one they are for. THE FILENAME THE FIX USED IS THE
+# LESSON: the resolution first proposed was DEC-011-annex-reconstruction.md, and that
+# filename would have left this check PROVEN, because the loop globs docs/decisions/DEC-*.md
+# and reads the number out of the filename, so an annex filed under DEC-011 claims DEC-011
+# a second time. An annex must not start with DEC-.
+#
 # THE COST OF THE MISSING CHECK IS THE WHOLE POINT. A collision is not a filing
 # annoyance. The second one destroyed a record. Writing the check is under an hour
 # and it was not written after the first collision, which is why there was a second.
@@ -1436,8 +1447,8 @@ echo "       here rather than covered. scripts/s3-archive/verify-manifest.sh is 
 # WHAT NEITHER LINE CAN PROVE. That the number a record claims is the RIGHT one.
 # Both are satisfied by renumbering, and renumbering without deciding which record
 # owns the number is the failure this file has been defeated by five times in other
-# forms. The fix is Al's: DEC-013 is free, and section 6 of the 2 September
-# breakdown asks for that decision rather than for a rename.
+# forms. The fix was Al's and he made it on 5 September 2026, recorded in the
+# ratification sheet for that day. DEC-014 is now the free number.
 dec_claims=""
 dec_mismatch_report=""
 dec_placeholder_report=""
@@ -1496,7 +1507,7 @@ echo "       DEC-009 section 9 item 3 records the first collision. The second de
 echo "       disk before it was committed, and it survives only as a reconstruction from a transcript"
 echo "       what it cannot prove: that the number a record claims is the right one. Renumbering"
 echo "       satisfies this line, and renumbering without deciding which record owns the number is"
-echo "       the pattern this file has been defeated by before. DEC-013 is free and the call is Al's"
+echo "       the pattern this file has been defeated by before. DEC-014 is free and the call is Al's"
 
 check P2-26 "a decision record is filed under a number its own heading contradicts, or under a placeholder, so the filename and the record disagree about what it is" \
   dec_number_unfiled

@@ -119,15 +119,15 @@ a time-weighted-averaging mechanism the incident path never used. The parameters
 exist are `max_age` (900s, staleness bound) and Reflector `resolution` (300s, feed cadence);
 neither is an averaging window.
 
-This reinforces DEC-003 §3 (arbitrage asymmetry): arbitrage only corrects *executed*
+This reinforces DEC-013 §3 (arbitrage asymmetry): arbitrage only corrects *executed*
 mispricing, so an oracle reading *last-reported* trade prices reads exactly the unguarded
 part of the market. A spot `lastprice()` with no averaging window is that exact read.
 
-CONTRACT CHANGE (DEC-003): remove `oracleWindowSeconds` from `docs/api/keel-openapi.yaml`,
+CONTRACT CHANGE (DEC-003, the API contract record): remove `oracleWindowSeconds` from `docs/api/keel-openapi.yaml`,
 OR redefine it to reference `max_age` as a staleness bound, with an explicit note that the
 incident path used spot pricing (single latest round), not averaging.
 
-Also upgrades DEC-003 §4.2 honesty note: the claim "the oracle reads SDEX trade-derived
+Also upgrades DEC-013 §4.2 honesty note: the claim "the oracle reads SDEX trade-derived
 prices, not executable depth" is no longer only an inference. It is confirmed from source —
 the pool's oracle is the aggregator, which returns Reflector (ReflectorPulse) `lastprice`,
 and ReflectorPulse derives on-chain Stellar-asset prices from SDEX trades + ledger state [R2].
@@ -239,7 +239,7 @@ offer ID 1824788980 supersedes both.
       i.e. the base asset returns a fixed 1.0. So USTRY/XLM prices from this oracle
       are expressed in USDC units.
 
-- [ ] DEC-003: oracleWindowSeconds removed or redefined against max_age.
+- [ ] DEC-003, the API contract record: oracleWindowSeconds removed or redefined against max_age.
       RECOMMENDATION (pending RED decision): REMOVE it. The incident path is spot
       `lastprice()` with no averaging window (§3); `oracleWindowSeconds` models a
       mechanism that does not exist. Redefining it against `max_age` (900s) conflates
@@ -267,3 +267,11 @@ holds the SoW and may leave the repository before it goes public, and technical
 evidence should not leave with it. The rejected alternative was placing this
 file under `docs/context` as RED, which is safer but couples the evidence to a
 directory whose future is a commercial decision rather than a technical one.
+
+---
+
+**Renumbering note, 5 September 2026.** Two citations above read `DEC-003` and meant the
+USTRY/USDC pool record, which Al renumbered to DEC-013 that day to clear the collision
+with the API contract record. They now read DEC-013. The two that meant the contract
+record say so explicitly rather than relying on the number, because a bare number was
+what made the collision harmful in the first place.
