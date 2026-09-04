@@ -69,6 +69,40 @@
 # Context files
 /docs/context/*
 
+# ONE FILE IN THERE IS TRACKED ON PURPOSE, and it lands before the file does.
+#
+# Al decided on 5 September 2026 that Keel_PRD.md belongs in this directory rather
+# than beside the API contract, because it is an input from outside in the same class
+# as the SoW and the execution plan. It is a reclassification and reclassifications
+# are his, the same way DEC-008 settled compute.go.
+#
+# THE MOVE ALONE WOULD HAVE DELETED IT FROM THE REPOSITORY. The line above excludes
+# everything in this directory, so a plain `git mv` into it does not reclassify the
+# PRD, it removes it. Section 9 of that file holds the acceptance criteria the work is
+# scored against and section 12 holds the scope cutting order, so a clone would stop
+# containing the document that says what FINISHED means.
+#
+# AND IT WOULD HAVE MADE A FALSE SENTENCE TRUE, which is the sharper reason. The
+# 2 September deliverable breakdown asserted that the PRD lives in this directory, is
+# gitignored, and is not on disk. It was tracked the whole time. Three consecutive
+# plans scored acceptance criteria against a second-hand paraphrase because of that
+# sentence, and DEC-002 section 8 records it as the most expensive error of the day it
+# was found. Moving the file here without this negation would put every later session
+# in exactly that position, and the next paraphrase would be nobody's mistake.
+#
+# WHAT DEC-004 ACTUALLY ASKS FOR IS NOT WEAKENED. Section 2 names the SoW and the
+# execution plan as the two files that must come out before the repository is public,
+# because they carry the funder's name, the budget figure and an allocation of hours.
+# The PRD carries none of those, it is already tracked, and it is already public. So
+# re-including this one filename takes nothing out of DEC-004's reach.
+#
+# This negation works only because the line above excludes the CONTENTS of the
+# directory rather than the directory itself. Git cannot re-include a file whose
+# parent directory is excluded, so `/docs/context/` with a trailing slash would break
+# this silently. Do not tighten that line into a directory exclusion without moving
+# this file out first.
+!/docs/context/Keel_PRD.md
+
 # Internal working documents. DEC-004 section 2 requires these OUT before the
 # repository is public: the pre-development memo, the execution plan, the audit,
 # the handoff and the deliverable breakdown carry criticism of the repository,
