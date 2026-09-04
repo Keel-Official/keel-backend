@@ -1,6 +1,6 @@
 # Keel: Validation Protocol
 
-**Methodology version:** 1.0.3-draft
+**Methodology version:** 1.0.8-draft
 **Status:** protocol defined. Layer 3 EXECUTED 26 August 2026 and tabulated in
 section 3, 60 recordings, 37 match, 0 mismatch, 23 partial. Layer 2 has a harness
 and 0 of 10 fixtures, finding P2-18. Layer 1 has neither. Their definition of done
@@ -392,3 +392,4 @@ breakdown is in `testdata/fixtures/ustry_pre_exploit.md`.
 | Version | Change |
 |---|---|
 | 1.0.3-draft | Initial document. Defines the three layers, the sample sizes, and what each layer does not catch |
+| 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |

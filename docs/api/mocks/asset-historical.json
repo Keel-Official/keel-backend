@@ -12,7 +12,7 @@
   "ledgerSeq": 60912345,
   "ledgerClosedAt": "2026-05-19T11:02:44Z",
   "computedAt": "2026-08-19T02:40:11Z",
-  "methodologyVersion": "1.0.3-draft",
+  "methodologyVersion": "1.0.8-draft",
   "dataSource": "hubble",
   "midPrice": "0.0104200",
   "priceSource": "book",

@@ -1,6 +1,6 @@
 # Keel: Quote Asset and Pair Selection
 
-**Methodology version:** 1.0.3-draft
+**Methodology version:** 1.0.8-draft
 **Status:** WORKSHEET. The decisions below are unmade. Do not ship this file with blanks.
 
 Every figure Keel publishes is denominated in a quote asset. "The depth of USTRY" is
@@ -142,3 +142,4 @@ The oracle read USTRY/USDC. This is not a free choice.
 | Version | Change |
 |---|---|
 | 1.0.3-draft | Worksheet created. No decisions recorded yet |
+| 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |

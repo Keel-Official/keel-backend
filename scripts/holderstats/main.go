@@ -20,7 +20,7 @@
 //	  -trades docs/evidences/...2026-02-01_2026-03-01.csv,docs/evidences/...2026-08-01_2026-09-01.csv \
 //	  -trade-labels 2026-02,2026-08 \
 //	  -out docs/evidences/derived \
-//	  -methodology-version 1.0.5-draft \
+//	  -methodology-version 1.0.8-draft \
 //	  -genuine-volume-ustry 5723.2370064
 //
 // Exit codes:

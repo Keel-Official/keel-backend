@@ -1,6 +1,6 @@
 # Keel: Data Sources
 
-**Methodology version:** 1.0.3-draft
+**Methodology version:** 1.0.8-draft
 **Status:** complete. Every claim here was verified against Horizon mainnet during this
 project; none is quoted from documentation alone.
 
@@ -223,3 +223,4 @@ responses.
 | Version | Change |
 |---|---|
 | 1.0.3-draft | Initial document. Consolidates source facts previously scattered across DEC-001, DEC-002 and DEC-003 |
+| 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |

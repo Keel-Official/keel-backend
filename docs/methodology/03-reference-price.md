@@ -1,6 +1,6 @@
 # Keel: Reference Price
 
-**Methodology version:** 1.0.3-draft
+**Methodology version:** 1.0.8-draft
 **Status:** complete. The `P0` ladder changed in 1.0.3 and the reason is recorded below.
 
 `P0` is the price every other quantity in this methodology is measured against, so a
@@ -83,3 +83,4 @@ safety metric. What saves the analysis is the large delta ladder in
 | Version | Change |
 |---|---|
 | 1.0.3-draft | Split out of `keel-methodology-core.md` under the road 1 decision. Content unchanged except where noted in the section itself |
+| 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |

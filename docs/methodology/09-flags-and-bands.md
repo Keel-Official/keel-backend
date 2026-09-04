@@ -1,6 +1,6 @@
 # Keel: Risk Flags and Bands
 
-**Methodology version:** 1.0.3-draft
+**Methodology version:** 1.0.8-draft
 **Supersedes:** PRD sections 5.1 and 5.2, which now simply point here
 **Implemented in:** `internal/domain/flags.go`
 
@@ -317,3 +317,4 @@ fired, so the incomplete data does not change the conclusion in this case.
 | 1.0.1-draft | `SPREAD_EXTREME` added after the fixture showed `P0` losing meaning at extreme spreads                                                                                                                         |
 | 1.0.2-draft | `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` require `Reachable == true`. The `unevaluated` state and `bandConfidence` added after the fixture showed six flags could not be judged from a snapshot alone |
 | 1.0.3-draft | `PRICE_SOURCE_CONFLICT` added after verification found an honest pool priced 50x away from the book mid. `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` evaluated on the `orderbookOnly` variant            |
+| 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |

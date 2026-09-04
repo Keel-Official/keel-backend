@@ -1,6 +1,6 @@
 # Keel methodology: index and status
 
-**Methodology version in force:** `1.0.3-draft`
+**Methodology version in force:** `1.0.8-draft`
 **In sync with:** `internal/domain.MethodologyVersion`
 
 This file is a map. It carries no definitions of its own, so that it cannot become a
@@ -109,6 +109,11 @@ when its content moved.
 | 1.0.1-draft | `Reachable` rule corrected. `SPREAD_EXTREME` added                                                                                                                                                                                                                                                             |
 | 1.0.2-draft | `MANIPULATION_CHEAP` requires `Reachable == true`. `unevaluated` state and `bandConfidence` added                                                                                                                                                                                                              |
 | 1.0.3-draft | `P0` prefers the pool on large divergence, `PRICE_SOURCE_CONFLICT` added. Manipulation cost split into `combined` and `orderbookOnly`. `MaxReachablePrice` null when a pool is active. `δ_critical` 1.0 to 0.5 with a `Reachable` guard on `C_max`. Arbitrage asymmetry section. Sell-side fee treatment fixed |
+| 1.0.4-draft | `07` section 1: the genuine-trade rule defined and run over the February and August USTRY history. No other file changed |
+| 1.0.5-draft | `07` sections 2 to 5 defined: holder concentration, volume-to-supply, oracle-window volume, and the unevaluated conditions. No other file changed |
+| 1.0.6-draft | `07` sections 2 and 3 carry the first holder pull, 31 August 2026 |
+| 1.0.7-draft | `07` section 1 specimen C narrowed after directional verification |
+| 1.0.8-draft | DEC-011 accepted, `MaxLedgerSpan` = 24 ledgers, and `07` section 2 reports the pull's `snapshot_ledger`. **Then, 5 September 2026, this became the version in force for the whole set.** Al ratified unifying the split: `07` had run ahead to 1.0.8-draft while the other ten files, `internal/domain.MethodologyVersion` and the contract's examples all still read 1.0.3-draft. Ten files claiming two versions guarantees a reader cites the wrong one. **No definition changed in any file whose header moved**, and that is what makes it a bookkeeping sync rather than a methodology change: rows 1.0.4 to 1.0.8 above are all `07`, which is why they were never consolidated here until now. Rows already stored at `1.0.3-draft` keep their label and stay reproducible, so NFR-9 is untouched. DEC-014 records it |
 
 Every file in this folder must be raised together. A result produced under one version
 cannot be compared with a result produced under another.

@@ -3,6 +3,6 @@
   "latestScanAt": "2026-08-19T04:15:00Z",
   "latestScanLedgerSeq": 61234567,
   "assetsMonitored": 53,
-  "methodologyVersion": "1.0.3-draft",
+  "methodologyVersion": "1.0.8-draft",
   "historicalAvailable": true
 }

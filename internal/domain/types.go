@@ -26,7 +26,7 @@ import (
 
 // MethodologyVersion must be bumped whenever a definition or threshold changes.
 // Results produced under different versions are not directly comparable.
-const MethodologyVersion = "1.0.3-draft"
+const MethodologyVersion = "1.0.8-draft"
 
 // ---------------------------------------------------------------- Assets
 

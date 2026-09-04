@@ -1,6 +1,6 @@
 # Keel: Maximum Safe Collateral Size
 
-**Methodology version:** 1.0.3-draft
+**Methodology version:** 1.0.8-draft
 **Status:** complete for 1.0.x. A better form with no chosen constant is a candidate for 1.1.
 
 `C_max` is the only number in this methodology that tells a lender what to do rather
@@ -60,3 +60,4 @@ parameter.
 | Version | Change |
 |---|---|
 | 1.0.3-draft | Split out of `keel-methodology-core.md` under the road 1 decision. Content unchanged except where noted in the section itself |
+| 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |

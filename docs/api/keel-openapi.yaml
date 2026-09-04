@@ -2,6 +2,25 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.4.6, 5 September 2026. Every methodologyVersion example moves from 1.0.3-draft to
+  # 1.0.8-draft, and the /methodology example's version with them. No schema change and
+  # no behaviour change: the server stamps internal/domain.MethodologyVersion on every
+  # response and that constant moved the same day, so this file was about to be handing
+  # the frontend a version string this API no longer sends. That exact failure is
+  # recorded in 1.4.1 below, where the example carried 1.0.2-draft while the server
+  # returned 1.0.3-draft, and docs/api/mocks/ is generated from these examples so the
+  # mock inherits it.
+  #
+  # WHY THE CONSTANT MOVED, in one line: 07-supporting-metrics.md had run to 1.0.8-draft
+  # while the other ten methodology files and the code still read 1.0.3-draft, and Al
+  # ratified one version in force for the whole set. No definition changed. DEC-014 and
+  # docs/methodology/README.md section 4.
+  #
+  # NOT BREAKING, and the reason is in the contract already: methodologyVersion is
+  # documented as a value to read rather than to pin, and a consumer that hardcoded
+  # 1.0.3-draft was already going to break at the next methodology change. Rows stored
+  # at 1.0.3-draft keep their label, so a historical response can still carry it.
+  #
   # 1.4.5, 2 September 2026. The oracle window in every example moves from 300 seconds
   # to 900, so the contract stops disagreeing with the methodology about it. No schema
   # change. BREAKING FOR ANY CONSUMER that hardcoded 300 rather than reading
@@ -54,10 +73,10 @@ info:
   # breaking change. The Blend incident is February 2026 and not May: DEC-001
   # section 1 records it as a correction to the SOW, every other detail of the SOW
   # matches February, and the date had simply been written down wrongly. And the
-  # methodology example carried 1.0.2-draft while the server returns 1.0.3-draft,
+  # methodology example carried 1.0.2-draft while the server returns 1.0.8-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.4.5
+  version: 1.4.6
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -150,7 +169,7 @@ paths:
                 latestScanAt: '2026-08-19T04:15:00Z'
                 latestScanLedgerSeq: 61234567
                 assetsMonitored: 53
-                methodologyVersion: 1.0.3-draft
+                methodologyVersion: 1.0.8-draft
                 historicalAvailable: true
         '429':
           $ref: '#/components/responses/RateLimited'
@@ -173,7 +192,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Methodology'
               example:
-                version: 1.0.3-draft
+                version: 1.0.8-draft
                 documentUrl: https://github.com/Keel-Official/keel-backend/blob/main/docs/methodology/00-overview.md
                 calibrated: false
                 calibrationNote: >-
@@ -1285,7 +1304,7 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:02Z'
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         dataSource: horizon
         midPrice: '2.8419300'
         priceSource: book
@@ -1391,7 +1410,7 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:04Z'
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         dataSource: horizon
         midPrice: '0.4410000'
         priceSource: pool
@@ -1505,7 +1524,7 @@ components:
         ledgerSeq: 61234567
         ledgerClosedAt: '2026-08-19T04:12:31Z'
         computedAt: '2026-08-19T04:15:06Z'
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         dataSource: horizon
         midPrice: null
         priceSource: none
@@ -1575,7 +1594,7 @@ components:
         ledgerSeq: 60912345
         ledgerClosedAt: '2026-05-19T11:02:44Z'
         computedAt: '2026-08-19T02:40:11Z'
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         dataSource: hubble
         midPrice: '0.0104200'
         priceSource: book
@@ -1733,7 +1752,7 @@ components:
         ledgerSeq: 61340263
         ledgerClosedAt: '2026-02-22T00:10:21Z'
         computedAt: '2026-08-19T04:15:08Z'
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         dataSource: offers-implied
         midPrice: '53.8971414'
         priceSource: book
@@ -1869,7 +1888,7 @@ components:
         total: 53
         limit: 3
         offset: 0
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         items:
           - asset:
               code: USDC
@@ -1932,7 +1951,7 @@ components:
         from: 60890000
         to: 60950000
         resolution: day
-        methodologyVersion: 1.0.3-draft
+        methodologyVersion: 1.0.8-draft
         dataSource: hubble
         gaps:
           - from: 60901000

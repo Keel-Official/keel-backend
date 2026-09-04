@@ -12,7 +12,7 @@
   "ledgerSeq": 61340263,
   "ledgerClosedAt": "2026-02-22T00:10:21Z",
   "computedAt": "2026-08-19T04:15:08Z",
-  "methodologyVersion": "1.0.3-draft",
+  "methodologyVersion": "1.0.8-draft",
   "dataSource": "offers-implied",
   "midPrice": "53.8971414",
   "priceSource": "book",

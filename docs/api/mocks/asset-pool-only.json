@@ -12,7 +12,7 @@
   "ledgerSeq": 61234567,
   "ledgerClosedAt": "2026-08-19T04:12:31Z",
   "computedAt": "2026-08-19T04:15:04Z",
-  "methodologyVersion": "1.0.3-draft",
+  "methodologyVersion": "1.0.8-draft",
   "dataSource": "horizon",
   "midPrice": "0.4410000",
   "priceSource": "pool",
