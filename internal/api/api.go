@@ -61,9 +61,11 @@ type Config struct {
 	// rather than read from domain.DefaultParams() here, so that a deployment
 	// running non-default parameters cannot report the defaults.
 	Params domain.Params
-	// HistoricalAvailable is false while the Hubble path does not exist. Stated
-	// as configuration rather than hardcoded, because DEC-002 defers that path
-	// rather than canceling it.
+	// HistoricalAvailable says whether this deployment has replayed rows to
+	// serve. It is configuration rather than a hardcoded false because it is a
+	// property of the DATA a deployment holds and not of the code: the same
+	// binary serves an operator who has run `keel bookseries` over February and
+	// one who has not.
 	HistoricalAvailable bool
 	Logf                func(format string, args ...any)
 }
@@ -304,10 +306,22 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The historical path. DEC-002 defers Hubble, so there is no source that can
-	// answer this yet, and a 503 with HISTORICAL_UNAVAILABLE is the contract's
-	// own answer for that state. Returning a live figure and labeling it
-	// historical would be the one genuinely dangerous alternative.
+	// The historical path. A 503 with HISTORICAL_UNAVAILABLE is the contract's
+	// own answer for a deployment with no replayed rows, and returning a live
+	// figure labelled historical would be the one genuinely dangerous
+	// alternative.
+	//
+	// THE SOURCE IS offers-implied AND NOT hubble, CORRECTED 5 SEPTEMBER 2026.
+	// This read asked the store for hubble rows, which is a source DEC-002 holds
+	// and that therefore cannot exist, so the path could only ever have answered
+	// 404 no matter what had been replayed. What does exist is the reconstruction
+	// from manage offer operations that `keel replay` and `keel bookseries`
+	// produce, and the contract has documented that answer all along: its
+	// assetHistorical example carries dataSource offers-implied and a warning
+	// saying the book was rebuilt by replaying operations rather than measured.
+	// If the Hubble path is ever undeferred, a second source here is a decision
+	// and not a patch: two sources answering one ledger have to be ordered, and
+	// DEC-002 is where that ordering belongs.
 	if !s.cfg.HistoricalAvailable {
 		s.writeError(w, http.StatusServiceUnavailable, codeHistoricalUnavailable,
 			"Historical replay is not available. The Hubble path is deferred; see DEC-002.", nil)
@@ -320,7 +334,14 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 			"ledger must be a positive integer.", nil)
 		return
 	}
-	m, err := s.cfg.Reader.MetricsAtLedger(ctx, pair.ID, uint32(ledger), "", domain.DataSourceHubble)
+	// ALL FOUR PARTS OF THE KEY, and the version is why this line changed twice.
+	// store.MetricsAtLedger documents that it requires every part and does NOT
+	// default an empty version the way LatestMetrics does, so the empty string
+	// this call used to pass was asking for rows whose methodology_version is
+	// literally '', which no row has ever carried. The fake in api_test.go keyed
+	// only on asset and ledger, so no test could see it.
+	m, err := s.cfg.Reader.MetricsAtLedger(ctx, pair.ID, uint32(ledger),
+		domain.MethodologyVersion, domain.DataSourceOffersImplied)
 	if errors.Is(err, store.ErrNotFound) {
 		s.writeError(w, http.StatusNotFound, codeLedgerNotAvailable,
 			"That ledger has not been replayed yet.", map[string]any{"ledger": ledger})

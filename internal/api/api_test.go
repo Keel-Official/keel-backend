@@ -27,15 +27,18 @@ import (
 // ---------------------------------------------------------------- fake reader
 
 type fakeReader struct {
-	assets    []store.Asset
-	pairs     map[string][]store.Asset // code|issuer -> pairs
-	latest    map[int]store.Metric
-	atLedger  map[string]store.Metric // assetID|ledger
-	history   map[int][]store.Metric
-	summaries []store.Metric
-	total     int
-	lastRun   *store.Run
-	err       error
+	assets   []store.Asset
+	pairs    map[string][]store.Asset // code|issuer -> pairs
+	latest   map[int]store.Metric
+	atLedger map[string]store.Metric // assetID|ledger|version|source
+
+	askedVersion      string
+	askedLedgerSource domain.DataSource
+	history           map[int][]store.Metric
+	summaries         []store.Metric
+	total             int
+	lastRun           *store.Run
+	err               error
 
 	// gotSource is what the last MetricsHistory call asked for.
 	gotSource domain.DataSource
@@ -63,8 +66,19 @@ func (f *fakeReader) LatestMetrics(_ context.Context, assetID int, _ string) (st
 	return m, nil
 }
 
-func (f *fakeReader) MetricsAtLedger(_ context.Context, assetID int, seq uint32, _ string, _ domain.DataSource) (store.Metric, error) {
-	m, ok := f.atLedger[strconv.Itoa(assetID)+"|"+strconv.FormatUint(uint64(seq), 10)]
+// MetricsAtLedger keys on ALL FOUR parts, the way store.MetricsAtLedger does.
+//
+// IT USED TO KEY ON TWO, and that is why a defect sat here unseen. The handler
+// asked the store for an empty methodology version and for hubble rows, and both
+// were wrong: the store treats an empty version as a literal and matches nothing,
+// and hubble is a source DEC-002 holds so no row can carry it. A fake that
+// ignores half the key cannot fail on either. It records what it was asked for,
+// so a test can assert the request rather than only the response.
+func (f *fakeReader) MetricsAtLedger(_ context.Context, assetID int, seq uint32, version string, source domain.DataSource) (store.Metric, error) {
+	f.askedVersion = version
+	f.askedLedgerSource = source
+	key := strconv.Itoa(assetID) + "|" + strconv.FormatUint(uint64(seq), 10) + "|" + version + "|" + string(source)
+	m, ok := f.atLedger[key]
 	if !ok {
 		return store.Metric{}, fmt.Errorf("%w: ledger %d", store.ErrNotFound, seq)
 	}
@@ -489,10 +503,12 @@ func TestAHistoricalRequestIs503WhileHubbleIsDeferred(t *testing.T) {
 
 func TestAnUnreplayedLedgerIs404AndNot500(t *testing.T) {
 	m := riskFixture()
-	m.Risk.DataSource = domain.DataSourceHubble
+	m.Risk.DataSource = domain.DataSourceOffersImplied
 	f := &fakeReader{
-		pairs:    map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
-		atLedger: map[string]store.Metric{"7|61340263": m},
+		pairs: map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		atLedger: map[string]store.Metric{
+			"7|61340263|" + domain.MethodologyVersion + "|" + string(domain.DataSourceOffersImplied): m,
+		},
 	}
 	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true})
 	if err != nil {
@@ -947,3 +963,78 @@ func TestAStorageFailureDoesNotLeakItsMessage(t *testing.T) {
 // The store satisfies the Reader interface. This is a compile time assertion and
 // it is the only thing tying this package to the concrete store.
 var _ Reader = (*store.Store)(nil)
+
+// TestTheHistoricalReadAsksForAKeyThatCanExist is the regression the fake was
+// blind to until 5 September 2026.
+//
+// store.MetricsAtLedger requires all four parts of the key and, unlike
+// LatestMetrics, does NOT default an empty version to the current one: its own
+// comment says asking for an asset at a ledger without naming the version and the
+// source is asking for several different rows. This handler passed an empty
+// version and the hubble source, so the query was for rows whose
+// methodology_version is literally ” and whose data_source is a source DEC-002
+// holds. No such row can exist, so the path could only ever answer 404.
+//
+// The assertion is on what the handler ASKED FOR rather than on what came back,
+// because a fake generous enough to answer a malformed request is exactly how the
+// defect survived.
+func TestTheHistoricalReadAsksForAKeyThatCanExist(t *testing.T) {
+	m := riskFixture()
+	m.Risk.DataSource = domain.DataSourceOffersImplied
+	f := &fakeReader{
+		pairs: map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		atLedger: map[string]store.Metric{
+			"7|61340262|" + domain.MethodologyVersion + "|" + string(domain.DataSourceOffersImplied): m,
+		},
+	}
+	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec := get(t, s.Handler(), BasePath+"/asset/"+ustryID+"/depth?ledger=61340262")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	if f.askedVersion != domain.MethodologyVersion {
+		t.Errorf("asked the store for methodology version %q, want %q. An empty version matches no row",
+			f.askedVersion, domain.MethodologyVersion)
+	}
+	if f.askedLedgerSource != domain.DataSourceOffersImplied {
+		t.Errorf("asked the store for source %q, want %q. hubble is held by DEC-002 and no row carries it",
+			f.askedLedgerSource, domain.DataSourceOffersImplied)
+	}
+}
+
+// TestTheHistoricalResponseSaysItIsAReconstruction guards the one thing that
+// makes serving a rebuilt book honest. The contract's assetHistorical example
+// carries dataSource offers-implied for exactly this reason: an offers-implied
+// depth figure is not a measurement, and a consumer that cannot tell the two
+// apart is being told a reconstruction is a reading.
+func TestTheHistoricalResponseSaysItIsAReconstruction(t *testing.T) {
+	m := riskFixture()
+	m.Risk.DataSource = domain.DataSourceOffersImplied
+	f := &fakeReader{
+		pairs: map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		atLedger: map[string]store.Metric{
+			"7|61340262|" + domain.MethodologyVersion + "|" + string(domain.DataSourceOffersImplied): m,
+		},
+	}
+	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec := get(t, s.Handler(), BasePath+"/asset/"+ustryID+"/depth?ledger=61340262")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	// Decoded into a map rather than the response struct, so the test reads the
+	// JSON a consumer sees and not the Go type that produced it.
+	var body map[string]any
+	decodeBody(t, rec, &body)
+	if got, _ := body["dataSource"].(string); got != string(domain.DataSourceOffersImplied) {
+		t.Errorf("dataSource = %q, want %q so a reader can tell a rebuilt book from a measured one",
+			got, domain.DataSourceOffersImplied)
+	}
+}
