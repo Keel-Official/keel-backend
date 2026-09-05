@@ -23,7 +23,7 @@
 # much. So the absence this script reports is more fragile than the sentence it
 # used to carry implied, not less.
 #
-# It is the second paraphrase of docs/api/Keel_PRD.md found wrong in this
+# It is the second paraphrase of the PRD found wrong in this
 # repository on one day. The other dropped the word "Hubble" from criterion 3 and
 # three plans scored against the result; DEC-002 section 8 records it. Quote that
 # file, do not summarise it.

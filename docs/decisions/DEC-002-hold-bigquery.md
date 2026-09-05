@@ -286,8 +286,9 @@ a past ledger**." Section 4: "Phases 1 and 2 cover **all of Deliverable 1 except
 precise replay**."
 
 Both sentences are about capability. Neither is about the acceptance criteria, and
-the acceptance criteria are what the deliverable is scored against. `docs/api/Keel_PRD.md`
-section 9 reads, verbatim:
+the acceptance criteria are what the deliverable is scored against. The PRD, at
+`docs/context/Keel_PRD.md` since 5 September 2026 and at `docs/api/Keel_PRD.md` when
+this section was written, section 9, reads verbatim:
 
 > - [ ] **Horizon versus Hubble** cross-validation on at least 50 pairs, results tabulated
 
@@ -413,3 +414,26 @@ record asked for in August is still owed, and the contract carries the honesty t
 the PRD does not: `dataSource: "trades-implied"` is in `docs/api/keel-openapi.yaml`
 as section 5 also required. One of the two edits landed and the other did not, and
 the one that did not is the one facing the reader who judges the deliverable.
+
+---
+
+### 8.6 The PRD moved on 5 September 2026, and every dated sentence above stands
+
+Al moved the file to `docs/context/Keel_PRD.md`. The path in sections 8.1, 8.2 and 8.5
+is left exactly as written, because each of those sentences is a dated claim about where
+the file was on 3 September and each of them was true. Rewriting them would destroy the
+finding they carry.
+
+**Section 8.2 is the one to read twice.** It records that the 2 September breakdown
+claimed the PRD "lives in `docs/context/`, which is gitignored and is not on disk", and
+that three plans scored acceptance criteria against a paraphrase because of it. Half of
+that sentence is now true: the file does live there. **The half that mattered is still
+false, and deliberately so.** It is not gitignored and it is on disk, because a negation
+line in `.gitignore` landed in its own commit before the move for exactly this reason.
+Without it, a claim that cost three plans would have been made retroactively correct by
+a filing decision, and every later session would have been unable to read the criteria
+it is scored against.
+
+The distinction is the whole point of that section: the error was never about which
+directory the file sat in. It was about asserting a file is unreachable instead of
+opening it.

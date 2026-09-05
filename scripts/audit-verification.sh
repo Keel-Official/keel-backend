@@ -1527,16 +1527,16 @@ echo "       filename and leaving the heading is still a collision, and P2-25 al
 # ---------------------------------------------------------------------------
 # P2-27 and P2-28. The PRD, and the directory it is filed in.
 #
-# docs/api/Keel_PRD.md holds the acceptance criteria in section 9, the functional
-# requirements in section 4, and the scope cutting order in section 12. It is an
-# INPUT FROM OUTSIDE in exactly the sense the zone map means when it makes
-# docs/context/ red and enforced: it is the document the work is scored against,
-# and Claude is one of the two things it scores.
+# The PRD holds the acceptance criteria in section 9, the functional requirements in
+# section 4, and the scope cutting order in section 12. It is an INPUT FROM OUTSIDE
+# in exactly the sense the zone map means when it makes docs/context/ red and
+# enforced: it is the document the work is scored against, and Claude is one of the
+# two things it scores. Since 5 September 2026 it is at docs/context/Keel_PRD.md.
 #
-# It is filed in docs/api/, which the zone map makes YELLOW and describes as "the
-# contract". The PRD is not the contract. So until 3 September 2026 the criteria
-# that measure Claude's work sat in a directory Claude may write, and nothing in
-# either permission file said otherwise.
+# IT WAS FILED IN docs/api/ UNTIL THEN, which the zone map makes YELLOW and describes
+# as "the contract". The PRD is not the contract. So until 3 September 2026 the
+# criteria that measure Claude's work sat in a directory Claude may write, and
+# nothing in either permission file said otherwise.
 #
 # THIS IS THE SAME DEFECT CLASS THE MAP CLOSED ON 24 AUGUST 2026, when fourteen
 # directories including .claude/ itself had no row, so the file that defined the
@@ -1552,13 +1552,60 @@ echo "       filename and leaving the heading is still a collision, and P2-25 al
 # mention is the failure this repository has already paid for once in the other
 # direction: five references to a retired red zone that would each have gone on
 # refusing work the map permitted, and none of which would have failed.
+#
+# SETTLED 5 SEPTEMBER 2026, AND THE PROBE WAS RE-ANCHORED THE SAME DAY. Al moved the
+# file to docs/context/Keel_PRD.md. The probe below now names that path. It named the
+# old one for two days, and leaving it there would have kept BOTH lines reading the
+# way they should while testing a path that holds no file, which is the exact failure
+# the paragraph above describes: five stale references to a retired red zone, not one
+# of which would have failed. A check that passes for the wrong reason is worse than
+# one that fails, because nobody looks at it again.
+#
+# THE OLD PATH IS STILL LOCKED IN THREE PLACES AND THAT IS DELIBERATE. Two deny list
+# entries name docs/api/Keel_PRD.md and one alternative in the hook's zone_any does.
+# They now guard a path holding nothing. Removing them is a LOOSENING and loosenings
+# are Al's, and the new path is covered by the docs/context clause in both files, so
+# leaving them unlocks nothing. This is the one case where a stale lock is kept on
+# purpose, and the difference from the five references above is that this one is
+# WRITTEN DOWN, here and in the zone map row.
+#
+# WHAT NEITHER LINE COULD PROVE BEFORE AND STILL CANNOT: that the criteria inside the
+# file are the right ones, or that they match the SoW. The SoW is not on disk. The
+# directory now exists and holds exactly one tracked file, which is the PRD, kept by
+# a negation in .gitignore that landed BEFORE the move. Without that negation the
+# move would have removed the acceptance criteria from the repository rather than
+# reclassifying them.
+# THE CHECK FOLLOWS THE FILE, NOT A STRING, and that changed on 5 September 2026
+# because the old form went on passing after the file moved out from under it.
+#
+# prd_in_deny used to grep the deny block for the basename Keel_PRD.md. After the
+# move, the two entries it matched named docs/api/Keel_PRD.md, a path holding no
+# file, so the check reported the definition of done as locked on the strength of a
+# rule guarding nothing. The protection was real, because Edit and Write on
+# docs/context/** are both denied, but this line was not the thing proving it. A
+# check that passes for a reason that has stopped holding is the failure this script
+# has been defeated by five times, and it is the reason the loop below asks git
+# where the file actually is rather than being told.
+#
+# It also means a later move needs no edit here, and that a PRD deleted from the
+# repository is reported rather than silently passing: prd_path goes empty, both
+# halves fail, and the output line below says which.
+prd_path(){
+  git ls-files 2>/dev/null | grep -E '(^|/)Keel_PRD\.md$' | head -1
+}
 prd_in_deny(){
-  awk '/"deny"[[:space:]]*:/{f=1} f{print} f && /\]/{exit}' .claude/settings.json \
-    | grep -q 'Keel_PRD\.md'
+  local p d block
+  p="$(prd_path)"; [ -n "$p" ] || return 1
+  d="${p%/*}"
+  block=$(awk '/"deny"[[:space:]]*:/{f=1} f{print} f && /\]/{exit}' .claude/settings.json)
+  printf '%s\n' "$block" | grep -qF -e "Edit($p)"  -e "Edit($d/**)"  || return 1
+  printf '%s\n' "$block" | grep -qF -e "Write($p)" -e "Write($d/**)" || return 1
 }
 prd_hook_locked(){
+  local p
   hook_absent && return 1
-  hook_refuses 'sed -i "" s/a/b/ docs/api/Keel_PRD.md'
+  p="$(prd_path)"; [ -n "$p" ] || return 1
+  hook_refuses "sed -i \"\" s/a/b/ $p"
 }
 # The probe list is the one P2-6e paid for: the ordinary forms, not the exotic
 # ones. A redirect carries no mutating verb, and `cat > file` is how a document
@@ -1568,8 +1615,13 @@ prd_writable(){
   return 0
 }
 prd_lock_unmapped(){
+  local p
   prd_hook_locked || return 1
-  grep -q 'Keel_PRD\.md' CLAUDE.md && return 1
+  p="$(prd_path)"; [ -n "$p" ] || return 1
+  # The FULL PATH, not the basename. A map that still names the old location is a map
+  # a reader would follow to an empty directory, and the whole point of this half is
+  # that the lock is visible to the document people actually read.
+  grep -qF "$p" CLAUDE.md && return 1
   return 0
 }
 check P2-27 "the PRD, which holds the acceptance criteria the work is scored against, is writable by Claude in at least one of the two permission files, so the definition of done sits inside the writable surface" \
@@ -1587,7 +1639,8 @@ fi
 echo "       neither file closes the other's route: the deny list does not see Bash, and the hook"
 echo "       does not see Edit. Same reasoning as P2-6, and it is why both halves are probed"
 echo "       what it cannot prove: that the criteria inside it are the right ones, or that they"
-echo "       match the SOW. docs/context/ is not on disk, so no check here can compare the two"
+echo "       match the SOW. The SOW is not on disk, so no check here can compare the two. The PRD"
+echo "       moved into docs/context/ on 5 September 2026 and is the one tracked file in there"
 
 check P2-28 "the harness refuses the PRD while no row in the CLAUDE.md zone map names it, so the lock is invisible to the document people actually read" \
   prd_lock_unmapped

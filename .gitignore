@@ -90,11 +90,22 @@
 # was found. Moving the file here without this negation would put every later session
 # in exactly that position, and the next paraphrase would be nobody's mistake.
 #
-# WHAT DEC-004 ACTUALLY ASKS FOR IS NOT WEAKENED. Section 2 names the SoW and the
-# execution plan as the two files that must come out before the repository is public,
-# because they carry the funder's name, the budget figure and an allocation of hours.
-# The PRD carries none of those, it is already tracked, and it is already public. So
-# re-including this one filename takes nothing out of DEC-004's reach.
+# WHAT DEC-004 ACTUALLY ASKS FOR IS NOT WEAKENED. Section 2 names two things that must
+# come out before the repository is public: docs/context/Keel_SoW.pdf, which carries
+# the commercial terms, and docs/internal/. The PRD is on neither list, and section 2's
+# "what stays and should be public" list includes docs/api/, which is where the PRD sat
+# when that list was written. It is already tracked and already public. So re-including
+# this one filename changes nothing about what is exposed.
+#
+# CORRECTION, SAME COMMIT AS THE MOVE. An earlier draft of this comment said the PRD
+# "carries none of" the funder's name, the budget figure and an allocation of hours.
+# Two thirds of that is false and it was written without opening the file: the PRD
+# names the funder on lines 5 and 51 and the fee on line 364. It does not carry an
+# hour allocation. The sentence is corrected rather than deleted because it is the
+# same failure this repository has paid for twice in a fortnight, asserting what a
+# document contains instead of reading it, and the argument does not need it: DEC-004
+# item 1 of its 28 August amendment already records the funder's name as a tracked and
+# public thing that is Al's to decide about, and this move neither helps nor hurts it.
 #
 # This negation works only because the line above excludes the CONTENTS of the
 # directory rather than the directory itself. Git cannot re-include a file whose

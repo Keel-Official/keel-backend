@@ -194,6 +194,19 @@ line=$(printf '%s ' "$body" | tr '\n' ';')
 # generated mocks and everything else in that directory stay Claude's, and a prefix
 # here would take all of them silently, which is the mistake the testdata entries
 # above are spelled out in full to avoid.
+#
+# 5 SEPTEMBER 2026: THE FOURTH ENTRY NOW GUARDS AN EMPTY PATH, AND IT STAYS ANYWAY.
+# Al moved the file to docs/context/Keel_PRD.md, so the third entry above covers it
+# and the fourth names a path holding nothing. Narrowing this pattern is a LOOSENING
+# and loosenings are Al's, which is the whole asymmetry this file exists to enforce,
+# so Claude leaves it. Nothing is unlocked by leaving it either: the file is refused
+# under docs/context like every other input from outside.
+#
+# THIS IS THE ONE STALE LOCK THIS REPOSITORY KEEPS ON PURPOSE, and the difference
+# from the five it was bitten by is that this one is written down in three places:
+# here, the zone map row, and the P2-27 comment block in scripts/audit-verification.sh.
+# A stale reference nobody recorded goes on refusing work the map permits and never
+# fails while doing it. This one refuses nothing, because there is nothing there.
 zone_any='(testdata/fixtures|testdata/manual|docs/context|docs/api/Keel_PRD\.md)[^[:alnum:]_]'
 
 # P2-6d fix, part 2: command position anchor. A verb is only a verb at the start of
@@ -280,7 +293,9 @@ fi
 
 # Everything below concerns a red path, so one message serves both remaining rules.
 message="testdata/fixtures/, testdata/manual/ and docs/context/ are RED ZONES, red
-all the way down, and docs/api/Keel_PRD.md is one file held to the same rule.
+all the way down. docs/api/Keel_PRD.md is still named as a fourth entry and now
+guards a path holding no file: that document moved into docs/context/ on 5 September
+2026 and is covered by the directory rule like everything else in there.
 
 The golden fixture's numbers are computed BY HAND before any implementation exists,
 and internal/conformance/fixture.go says it in its own header: do not adjust these
@@ -296,16 +311,16 @@ back: numbers produced by Claude must never become the numbers that test Claude'
 code. It is locked before it exists, so a refusal here on an empty directory is the
 guard working early rather than a stale rule.
 
-docs/context/ holds the SoW and the execution plan, which are inputs from outside
-and are read, never written.
+docs/context/ holds the SoW, the execution plan and the PRD, which are inputs from
+outside and are read, never written.
 
-docs/api/Keel_PRD.md is that same class of document wearing a different directory.
+Keel_PRD.md is the newest of those three and the only one of them that is tracked.
 Section 9 holds the acceptance criteria, section 4 the functional requirements, and
 section 12 the scope cutting order, so it is the file that says what FINISHED means
 and Claude is one of the two things it measures. It was writable until 3 September
 2026 for no better reason than that it was filed beside the API contract, which IS
-Claude's. Only this one filename is held; keel-openapi.yaml and the generated mocks
-next to it are untouched by this rule.
+Claude's, and Al moved it here on 5 September. The API contract and the generated
+mocks it used to sit beside are untouched by this rule and stay Claude's.
 
 What you may do there: read them, quote them, grep them, and report where the code
 and the fixture disagree. That disagreement IS the finding, and editing either side

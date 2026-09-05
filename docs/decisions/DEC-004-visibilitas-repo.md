@@ -124,8 +124,9 @@ the same reasons, and `git rm` alone is still not sufficient.
 
 **Two things next to this are Al's and are left open rather than decided here.**
 
-1. **The funder is still named in two tracked public files**, `docs/api/Keel_PRD.md`
-   at two lines and `docs/api/keel-openapi.yaml` at one. It is no longer named in
+1. **The funder is still named in two tracked public files**, `docs/context/Keel_PRD.md`
+   at two lines, which was `docs/api/Keel_PRD.md` when this was written, and
+   `docs/api/keel-openapi.yaml` at one. It is no longer named in
    this record, which is a side effect of rewording the row above and not a
    decision that it should go: naming who funded the work is
    ordinary attribution and is a different thing from disclosing the terms, which
@@ -141,3 +142,38 @@ the same reasons, and `git rm` alone is still not sufficient.
    Recording that is a reversal, and a reversal is Al's to make and is recorded as
    a reversal rather than applied by editing the old text away. Section 0.1 of the
    local migration runbook holds the evidence.
+
+---
+
+## 7. Third amendment, 5 September 2026: `docs/context/` is no longer all one thing
+
+**This amends and does not reverse.** Section 2 stands as written. What changed is what
+is in the directory it talks about.
+
+Al moved `Keel_PRD.md` into `docs/context/` on 5 September 2026, because it is an input
+from outside in the same class as the SoW: it is the document the work is scored
+against. The zone map row records it.
+
+**The directory is now split, and a reader of section 2 alone would not know it.**
+
+| In `docs/context/` | Tracked | What section 2 says about it |
+|---|---|---|
+| `Keel_SoW.pdf` | no, and it stays out | it must come out before going public |
+| `Keel_PRD.md` | **yes, on purpose** | nothing. It was in `docs/api/` when section 2 was written, and that directory is on section 2's "what stays and should be public" list |
+
+The PRD is kept tracked by one negation line in `.gitignore`, which landed in its own
+commit before the move. Without it the move would not have reclassified the file, it
+would have removed the acceptance criteria from the repository.
+
+**THE TRAP THIS OPENS, AND IT IS WHY THIS SECTION EXISTS.** Section 2 gives two roads
+out of the history, a rewrite or a fresh repository. Anyone reading section 2 and
+reaching for `git filter-repo --path docs/context/ --invert-paths` would now delete the
+PRD from the history along with the SoW, and the PRD is one of the documents a reviewer
+needs in order to check the work against its own acceptance criteria. **The purge is by
+FILE, not by directory.** When the road in section 2 is taken, the paths to strip are
+`docs/context/Keel_SoW.pdf` and `docs/internal/`, named one at a time.
+
+Nothing here decides item 1 of the 28 August amendment. The funder is named in the PRD
+at lines 5 and 51 and the fee at line 364, exactly as it was while the file sat in
+`docs/api/`. The move changes neither the exposure nor the decision, and that decision
+is still Al's.
