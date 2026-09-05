@@ -1,0 +1,219 @@
+name: deploy
+
+# WHAT THIS WORKFLOW IS AND WHERE IT STOPS.
+#
+# It builds the image, proves the image actually serves, and publishes it to this
+# repository's own container registry. It does NOT put it on a host. That split is
+# deliberate and is the same one scripts/s3-archive/ is built on: an agent that
+# provisions the infrastructure its own evidence lives in has no chain of custody,
+# it has a filing cabinet. The hosting account, its secrets and the production
+# database are Al's, and the deploy job below refuses to invent them.
+#
+# IT NEVER RUNS ON A PUSH TO main. A deployment workflow that fires on every commit
+# and fails for want of a secret teaches people to ignore a red tick, and a red
+# tick nobody reads is worse than no check. It runs when a version tag is pushed,
+# or when somebody presses the button.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # No GO_VERSION here on purpose. Nothing in this workflow runs Go: the compiler
+  # runs inside the image build, pinned by the FROM line in the Dockerfile, and
+  # the smoke test reads the methodology version out of the source file rather
+  # than out of a toolchain. A version declared and unused is a version somebody
+  # will later believe is being honoured.
+  REGISTRY: ghcr.io
+
+jobs:
+  # ------------------------------------------------------------------ image
+  #
+  # Build, then SMOKE TEST, then push. In that order, so a broken image is never
+  # published: an image that cannot start is discovered here rather than by
+  # whoever pulls it.
+  image:
+    name: build, smoke test, publish
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: keel
+          POSTGRES_PASSWORD: keel_dev_only
+          POSTGRES_DB: keel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U keel"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # ONE COMPUTED DATE RATHER THAN AN EVENT FIELD.
+      # github.event.repository.updated_at is empty on workflow_dispatch, and a
+      # label that is present on a tag build and blank on a manual one is worse
+      # than one that is always the same shape.
+      - name: Stamp
+        id: stamp
+        run: echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the image, load it locally, do not push yet
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: keel:smoke
+          build-args: |
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ steps.stamp.outputs.date }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # THE SCHEMA COMES FROM scripts/migrate.sh AND NOT FROM A COPY OF IT HERE.
+      # That script's header states the rule: a migration applied from two places
+      # is a migration nobody can say ran. It gained a DSN transport on
+      # 5 September 2026 precisely so this step could reuse it rather than
+      # reimplement the ordering and the bookkeeping in YAML.
+      #
+      # The database this points at is a service container that lives for the
+      # length of this job. It is a fixture, not an environment.
+      - name: Apply the schema to the smoke database
+        env:
+          KEEL_MIGRATE_DSN: "postgres://keel:keel_dev_only@localhost:5432/keel?sslmode=disable"
+        run: bash scripts/migrate.sh
+
+      # `keel serve` refuses to start when schema_migrations is empty, which is
+      # why the step above is not optional. --network host lets the container
+      # reach the service container on localhost without a compose network.
+      - name: Start the container
+        run: |
+          docker run -d --name keel-smoke --network host \
+            -e KEEL_DSN="postgres://keel:keel_dev_only@localhost:5432/keel?sslmode=disable" \
+            keel:smoke serve -addr :3000
+
+      # THE ASSERTION IS ON THE BODY AND NOT ONLY ON THE STATUS CODE. A 200 with
+      # the wrong methodology version is the failure DEC-014 section 5 records:
+      # the contract once advertised a version the server did not return, and the
+      # generated mock served it. So this checks that the running image reports
+      # the version the source in this same commit compiles.
+      - name: GET /v1/health, and check what it says
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/v1/health >/tmp/health.json 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          cat /tmp/health.json
+          # READ FROM THE SOURCE, NOT FROM A TOOLCHAIN. `go run` would need Go on
+          # the runner at a version this job never pinned, and the thing being
+          # compared is a constant in a file that is right here.
+          want=$(grep -oE '"[0-9]+\.[0-9]+\.[0-9]+-draft"' internal/domain/types.go | head -1 | tr -d '"')
+          test -n "$want" || { echo "could not read MethodologyVersion from internal/domain/types.go" >&2; exit 1; }
+          got=$(python3 -c 'import json,sys; print(json.load(open("/tmp/health.json"))["methodologyVersion"])')
+          echo "image reports $got, this commit compiles $want"
+          test "$got" = "$want"
+
+      # A degraded status is EXPECTED here and is not a failure. The health
+      # handler reports degraded when no scan has ever run, and nothing has
+      # scanned this throwaway database. Asserting "ok" would mean seeding a scan
+      # to satisfy a check, which is the shape of tuning a test until it passes.
+      - name: Report the health status without asserting on it
+        run: |
+          python3 -c 'import json; d=json.load(open("/tmp/health.json")); print("status:", d["status"], "assets:", d["assetsMonitored"])'
+
+      - name: Container logs, always
+        if: always()
+        run: docker logs keel-smoke || true
+
+      - name: Log in to the registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}
+          build-args: |
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ steps.stamp.outputs.date }}
+          cache-from: type=gha
+
+      - name: Say what was published
+        run: |
+          {
+            echo "### Image published"
+            echo ""
+            echo '```'
+            echo "${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}"
+            echo '```'
+            echo ""
+            echo "It passed a smoke test: schema applied with scripts/migrate.sh, container started, GET /v1/health returned the same methodology version this commit compiles."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ------------------------------------------------------------------ deploy
+  #
+  # THIS JOB IS SKIPPED UNTIL AL CONFIGURES A TARGET, AND THAT IS THE HONEST
+  # STATE RATHER THAN A PLACEHOLDER. Two things are missing and neither is
+  # Claude's to supply: somewhere to run the image, and a database that is not a
+  # throwaway. Setting the repository variable KEEL_DEPLOY_TARGET is what turns
+  # this on, and until then the job reports what it is waiting for instead of
+  # pretending to have deployed.
+  #
+  # A job that "succeeded" without deploying would be a green tick that means
+  # nothing, which is the failure the trigger rules above are also written
+  # against.
+  deploy:
+    name: deploy
+    needs: image
+    runs-on: ubuntu-latest
+    steps:
+      - name: What this is waiting for
+        if: vars.KEEL_DEPLOY_TARGET == ''
+        run: |
+          {
+            echo "### Not deployed"
+            echo ""
+            echo "The image is built and published. Nothing is deployed, because no target is configured."
+            echo ""
+            echo "What is needed, and all of it is Al's:"
+            echo ""
+            echo "1. A host to run the image, and the repository variable \`KEEL_DEPLOY_TARGET\` naming it."
+            echo "2. A Postgres that is not a throwaway, and its DSN as the secret \`KEEL_DSN\`."
+            echo "3. The schema applied to it once: \`KEEL_MIGRATE_DSN=... bash scripts/migrate.sh\`."
+            echo "4. A decision on whether \`-historical\` is set, which is FR-19. It is false"
+            echo "   until replayed rows exist in that database; see internal/api/api.go."
+            echo ""
+            echo "Same PREPARE and APPLY split as scripts/s3-archive/: the runbook and the"
+            echo "tooling are written here, the account and the secrets are not."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "no deploy target configured; nothing was deployed"
+
+      - name: Refuse to guess
+        if: vars.KEEL_DEPLOY_TARGET != ''
+        run: |
+          echo "KEEL_DEPLOY_TARGET is set to '${{ vars.KEEL_DEPLOY_TARGET }}' but no deploy step exists yet." >&2
+          echo "The step that puts the image on a host depends on WHICH host, and that choice is Al's." >&2
+          echo "Adding a guessed one here would be a deploy nobody agreed to." >&2
+          exit 1

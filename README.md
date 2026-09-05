@@ -75,6 +75,8 @@ What that means for the commands you can run:
 | `make scan` | works, computes and stores one result per asset per ledger. The supporting metric fields are stored null, because they are not computed yet. Needs the database |
 | `make backtest` | works, writes the trade-implied history of a pair as two CSV files. Needs `PAIRS`, `FROM`, `TO`. No database |
 | `make replay` | works, rebuilds a pair's order book at a past ledger from the operations that posted it. Needs `PAIRS` and `LEDGER`. No database. **Read the completeness line it prints**: a book missing an offer reads as a thin book |
+| `make bookseries` | works, the same book at MANY past ledgers from ONE walk, plus the methodology over each. Needs `PAIRS` and `CSV`; `FROM_TRADES` derives one target per UTC day from a trades CSV at no request cost. No database. **Every row carries its own diagnostics**, because a walk that failed makes a thin book look like a trend |
+| `make image` | works, builds the container image by hand. Does not publish; `.github/workflows/deploy.yml` is what publishes, and only after a smoke test |
 | `make crosscheck` | works, runs validation Layer 3 over the committed recordings. No database. First run, 26 August 2026: 60 recordings, 37 match, 0 mismatch, 23 partial |
 | `make record-batch` | works, records a batch and cross-checks it inside the same hour, one CSV row per comparison carrying the measured gap. `CROSSCHECK_AFTER` is the delay, default 5m and refused at an hour. No database. Writes under gitignored `measurements/` |
 

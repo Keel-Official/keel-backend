@@ -85,7 +85,7 @@ that a new subdirectory under a mapped path inherits its parent's zone silently.
 | `.claude/` | GREEN to TIGHTEN, RED to LOOSEN | holds `settings.json`, which is the permission file itself. See below |
 | `.claude/commands/` | GREEN | the slash commands |
 | `.claude/hooks/` | GREEN to TIGHTEN, RED to LOOSEN | see below |
-| repository root | GREEN | `Makefile`, `docker-compose.yml`, `README.md`, `.golangci.yml`, `go.mod`. This file and `CLAUDE.md` files in subdirectories are YELLOW: they are instructions to you, so changing them changes your own brief |
+| repository root | GREEN | `Makefile`, `docker-compose.yml`, `Dockerfile`, `README.md`, `.golangci.yml`, `go.mod`. This file and `CLAUDE.md` files in subdirectories are YELLOW: they are instructions to you, so changing them changes your own brief |
 
 **Formatting is Al's, and that is a workflow rule rather than a zone rule.**
 `make fmt`, `gofmt -l -w .` and `gofmt -w some/directory/` are all refused by the

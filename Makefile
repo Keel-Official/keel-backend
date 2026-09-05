@@ -272,6 +272,15 @@ LEDGER ?=
 SINCE_LEDGER ?= 0
 TRADES_FROM ?= 0
 
+# image builds the container image by hand, the same way .github/workflows/deploy.yml
+# builds it in CI. It is here so the Dockerfile is runnable without pushing a tag,
+# and it does NOT publish: publishing happens in the workflow, where the smoke test
+# runs first.
+image:
+	docker build -t keel:local \
+	  --build-arg VCS_REF=$$(git rev-parse --short HEAD) \
+	  --build-arg BUILD_DATE=$$(date -u +%Y-%m-%dT%H:%M:%SZ) .
+
 bookseries:
 	@test -n "$(PAIRS)" || { echo "bookseries: PAIRS is required"; exit 1; }
 	@test -n "$(CSV)" || { echo "bookseries: CSV is required, e.g. CSV=docs/evidences/ustry-bookseries-2026-02.csv"; exit 1; }

@@ -24,19 +24,59 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-psql_run() {
-  docker compose exec -T postgres psql -U keel -d keel -v ON_ERROR_STOP=1 "$@"
-}
-
-if ! docker compose ps postgres >/dev/null 2>&1; then
-  echo "migrate: docker compose is not reachable. Run: make up" >&2
-  exit 1
+# ONE MECHANISM, TWO TRANSPORTS, ADDED 5 SEPTEMBER 2026.
+#
+# Everything below this block is unchanged: the same files in the same order, the
+# same schema_migrations bookkeeping, the same refusal to apply a file twice. What
+# is new is that the psql it drives can be reached in two ways.
+#
+# WHY IT HAD TO GAIN ONE. The compose path can only ever address a Postgres inside
+# the local compose project. `keel serve` refuses to start unless
+# schema_migrations has rows, so a deployment with no way to apply the schema is a
+# deployment that cannot start, and the smoke test in
+# .github/workflows/deploy.yml is the first caller that is not a laptop.
+#
+# WHY IT IS NOT A SECOND MECHANISM, which is the rule this file's header sets. The
+# ordering, the bookkeeping and the exactly-once guarantee live here and are
+# shared. A copy of that logic written into a workflow, which was the alternative,
+# is what the header forbids and for the reason it gives: a migration applied from
+# two places is a migration nobody can say ran.
+#
+# Usage stays `bash scripts/migrate.sh` for the compose path. Set KEEL_MIGRATE_DSN
+# to address anything else, and psql must be on PATH for that route.
+if [ -n "${KEEL_MIGRATE_DSN:-}" ]; then
+  transport="dsn"
+  psql_run() {
+    psql "$KEEL_MIGRATE_DSN" -v ON_ERROR_STOP=1 "$@"
+  }
+  if ! command -v psql >/dev/null 2>&1; then
+    echo "migrate: KEEL_MIGRATE_DSN is set and psql is not on PATH" >&2
+    exit 1
+  fi
+  if ! psql_run -c 'SELECT 1' >/dev/null 2>&1; then
+    echo "migrate: cannot reach Postgres at KEEL_MIGRATE_DSN" >&2
+    exit 1
+  fi
+else
+  transport="compose"
+  psql_run() {
+    docker compose exec -T postgres psql -U keel -d keel -v ON_ERROR_STOP=1 "$@"
+  }
+  if ! docker compose ps postgres >/dev/null 2>&1; then
+    echo "migrate: docker compose is not reachable. Run: make up" >&2
+    echo "         or set KEEL_MIGRATE_DSN to address a database directly" >&2
+    exit 1
+  fi
+  if ! psql_run -c 'SELECT 1' >/dev/null 2>&1; then
+    echo "migrate: cannot reach Postgres in the postgres service. Run: make up" >&2
+    exit 1
+  fi
 fi
 
-if ! psql_run -c 'SELECT 1' >/dev/null 2>&1; then
-  echo "migrate: cannot reach Postgres in the postgres service. Run: make up" >&2
-  exit 1
-fi
+# THE TRANSPORT IS PRINTED, because the failure this file was written after was a
+# schema applied to one database while every client talked to another. A run that
+# does not say which database it reached cannot be told apart from that.
+printf "migrate: transport %s\n" "$transport"
 
 psql_run -q <<'SQL'
 CREATE TABLE IF NOT EXISTS schema_migrations (

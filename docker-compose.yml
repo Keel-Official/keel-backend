@@ -36,5 +36,45 @@ services:
       timeout: 3s
       retries: 10
 
+  # ---------------------------------------------------------------- the API
+  #
+  # UNDER A PROFILE, SO `make up` DOES NOT CHANGE. That target is what a developer
+  # runs to get a database, and it has meant "Postgres on 5433" since this file
+  # existed. A service that started with it would change what one command does to
+  # every existing workflow, including the store suite. Start this one with:
+  #
+  #   docker compose --profile app up -d
+  #
+  # THE DSN INSIDE THE NETWORK IS PORT 5432 AND NOT 5433, and the long comment on
+  # the postgres ports above is why that distinction has already cost this
+  # repository a day. 5433 is the HOST side of the published port. A container on
+  # this network reaches Postgres at its container port, and using 5433 here fails
+  # as a refused connection rather than as anything informative.
+  keel:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: keel:local
+    container_name: keel-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KEEL_DSN: "postgres://keel:keel_dev_only@postgres:5432/keel?sslmode=disable"
+    command: ["serve", "-addr", ":3000"]
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    # THE SCHEMA IS NOT APPLIED BY THIS SERVICE. `make migrate` is the only
+    # mechanism, for the reason scripts/migrate.sh states in its own header: a
+    # migration that runs from two places is a migration nobody can say ran. Bring
+    # Postgres up, run `make migrate`, then start this.
+    #
+    # No healthcheck. This image has no shell and no curl by design, so the usual
+    # CMD-SHELL form cannot run in it, and adding a binary purely to test the
+    # process from inside would widen the image for a check the compose file can
+    # get from outside. GET /v1/health is the endpoint.
+
 volumes:
   keel_pgdata:
