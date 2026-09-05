@@ -224,6 +224,7 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 		"day", "sample_source", "target_ledger", "sampled_at_utc", "sample_offset_seconds",
 		"bids", "asks", "resting_offers", "missing_offer_ids", "fold_complete",
 		"price_source", "p0", "best_bid", "best_ask", "spread_pct",
+		"best_bid_amount", "best_ask_amount", "bid_amount_total", "ask_amount_total",
 	}
 	for _, d := range deltas {
 		head = append(head, "depth_buy_"+d.String(), "depth_sell_"+d.String())
@@ -254,6 +255,10 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 			bestLevel(r.Point.Snapshot.Book.Bids),
 			bestLevel(r.Point.Snapshot.Book.Asks),
 			optional(r.Risk.SpreadPct),
+			bestAmount(r.Point.Snapshot.Book.Bids),
+			bestAmount(r.Point.Snapshot.Book.Asks),
+			totalAmount(r.Point.Snapshot.Book.Bids),
+			totalAmount(r.Point.Snapshot.Book.Asks),
 		}
 		for _, d := range deltas {
 			buy, sell := depthAt(r.Risk.Depth, d)
@@ -306,6 +311,42 @@ func bestLevel(levels []domain.Level) string {
 		return ""
 	}
 	return levels[0].Price.Decimal().String()
+}
+
+// bestAmount and totalAmount are the SIZE at the top of book and the size posted
+// on the whole side, and the series was written once without them.
+//
+// THE OMISSION IS WORTH RECORDING BECAUSE OF WHAT IT HID. Run on 5 September 2026
+// over the control ledger 61340262 and the incident ledger 61340263, one ledger
+// apart, with the manipulation trade between them: the two rows came out
+// BYTE-IDENTICAL. Every derived figure matched the golden fixture exactly, P0 at
+// 53.8971414, spread at 196.0777141, the delta 0.5 target at 80.8457121 with a
+// cost of zero and reachable true, and none of them moved, because the trade
+// changed the ask's AMOUNT from 1.2185312 to 1.1684309 and did not touch its
+// price. Every depth column was zero on both rows, since a 196 per cent spread
+// puts every delta target outside the book.
+//
+// So a series about how much volume a price can support had no column carrying
+// how much was posted, and the one event the whole deliverable is about was
+// invisible in it. On a healthy book the depth ladder carries size; on the
+// pathological book that matters most, it carries zeros, and these two columns
+// are what remains.
+func bestAmount(levels []domain.Level) string {
+	if len(levels) == 0 {
+		return ""
+	}
+	return levels[0].Amount.String()
+}
+
+func totalAmount(levels []domain.Level) string {
+	if len(levels) == 0 {
+		return ""
+	}
+	total := decimal.Zero
+	for _, l := range levels {
+		total = total.Add(l.Amount)
+	}
+	return total.String()
 }
 
 func joinFlags(flags []domain.Flag) string {

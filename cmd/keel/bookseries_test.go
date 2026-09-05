@@ -188,3 +188,104 @@ func testSnapshot() domain.Snapshot {
 		},
 	}
 }
+
+// TestTheSizeAtTheTopOfBookIsInTheCSV is the regression for the omission that
+// made two rows one ledger apart come out byte-identical across the manipulation
+// that Deliverable 2 is about. The trade changed the ask's amount and not its
+// price, and nothing in the file carried an amount.
+func TestTheSizeAtTheTopOfBookIsInTheCSV(t *testing.T) {
+	p := domain.DefaultParams()
+	risk, err := domain.ComputeAssetRisk(testSnapshot(), p)
+	if err != nil {
+		t.Fatalf("computing: %v", err)
+	}
+	rows := []seriesRow{{
+		Sample: seriesSample{Day: "2026-02-22", Ledger: 61340262, Source: "flag"},
+		Point:  horizon.SeriesPoint{Target: 61340262, Snapshot: testSnapshot(), RestingOffers: 2},
+		Risk:   risk,
+	}}
+	path := filepath.Join(t.TempDir(), "series.csv")
+	if err := writeSeriesCSV(path, rows, p); err != nil {
+		t.Fatalf("writing: %v", err)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("opening: %v", err)
+	}
+	defer func() { _ = f.Close() }()
+	records, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		t.Fatalf("reading back: %v", err)
+	}
+
+	cell := func(name string) string {
+		for i, h := range records[0] {
+			if h == name {
+				return records[1][i]
+			}
+		}
+		t.Fatalf("no %q column in %v", name, records[0])
+		return ""
+	}
+	for _, name := range []string{"best_bid_amount", "best_ask_amount", "bid_amount_total", "ask_amount_total"} {
+		if cell(name) == "" {
+			t.Errorf("%s is empty on a book with one level a side", name)
+		}
+	}
+	// testSnapshot puts 10 on each side at one level, so the top of book and the
+	// side total are the same number. A total that silently reported the level
+	// count, or the first level twice, would pass a weaker assertion than this.
+	if got, want := cell("ask_amount_total"), "10"; got != want {
+		t.Errorf("ask_amount_total = %q, want %q", got, want)
+	}
+}
+
+// TestTwoBooksThatDifferOnlyInSizeProduceDifferentRows is the property the
+// omission broke, stated directly rather than through a column list.
+func TestTwoBooksThatDifferOnlyInSizeProduceDifferentRows(t *testing.T) {
+	p := domain.DefaultParams()
+
+	before := testSnapshot()
+	after := testSnapshot()
+	after.Book.Asks[0].Amount = decimal.RequireFromString("9.5")
+
+	rows := make([]seriesRow, 0, 2)
+	for _, snap := range []domain.Snapshot{before, after} {
+		risk, err := domain.ComputeAssetRisk(snap, p)
+		if err != nil {
+			t.Fatalf("computing: %v", err)
+		}
+		rows = append(rows, seriesRow{
+			Sample: seriesSample{Day: "2026-02-22", Ledger: snap.LedgerSeq, Source: "flag"},
+			Point:  horizon.SeriesPoint{Target: snap.LedgerSeq, Snapshot: snap, RestingOffers: 2},
+			Risk:   risk,
+		})
+	}
+
+	path := filepath.Join(t.TempDir(), "series.csv")
+	if err := writeSeriesCSV(path, rows, p); err != nil {
+		t.Fatalf("writing: %v", err)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("opening: %v", err)
+	}
+	defer func() { _ = f.Close() }()
+	records, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		t.Fatalf("reading back: %v", err)
+	}
+	if len(records) != 3 {
+		t.Fatalf("got %d line(s), want a header and two rows", len(records))
+	}
+	same := true
+	for i := range records[1] {
+		if records[1][i] != records[2][i] {
+			same = false
+			break
+		}
+	}
+	if same {
+		t.Error("two books differing in the size at the top of the ask side wrote identical rows")
+	}
+}
