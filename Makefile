@@ -272,6 +272,14 @@ LEDGER ?=
 SINCE_LEDGER ?= 0
 TRADES_FROM ?= 0
 
+bookseries:
+	@test -n "$(PAIRS)" || { echo "bookseries: PAIRS is required"; exit 1; }
+	@test -n "$(CSV)" || { echo "bookseries: CSV is required, e.g. CSV=docs/evidences/ustry-bookseries-2026-02.csv"; exit 1; }
+	go run ./cmd/keel bookseries -pairs $(PAIRS) -csv $(CSV) \
+	  -from-trades $(FROM_TRADES) -also-ledger $(ALSO_LEDGER) \
+	  -since-ledger $(SINCE_LEDGER) -trades-from-ledger $(TRADES_FROM) \
+	  -max-pages-per-account $(MAX_PAGES)
+
 replay:
 	@test -n "$(LEDGER)" || { echo "replay: LEDGER is required, e.g. make replay PAIRS=... LEDGER=61340262"; exit 1; }
 	go run ./cmd/keel replay -pairs $(PAIRS) -ledger $(LEDGER) -since-ledger $(SINCE_LEDGER) -trades-from-ledger $(TRADES_FROM)

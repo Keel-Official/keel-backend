@@ -298,6 +298,50 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 				"so consumption between them is invisible and the book would be inflated; "+
 				"TradesFromLedger must be at or below SinceLedger", q.TradesFromLedger, q.SinceLedger)
 	}
+	in, err := c.gatherReplay(ctx, base, quote, q)
+	if err != nil {
+		return out, err
+	}
+	in.walk.into(&out)
+
+	// 4. Replay, then read the book off the final state.
+	state := replayOffers(in.ops, in.trades, q.TargetLedger)
+	out.Snapshot = domain.Snapshot{
+		Base:      base,
+		Quote:     quote,
+		LedgerSeq: q.TargetLedger,
+		Book:      bookFromOffers(state, base, quote),
+		// Pools stay nil. The header says why, and a caller must not read the
+		// absence as "there was no pool".
+		Source: domain.DataSourceOffersImplied,
+	}
+	out.TradeWindowFrom = q.TradesFromLedger
+	out.MissingOfferIDs = missingOffers(in.ops, in.trades, q.TargetLedger)
+	return out, nil
+}
+
+// gatherReplay does the three steps that cost requests: the trade walk, account
+// discovery, and every account's backwards operation walk. It returns what the
+// fold needs and nothing derived from any one target ledger.
+//
+// IT WAS SPLIT OUT OF ReconstructBook ON 5 SEPTEMBER 2026 AND NOT REWRITTEN. The
+// code below is the code that was there, comments included, because it is the
+// part that took the measurements in this file's header to get right and a
+// second copy of it would drift from the first.
+//
+// WHY THE SPLIT. ReconstructSeries wants twenty-eight books from one month, and
+// twenty-eight calls to ReconstructBook would walk the same accounts twenty-eight
+// times for the same operations. What separates the targets is not the fetching,
+// it is replayOffers, which is a pure fold over the operations at or before a
+// target. So the fetch happens once at the LATEST target and every earlier book
+// is a fold over a prefix of the same events.
+//
+// WHAT THE CALLER OWES THIS FUNCTION: q.TargetLedger must be the LATEST target
+// wanted, because the operation walk filters at it and the trade walk stops at it
+// plus the lookahead. A target above it is not in the data and this function
+// cannot tell.
+func (c *Client) gatherReplay(ctx context.Context, base, quote domain.Asset, q ReplayQuery) (replayInputs, error) {
+	var in replayInputs
 	before := c.Requests()
 
 	// 1. Trades, up to the target plus the lookahead. The lookahead half is used
@@ -308,9 +352,9 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 		StopAfter:  func(t domain.Trade) bool { return t.LedgerSeq > stopAfter },
 	})
 	if err != nil {
-		return out, err
+		return in, err
 	}
-	out.TradesRead = len(trades.Trades)
+	in.walk.TradesRead = len(trades.Trades)
 
 	// ONLY ACCOUNTS THAT ARE KNOWN TO HAVE HELD AN OFFER ON THIS PAIR, which is
 	// narrower than "every account that traded" and is the difference between a
@@ -335,7 +379,7 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 			accounts[t.CounterAccount] = true
 		}
 	}
-	out.FromTrades = len(accounts)
+	in.walk.FromTrades = len(accounts)
 
 	// 2. Sellers of offers resting on the pair RIGHT NOW. One request, and it
 	//    reaches accounts that have never traded. It is worth least when the
@@ -343,11 +387,11 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 	//    case.
 	live, err := c.liveOfferSellers(ctx, base, quote)
 	if err != nil {
-		return out, err
+		return in, err
 	}
 	for _, a := range live {
 		if !accounts[a] {
-			out.FromLiveOffers++
+			in.walk.FromLiveOffers++
 		}
 		accounts[a] = true
 	}
@@ -380,45 +424,34 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 			// conservative side. The count is reported and the partial results
 			// this account did return are kept, because they are real.
 			if ctxErr := ctx.Err(); ctxErr != nil {
-				return out, ctxErr
+				return in, ctxErr
 			}
 			walk.Err = err.Error()
-			out.Failed++
+			in.walk.Failed++
 		}
 		ops = append(ops, got...)
-		out.Accounts = append(out.Accounts, walk)
-		out.OperationsRead += walk.Records
-		out.OfferOperations += walk.OfferOperations
-		out.Unsizable += walk.Unsizable
+		in.walk.Accounts = append(in.walk.Accounts, walk)
+		in.walk.OperationsRead += walk.Records
+		in.walk.OfferOperations += walk.OfferOperations
+		in.walk.Unsizable += walk.Unsizable
 		if walk.Truncated {
-			out.Truncated++
+			in.walk.Truncated++
 		}
 		if walk.StoppedAtFloor {
-			out.StoppedAtFloor++
+			in.walk.StoppedAtFloor++
 		}
-		if walk.EarliestOfferOp != 0 && (out.EarliestOfferOp == 0 || walk.EarliestOfferOp < out.EarliestOfferOp) {
-			out.EarliestOfferOp = walk.EarliestOfferOp
+		if walk.EarliestOfferOp != 0 && (in.walk.EarliestOfferOp == 0 || walk.EarliestOfferOp < in.walk.EarliestOfferOp) {
+			in.walk.EarliestOfferOp = walk.EarliestOfferOp
 		}
 		if q.Progress != nil {
 			q.Progress(walk)
 		}
 	}
 
-	// 4. Replay, then read the book off the final state.
-	state := replayOffers(ops, trades.Trades, q.TargetLedger)
-	out.Snapshot = domain.Snapshot{
-		Base:      base,
-		Quote:     quote,
-		LedgerSeq: q.TargetLedger,
-		Book:      bookFromOffers(state, base, quote),
-		// Pools stay nil. The header says why, and a caller must not read the
-		// absence as "there was no pool".
-		Source: domain.DataSourceOffersImplied,
-	}
-	out.TradeWindowFrom = q.TradesFromLedger
-	out.MissingOfferIDs = missingOffers(ops, trades.Trades, q.TargetLedger)
-	out.Requests = c.Requests() - before
-	return out, nil
+	in.walk.Requests = c.Requests() - before
+	in.trades = trades.Trades
+	in.ops = ops
+	return in, nil
 }
 
 // ---------------------------------------------------------------- reading

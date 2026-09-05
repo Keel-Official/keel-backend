@@ -12,6 +12,7 @@
 //	keel serve      run the read API
 //	keel backtest   the trade-implied history of a pair, as CSV
 //	keel replay     rebuild a pair's order book at a past ledger
+//	keel bookseries the same book at MANY past ledgers, from one walk
 //	keel crosscheck compare the recordings against rebuilt books, validation Layer 3
 //	keel divergence measure book mid against pool spot across the demonstration set
 package main
@@ -131,6 +132,19 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "bookseries":
+		// `replay` answers "what did the book look like at this ledger". This
+		// answers "when did it change", which is the question Deliverable 2's
+		// third acceptance criterion asks about the exploit date. It is a
+		// separate subcommand rather than a flag on replay because the cost model
+		// is different: one walk serves every target, so a series of twenty-eight
+		// is priced like one reconstruction. See bookseries.go and
+		// internal/horizon/series.go.
+		if err := runBookSeries(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel bookseries: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "divergence":
 		// A MEASUREMENT and not a metric. Methodology 1.0.3 made case 1 of the
 		// reference price ladder branch on a comparison, and that branch was
@@ -168,6 +182,7 @@ Subcommands:
   serve     run the read API ("keel serve -h")
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    rebuild a pair's order book at a past ledger ("keel replay -h")
+  bookseries  the same book at many past ledgers, one walk ("keel bookseries -h")
   crosscheck compare the recordings against rebuilt books ("keel crosscheck -h")
   divergence measure book mid against pool spot per pair ("keel divergence -h")
 `)
