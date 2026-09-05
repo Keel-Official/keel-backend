@@ -1,6 +1,6 @@
 # Keel: Validation Protocol
 
-**Methodology version:** 1.0.8-draft
+**Methodology version:** 1.1.0-draft
 **Status:** protocol defined. Layer 3 EXECUTED 26 August 2026 and tabulated in
 section 3, 60 recordings, 37 match, 0 mismatch, 23 partial. Layer 2 has a harness
 and 0 of 10 fixtures, finding P2-18. Layer 1 has neither. Their definition of done
@@ -33,6 +33,17 @@ against engine output. The spreadsheet is committed to the repository as evidenc
 The golden fixture is Layer 1 applied to the incident state, and it was computed before
 any implementation existed. That ordering is what gives it force: a fixture written after
 the code merely confirms whatever the code does.
+
+**A reconstruction was checked against it on 5 September 2026**, and the reading is in
+`docs/evidences/2026-09-05-control-ledger-validation.md`. The book at control ledger
+61340262 was rebuilt from Horizon operations and the methodology run over it, and every
+quantity the fixture states by hand came back identical: `P0`, `spreadPct`, all six depth
+figures, the manipulation target, cost and reachability at the critical delta,
+`maxReachablePrice`, and the band. This is not a fourth layer and does not appear in
+section 6: it is Layer 1's figures being used as the oracle they are, which is what this
+section says they are for. It is also what acceptance criterion 2 means by "historical
+replay validated against a control ledger". The pool half is untouched by it, because
+neither the fixture nor the reconstruction carries a pool.
 
 **Results**
 
@@ -303,8 +314,11 @@ known outcome, and by publishing the methodology openly so others can dispute it
 ## 6. Definition of done
 
 - [ ] Layer 1 complete for 5 assets, spreadsheets in the repository
-      **0 of 5.** `testdata/manual/` does not exist. The golden fixture is Layer 1
-      applied to one asset and its with-pool tables are not computed
+      **0 of 5.** `testdata/manual/` exists as of 5 September 2026 and holds its
+      `README.md`, which is the specification of the shape a recomputation takes
+      rather than one of them, so the count is still zero and the prerequisite is
+      no longer in the way. The golden fixture is Layer 1 applied to one asset and
+      its with-pool tables are not computed
 - [ ] Layer 2 complete for all 10 scenarios
       **0 of 10.** The harness is built and every scenario skips; see the results
       table in section 2 and finding P2-18. No testnet fixture exists yet
@@ -393,3 +407,4 @@ breakdown is in `testdata/fixtures/ustry_pre_exploit.md`.
 |---|---|
 | 1.0.3-draft | Initial document. Defines the three layers, the sample sizes, and what each layer does not catch |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
+| 1.1.0-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** Al resolved Q7 in `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so every absolute threshold is a USDC figure. Under the one-version rule of DEC-014 the whole set moves with the one file whose content changed. README section 4 and DEC-015 carry the reasoning |

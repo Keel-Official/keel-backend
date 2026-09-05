@@ -289,3 +289,67 @@ func TestTwoBooksThatDifferOnlyInSizeProduceDifferentRows(t *testing.T) {
 		t.Error("two books differing in the size at the top of the ask side wrote identical rows")
 	}
 }
+
+// TestTheManipulationColumnsFollowTheManipulationLadder is the regression for the
+// third defect this series found in itself. The columns were built from rungs(),
+// which is the BACKTEST's ladder of market deltas plus the critical delta. Three
+// of the four manipulation columns were therefore named after deltas that are not
+// on the manipulation ladder and were permanently empty, and the rungs the
+// methodology defines at 1, 10 and 100 had no column at all.
+//
+// The golden fixture's manipulation table is what that hid: cost 0 with reachable
+// true at delta 0.5, against cost 130.0627093 with reachable false at 1, 10 and
+// 100. The fixture calls the difference between those two kinds of zero the point
+// of the table, and only one of them was in the file.
+func TestTheManipulationColumnsFollowTheManipulationLadder(t *testing.T) {
+	p := domain.DefaultParams()
+	risk, err := domain.ComputeAssetRisk(testSnapshot(), p)
+	if err != nil {
+		t.Fatalf("computing: %v", err)
+	}
+	rows := []seriesRow{{
+		Sample: seriesSample{Day: "2026-02-22", Ledger: 61340262, Source: "flag"},
+		Point:  horizon.SeriesPoint{Target: 61340262, Snapshot: testSnapshot(), RestingOffers: 2},
+		Risk:   risk,
+	}}
+	path := filepath.Join(t.TempDir(), "series.csv")
+	if err := writeSeriesCSV(path, rows, p); err != nil {
+		t.Fatalf("writing: %v", err)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("opening: %v", err)
+	}
+	defer func() { _ = f.Close() }()
+	records, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		t.Fatalf("reading back: %v", err)
+	}
+
+	head := make(map[string]int, len(records[0]))
+	for i, h := range records[0] {
+		head[h] = i
+	}
+	// Every rung the parameters define has a column, and it is not empty. An
+	// empty cell here means the column was named after a delta the manipulation
+	// ladder does not carry.
+	for _, d := range p.ManipulationDeltas {
+		name := "mc_cost_" + d.String()
+		i, ok := head[name]
+		if !ok {
+			t.Errorf("no %q column: %v", name, records[0])
+			continue
+		}
+		if records[1][i] == "" {
+			t.Errorf("%s is empty, so the column is named after a delta not on the ladder", name)
+		}
+	}
+	// And no manipulation column exists for a market delta, which is what the
+	// wrong ladder produced.
+	for _, d := range p.MarketDeltas {
+		if _, ok := head["mc_cost_"+d.String()]; ok {
+			t.Errorf("mc_cost_%s exists, but %s is a depth delta and is not on the manipulation ladder",
+				d.String(), d.String())
+		}
+	}
+}

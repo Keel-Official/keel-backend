@@ -218,7 +218,22 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 
 	w := csv.NewWriter(f)
 	deltas := append([]decimal.Decimal{}, p.MarketDeltas...)
-	ladder := rungs(p)
+
+	// THE MANIPULATION LADDER IS ManipulationDeltas AND NOT rungs(p), CORRECTED
+	// 5 SEPTEMBER 2026. rungs() is the backtest's ladder, MarketDeltas plus the
+	// critical delta, and it is right for that file because a trade-implied bound
+	// is reported at the depth deltas. Reusing it here emitted manipulation
+	// columns at 0.02, 0.05 and 0.10, which are not on the manipulation ladder at
+	// all, so three of the four columns were permanently empty and the rungs the
+	// methodology actually defines, 1, 10 and 100, had no column.
+	//
+	// What that hid is the whole of the golden fixture's manipulation table:
+	// a cost of 130.0627093 with reachable false at delta 1, 10 and 100, against
+	// a cost of 0 with reachable true at 0.5. The fixture calls the difference
+	// between those two zeros the point of the table, and only one of them was in
+	// the file.
+	ladder := append([]decimal.Decimal{}, p.ManipulationDeltas...)
+	sort.Slice(ladder, func(i, j int) bool { return ladder[i].LessThan(ladder[j]) })
 
 	head := []string{
 		"day", "sample_source", "target_ledger", "sampled_at_utc", "sample_offset_seconds",
