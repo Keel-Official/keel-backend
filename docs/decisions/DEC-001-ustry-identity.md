@@ -299,3 +299,81 @@ Items 3, 4, and 5 of section 3 are untouched: the exact collateral amount, the
 Reflector VWAP window length, and the YieldBlox pool risk parameters. All three need
 sources this repository does not have, and two of them are what DEC-003 section 8.6
 and methodology section 9 are waiting on.
+
+---
+
+## 8. AMENDMENT, 6 September 2026: the SOW was finally read, and correction 1 is confirmed and still owed
+
+**This section AMENDS and does not reverse.** Section 1 stands exactly as written. What
+is added is the primary source it was arguing about, and one fact about section 6 that
+is uncomfortable enough to deserve its own heading.
+
+**Zone note.** `docs/decisions/` is YELLOW: Claude drafts and amends and must not decide.
+Nothing below is a decision. The action in 8.3 is Al's.
+
+### 8.1 The source, and why this is the first time
+
+Al provided the SOW PDF on 6 September 2026 and it was read in full, seven pages.
+`docs/context/Keel_SoW.pdf` is in the git history at `f499ab4` and was removed from the
+working tree at `852ef27`, so no session between those two commits could open it. Every
+claim this record made about the SOW from August onwards was made from memory of it.
+
+**They were right.** Correction 1 said the SOW dates the incident to 20 May 2026. It
+does, four times, and here they are:
+
+> "On **May 20, 2026**, an attacker increased the price of USTRY by 100 times through a
+> thin-liquidity oracle feed, then borrowed $61 million in XLM against incorrectly
+> valued collateral on Blend."
+
+> "The sprint will deliver a reproducible historical backtest using the permanently
+> recorded **May 2026** ledger data"
+
+> "An open, reproducible report will reconstruct USTRY liquidity metrics across
+> **May 2026** and identify when the unsafe threshold was crossed relative to the
+> exploit."
+
+> "**Week 3:** Run the Blend incident backtest on **May 2026** ledgers."
+
+The chain says 22 February 2026. The manipulation executed inside ledger 61340263 at
+`2026-02-22T00:10:21Z`, which is the state
+`testdata/fixtures/ustry_pre_exploit.md` was computed by hand from and which
+`docs/evidences/2026-09-05-control-ledger-validation.md` reproduced from Horizon
+operations. Section 1's argument that these are not two incidents is unaffected and
+unchanged: the frozen XLM, the loss figure, the 100x and the loan size all match.
+
+### 8.2 What has been done about it, and what has not
+
+| Section 6 action | State on 6 September 2026 |
+|---|---|
+| 3. Change every "May 2026" to "February 2026" in the PRD, the build plan, the checklist | **DONE** in the PRD on 26 August 2026, six occurrences, and the API contract and mocks with it |
+| 2. **Tell the Ambassador Chapter Lead about the date and unit corrections** | **NO RECORD THAT IT WAS DONE**, seventeen days later, the day before Deliverable 1 is called in |
+
+Nothing in this repository can do item 2, and that is not a technicality. The SOW is the
+client's document and the funder's copy of it. It is not ours to edit, and correcting our
+own copies of a date does not correct theirs. **A correction applied everywhere except to
+the person who needs it is not a correction, it is a divergence.**
+
+### 8.3 The consequence that arrives tomorrow
+
+Everything this repository will show for Deliverable 1 and Deliverable 2 is February
+2026: the golden fixture, the control ledger validation, the February book series, the
+backtest report draft. The SOW promises May. A reviewer holding both, and section 6.2 of
+the SOW asks the Ambassador Chapter Lead to hold both, finds a deliverable that does not
+match its own statement of work in the one detail a non-technical reader can check
+without any expertise at all: the month.
+
+Told first, it is what section 6 item 2 already called it: "not bad news, it is evidence
+that you verified". Found first, it is a deliverable that answered a different question
+from the one it was funded for. The difference between those two readings is one message,
+and it is owed before the assessment rather than after it.
+
+### 8.4 One thing this amendment deliberately does not do
+
+It does not propose changing the SOW. A statement of work agreed with a funder is not
+amended by the party being measured, and the correction here is factual rather than
+scope: the incident happened when it happened. What is proposed is that it be
+communicated, which is what section 6 item 2 has said since August.
+
+**Related:** DEC-016, drafted the same day from the same reading, records a second and
+different divergence between the SOW and the PRD. That one is about scope and it does
+need a decision. This one needs a message.
