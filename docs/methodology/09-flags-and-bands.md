@@ -1,6 +1,6 @@
 # Keel: Risk Flags and Bands
 
-**Methodology version:** 1.0.8-draft
+**Methodology version:** 1.1.0-draft
 **Supersedes:** PRD sections 5.1 and 5.2, which now simply point here
 **Implemented in:** `internal/domain/flags.go`
 
@@ -237,19 +237,47 @@ would require more events than are available. This statement must appear on the
 `/methodology` endpoint, on the dashboard, and in the backtest report, not only in this
 document.
 
-### An unresolved limitation of units
+### The unit these thresholds are in, settled
 
-Absolute thresholds are expressed in the quote asset. As a result, an asset measured
-against XLM and one measured against USDC cannot be compared against the same threshold,
-and an asset's band can change purely because the XLM price moved, with no change in its
-liquidity whatsoever.
+**The two absolute thresholds above are USDC figures.** `ManipulationCheapAbsolute` is
+10,000 USDC and `ThinDepth5PctAbsolute` is 50,000 USDC. This follows from the decision in
+`02-pair-selection.md` section 1, which is the owner of it: the quote asset is global and
+it is USDC, issuer `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`, so there is
+one unit for every asset and the same number means the same amount of money everywhere.
+The rows above continue to read "quote asset" rather than "USDC" because the quote is what
+the threshold is denominated in by construction; USDC is what the quote currently is.
 
-Expressing thresholds in USDC merely relocates the problem, since it assumes USDC is
-stable, which is somewhat ironic for a product that questions price assumptions.
+Version 1.0.3 left this open as Q7, and the paragraph that stood here said it must be
+settled before version 1.1. **It is settled, and that is what makes this file's move to
+1.1.0-draft a definition change rather than a header sync.** Al resolved it on 5 September
+2026 and DEC-015 records it.
 
-Version 1.0.3 does not resolve this. What is done instead: `quote` is always included in
-every response so consumers know which unit applies, and the limitation is stated openly.
-This is open question Q7 and must be settled before version 1.1.
+**The consequence, which is stated here rather than only in the record.** Keel now carries
+the assumption that USDC holds its peg. If USDC depegs, every band in the system moves
+without any asset's liquidity changing, which is the failure this section previously named
+as the reason not to choose USDC. Two things make the assumption auditable rather than
+hidden. XLM/USDC is itself a monitored pair and the deepest market on the network, so a
+USDC dislocation appears inside Keel's own output instead of silently corrupting it. And
+per section 1 of this file the flags are published individually, so a consumer who rejects
+the assumption can apply their own thresholds to the raw figures.
+
+The alternative was XLM, and it was rejected because a band must not move when no
+liquidity moved. Both units import an assumption; the difference is how the assumption
+fails. A USDC depeg is a public event a reviewer can date. A gradual XLM drift
+reclassifies assets quietly and leaves no trace in the output. A warning product takes the
+failure that is loud. `02-pair-selection.md` section 1 carries the full argument.
+
+**A pair measured against XLM is converted before it is judged, never after.** Because
+these thresholds are USDC figures, an XLM-denominated depth cannot be compared against
+them directly. The conversion, the rate it uses, and what happens when that rate is not
+trustworthy are defined in `02-pair-selection.md` section 2, not here. One consequence
+does belong here: when the XLM pair cannot be converted, its flags are recorded as
+`unevaluated` under section 2 of this file rather than as `clear`, and `bandConfidence`
+falls to `partial`.
+
+`quote` remains present in every response. A unit that is currently global is not a unit
+that may be assumed forever, and a consumer who reads the unit from the response survives
+the candidate set widening.
 
 ---
 
@@ -318,3 +346,4 @@ fired, so the incomplete data does not change the conclusion in this case.
 | 1.0.2-draft | `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` require `Reachable == true`. The `unevaluated` state and `bandConfidence` added after the fixture showed six flags could not be judged from a snapshot alone |
 | 1.0.3-draft | `PRICE_SOURCE_CONFLICT` added after verification found an honest pool priced 50x away from the book mid. `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` evaluated on the `orderbookOnly` variant            |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
+| 1.1.0-draft | Section 6's "An unresolved limitation of units" replaced by the decision that settles it: the absolute thresholds are USDC figures, per `02-pair-selection.md` section 1, and the consequence is stated with them. This file is what named Q7 as the condition for version 1.1, so this row is that condition being met rather than a bookkeeping sync. DEC-015 records it |

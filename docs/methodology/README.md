@@ -1,7 +1,13 @@
 # Keel methodology: index and status
 
-**Methodology version in force:** `1.0.8-draft`
-**In sync with:** `internal/domain.MethodologyVersion`
+**Methodology version in force:** `1.1.0-draft`
+**In sync with:** `internal/domain.MethodologyVersion` at `1.0.8-draft`, and the two
+DIVERGE as of 5 September 2026. The documents moved and the constant did not, on purpose:
+the constant is the label stamped on stored output, and 1.1.0's section 2 rule, the worst
+band across evaluated pairs, is not implemented yet. Stamping `1.1.0-draft` on single-pair
+output today and on multi-pair output later would put two different computations under one
+version string, which is the one thing NFR-9 forbids. DEC-015 section 5 records the
+divergence, dates it, and hands the choice of how to close it to Al.
 
 This file is a map. It carries no definitions of its own, so that it cannot become a
 second home for one, with the single exception of the consolidated version history in
@@ -17,7 +23,7 @@ One subject per file. The file that owns a subject wins wherever two files touch
 |---|---|---|
 | `00-overview.md` | the question Keel answers, notation, units, and this list | complete |
 | `01-data-sources.md` | where every number comes from, how each source fails silently, trade-implied bounds | complete |
-| `02-pair-selection.md` | quote asset and pair selection, path payment limits | worksheet, no decisions recorded yet |
+| `02-pair-selection.md` | quote asset and pair selection, path payment limits | complete, DECIDED 5 September 2026 |
 | `03-reference-price.md` | `P0`, the price source ladder, price divergence, `spreadPct` | complete |
 | `04-depth.md` | SDEX depth, AMM depth, and the rule that combines them | complete |
 | `05-manipulation-cost.md` | `MC`, `Reachable`, the two venue forms, `MaxReachablePrice` | complete |
@@ -114,6 +120,7 @@ when its content moved.
 | 1.0.6-draft | `07` sections 2 and 3 carry the first holder pull, 31 August 2026 |
 | 1.0.7-draft | `07` section 1 specimen C narrowed after directional verification |
 | 1.0.8-draft | DEC-011 accepted, `MaxLedgerSpan` = 24 ledgers, and `07` section 2 reports the pull's `snapshot_ledger`. **Then, 5 September 2026, this became the version in force for the whole set.** Al ratified unifying the split: `07` had run ahead to 1.0.8-draft while the other ten files, `internal/domain.MethodologyVersion` and the contract's examples all still read 1.0.3-draft. Ten files claiming two versions guarantees a reader cites the wrong one. **No definition changed in any file whose header moved**, and that is what makes it a bookkeeping sync rather than a methodology change: rows 1.0.4 to 1.0.8 above are all `07`, which is why they were never consolidated here until now. Rows already stored at `1.0.3-draft` keep their label and stay reproducible, so NFR-9 is untouched. DEC-014 records it |
+| 1.1.0-draft | **Al resolved Q7**, 5 September 2026: the quote asset is global and it is USDC, issuer `GA5ZSEJY…`, so `ManipulationCheapAbsolute` and `ThinDepth5PctAbsolute` are USDC figures. Recorded in `02-pair-selection.md` section 1, which also records the six other decisions that file was holding open, and the consequence that Keel now assumes the USDC peg holds. `09-flags-and-bands.md` section 6 named Q7 as the condition for version 1.1, so this is a minor bump and not a patch: a definition changed. **`02` and `09` are the only two files whose content moved**; the other ten carry a header sync under the one-version rule. Rows already stored at `1.0.3-draft` or `1.0.8-draft` keep their label and stay reproducible, so NFR-9 is untouched by the bump itself. `internal/domain.MethodologyVersion` deliberately stays at `1.0.8-draft`; see the header of this file and DEC-015 section 5. DEC-015 records the decision |
 
 Every file in this folder must be raised together. A result produced under one version
 cannot be compared with a result produced under another.

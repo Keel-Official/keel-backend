@@ -63,6 +63,17 @@ in `09-flags-and-bands.md` are comparable across it. That is a property of this
 particular set and not a decision: open question Q7 and section 5 of
 `02-pair-selection.md` are what would make it one, and both are unanswered.
 
+> **Annotation, 5 September 2026. Both are now answered, and the paragraph above is
+> left as written because it was true on 26 August.** Al resolved Q7 in
+> `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so the
+> single-quote property of this run IS now a decision and the cross-set comparability
+> claimed above holds by rule rather than by accident. Section 5 of that file is also
+> written, and it says something this document must not be read against: **the 64 rows
+> below are not the demonstration set.** They are FR-17 evidence, and section 5 requires
+> the set to be rebuilt from criteria C1 to C7 by a fresh selection run rather than
+> justified backwards from these 64. Nothing in this file is amended by that; only what
+> it may be cited for. DEC-015.
+
 ---
 
 ## 2. What the engine produced

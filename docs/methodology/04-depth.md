@@ -1,6 +1,6 @@
 # Keel: Depth: SDEX, AMM, and the Combination
 
-**Methodology version:** 1.0.8-draft
+**Methodology version:** 1.1.0-draft
 **Status:** complete. The sell-side fee treatment was corrected in 1.0.3.
 
 Depth is the quantity the whole product exists to report: how much notional the quoted
@@ -93,3 +93,4 @@ contradicts how the protocol actually behaves.
 |---|---|
 | 1.0.3-draft | Split out of `keel-methodology-core.md` under the road 1 decision. Content unchanged except where noted in the section itself |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
+| 1.1.0-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** Al resolved Q7 in `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so every absolute threshold is a USDC figure. Under the one-version rule of DEC-014 the whole set moves with the one file whose content changed. README section 4 and DEC-015 carry the reasoning |
