@@ -551,3 +551,88 @@ endpoint whose contract is already in a frontend's hands.
 once, deliberately. If a cross-validation view ever needs to compare two sources on
 one chart, that is a new endpoint or a new parameter that names a comparison, not a
 relaxation of this filter.
+
+---
+
+## 11. What v1.5.0 changed, 5 September 2026
+
+Four additive fields on `AssetRisk` and one new schema, carrying Al's Q7 resolution into
+the contract. DEC-015 records the decision; this section records what it did to this
+document's subject.
+
+### 11.1 The freeze was checked BEFORE the file was touched
+
+Section 7 of this document is the gate, and the answer is that **the contract is not
+frozen**: conditions 1, 2 and 3 are met, condition 4 needs the frontend builder. This pass
+breaks none of them and closes none of them.
+
+| Condition | Before | After | Why unaffected |
+|---|---|---|---|
+| 1. golden fixture filled in by hand | MET | MET | not touched |
+| 2. no `TODO-FIXTURE`, no `reachable: null` | MET | MET | no example changed at all |
+| 3. `spreadPct` scale agreed as percent | MET | MET | not touched |
+| 4. section 6 answered by the frontend builder | OPEN | OPEN | this change neither depends on it nor advances it |
+
+The contract has already moved twice with condition 4 open, at 1.3.0 and at 1.4.0, so this
+is the established route and not a new one. Condition 4 is the only condition that can
+close the freeze, and it is the one condition this repository cannot close on its own.
+
+### 11.2 The change
+
+| Added | Why |
+|---|---|
+| `primaryQuote` | the quote every headline figure is denominated in. Redundant with `quote` while the candidate set has one primary, and sent anyway so widening the set later does not silently change what a stored row meant |
+| `pairsEvaluated`, and the `PairSummary` schema | quote, band and confidence per evaluated pair. It exists so the cheapest-path finding survives the PRD section 12 scope cut, since `?quote=` is priority C and goes first |
+| `bandDrivenBy` | the quote of the pair that set `band`, which is the highest tier triggered on ANY evaluated pair |
+| `xlmUsdcRate` | the rate an XLM-quoted pair was converted at before being judged against USDC thresholds, so a reader can redo the conversion |
+
+Minor, not patch: the schema gains members. Not breaking: nothing renamed, no enum gained
+a member, no example moved, and `docs/api/mocks/` is byte-identical after regeneration.
+
+### 11.3 All four are OPTIONAL, and section 8.1 is the contrast
+
+Section 8.1 added three fields and made all three required. The difference is that the
+server already produced those three. **Nothing produces these four.**
+`internal/domain.AssetRisk` declares them in the same commit and `compute.go` may not
+populate them until the expected values exist in the golden fixture, which is DEC-008's
+ordering rule.
+
+A required field the server does not send is a contract that lies, and this repository has
+already paid for that once: DEC-014 section 5 records the `/methodology` example
+advertising a version the server did not return, with the generated mock serving it.
+
+**No example carries the new fields either.** `primaryQuote` could be filled honestly,
+because USDC is a constant of the decision rather than a computed number, and it is left
+out anyway: a mock showing a field no response carries is the same failure from the other
+side. `pairsEvaluated` and `xlmUsdcRate` cannot be filled without inventing a band and a
+rate, which is what section 4 of this document already refused in its own words.
+
+### 11.4 This adds an item to freeze condition 4, and it is not "four fields were added"
+
+Section 9.2 established that the `manipulationCostCombined` rename travels in the same
+message as the five questions in section 6. This joins that message, and the thing to say
+is a behaviour, not a field list:
+
+> **An asset's band may now be set by a pair other than the one whose depth is shown
+> beside it.** `depth`, `manipulationCost*` and `maxSafeCollateral` are always the primary
+> pair's figures. `band` is the worst across every evaluated pair. When the two come from
+> different pairs, `bandDrivenBy` names the pair that set the band and `warnings` carries
+> `SECONDARY_PAIR_WORSE`. A row that renders band and depth as one reading is wrong in
+> that case and must mark it.
+
+This is the same class of damage as the `cost`/`reachable` pairing in section 1 of this
+document, and it deserves the same treatment for the same reason: **nothing fails.** The
+number still renders. Only its meaning is wrong, and a changelog does not catch that.
+
+### 11.5 What this does not do
+
+It does not touch `AssetSummary`. Section 5 declined `spreadPct` there and section 8.1
+admitted `bandConfidence` on a narrower argument, that the list row is where a band is read
+with the least context. `bandDrivenBy` has a claim on that argument and it is deferred
+rather than settled: it is a sixth question for the frontend builder, not a decision to
+take on their behalf.
+
+It does not move `methodologyVersion` in any example. The methodology set moved to
+`1.1.0-draft` on the same day and `internal/domain.MethodologyVersion` deliberately did
+not, so the examples follow the code constant exactly as section 5 of DEC-014 requires.
+DEC-015 section 4 carries the reasoning and hands the divergence to Al.

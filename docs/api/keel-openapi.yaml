@@ -2,6 +2,37 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.5.0, 5 September 2026. Four ADDITIVE fields on AssetRisk carrying the pair
+  # decision: primaryQuote, pairsEvaluated, bandDrivenBy and xlmUsdcRate, plus the
+  # PairSummary schema the third of those needs. Minor and not patch, because the
+  # schema gains members. Not breaking: all four are OPTIONAL and no existing field,
+  # example or enum moved.
+  #
+  # WHY OPTIONAL RATHER THAN REQUIRED, which is the only judgement call in this pass.
+  # The three fields 1.2.0 added were made required because the server already produced
+  # them. Nothing produces these four yet: internal/domain.AssetRisk declares them in
+  # the same commit, and internal/domain/compute.go may not populate them until the
+  # expected values exist in the golden fixture, which is the ordering rule DEC-008 put
+  # in place of the red zone lock. A required field the server does not send is a
+  # contract that lies, and DEC-014 section 5 records what that costs here: the
+  # /methodology example once advertised a version the server did not return, and the
+  # generated mock served it.
+  #
+  # FOR THE SAME REASON NO EXAMPLE CHANGED, so docs/api/mocks/ is byte-identical after
+  # this pass. Filling primaryQuote in an example would promise the frontend a field no
+  # response carries; filling pairsEvaluated or xlmUsdcRate would mean inventing a band
+  # and a rate, and DEC-003 section 4 already refused exactly that reasoning for the
+  # numbers it left blank. The examples move when the computation does.
+  #
+  # THE FRONTEND BUILDER HAS TO BE TOLD, in the same message as the section 6 questions
+  # and the 1.3.0 manipulationCost rename. Under 1.5.0 an asset's band may be set by a
+  # pair other than the one whose depth is displayed beside it, and a display that shows
+  # band and depth as one reading is wrong in that case. bandDrivenBy and the
+  # SECONDARY_PAIR_WORSE warning are how that case is detected. DEC-003 section 11.
+  #
+  # Source: docs/methodology/02-pair-selection.md section 2, table "Changes this
+  # decision requires". DEC-015.
+  #
   # 1.4.6, 5 September 2026. Every methodologyVersion example moves from 1.0.3-draft to
   # 1.0.8-draft, and the /methodology example's version with them. No schema change and
   # no behaviour change: the server stamps internal/domain.MethodologyVersion on every
@@ -76,7 +107,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.8-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.4.6
+  version: 1.5.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -755,6 +786,20 @@ components:
           type: string
           format: date-time
 
+    PairSummary:
+      type: object
+      required: [quote, band, bandConfidence]
+      description: |
+        One evaluated quote pair, reduced to the fields that are COMPARABLE ACROSS
+        PAIRS. Depth, manipulation cost and collateral are deliberately absent: each
+        is denominated in its own pair's quote asset, and two units side by side in
+        one response invite arithmetic that mixes them. A band and a confidence are
+        unitless.
+      properties:
+        quote: { $ref: '#/components/schemas/Asset' }
+        band: { $ref: '#/components/schemas/Band' }
+        bandConfidence: { $ref: '#/components/schemas/BandConfidence' }
+
     AssetRisk:
       type: object
       required:
@@ -782,6 +827,71 @@ components:
         quote:
           allOf: [$ref: '#/components/schemas/Asset']
           description: The unit of every notional value in this response
+        primaryQuote:
+          allOf: [$ref: '#/components/schemas/Asset']
+          description: |
+            The quote asset every headline figure in this response is denominated
+            in. It is USDC for every asset and is not chosen per asset, so it is
+            redundant with `quote` today. It is sent anyway, because widening the
+            candidate quote set later must not silently change what an
+            already-stored row meant.
+
+            **OPTIONAL in 1.5.0 and absent from every example.** The field is
+            declared here so a consumer can be built against it; nothing populates
+            it until the multi-pair evaluation lands. Do not assume presence.
+        pairsEvaluated:
+          type: array
+          items: { $ref: '#/components/schemas/PairSummary' }
+          description: |
+            Every quote pair evaluated for this asset, the primary one included,
+            sorted by quote asset so the order is reproducible. In this version the
+            candidate set is exactly two members, USDC and native XLM, which is a
+            stated bound on FR-11 rather than an unstated shortfall.
+
+            This array exists so the cheapest-path finding survives the scope cut in
+            PRD section 12: `?quote=` is priority C and goes first, and three fields
+            per pair in the primary response do not.
+
+            **OPTIONAL in 1.5.0 and absent from every example**, for the reason on
+            `primaryQuote`.
+        bandDrivenBy:
+          allOf: [$ref: '#/components/schemas/Asset']
+          description: |
+            The quote asset of the pair whose evaluation set `band`. `band` is the
+            highest tier triggered on ANY evaluated pair, because an attacker takes
+            the cheapest path: an asset deep against USDC and thin against XLM is not
+            a safe asset.
+
+            **This is the field that makes a mixed display detectable.** When it is
+            not equal to `primaryQuote`, the warning `SECONDARY_PAIR_WORSE` is in
+            `warnings`, and `band` then describes a different market from the
+            `depth`, `manipulationCost*` and `maxSafeCollateral` beside it, which
+            always stay the primary pair's figures. A dashboard must not present the
+            two as one reading in that case.
+
+            **OPTIONAL in 1.5.0 and absent from every example**, for the reason on
+            `primaryQuote`.
+        xlmUsdcRate:
+          oneOf:
+            - $ref: '#/components/schemas/Decimal'
+            - type: 'null'
+          description: |
+            The XLM/USDC mid price at this `ledgerSeq`. Published because the
+            absolute thresholds are USDC figures, so an XLM-quoted pair is converted
+            before it is judged against them, and a reader has to be able to redo
+            that conversion with a rate of their own.
+
+            Not a price oracle: it is read from the same books and pools as
+            everything else in this response, from the deepest market on the network,
+            at the same ledger.
+
+            Null when no XLM-quoted pair was evaluated, and null when the rate was not
+            trustworthy at that ledger. The two are not distinguished by value; the
+            second case shows up in `pairsEvaluated` as an XLM entry with
+            `bandConfidence: partial`.
+
+            **OPTIONAL in 1.5.0 and absent from every example**, for the reason on
+            `primaryQuote`.
         ledgerSeq:
           type: integer
           format: int64

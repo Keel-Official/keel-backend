@@ -542,6 +542,27 @@ type TradeRef struct {
 	At        time.Time
 }
 
+// PairSummary is one evaluated quote pair reduced to the three things that are
+// comparable ACROSS pairs. Its depth, cost and collateral figures are deliberately
+// absent: those are denominated in the pair's own quote asset, and putting two
+// units side by side in one response invites exactly the arithmetic that
+// docs/methodology/02-pair-selection.md section 1 exists to prevent. A band and a
+// confidence are unitless by construction, so they travel.
+type PairSummary struct {
+	Quote          Asset
+	Band           Band
+	BandConfidence BandConfidence
+}
+
+// WarningSecondaryPairWorse is emitted when a quote pair other than the primary one
+// set the band. It is a CODE rather than a sentence, unlike every other member of
+// AssetRisk.Warnings, because a consumer has to branch on this one: the headline
+// depth and cost figures belong to the primary pair while the band does not, and
+// prose cannot be switched on. BandDrivenBy names the pair responsible.
+//
+// Defined by docs/methodology/02-pair-selection.md section 2 item 4.
+const WarningSecondaryPairWorse = "SECONDARY_PAIR_WORSE"
+
 // AssetRisk is the complete output for one asset at one ledger.
 type AssetRisk struct {
 	Base               Asset
@@ -550,6 +571,14 @@ type AssetRisk struct {
 	LedgerClosedAt     time.Time
 	MethodologyVersion string
 	DataSource         DataSource
+
+	// PrimaryQuote is the quote asset every headline figure below is denominated
+	// in. It is USDC for every asset and takes no per-asset rule, so it is
+	// redundant with Quote today and is emitted anyway: widening the candidate
+	// quote set later must not silently change what an already-stored row meant.
+	//
+	// docs/methodology/02-pair-selection.md sections 1 and 2 item 2.
+	PrimaryQuote Asset
 
 	MidPrice    *decimal.Decimal // nil when PriceSource is none
 	PriceSource PriceSource
@@ -560,6 +589,21 @@ type AssetRisk struct {
 	// PRICE_SOURCE_CONFLICT and causes P0 to be taken from the pool.
 	PoolSpotPrice      *decimal.Decimal
 	PriceDivergencePct *decimal.Decimal
+
+	// XlmUsdcRate is the XLM/USDC mid price at THIS LedgerSeq, and it is published
+	// for one reason: the thresholds are USDC figures, so an XLM-quoted pair has to
+	// be converted before it can be judged against them, and a reader must be able
+	// to redo that conversion with a rate of their own choosing.
+	//
+	// This is not a price oracle and does not breach principle P-1. The rate is read
+	// from the same books and pools Keel already reads, from the deepest market on
+	// the network, at the same ledger as everything else in this result.
+	//
+	// Nil when no XLM-quoted pair was evaluated, and nil when the rate itself was not
+	// trustworthy at that ledger. Those two are not distinguished here on purpose:
+	// PairsEvaluated is where the second case shows up, as an XLM entry whose flags
+	// are unevaluated and whose confidence is partial.
+	XlmUsdcRate *decimal.Decimal
 
 	Depth []DepthPoint
 
@@ -619,6 +663,24 @@ type AssetRisk struct {
 	// It must be surfaced on the dashboard: a LOW band with partial confidence is a
 	// far weaker statement than LOW with full confidence.
 	BandConfidence BandConfidence
+
+	// PairsEvaluated holds every quote pair that was evaluated for this asset,
+	// including the primary one, sorted by quote asset so that the order is
+	// reproducible under NFR-9. In this version the candidate set is exactly two
+	// members, USDC and native XLM, and that bound is a stated limitation of the
+	// version rather than an unstated shortfall against FR-11.
+	PairsEvaluated []PairSummary
+
+	// BandDrivenBy names the quote asset of the pair whose evaluation set Band.
+	// Band is the HIGHEST tier triggered on any evaluated pair, which is principle
+	// P-2 applied to the choice of pair: an attacker takes the cheapest path, so an
+	// asset deep on USDC and thin on XLM is not a safe asset.
+	//
+	// Equal to PrimaryQuote in the ordinary case. When it is not, the warning
+	// WarningSecondaryPairWorse is emitted alongside it. Depth, cost and
+	// MaxSafeCollateral above stay the primary pair's figures either way and are
+	// never mixed across pairs.
+	BandDrivenBy Asset
 
 	Warnings []string
 }
