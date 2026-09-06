@@ -26,6 +26,7 @@
 // months. A ledger is an honest SEEK because being early only costs requests,
 // while the window boundary is decided on ledger_close_time, which is a fact
 // Horizon states in every record.
+
 package horizon
 
 import (

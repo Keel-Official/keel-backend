@@ -39,7 +39,7 @@ func TestTheFebruaryTradesFileYieldsOneSamplePerDay(t *testing.T) {
 }
 
 // TestNoSampleIsTakenBeforeItsOwnMidnight is the honesty property the rule was
-// chosen for. A row labelled with a day must describe a book that existed on that
+// chosen for. A row labeled with a day must describe a book that existed on that
 // day, never the state the market was in the evening before.
 func TestNoSampleIsTakenBeforeItsOwnMidnight(t *testing.T) {
 	if _, err := os.Stat(februaryTrades); err != nil {

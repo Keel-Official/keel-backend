@@ -238,7 +238,7 @@ func spreadPct(b OrderBook, p0 decimal.Decimal) *decimal.Decimal {
 //	0                                  if P_pool >= P_target
 //	Y x (sqrt(P_target / P_pool) - 1)  otherwise, then grossed up by / (1 - f)
 //
-// The gross-up is because the quantity is an input. The fee always favours the
+// The gross-up is because the quantity is an input. The fee always favors the
 // pool, never the counterparty.
 func ammBuyNotional(pool PoolReserves, target decimal.Decimal) (decimal.Decimal, error) {
 	spot := pool.SpotPrice()
@@ -547,7 +547,7 @@ func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
 // at all, so putting all three in one struct would have made LedgerSeq mean three
 // different things.
 //
-// sup nil is the pre-existing behaviour exactly: five flags unevaluated, every
+// sup nil is the pre-existing behavior exactly: five flags unevaluated, every
 // SupportingMetrics field nil, and bandConfidence partial for the reason it was
 // already partial. Nothing about a caller that does not pass it changes.
 func ComputeAssetRiskWith(s Snapshot, p Params, sup *SupportingMetrics) (AssetRisk, error) {

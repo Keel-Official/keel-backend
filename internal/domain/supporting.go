@@ -219,7 +219,7 @@ func classifyOne(
 	//
 	// Empty account IDs are not a match. A pool trade has no account on one side,
 	// and treating two empty strings as the same account would classify every
-	// pool-to-pool artefact as a self-trade.
+	// pool-to-pool artifact as a self-trade.
 	if t.BaseAccount != "" && t.BaseAccount == t.CounterAccount {
 		return GenuineStateExcluded, ConditionSelfTrade
 	}
@@ -315,7 +315,7 @@ func orderBookPricesByTime(trades []Trade) []timedPrice {
 // header. The window is symmetric and CLOSED on both ends here, which is
 // deliberately different from the half-open windows in sections 3 and 4: those two
 // are aggregations anchored to an output ledger, where a boundary trade must land
-// in exactly one window. This one is a neighbourhood around an instant, where the
+// in exactly one window. This one is a neighborhood around an instant, where the
 // question is only whether a comparable book existed nearby, and excluding a trade
 // that sits exactly fifteen minutes away would answer that question with no.
 func contemporaneousBookPrice(prices []timedPrice, at time.Time, window time.Duration) (decimal.Decimal, bool) {

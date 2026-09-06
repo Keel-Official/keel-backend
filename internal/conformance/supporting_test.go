@@ -22,8 +22,8 @@ import (
 	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
-// close reports whether two decimals agree within Tolerance.
-func close(a, b decimal.Decimal) bool { return a.Sub(b).Abs().LessThanOrEqual(Tolerance) }
+// withinTolerance reports whether two decimals agree within Tolerance.
+func withinTolerance(a, b decimal.Decimal) bool { return a.Sub(b).Abs().LessThanOrEqual(Tolerance) }
 
 // report prints one comparison line in the shape golden_test.go uses, so the two
 // read the same way when they are run together.
@@ -43,7 +43,7 @@ func reportInt(t *testing.T, label string, got, want int) {
 
 func reportDec(t *testing.T, label string, got, want decimal.Decimal) {
 	t.Helper()
-	report(t, label, close(got, want), got.String(), want.String())
+	report(t, label, withinTolerance(got, want), got.String(), want.String())
 }
 
 func itoa(i int) string { return decimal.NewFromInt(int64(i)).String() }

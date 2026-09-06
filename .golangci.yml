@@ -11,6 +11,28 @@ linters:
     - revive
 
   settings:
+    errcheck:
+      # A REPORT WRITTEN TO STDOUT IS NOT A RESULT THIS PROGRAM CAN BRANCH ON, and
+      # `keel` is a CLI whose subcommands exist to print one. Eighty-odd call sites
+      # write a progress line or a summary table with fmt.Fprint*, every one of them
+      # to os.Stdout or to a writer that is os.Stdout, and there is no useful
+      # handling: if stdout is gone, printing an error about it goes to the same
+      # place. Suppressing each one inline with `_, _ =` was tried first on
+      # 6 September 2026 and rejected: eighty of those bury the prose these files are
+      # mostly made of, and a suppression repeated eighty times is a policy written
+      # in the worst available place.
+      #
+      # WHAT THIS DOES NOT DISARM, which is the part that decides whether it is safe.
+      # Every write that can lose data still goes through a checked path: os.WriteFile
+      # for the CSV sidecars and the summaries, csv.Writer with its own Error(), and
+      # the recorder's gzip writers. None of those is named here, so a dropped file
+      # write is still a finding. What is excluded is exactly the family that writes
+      # to a terminal.
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprint
+        - fmt.Fprintln
+
     misspell:
       # The repository language is English as of DEC-005, so a US dictionary is
       # now the right one. Before that decision this linter flagged Indonesian

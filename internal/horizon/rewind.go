@@ -30,7 +30,7 @@
 //     book at the target or was created after it, and guessing wrong adds a level
 //     that never existed. When no trade names it, it is invisible and cannot even
 //     be counted.
-//   - An offer cancelled in the window that never traded. The case above with
+//   - An offer canceled in the window that never traded. The case above with
 //     nothing to catch it. `keel replay` is the route that sees those, at the cost
 //     this file exists to avoid.
 //
@@ -54,6 +54,7 @@
 // and the walk degenerates into the forward problem this file exists to escape,
 // while `last_modified_ledger` answers the same question for free and for the 92
 // percent of offers that never moved.
+
 package horizon
 
 import (
@@ -116,7 +117,7 @@ type RewindResult struct {
 // Certain reports whether every offer on this book was carried back unchanged,
 // with nothing modified in the window and nothing inferred from a trade.
 //
-// It is NOT a claim of correctness. An offer that was cancelled in the window
+// It is NOT a claim of correctness. An offer that was canceled in the window
 // without ever trading is invisible to this method and cannot be counted, so a
 // certain book can still be missing a level. What it does say is that no offer on
 // it was guessed at.

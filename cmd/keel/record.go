@@ -255,7 +255,7 @@ time in the one format here whose size grows with the asset.
 			if err := runner.runOnce(ctx, results); err != nil && !errors.Is(err, context.Canceled) {
 				logger.Printf("crosscheck: stopped early: %v", err)
 			}
-			runner.summarise(os.Stdout)
+			runner.summarize(os.Stdout)
 		}
 		if unwritten > 0 {
 			return fmt.Errorf("record: %d of %d pair(s) wrote nothing", unwritten, len(pairs))
@@ -269,7 +269,7 @@ time in the one format here whose size grows with the asset.
 	logger.Printf("interval %s, Ctrl-C to stop", *interval)
 	if runner != nil {
 		err = runner.run(ctx, *interval)
-		runner.summarise(os.Stdout)
+		runner.summarize(os.Stdout)
 	} else {
 		err = rec.Run(ctx, *interval)
 	}

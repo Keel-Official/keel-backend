@@ -149,19 +149,19 @@ func TestAnOperationAfterTheTargetLedgerIsNotApplied(t *testing.T) {
 func TestACancelRemovesTheOfferItNames(t *testing.T) {
 	// A cancel is a manage offer with a non-zero offer_id and an amount of zero.
 	// Its result is DELETED and carries NO offer, so the id exists only in the
-	// operation. An implementation reading only the result leaves the cancelled
+	// operation. An implementation reading only the result leaves the canceled
 	// level on the book for ever.
 	ops := append(theTwoCreates(t), offerOperation{
 		TOID:             askCreateTOID + 1000,
 		Ledger:           61339950,
 		SubmittedOfferID: 1824788980,
-		Result:           resultingOffer{Effect: offerDeleted},
+		Result:           ResultingOffer{Effect: offerDeleted},
 	})
 	state := replayOffers(ops, nil, 61340262)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 0 {
-		t.Errorf("book has %d ask(s), want 0: the ask was cancelled", len(book.Asks))
+		t.Errorf("book has %d ask(s), want 0: the ask was canceled", len(book.Asks))
 	}
 	if len(book.Bids) != 1 {
 		t.Errorf("book has %d bid(s), want 1: the cancel named the ask only", len(book.Bids))
@@ -207,7 +207,7 @@ func TestASyntheticOfferIdIsNeverTreatedAsResting(t *testing.T) {
 	synthetic := toid | syntheticOfferBit
 
 	if !syntheticOffer(synthetic) {
-		t.Errorf("%d is not recognised as synthetic", synthetic)
+		t.Errorf("%d is not recognized as synthetic", synthetic)
 	}
 	if syntheticOffer(1824788980) {
 		t.Error("a real resting offer id was called synthetic")
@@ -222,7 +222,7 @@ func TestASyntheticOfferIdIsNeverTreatedAsResting(t *testing.T) {
 	// February 2026 that is 9,478 of 10,077 ids.
 	tr := theManipulation()
 	tr.BaseOfferID = "4875140441940459521"
-	if got := missingOffers(nil, []domain.Trade{tr}, 61340263); len(got) != 0 {
+	if got := missingOffers(nil, []domain.Trade{tr}); len(got) != 0 {
 		t.Errorf("missing offers = %v, want none: both ids are transient", got)
 	}
 }
@@ -230,13 +230,13 @@ func TestASyntheticOfferIdIsNeverTreatedAsResting(t *testing.T) {
 func TestAnOfferNamedByATradeAndNeverSeenIsReportedAsMissing(t *testing.T) {
 	// The whole point of the completeness check: an offer the account discovery
 	// never reached shows up here instead of quietly shrinking the book.
-	got := missingOffers(nil, []domain.Trade{theManipulation()}, 61340263)
+	got := missingOffers(nil, []domain.Trade{theManipulation()})
 	if len(got) != 1 || got[0] != 1824788980 {
 		t.Errorf("missing offers = %v, want [1824788980]", got)
 	}
 
 	// And once the operation that created it is in hand, it is no longer missing.
-	if got := missingOffers(theTwoCreates(t), []domain.Trade{theManipulation()}, 61340263); len(got) != 0 {
+	if got := missingOffers(theTwoCreates(t), []domain.Trade{theManipulation()}); len(got) != 0 {
 		t.Errorf("missing offers = %v, want none once the create was seen", got)
 	}
 }

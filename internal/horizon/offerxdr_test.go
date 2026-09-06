@@ -226,8 +226,8 @@ func TestAVoidBodiedEarlierResultIsSkippedAndTheOfferAfterItIsRead(t *testing.T)
 		0, 0, 0, 0, // success, no body
 	}
 	// The ask create's own operation result, lifted out of the real transaction.
-	real := mustB64Decode(t, xdrAskCreate)
-	body := real[16:] // past feeCharged, txSUCCESS and the results count
+	raw := mustB64Decode(t, xdrAskCreate)
+	body := raw[16:] // past feeCharged, txSUCCESS and the results count
 
 	got, err := ParseManageOfferResult(b64(append(prefix, body...)), 1)
 	if err != nil {

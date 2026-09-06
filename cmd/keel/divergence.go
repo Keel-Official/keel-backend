@@ -136,7 +136,7 @@ ledger they were served from.
 		}
 	}
 
-	summary := summariseDivergence(rows, threshold, client.Throttled())
+	summary := summarizeDivergence(rows, threshold, client.Throttled())
 	fmt.Fprint(os.Stdout, summary)
 
 	if err := os.WriteFile(filepath.Join(*out, "summary.txt"), []byte(summary), 0o644); err != nil {
@@ -325,7 +325,7 @@ func bookMid(s domain.Snapshot, p domain.Params) *decimal.Decimal {
 // A ONE-SIDED BOOK WITH NO POOL FALLS TO CASE 5, and that is the ladder's own
 // fall-through rather than a reading imposed here: case 2 requires two sides, case
 // 3 requires a pool, and domain.MidPrice returns priceSource none for exactly this
-// shape. Case 5 is labelled "neither book nor pool" in the document, so the two
+// shape. Case 5 is labeled "neither book nor pool" in the document, so the two
 // populations inside it are counted separately in the summary instead of being
 // presented as one.
 func ladderCase(bids, asks int, hasActivePool bool) int {
@@ -395,10 +395,10 @@ func decPtr(s string) *decimal.Decimal {
 	return &d
 }
 
-// summariseDivergence renders the counts. It returns a string rather than writing
+// summarizeDivergence renders the counts. It returns a string rather than writing
 // to a writer so that the same text goes to stdout and to the file, instead of
 // being formatted twice and drifting.
-func summariseDivergence(rows []divergenceRow, threshold decimal.Decimal, throttled int) string {
+func summarizeDivergence(rows []divergenceRow, threshold decimal.Decimal, throttled int) string {
 	var b strings.Builder
 
 	counts := make([]int, len(ladderCaseNames))

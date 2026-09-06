@@ -78,6 +78,7 @@
 // therefore the worst thing to produce by accident; walking backwards puts the
 // operations that decide the target state on the FIRST page and turns the same
 // limitation into a depth this file can report.
+
 package horizon
 
 import (
@@ -316,7 +317,7 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 		Source: domain.DataSourceOffersImplied,
 	}
 	out.TradeWindowFrom = q.TradesFromLedger
-	out.MissingOfferIDs = missingOffers(in.ops, in.trades, q.TargetLedger)
+	out.MissingOfferIDs = missingOffers(in.ops, in.trades)
 	return out, nil
 }
 
@@ -468,10 +469,10 @@ type offerOperation struct {
 	// Result.OfferID, and the difference is the whole of the cancel case: an
 	// operation with offer_id 4242 and amount 0 comes back with effect DELETED
 	// and NO offer in the result, so 4242 exists only here and the replay would
-	// leave a cancelled offer resting for ever without it.
+	// leave a canceled offer resting for ever without it.
 	SubmittedOfferID int64
 
-	Result resultingOffer
+	Result ResultingOffer
 }
 
 func (c *Client) offerOperationsFor(ctx context.Context, account string, baseRef, quoteRef assetRef, target, floor uint32, maxPages int) ([]offerOperation, AccountWalk, error) {
@@ -749,7 +750,7 @@ func consume(state map[int64]*restingOffer, t domain.Trade) {
 // It is the self-check the header calls the strongest one available: every hole
 // the three gaps can produce shows up here, because an offer nobody saw created
 // cannot be on the reconstructed book.
-func missingOffers(ops []offerOperation, trades []domain.Trade, target uint32) []int64 {
+func missingOffers(ops []offerOperation, trades []domain.Trade) []int64 {
 	seen := map[int64]bool{}
 	for _, o := range ops {
 		if o.Result.OfferID != 0 {

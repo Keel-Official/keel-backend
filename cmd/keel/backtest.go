@@ -278,7 +278,7 @@ func backtestPair(ctx context.Context, c *horizon.Client, p horizon.Pair, w wind
 	}
 	fmt.Fprintf(log, "  wrote %s\n", dailyPath)
 
-	summarise(log, rows, params, w)
+	summarize(log, rows, params, w)
 	return nil
 }
 
@@ -480,13 +480,13 @@ func warnWindowEndUnproven(warn io.Writer, p horizon.Pair, w window, maxClosed t
 // time when the set is empty. Trades arrive ascending, but this does not assume
 // it: the cost of a scan is nothing and an assumption here would be silent.
 func maxClosedAt(trades []domain.Trade) time.Time {
-	var max time.Time
+	var latest time.Time
 	for _, t := range trades {
-		if t.ClosedAt.After(max) {
-			max = t.ClosedAt
+		if t.ClosedAt.After(latest) {
+			latest = t.ClosedAt
 		}
 	}
-	return max
+	return latest
 }
 
 // formatClosedAt renders a close time, or "none" for the zero time. An empty
@@ -546,13 +546,13 @@ func writeTradesMeta(path string, w window, trades []domain.Trade, reading horiz
 // when the set is empty. It is here so the sidecar can state both ends of what
 // the file covers rather than only the far one.
 func minClosedAt(trades []domain.Trade) time.Time {
-	var min time.Time
+	var earliest time.Time
 	for _, t := range trades {
-		if min.IsZero() || t.ClosedAt.Before(min) {
-			min = t.ClosedAt
+		if earliest.IsZero() || t.ClosedAt.Before(earliest) {
+			earliest = t.ClosedAt
 		}
 	}
-	return min
+	return earliest
 }
 
 func writeDailyCSV(path string, rows []dailyRow, p domain.Params) error {
@@ -666,11 +666,11 @@ func optional(d *decimal.Decimal) string {
 
 // ---------------------------------------------------------------- the summary
 
-// summarise prints the sentence Deliverable 2 asks for: when the threshold was
+// summarize prints the sentence Deliverable 2 asks for: when the threshold was
 // crossed, relative to a date the caller named. It prints it twice, once per kind
 // of bound, because the two answer different questions and on this data they give
 // different dates.
-func summarise(log io.Writer, rows []dailyRow, p domain.Params, w window) {
+func summarize(log io.Writer, rows []dailyRow, p domain.Params, w window) {
 	rs := rungs(p)
 	fiveKey := rungKey(rs, "0.05")
 	critKey := p.ManipulationCriticalDelta.String()

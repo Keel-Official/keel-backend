@@ -35,7 +35,8 @@
 // thinner book on every day rather than as an error on one. The floor is one
 // number for the whole series precisely so that the reading depth does not vary
 // between the points being compared: a series whose early rows saw less history
-// than its late rows would show a trend that is an artefact of the sampling.
+// than its late rows would show a trend that is an artifact of the sampling.
+
 package horizon
 
 import (
@@ -224,7 +225,7 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 				// reason. The absence is not a claim that no pool existed.
 				Source: domain.DataSourceOffersImplied,
 			},
-			MissingOfferIDs: missingOffers(in.ops, in.trades, t),
+			MissingOfferIDs: missingOffers(in.ops, in.trades),
 			RestingOffers:   len(book.Bids) + len(book.Asks),
 		})
 	}

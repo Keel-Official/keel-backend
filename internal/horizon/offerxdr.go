@@ -41,6 +41,7 @@
 // here is under two hundred lines that can be asserted against three transactions
 // anybody can fetch; if a second XDR need ever appears, that trade flips and this
 // file should be deleted rather than extended.
+
 package horizon
 
 import (
@@ -130,9 +131,9 @@ func (e offerEffect) String() string {
 	return fmt.Sprintf("effect(%d)", int32(e))
 }
 
-// resultingOffer is the offer an operation left resting, plus the offers it took
+// ResultingOffer is the offer an operation left resting, plus the offers it took
 // on the way.
-type resultingOffer struct {
+type ResultingOffer struct {
 	Effect offerEffect
 
 	// Set only when Effect is created or updated. On deleted the operation left
@@ -176,8 +177,8 @@ type claimedOffer struct {
 //
 // opIndex is ZERO BASED and is the operation's position in the transaction. The
 // TOID carries it one based in its low twelve bits; tOIDOperationIndex converts.
-func ParseManageOfferResult(resultXDRBase64 string, opIndex int) (resultingOffer, error) {
-	var out resultingOffer
+func ParseManageOfferResult(resultXDRBase64 string, opIndex int) (ResultingOffer, error) {
+	var out ResultingOffer
 
 	raw, err := base64.StdEncoding.DecodeString(resultXDRBase64)
 	if err != nil {

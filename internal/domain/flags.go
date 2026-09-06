@@ -11,6 +11,7 @@
 // The rules here are a TRANSCRIPTION of 09-flags-and-bands.md sections 4 and 5.
 // Where this file and that document disagree, the document is right. It owns the
 // three states, the tiers, and every threshold; this file owns none of them.
+
 package domain
 
 import (
@@ -25,7 +26,7 @@ import (
 // THIN_DEPTH_5PCT against depth(0.05) as literals, so they are methodology
 // constants and not entries in Params. If a caller supplies MarketDeltas without
 // these rungs, the flags that read them become UNEVALUATED rather than silently
-// falling back to a neighbouring rung: a flag computed at 0.10 while claiming
+// falling back to a neighboring rung: a flag computed at 0.10 while claiming
 // 0.02 is a wrong answer wearing the right label.
 var (
 	zeroDepthDelta = dec("0.02")
@@ -141,7 +142,7 @@ func evaluateFlags(in flagInput, p Params) (triggered, unevaluated []Flag, band 
 	// supporting metrics.
 	//
 	// UNEVALUATED REMAINS THE DEFAULT AND THAT IS THE POINT. A caller with no
-	// trade history or no trustline pull gets exactly the behaviour this package
+	// trade history or no trustline pull gets exactly the behavior this package
 	// had before the supporting metrics existed, rather than a silent zero. An
 	// asset with no trustline data must not look identical to one whose holder
 	// distribution was checked and found safe.

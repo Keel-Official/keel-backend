@@ -81,16 +81,6 @@ const (
 	sideAsk
 )
 
-// levels converts one side of the book into domain levels denominated in BASE
-// units, which is what domain.Level.Amount is defined as.
-//
-// The bid conversion is the open question documented on BidAmountUnit. When the
-// quote reading applies, amountBase = amount × d / n rather than
-// amount / (n/d): the multiplication is exact and only the final division
-// rounds, at shopspring's DivisionPrecision. Notional then recovers the original
-// quote amount to within that precision, which is well inside the fixture
-// tolerance of 1e-7 at these magnitudes, and the raw bytes keep the unrounded
-// figure regardless.
 // ParseOrderBook turns a raw /order_book body into a domain.OrderBook.
 //
 // IT IS THE ONE DECODER BOTH PATHS USE, and that is the point of exporting it.
@@ -169,10 +159,16 @@ func (r assetRef) asset() (domain.Asset, error) {
 	}
 }
 
-func (c *Client) levels(in []priceLevel, s side) ([]domain.Level, error) {
-	return decodeLevels(in, s, c.cfg.BidAmountUnit)
-}
-
+// decodeLevels converts one side of the book into domain levels denominated in
+// BASE units, which is what domain.Level.Amount is defined as.
+//
+// The bid conversion is the open question documented on BidAmountUnit. When the
+// quote reading applies, amountBase = amount × d / n rather than
+// amount / (n/d): the multiplication is exact and only the final division
+// rounds, at shopspring's DivisionPrecision. Notional then recovers the original
+// quote amount to within that precision, which is well inside the fixture
+// tolerance of 1e-7 at these magnitudes, and the raw bytes keep the unrounded
+// figure regardless.
 func decodeLevels(in []priceLevel, s side, unit BidAmountUnit) ([]domain.Level, error) {
 	out := make([]domain.Level, 0, len(in))
 	for i, l := range in {

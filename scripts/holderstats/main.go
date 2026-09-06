@@ -254,7 +254,7 @@ func readHolders(path string) ([]holder, pullMeta, error) {
 	if err != nil {
 		return nil, pullMeta{}, fmt.Errorf("opening holders file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	r := csv.NewReader(f)
 	r.FieldsPerRecord = -1
@@ -404,12 +404,12 @@ func readTrades(cfg config) (map[string]sideCount, map[string]uint64, tradeMeta,
 		r.FieldsPerRecord = -1
 		header, err := r.Read()
 		if err != nil {
-			f.Close()
+			_ = f.Close()
 			return nil, nil, meta, fmt.Errorf("reading header of %s: %w", path, err)
 		}
 		idx, err := columnIndex(header, path, cfg.baseAccountColumn, cfg.counterAccountCol)
 		if err != nil {
-			f.Close()
+			_ = f.Close()
 			return nil, nil, meta, err
 		}
 		bit := uint64(1) << uint(fi)
@@ -421,7 +421,7 @@ func readTrades(cfg config) (map[string]sideCount, map[string]uint64, tradeMeta,
 			}
 			line++
 			if err != nil {
-				f.Close()
+				_ = f.Close()
 				return nil, nil, meta, fmt.Errorf("%s line %d: %w", path, line, err)
 			}
 			rows++
@@ -440,7 +440,7 @@ func readTrades(cfg config) (map[string]sideCount, map[string]uint64, tradeMeta,
 				masks[v] |= bit
 			}
 		}
-		f.Close()
+		_ = f.Close()
 		meta.RowsPerFile = append(meta.RowsPerFile, rows)
 		meta.Rows += rows
 	}
@@ -776,7 +776,7 @@ func writeCrosscheck(path string, cfg config, m pullMeta, s stats) error {
 	if err != nil {
 		return fmt.Errorf("creating crosscheck CSV: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w := csv.NewWriter(f)
 	defer w.Flush()
@@ -815,7 +815,7 @@ func writeTraderStatus(path string, cfg config, m pullMeta, c classification) er
 	if err != nil {
 		return fmt.Errorf("creating trader status CSV: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w := csv.NewWriter(f)
 	defer w.Flush()

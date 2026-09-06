@@ -297,14 +297,14 @@ func (r *sameHourRunner) run(ctx context.Context, interval time.Duration) error 
 	}
 }
 
-// summarise prints the Layer 3 tally over whatever was compared, plus what was
+// summarize prints the Layer 3 tally over whatever was compared, plus what was
 // still queued when this stopped.
-func (r *sameHourRunner) summarise(w io.Writer) {
+func (r *sameHourRunner) summarize(w io.Writer) {
 	if len(r.rows) == 0 {
 		fmt.Fprintf(w, "\nno recording reached its rebuild. %d still queued\n", len(r.queue))
 		return
 	}
-	summarise3(w, r.rows)
+	summarize3(w, r.rows)
 	if n := len(r.queue); n > 0 {
 		fmt.Fprintf(w, "  %d recording(s) were still waiting for a rebuild when this stopped. "+
 			"They are on disk, and \"keel crosscheck\" can still compare them at a longer gap\n", n)

@@ -138,7 +138,7 @@ is "keel record -crosscheck".
 		}
 	}
 
-	summarise3(os.Stdout, rows)
+	summarize3(os.Stdout, rows)
 	if *out != "" {
 		if err := writeCrosscheckCSV(*out, rows); err != nil {
 			return fmt.Errorf("crosscheck: %w", err)
@@ -534,7 +534,7 @@ func recordedBook(t horizon.RawTick, base, quote domain.Asset, unit horizon.BidA
 
 // ---------------------------------------------------------------- output
 
-func summarise3(w io.Writer, rows []crosscheckRow) {
+func summarize3(w io.Writer, rows []crosscheckRow) {
 	var match, mismatch, partial, failed int
 	for _, r := range rows {
 		switch r.verdict() {

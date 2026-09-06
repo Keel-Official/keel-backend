@@ -308,7 +308,7 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 
 	// The historical path. A 503 with HISTORICAL_UNAVAILABLE is the contract's
 	// own answer for a deployment with no replayed rows, and returning a live
-	// figure labelled historical would be the one genuinely dangerous
+	// figure labeled historical would be the one genuinely dangerous
 	// alternative.
 	//
 	// THE SOURCE IS offers-implied AND NOT hubble, CORRECTED 5 SEPTEMBER 2026.

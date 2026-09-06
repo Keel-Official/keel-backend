@@ -187,7 +187,7 @@ func TestStalenessUnevaluatedWithoutReference(t *testing.T) {
 		}
 	}
 
-	// No anchor. Ageing against the zero time would report every asset as stale
+	// No anchor. Aging against the zero time would report every asset as stale
 	// by two thousand years, which is a wrong answer wearing a confident label.
 	ref := TradeRef{LedgerSeq: 1, At: anchor}
 	_, un = statesOf(t, flagInput{
@@ -316,9 +316,9 @@ func TestClassifyIsOrderIndependent(t *testing.T) {
 	anchor := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
 	base := Asset{Code: "X", Issuer: "GISSUER", Type: AssetTypeAlphanum4}
 
-	mk := func(id string, min int, price int64, amt string, pool string) Trade {
+	mk := func(id string, minutes int, price int64, amt string, pool string) Trade {
 		return Trade{
-			ID: id, LedgerSeq: uint32(100 + min), ClosedAt: anchor.Add(-time.Duration(min) * time.Minute),
+			ID: id, LedgerSeq: uint32(100 + minutes), ClosedAt: anchor.Add(-time.Duration(minutes) * time.Minute),
 			Type: "orderbook", Price: Price{N: price, D: 100},
 			BaseAmount: dec(amt), CounterAmount: dec(amt),
 			BaseAccount: "GA", CounterAccount: "GB",

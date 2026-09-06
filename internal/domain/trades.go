@@ -17,7 +17,7 @@
 //
 // THE WORD THAT DOES THE WORK IN THAT SENTENCE IS "MOVED", AND IT IS A CLAIM
 // ABOUT CAUSE. Two trades an hour apart at different prices establish that the
-// price changed, not that the second one changed it: offers can be cancelled and
+// price changed, not that the second one changed it: offers can be canceled and
 // posted in between, and nothing in a trade stream records that. So this file
 // produces TWO kinds of bound and never merges them.
 //
@@ -71,6 +71,7 @@
 // hundredfold move sits in the gap between two legs and would vanish entirely,
 // and a tool that silently drops the largest move in its window because it cannot
 // certify the cause is less honest than one that reports it under a label.
+
 package domain
 
 import (
@@ -160,11 +161,11 @@ type Trade struct {
 type BoundKind string
 
 const (
-	// BoundWithinLeg: the price span was crossed by the operation that is
+	// BoundWithinLeg means the price span was crossed by the operation that is
 	// paying for it. No assumption.
 	BoundWithinLeg BoundKind = "within-leg"
 
-	// BoundBetweenLegs: the price span sits between two operations. It
+	// BoundBetweenLegs means the price span sits between two operations. It
 	// holds only if the book was unchanged across the gap, which trades cannot
 	// establish. Read Elapsed before quoting one.
 	BoundBetweenLegs BoundKind = "between-legs"

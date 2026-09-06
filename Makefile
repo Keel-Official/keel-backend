@@ -1,4 +1,4 @@
-.PHONY: up down psql migrate build test vet fmt arch conformance store-test manual-check ci api-mocks api-mocks-check record record-once record-holders record-batch survey assets scan serve backtest replay crosscheck divergence
+.PHONY: up down psql migrate build test vet fmt arch conformance store-test manual-check ci lint api-mocks api-mocks-check record record-once record-holders record-batch survey assets scan serve backtest replay crosscheck divergence
 
 # ---------------------------------------------------------------- Local
 
@@ -135,7 +135,26 @@ api-mocks-check:
 manual-check:
 	@bash scripts/check-manual-recomputation.sh
 
-ci: vet arch test
+# lint runs the SAME linter at the SAME pinned version the CI job runs, which is
+# the whole point of the target existing.
+#
+# WHY IT WAS ADDED, 6 September 2026. `make ci` said "must be green" in the README
+# and it was green, on this machine, on a day the golangci-lint job in GitHub had
+# been red for eight consecutive runs since 31 August. The local gate and the
+# remote gate were not the same gate, so a failure that a reader following the
+# README could not reproduce sat on the public HEAD of a repository whose public
+# link is the SOW's evidence for Deliverable 1.
+#
+# THE VERSION IS PINNED TO MATCH .github/workflows/ci.yml, and if the two ever
+# disagree this target is worse than useless: it would report green on a version
+# CI does not run. Change both or neither.
+GOLANGCI_VERSION ?= v2.13.0
+
+lint:
+	@command -v golangci-lint >/dev/null 2>&1 && golangci-lint run || \
+		go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION) run
+
+ci: vet arch test lint
 
 # ---------------------------------------------------------------- Run
 

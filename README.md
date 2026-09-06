@@ -60,7 +60,8 @@ What that means for the commands you can run:
 | Command | State |
 |---|---|
 | `make test` | works, and must be green |
-| `make ci` | works, and must be green |
+| `make ci` | works, and must be green. It runs the linter as of 6 September 2026, at the version `.github/workflows/ci.yml` pins, so this target and the CI job are now the same gate |
+| `make lint` | works, `golangci-lint` at the pinned version. Uses the binary if you have it and `go run`s the pinned one if you do not |
 | `make arch` | works, enforces purity of `internal/domain` |
 | `make manual-check` | works, and **exits non-zero on purpose**: it counts the Layer 1 hand recomputations under `testdata/manual/`, and 0 of 5 exist. Deliberately not part of `make ci`, because a gate that is permanently red stops being read. The standing record is P2-23 in `scripts/audit-verification.sh`, and CI runs it in its own expected-red job |
 | `make up` | works, starts local Postgres |
@@ -79,6 +80,32 @@ What that means for the commands you can run:
 | `make image` | works, builds the container image by hand. Does not publish; `.github/workflows/deploy.yml` is what publishes, and only after a smoke test |
 | `make crosscheck` | works, runs validation Layer 3 over the committed recordings. No database. First run, 26 August 2026: 60 recordings, 37 match, 0 mismatch, 23 partial |
 | `make record-batch` | works, records a batch and cross-checks it inside the same hour, one CSV row per comparison carrying the measured gap. `CROSSCHECK_AFTER` is the delay, default 5m and refused at an hour. No database. Writes under gitignored `measurements/` |
+
+### One CI job is red on purpose, and only one
+
+The repository is public, so the checks are visible before the deliverable is
+finished. Read them this way:
+
+| Job | Expected |
+|---|---|
+| `build, vet, arch, test` | green |
+| `golangci-lint` | green |
+| `layer 1 hand recomputation (expected red until 5 of 5 land)` | **RED, and it says so in its own name** |
+
+The red one counts the hand recomputations under `testdata/manual/`, of which 0 of
+5 exist. They are worked by hand by Al and Claude may not write them, which is the
+point of them: they are the independent check on the engine's numbers, so a number
+produced by the thing being tested would not be evidence. The job turns green when
+the fifth lands and not before. `make manual-check` is the same check locally, and
+it is deliberately not part of `make ci`.
+
+**The other two were red too, for eight consecutive runs from 31 August to 6
+September 2026, and that was not on purpose.** `golangci-lint` had 45 findings and
+nothing local reported them: `make ci` ran gofmt, build, vet, the architecture tests
+and the tests, and did not run the linter, so the README's "must be green" was true
+of a gate that was not the gate CI runs. Both are the same gate now. The findings
+were 18 spellings, 18 revive, 8 unchecked writes to stdout and one dead method, and
+they are recorded in the commit that cleared them rather than summarised here.
 
 Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
 built yet" apart from "failed". **No subcommand means "not built yet" any more**, as

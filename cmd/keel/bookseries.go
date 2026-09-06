@@ -175,11 +175,11 @@ figure taken from one would be wrong.
 		return fmt.Errorf("bookseries: %w", err)
 	}
 	meta := strings.TrimSuffix(*out, filepath.Ext(*out)) + ".meta.txt"
-	if err := writeSeriesMeta(meta, pair, res, samples, *fromTrades, uint32(*since), uint32(*tradesFrom), uint32(*lookahead), elapsed); err != nil {
+	if err := writeSeriesMeta(meta, pair, res, *fromTrades, uint32(*since), uint32(*tradesFrom), uint32(*lookahead), elapsed); err != nil {
 		return fmt.Errorf("bookseries: %w", err)
 	}
 
-	summariseSeries(os.Stdout, res, rows, elapsed)
+	summarizeSeries(os.Stdout, res, rows, elapsed)
 	fmt.Fprintf(os.Stdout, "  wrote %s\n  wrote %s\n", *out, meta)
 	return nil
 }
@@ -480,7 +480,7 @@ func dailySamplesFromTrades(path string) ([]seriesSample, error) {
 	return out, nil
 }
 
-func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult, samples []seriesSample,
+func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
 	tradesCSV string, floor, tradesFrom, lookahead uint32, elapsed time.Duration) error {
 	var b []byte
 	add := func(format string, args ...any) { b = append(b, fmt.Sprintf(format, args...)...) }
@@ -533,7 +533,7 @@ func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult, s
 	return os.WriteFile(path, b, 0o644)
 }
 
-func summariseSeries(w *os.File, res horizon.SeriesResult, rows []seriesRow, elapsed time.Duration) {
+func summarizeSeries(w *os.File, res horizon.SeriesResult, rows []seriesRow, elapsed time.Duration) {
 	fmt.Fprintf(w, "  --- %d point(s) from one walk over %d account(s) in %s ---\n",
 		len(res.Points), len(res.Accounts), elapsed.Round(time.Second))
 	fmt.Fprintf(w, "  %d request(s), %d trade(s), %d offer operation(s)\n",
