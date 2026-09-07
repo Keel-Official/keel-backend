@@ -234,6 +234,33 @@ func horizonAsset(a domain.Asset) string {
 // output to say so, so a full page is an error rather than an answer.
 const poolPageLimit = 200
 
+// ParsePools turns a raw /liquidity_pools body into the pair's reserves.
+//
+// IT IS THE POOL HALF OF WHAT ParseOrderBook ALREADY IS, and the reason to export
+// it is the reason given there: the live path and a path reading RECORDED bytes
+// must decode through the same function, so a difference between them can only
+// come from the data. Before this existed the pool body inside a recording could
+// only be decoded by GetSnapshot, which also fetches, so anything reading a
+// recording had a book and no pool and reported a combined figure that was
+// silently order book only.
+//
+// THE THREE SENTENCES THIS ZONE ASKS FOR. The decision: export a thin wrapper over
+// the existing poolReserves rather than move that function's body, so the live
+// path is untouched and this cannot change what any current caller computes. The
+// alternative rejected: exporting poolReserves itself by renaming it, which is
+// fewer lines and no wrapper, and was rejected because its signature takes an
+// already-parsed poolsResponse, which is an unexported type, so the exported
+// symbol would name a type no caller outside this package can construct. That is
+// the same unexported-return finding the linter raised against
+// ParseManageOfferResult on 6 September 2026.
+func ParsePools(body []byte, base, quote domain.Asset) ([]domain.PoolReserves, error) {
+	var res poolsResponse
+	if err := json.Unmarshal(body, &res); err != nil {
+		return nil, fmt.Errorf("decode liquidity pools %s/%s: %w", base, quote, err)
+	}
+	return poolReserves(res, base, quote)
+}
+
 func poolReserves(res poolsResponse, base, quote domain.Asset) ([]domain.PoolReserves, error) {
 	if len(res.Embedded.Records) >= poolPageLimit {
 		return nil, fmt.Errorf("%d pools returned for one asset pair, which fills the page; paging is not implemented",

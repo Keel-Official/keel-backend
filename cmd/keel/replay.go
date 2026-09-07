@@ -210,12 +210,26 @@ func flagIf(b bool, s string) string {
 // half of the answer, and presenting it as the combination is exactly the error
 // DEC-006 section 4 is about.
 func reportRisk(w *os.File, s domain.Snapshot) {
+	reportRiskUnder(w, s, "over the reconstructed book, ORDER BOOK ONLY, no pool")
+}
+
+// reportRiskUnder is reportRisk with the heading supplied by the caller.
+//
+// THE HEADING IS NOT DECORATION AND THAT IS WHY IT MOVED. It states what the
+// figures below it were computed over, and the one reportRisk hardcoded was true
+// of exactly one caller: replay reconstructs a book from operations and
+// reconstructs no pool. `keel layer1` reads RECORDED bytes and those carry the
+// pool response, so the same eleven lines printed under the same heading would
+// have claimed a pool was excluded from figures that include it. A wrong label on
+// a right number is worse than a wrong number, because nothing downstream
+// disagrees with it.
+func reportRiskUnder(w *os.File, s domain.Snapshot, heading string) {
 	r, err := domain.ComputeAssetRisk(s, domain.DefaultParams())
 	if err != nil {
 		fmt.Fprintf(w, "  compute: %v\n", err)
 		return
 	}
-	fmt.Fprintf(w, "  --- methodology %s over the reconstructed book, ORDER BOOK ONLY, no pool ---\n", r.MethodologyVersion)
+	fmt.Fprintf(w, "  --- methodology %s %s ---\n", r.MethodologyVersion, heading)
 	fmt.Fprintf(w, "    P0 %s from %s", show(r.MidPrice), r.PriceSource)
 	if r.SpreadPct != nil {
 		fmt.Fprintf(w, ", spread %s percent", r.SpreadPct.StringFixed(7))

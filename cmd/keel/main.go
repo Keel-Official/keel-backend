@@ -13,6 +13,7 @@
 //	keel backtest   the trade-implied history of a pair, as CSV
 //	keel replay     rebuild a pair's order book at a past ledger
 //	keel bookseries the same book at MANY past ledgers, from one walk
+//	keel layer1     the engine's figures for a recorded book, validation Layer 1
 //	keel crosscheck compare the recordings against rebuilt books, validation Layer 3
 //	keel divergence measure book mid against pool spot across the demonstration set
 package main
@@ -111,6 +112,17 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "layer1":
+		// Layer 1 of docs/methodology/10-validation.md, and the half of it that had
+		// no instrument: the engine's figures for a RECORDED book, printed so they
+		// can be set beside a hand recomputation. It refuses to run until the hand
+		// figures exist on disk, which is the ordering rule made deliberate rather
+		// than assumed. See the header of layer1.go.
+		if err := runLayer1(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel layer1: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "crosscheck":
 		// Layer 3 of docs/methodology/10-validation.md, executed rather than
 		// defined. It compares the committed recordings against books rebuilt from
@@ -183,6 +195,7 @@ Subcommands:
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    rebuild a pair's order book at a past ledger ("keel replay -h")
   bookseries  the same book at many past ledgers, one walk ("keel bookseries -h")
+  layer1    the engine's figures for a recorded book, for Layer 1 ("keel layer1 -h")
   crosscheck compare the recordings against rebuilt books ("keel crosscheck -h")
   divergence measure book mid against pool spot per pair ("keel divergence -h")
 `)
