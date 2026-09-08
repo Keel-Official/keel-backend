@@ -138,6 +138,37 @@ principle P-2 in the PRD. The third is a genuine gap and section 8 carries it.
 >
 > Two extra rows sit outside the daily grid and are marked as such: control ledger
 > 61340262 and the incident ledger 61340263.
+>
+> **THE SERIES LANDED ON 8 SEPTEMBER 2026 AND THIS SECTION IS STILL EMPTY.** That is a
+> different state from waiting for it, so the reason is recorded rather than left as an
+> unexplained blank. The run is
+> `docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-bookseries-2026-02-01_2026-03-01.csv`,
+> 30 rows over 222 accounts and 763,674 operations, and the reading of it is
+> `docs/evidences/2026-09-08-february-book-series.md`.
+>
+> **Six of the thirty rows describe a book that could not have existed.** From
+> 23 February onward the reconstruction is CROSSED, best bid above best ask, which the
+> matching engine makes impossible: the same dust ask of 0.0000001 USTRY sits unmoved at
+> 1.0573892029461328 from 9 February to 28 February while the bids climb past it. Its
+> `missing_offer_ids` column reads 203 on every row and `fold_complete` reads false, so
+> the fold says of itself that it never resolved the operations that would have removed
+> such an offer.
+>
+> **The transition this report exists to date sits inside those six rows.** The band
+> reads CRITICAL on every row from 1 to 24 February and LOW from 25 February, and the
+> flip is carried by depth figures that jump from 0.0000011 to 225,347 in one day while
+> the best ask never leaves the ghost. Publishing that as a market which healed after the
+> exploit would be publishing an artefact with a date on it.
+>
+> **What the same run does establish, and it is not small:** the reconstruction
+> reproduces the golden fixture's ask amounts exactly at both control ledgers,
+> 1.2185315 against 1.2185312 and 1.1684312 against 1.1684309, both differing by the
+> 0.0000003 of dust, and the change across the manipulation is 0.0501003 in both, which
+> is the exploit's USTRY volume to the last decimal. Section 2 of the evidence document
+> carries that arithmetic in full.
+>
+> The two roads out are priced in section 6 of that document. Neither is Claude's to
+> choose.
 
 ## 6. When the unsafe threshold was crossed
 
@@ -158,6 +189,11 @@ principle P-2 in the PRD. The third is a genuine gap and section 8 carries it.
 > headline is not "Keel would have warned eight days early". It is that this asset
 > was never safe, and that a metric which is critical for the whole month tells a
 > reader less than a metric that changes.** Which of those it is, the series decides.
+>
+> **The 8 September series points at the first of those two**, CRITICAL on every row from
+> 1 February, but it cannot be cited for it: the same run is provably wrong from
+> 23 February onward and the flags that produce CRITICAL are the ones the ghost ask moves.
+> A reading that happens to agree with the honest headline is still not evidence for it.
 
 ## 7. Hindsight bias, named
 
@@ -288,3 +324,4 @@ found a defect and should say so.
 | Date | Change |
 |---|---|
 | 5 September 2026 | Structure drafted. Sections 2, 3, 4, 7, 8 and 9 written from evidence already in the repository. Sections 5 and 6 deliberately empty |
+| 8 September 2026 | The February series ran and sections 5 and 6 stay empty, with the reason recorded in place of the blank. `docs/evidences/2026-09-08-february-book-series.md` is the reading: the fixture's ask amounts reproduce exactly at both control ledgers, and the book is crossed from 23 February onward |
