@@ -129,6 +129,27 @@ const (
 	// the earliest ledger it reached is reported, so the bound is visible in the
 	// output rather than being a silent floor.
 	defaultMaxPagesPerAccount = 20
+
+	// defaultMaxPagesPerOfferingAccount bounds an account that has already been
+	// SEEN to post an offer on this pair, and it is deliberately far larger.
+	//
+	// WHY TWO CAPS AND NOT ONE. Measured on the February 2026 series of
+	// 8 September 2026: 222 accounts were walked and 9 of them produced a single
+	// offer operation between them. One cap has to serve both populations, so it
+	// gets set small enough to survive 213 accounts that hold no offers, and it
+	// is then too small for the two that hold the book. Both of those truncated
+	// at sixty pages in that run, GABFRFPY stopping AFTER the incident ledger it
+	// was supposed to reconstruct, which made every row a lower bound and six of
+	// them a crossed book. docs/evidences/2026-09-08-february-book-series.md is
+	// the reading.
+	//
+	// WHAT THE SPLIT COSTS IN HONESTY, stated because it is not free. An account
+	// whose first offer on this pair lies BELOW the shallow cap is still cut at
+	// the shallow cap, because nothing here can know about an offer it has not
+	// read yet. So this makes the common case complete and leaves a case that
+	// looks identical in the output. Truncation is still counted and still
+	// reported per walk, so the reading is a number rather than an assumption.
+	defaultMaxPagesPerOfferingAccount = 400
 )
 
 // ReplayQuery bounds one reconstruction.
@@ -152,6 +173,16 @@ type ReplayQuery struct {
 	// MaxPagesPerAccount bounds each account's backwards operation walk. Zero
 	// uses defaultMaxPagesPerAccount.
 	MaxPagesPerAccount int
+
+	// MaxPagesPerOfferingAccount is the cap that applies INSTEAD, from the page
+	// after the walk's first offer operation on this pair. Zero uses
+	// defaultMaxPagesPerOfferingAccount, and a value below MaxPagesPerAccount is
+	// raised to it rather than being allowed to cut a walk shorter for having
+	// found what it was looking for.
+	//
+	// The constant's comment carries why the cap is split and what the split
+	// cannot fix.
+	MaxPagesPerOfferingAccount int
 
 	// SinceLedger is a FLOOR on the backwards walk: an account's operations older
 	// than it are not read. Zero means no floor, so each walk runs to the
@@ -404,13 +435,10 @@ func (c *Client) gatherReplay(ctx context.Context, base, quote domain.Asset, q R
 	sort.Strings(names)
 
 	// 3. Every account's manage offer operations, backwards from the target.
-	maxPages := q.MaxPagesPerAccount
-	if maxPages <= 0 {
-		maxPages = defaultMaxPagesPerAccount
-	}
+	caps := q.pageCaps()
 	var ops []offerOperation
 	for _, a := range names {
-		got, walk, err := c.offerOperationsFor(ctx, a, refOf(base), refOf(quote), q.TargetLedger, q.SinceLedger, maxPages)
+		got, walk, err := c.offerOperationsFor(ctx, a, refOf(base), refOf(quote), q.TargetLedger, q.SinceLedger, caps)
 		if err != nil {
 			// ONE ACCOUNT FAILING DOES NOT FAIL THE RECONSTRUCTION, and the
 			// reasoning is the same one runs.go gives for a scan: a walk over a
@@ -475,7 +503,43 @@ type offerOperation struct {
 	Result ResultingOffer
 }
 
-func (c *Client) offerOperationsFor(ctx context.Context, account string, baseRef, quoteRef assetRef, target, floor uint32, maxPages int) ([]offerOperation, AccountWalk, error) {
+// pageCaps resolves the two page caps, applying the defaults and the floor that
+// keeps the offering cap from ever being the shallower of the two.
+//
+// It is a method rather than two lines at the call site because both `replay` and
+// `series` resolve the same pair of fields, and a default applied in two places
+// is a default that drifts in one of them.
+func (q ReplayQuery) pageCaps() walkPageCaps {
+	caps := walkPageCaps{Plain: q.MaxPagesPerAccount, Offering: q.MaxPagesPerOfferingAccount}
+	if caps.Plain <= 0 {
+		caps.Plain = defaultMaxPagesPerAccount
+	}
+	if caps.Offering <= 0 {
+		caps.Offering = defaultMaxPagesPerOfferingAccount
+	}
+	if caps.Offering < caps.Plain {
+		caps.Offering = caps.Plain
+	}
+	return caps
+}
+
+// walkPageCaps is the two caps one account's walk is bounded by. Plain applies
+// until the walk's first offer operation on the pair, Offering from then on.
+type walkPageCaps struct {
+	Plain    int
+	Offering int
+}
+
+// For returns the cap in force given how many offer operations the walk has
+// already found. Read the constant comments for why this is two numbers.
+func (c walkPageCaps) For(offerOpsFound int) int {
+	if offerOpsFound > 0 {
+		return c.Offering
+	}
+	return c.Plain
+}
+
+func (c *Client) offerOperationsFor(ctx context.Context, account string, baseRef, quoteRef assetRef, target, floor uint32, caps walkPageCaps) ([]offerOperation, AccountWalk, error) {
 	walk := AccountWalk{Account: account, EarliestLedger: target}
 
 	v := url.Values{}
@@ -493,7 +557,11 @@ func (c *Client) offerOperationsFor(ctx context.Context, account string, baseRef
 		if err := ctx.Err(); err != nil {
 			return out, walk, err
 		}
-		if walk.Pages >= maxPages {
+		// The cap in force is re-read every page, because it changes the moment
+		// this walk finds its first offer operation on the pair. walk.Truncated
+		// therefore means "cut by whichever cap applied", and walk.Pages is what
+		// says which one: a walk stopped at exactly caps.Plain found no offer.
+		if walk.Pages >= caps.For(walk.OfferOperations) {
 			walk.Truncated = true
 			break
 		}

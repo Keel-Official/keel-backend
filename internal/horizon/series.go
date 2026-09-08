@@ -99,6 +99,12 @@ type SeriesQuery struct {
 	TradeLookahead     uint32
 	MaxPagesPerAccount int
 
+	// MaxPagesPerOfferingAccount is the deeper cap for an account already seen to
+	// post an offer on this pair. It means what it means in ReplayQuery, and the
+	// reason the cap is split at all is measured on this very command's output of
+	// 8 September 2026: see defaultMaxPagesPerOfferingAccount.
+	MaxPagesPerOfferingAccount int
+
 	// SinceLedger is the operation floor, and for a series it is ONE number for
 	// every point rather than one per point. See the file header: a floor that
 	// moved with the target would give the early rows a shallower reading than
@@ -147,6 +153,14 @@ type SeriesResult struct {
 	EarliestOfferOp uint32
 	TradeWindowFrom uint32
 	Requests        int
+
+	// PageCapPlain and PageCapOffering are the caps the walk ACTUALLY used, after
+	// the zero-means-default resolution. They are reported rather than left to the
+	// caller's own flag values for the reason the sidecar comment in
+	// cmd/keel/bookseries.go gives: a caller that passed zero and printed zero
+	// would record the one input that shaped the result as "unset".
+	PageCapPlain    int
+	PageCapOffering int
 }
 
 // WalkComplete reports whether the single walk behind every point finished
@@ -184,14 +198,20 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 			q.SinceLedger, targets[0], targets[0])
 	}
 
-	in, err := c.gatherReplay(ctx, base, quote, ReplayQuery{
+	rq := ReplayQuery{
 		TargetLedger:       latest,
 		TradesFromLedger:   q.TradesFromLedger,
 		TradeLookahead:     q.TradeLookahead,
 		MaxPagesPerAccount: q.MaxPagesPerAccount,
-		SinceLedger:        q.SinceLedger,
-		Progress:           q.Progress,
-	})
+
+		MaxPagesPerOfferingAccount: q.MaxPagesPerOfferingAccount,
+
+		SinceLedger: q.SinceLedger,
+		Progress:    q.Progress,
+	}
+	caps := rq.pageCaps()
+
+	in, err := c.gatherReplay(ctx, base, quote, rq)
 	if err != nil {
 		return out, err
 	}
@@ -209,6 +229,8 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 	out.EarliestOfferOp = in.walk.EarliestOfferOp
 	out.Requests = in.walk.Requests
 	out.TradeWindowFrom = q.TradesFromLedger
+	out.PageCapPlain = caps.Plain
+	out.PageCapOffering = caps.Offering
 
 	out.Points = make([]SeriesPoint, 0, len(targets))
 	for _, t := range targets {

@@ -311,6 +311,42 @@ Two things about it that are decisions rather than gaps:
   quote asset and the endpoint filters on what an offer sells. Asking one way round
   returns half a book and no error, the same shape as trap 4.
 
+## The same three sentences for the two page caps, added 8 September 2026
+
+`replay.go` bounds each account's backwards walk with TWO caps rather than one,
+switching at that walk's first offer operation on the pair.
+
+The decision: `MaxPagesPerAccount` applies until a walk has found one offer
+operation on the pair and `MaxPagesPerOfferingAccount` applies from then on, the
+resolved pair is reported on `SeriesResult` so a run records what it actually used,
+and truncation is still counted per walk whichever cap did the cutting. The
+alternative rejected: raising the single cap, which is one number in one place and
+needs no new field. Why it was rejected: the February 2026 series of 8 September
+2026 walked 222 accounts of which NINE produced an offer operation between them, so
+a single cap is set by the 213 that hold nothing and is then too small for the two
+that hold the book, and raising it globally would buy those 213 several hundred
+empty pages apiece against a rate limit that is already the binding constraint on a
+month-long run.
+
+Two things about it that are decisions rather than gaps:
+
+- **The split cannot fix an account whose FIRST offer lies below the shallow cap**,
+  because nothing here can know about an offer it has not read yet. That case is
+  cut at the shallow cap and looks identical in the output to an account that never
+  posted. So this makes the common case complete and leaves a case that reports as
+  truncated rather than as complete, which is the direction that fails safe.
+- **The offering cap is raised to the plain one when a caller sets it lower.** A
+  caller who passes `-max-pages-per-account 600` and leaves the other at its default
+  would otherwise get a SHALLOWER walk for the accounts that matter, which is the
+  opposite of what either flag is for.
+
+**Why the caps are now in the sidecar.** `cmd/keel/bookseries.go` recorded the
+operation floor and the trade lookahead and not the page cap, and on the 8 September
+run the cap is what shaped the result: both book-holding accounts truncated, every
+row came back a lower bound, and six rows came back as a crossed book that no ledger
+ever held. The one input that explained the output was the one a reader could not
+see. `docs/evidences/2026-09-08-february-book-series.md` is that reading.
+
 ## What `/order_book` does not tell you, added the same day
 
 **It serves at most 200 levels a side and says nothing about having truncated.** A

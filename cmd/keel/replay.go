@@ -48,6 +48,8 @@ func runReplay(args []string) error {
 	since := fs.Uint("since-ledger", 0,
 		"floor on each account's backwards walk: operations older than this are not read. 0 walks to the account's first operation. A floor makes the cost predictable and makes every offer created below it invisible, which reads as a THINNER book, so the depth each walk reached is reported")
 	maxPages := fs.Int("max-pages-per-account", 0, "cap on each account's backwards operation walk, in pages of 200. 0 uses the built-in default")
+	maxPagesOffering := fs.Int("max-pages-per-offering-account", 0,
+		"the deeper cap that applies from an account's first offer operation on this pair. 0 uses the built-in default")
 	quiet := fs.Bool("quiet", false, "do not print one progress line per account walked")
 	compute := fs.Bool("compute", false,
 		"run the methodology over the reconstructed book and print the result. ORDER BOOK ONLY, because no pool is reconstructed, so a combined depth figure from it would be wrong")
@@ -103,6 +105,8 @@ that no pool existed.
 			TradeLookahead:     uint32(*lookahead),
 			SinceLedger:        uint32(*since),
 			MaxPagesPerAccount: *maxPages,
+
+			MaxPagesPerOfferingAccount: *maxPagesOffering,
 			Progress: func(w horizon.AccountWalk) {
 				walked++
 				if *quiet {

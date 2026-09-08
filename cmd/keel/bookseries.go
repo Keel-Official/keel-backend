@@ -78,6 +78,9 @@ func runBookSeries(args []string) error {
 	since := fs.Uint("since-ledger", 0,
 		"floor on each account's backwards walk. ONE floor for the whole series, and it must be at or below the earliest target")
 	maxPages := fs.Int("max-pages-per-account", 0, "cap on each account's backwards walk, in pages of 200. 0 uses the built-in default")
+	maxPagesOffering := fs.Int("max-pages-per-offering-account", 0,
+		"the deeper cap that applies from an account's first offer operation on this pair. 0 uses the built-in default. "+
+			"Depth is what a month costs and 213 of the 222 accounts walked on 8 September 2026 held no offer at all")
 	out := fs.String("csv", "", "write the series to this CSV. A .meta.txt sidecar is written beside it")
 	quiet := fs.Bool("quiet", false, "do not print one progress line per account walked")
 	baseURL := fs.String("horizon", horizon.DefaultBaseURL, "Horizon base URL")
@@ -146,6 +149,8 @@ figure taken from one would be wrong.
 		TradeLookahead:     uint32(*lookahead),
 		SinceLedger:        uint32(*since),
 		MaxPagesPerAccount: *maxPages,
+
+		MaxPagesPerOfferingAccount: *maxPagesOffering,
 		Progress: func(w horizon.AccountWalk) {
 			walked++
 			if *quiet {
@@ -506,6 +511,12 @@ func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
 	add("operation_floor_ledger: %d\n", floor)
 	add("trade_window_from_ledger: %d\n", tradesFrom)
 	add("trade_lookahead_ledgers: %d\n", lookahead)
+	// THE CAPS BELONG HERE AND WERE MISSING UNTIL 8 SEPTEMBER 2026. The run of
+	// that day was shaped more by the page cap than by any other input, and the
+	// sidecar recorded the floor and the lookahead and not the cap, so the one
+	// number that explained the result was the one a reader could not see.
+	add("max_pages_per_account: %d\n", res.PageCapPlain)
+	add("max_pages_per_offering_account: %d\n", res.PageCapOffering)
 	add("earliest_offer_operation_ledger: %d\n", res.EarliestOfferOp)
 	add("accounts_walked: %d\n", len(res.Accounts))
 	add("accounts_from_trades: %d\n", res.FromTrades)
