@@ -1,0 +1,57 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/ledgers?cursor=\u0026limit=1\u0026order=desc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/ledgers?cursor=276284203790761984\u0026limit=1\u0026order=desc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/ledgers?cursor=276284203790761984\u0026limit=1\u0026order=asc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/ledgers/64327429"
+          },
+          "transactions": {
+            "href": "https://horizon.stellar.org/ledgers/64327429/transactions{?cursor,limit,order}",
+            "templated": true
+          },
+          "operations": {
+            "href": "https://horizon.stellar.org/ledgers/64327429/operations{?cursor,limit,order}",
+            "templated": true
+          },
+          "payments": {
+            "href": "https://horizon.stellar.org/ledgers/64327429/payments{?cursor,limit,order}",
+            "templated": true
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/ledgers/64327429/effects{?cursor,limit,order}",
+            "templated": true
+          }
+        },
+        "id": "3e09c5627cb1ca724d96918fe2b69539b504a6b3f832db262f4f98fb8867bea7",
+        "paging_token": "276284203790761984",
+        "hash": "3e09c5627cb1ca724d96918fe2b69539b504a6b3f832db262f4f98fb8867bea7",
+        "prev_hash": "e889bf1454a4fcd7657df68b6224cba9e84f342cceb8d9a8150a7ab0efd032c6",
+        "sequence": 64327429,
+        "successful_transaction_count": 149,
+        "failed_transaction_count": 67,
+        "operation_count": 512,
+        "tx_set_operation_count": 697,
+        "closed_at": "2026-09-08T05:55:51Z",
+        "total_coins": "105443902087.3472865",
+        "fee_pool": "10551517.1827218",
+        "base_fee_in_stroops": 100,
+        "base_reserve_in_stroops": 5000000,
+        "max_tx_set_size": 1000,
+        "protocol_version": 27,
+        "header_xdr": "AAAAG+iJvxRUpPzXZX32i2Iky6noTzQszrjZqBUKerDv0DLGDJ8KBoSbFigKAqiljwQsLSQ1EN8IWTZZLN0GsGnXjwYAAAAAap+jZwAAAAAAAAABAAAAAGLK4AK2p9ZUqsvAkvnk6pa4sXh8nzinkjgQOMq3wyDTAAAAQF70sW97M2JhXC1kvQGVTLj7eKCMUjcmDhQqsog/L7iQCbt5kdLX9qKYRBXz6xJWmz7+C23aaJHvk2N1riK4MACqQzLhAY5+5Ajj34wJ8KWTx3mK5dRdjZjwrwYZtNy1MLHX+//fySviUY6sSMrLR7hFTxE4LNvXAowpuKK4mudWA9WPBQ6iHrPseVthAABf9ypVzhIAAAEWAAAAAG6pXhcAAABkAExLQAAAA+iZz6NbZ7r/Eo1JRrE+a0YCQm6lfVseJwtTTGMKZyAbdGQ+J9AOTS4wJYcrQIWbuwMVtLz9Vhv6qMZgQ6SndcCPc112ffHv6FwrZOjUMTAiOV8n0MjjZi+SKJSf3SOOaUnz4mUxywElH93cDhK/BRDhhvOGT1lVRoJTl2fNhVKUrwAAAAA="
+      }
+    ]
+  }
+}

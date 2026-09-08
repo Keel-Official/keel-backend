@@ -1,0 +1,1239 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/assets?asset_code=USDY\u0026cursor=\u0026limit=200\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/assets?asset_code=USDY\u0026cursor=USDY_GDZBJX5AQPN777VTX7CRLHNH5SUEGNX3DHYDG6FQ5JN34EJDJ2BYOZPJ_credit_alphanum4\u0026limit=200\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/assets?asset_code=USDY\u0026cursor=USDY_GA2XZLXNLAL26VBCA2OESAIMXTRH5GXKLHYZMDGNCR2SYS5QZWWNBLCK_credit_alphanum4\u0026limit=200\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "toml": {
+            "href": "https://blackrock.com.se/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GA2XZLXNLAL26VBCA2OESAIMXTRH5GXKLHYZMDGNCR2SYS5QZWWNBLCK",
+        "paging_token": "USDY_GA2XZLXNLAL26VBCA2OESAIMXTRH5GXKLHYZMDGNCR2SYS5QZWWNBLCK_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "920000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://JPmorganchase.co.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GABKEFZMW246SZELTDPLAXXKFYN27LU4M4FVEJFP7HULI3JIFNZUAW26",
+        "paging_token": "USDY_GABKEFZMW246SZELTDPLAXXKFYN27LU4M4FVEJFP7HULI3JIFNZUAW26_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 9,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "720.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999999280.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ondo.finance/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+        "paging_token": "USDY_GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6_credit_alphanum4",
+        "contract_id": "CB3YA656OYIHU57657I5KGSBRHE5I3OZU4VFC22PYAOANFZHEWNYGAGP",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 42,
+        "num_contracts": 44,
+        "accounts": {
+          "authorized": 2714,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "262.0651156",
+        "contracts_amount": "5880250.2686682",
+        "balances": {
+          "authorized": "461621639.3628924",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarchains.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GAJXGKLUBHVYXJPIZYJ72DBTEMGGUIQMQQOV2VGBPKRKZ7BTMZXGYH4C",
+        "paging_token": "USDY_GAJXGKLUBHVYXJPIZYJ72DBTEMGGUIQMQQOV2VGBPKRKZ7BTMZXGYH4C_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarhq.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GASSMZG5KJHH5DPFTZHYU2FDDZ5B3F6CWFPXHED7OQEA6HXMJE55RHWI",
+        "paging_token": "USDY_GASSMZG5KJHH5DPFTZHYU2FDDZ5B3F6CWFPXHED7OQEA6HXMJE55RHWI_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "3000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://Grayscale.co.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GAW27CT24PFA7IHUCZVSVNB7XNTFREFPLZ6QVMZGTZ7AL6ZCQPTOG726",
+        "paging_token": "USDY_GAW27CT24PFA7IHUCZVSVNB7XNTFREFPLZ6QVMZGTZ7AL6ZCQPTOG726_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 3,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 14,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "26898.1553062",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999973101.8446938",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://xlmcapital.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GAY6N5FDIIXHLSAFQOP7RHSR4IRCOWFD2D7YZDVGQFKWN7FZV43WCEJP",
+        "paging_token": "USDY_GAY6N5FDIIXHLSAFQOP7RHSR4IRCOWFD2D7YZDVGQFKWN7FZV43WCEJP_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 5,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "140710343.2835818",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://coinbase.com.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBBLSERHMVZER6ZY6OBFVV5KCAFUEXCCI3YVC2BFMIEY3BXQFOWPX2TF",
+        "paging_token": "USDY_GBBLSERHMVZER6ZY6OBFVV5KCAFUEXCCI3YVC2BFMIEY3BXQFOWPX2TF_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 4,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "1000.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "79999000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://usdy.scopuly.pro/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBE7KW5ZULSJ62LBYYXS6BMXW57VXW44CMVGV5UCTA2BVL4TYRAYBREO",
+        "paging_token": "USDY_GBE7KW5ZULSJ62LBYYXS6BMXW57VXW44CMVGV5UCTA2BVL4TYRAYBREO_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 68,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "12474.9355618",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://dtcc-stellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBFLMKSIKSCS6E3ZAYBFSQE3WEWCIMM2OZQSAEPT4IK2PC6JOJTPB5F4",
+        "paging_token": "USDY_GBFLMKSIKSCS6E3ZAYBFSQE3WEWCIMM2OZQSAEPT4IK2PC6JOJTPB5F4_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://onxlm.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBHTCMYOXFHMNFTGGHSMUH4UKFZHQFLVYCZUCDAJ6VMJV7UBYSMZQWPX",
+        "paging_token": "USDY_GBHTCMYOXFHMNFTGGHSMUH4UKFZHQFLVYCZUCDAJ6VMJV7UBYSMZQWPX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 19,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "90000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarchains.digital/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBNMT3OKEXO46C7KGFNPZSM3WUVVBTPIWQI3Z26CBWOMY7T3JRO2DUDU",
+        "paging_token": "USDY_GBNMT3OKEXO46C7KGFNPZSM3WUVVBTPIWQI3Z26CBWOMY7T3JRO2DUDU_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://franklintempleton.co.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBQONCELXNRYUDGHPZDZXV32BVHXHVF3ML34OP2E4ZEI42HHMLLSMDAO",
+        "paging_token": "USDY_GBQONCELXNRYUDGHPZDZXV32BVHXHVF3ML34OP2E4ZEI42HHMLLSMDAO_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 3,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 17,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "18836.6320213",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999977162.5154081",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://myusdy.lobstr.space/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBRMO5K65DVKTJR2BBRWH6LLCNWLAJNAHGQFJIXCCDJHB43DSY4KS5AC",
+        "paging_token": "USDY_GBRMO5K65DVKTJR2BBRWH6LLCNWLAJNAHGQFJIXCCDJHB43DSY4KS5AC_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 46,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0039138",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.1408968",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://bybit.com.ro/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GBUF7CHICJNSGAHJJJYOG3GPMIIILQX65WFBSIUPKTVRY32U3FEANE62",
+        "paging_token": "USDY_GBUF7CHICJNSGAHJJJYOG3GPMIIILQX65WFBSIUPKTVRY32U3FEANE62_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 6,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "40000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://kucoin.com.ro/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GC2ETXXAFHJ2MEIFCGWBCDFK22OLCI3JS75QKVPYRUEPVA2KLFOUXAP6",
+        "paging_token": "USDY_GC2ETXXAFHJ2MEIFCGWBCDFK22OLCI3JS75QKVPYRUEPVA2KLFOUXAP6_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 4,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "30000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://lobstr.co/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GC3PZ3BGALH232K5JYLQ3YP4YXMLJFJ5CRQZRL3GOHWZPNGKEHHIO7BH",
+        "paging_token": "USDY_GC3PZ3BGALH232K5JYLQ3YP4YXMLJFJ5CRQZRL3GOHWZPNGKEHHIO7BH_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 25,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "500000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ondo.exchange/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GCASIGFKATKEAW7JFZ7MG2HL2UTAZ4AZ7XJRPKQJ7OS6CBZ6VOUVE3BA",
+        "paging_token": "USDY_GCASIGFKATKEAW7JFZ7MG2HL2UTAZ4AZ7XJRPKQJ7OS6CBZ6VOUVE3BA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 15,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1299999.9999110",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellarchains.io/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GCC6GH6LDSHHND72QYCKFO4VVR3O6OZUFR7DGT6ACUQVIF6UCLM2SWVN",
+        "paging_token": "USDY_GCC6GH6LDSHHND72QYCKFO4VVR3O6OZUFR7DGT6ACUQVIF6UCLM2SWVN_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 3,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://mastercard.co.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GCCASO3PQSMBHKKJM65D3NHFTZLWWIFVSHIHJQQDQTFN7YVTGXTCFX2T",
+        "paging_token": "USDY_GCCASO3PQSMBHKKJM65D3NHFTZLWWIFVSHIHJQQDQTFN7YVTGXTCFX2T_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 14,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "1110000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://finance-ondo.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GCLFMBAFL7RTZAO5VYDAILKUVD7BDPCDIGVURKUDC5QLRCMXQN7EONDO",
+        "paging_token": "USDY_GCLFMBAFL7RTZAO5VYDAILKUVD7BDPCDIGVURKUDC5QLRCMXQN7EONDO_credit_alphanum4",
+        "num_claimable_balances": 72,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 293,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "1252767775.5060000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "921032630909.4940001",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellar.us.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GCUG7ARUFEEUMSL56K7245YCPXPZPOXAY6TSRXZB2JZFBI4DOBVOTUSA",
+        "paging_token": "USDY_GCUG7ARUFEEUMSL56K7245YCPXPZPOXAY6TSRXZB2JZFBI4DOBVOTUSA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "919999999997.8927000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": true,
+          "auth_immutable": false,
+          "auth_clawback_enabled": true
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellar.org.im/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GCWQQYWL5EF4JDMLL7ZASFBQBQDKOPKIJZ3SVFXUD5J3P7223GEM4JTA",
+        "paging_token": "USDY_GCWQQYWL5EF4JDMLL7ZASFBQBQDKOPKIJZ3SVFXUD5J3P7223GEM4JTA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 4,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "62000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://rwastellar.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GD235AUTYKOTSCMRSHZXZYRQ6BRVVQTWBBK6DMDJOJIB74J75RZD7RWA",
+        "paging_token": "USDY_GD235AUTYKOTSCMRSHZXZYRQ6BRVVQTWBBK6DMDJOJIB74J75RZD7RWA_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 111,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "17950379999.1506385",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stellar.dtcc.network/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GD4NLHSEOF3FELGTSB6BGPZC3MLXB65IGANZGMFACDDC23EX62JF5PTD",
+        "paging_token": "USDY_GD4NLHSEOF3FELGTSB6BGPZC3MLXB65IGANZGMFACDDC23EX62JF5PTD_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 8,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "640000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://treasury.dtcc.company/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GD4QWEIYXRNPGZ2KO3R246KAXCAPANZAKC4HQATJEXE7OMYIOAAYBARD",
+        "paging_token": "USDY_GD4QWEIYXRNPGZ2KO3R246KAXCAPANZAKC4HQATJEXE7OMYIOAAYBARD_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "840000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://blackrock.co.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GD6PQQAIG5FSIBKGM5FH7RUUSKP5V4VT2VWDX5OHDEEZFPPUYAU2RKUR",
+        "paging_token": "USDY_GD6PQQAIG5FSIBKGM5FH7RUUSKP5V4VT2VWDX5OHDEEZFPPUYAU2RKUR_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 3,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 19,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "14800.6553401",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999985199.3446599",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://xrpstellarclub.club/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GD7XIQDHT2JVAUSJZBDSBOMMUKDAJZ7NRDWG7QG4GGRW7KCJ3IFICZH3",
+        "paging_token": "USDY_GD7XIQDHT2JVAUSJZBDSBOMMUKDAJZ7NRDWG7QG4GGRW7KCJ3IFICZH3_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "8005062006.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ondo.dtcc.markets/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDAEH2FUWBXF63N3M5YHMZCIGENAPIPWDBKA3XUOP5LUDT5MI3B6XBEX",
+        "paging_token": "USDY_GDAEH2FUWBXF63N3M5YHMZCIGENAPIPWDBKA3XUOP5LUDT5MI3B6XBEX_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 8,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "740000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://stable.jetxlm.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDEYUQXEHRTYDDKQ62LLT5DDWTXYFCFDUR4EDPSSWHXCZGSVOHRW5AYE",
+        "paging_token": "USDY_GDEYUQXEHRTYDDKQ62LLT5DDWTXYFCFDUR4EDPSSWHXCZGSVOHRW5AYE_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 1,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 19,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "1019.4714679",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "999998843.6526662",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://usdy.scopuly.pro/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDGLFFRM3C5FTNEK3OMD7BTD6JT7B7OL7VYJQDHOEKL3Z3IUXPQQ7K6B",
+        "paging_token": "USDY_GDGLFFRM3C5FTNEK3OMD7BTD6JT7B7OL7VYJQDHOEKL3Z3IUXPQQ7K6B_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 36,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "50.3317289",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://ultracapital.xyz/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF",
+        "paging_token": "USDY_GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 1,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://oststellar.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDKXCHHR2CSDT5TGNBECICTB25IJT5R42EWGXZJ262U7GAXKFICBLZ2Y",
+        "paging_token": "USDY_GDKXCHHR2CSDT5TGNBECICTB25IJT5R42EWGXZJ262U7GAXKFICBLZ2Y_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 5,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "300000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://rwa.spacexai.money/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDNSYIT7BZNLDXUVTFNQN5E3QJKY534IPNE4NJS4UYDGB2ZXBA4GZSOI",
+        "paging_token": "USDY_GDNSYIT7BZNLDXUVTFNQN5E3QJKY534IPNE4NJS4UYDGB2ZXBA4GZSOI_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 8,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "420000000000.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://xminthub.com/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDTST565WIXFYJQXIDVNGGOBX34XJ3V5SMFPE4NSQHYCKQDSVMGBEXQL",
+        "paging_token": "USDY_GDTST565WIXFYJQXIDVNGGOBX34XJ3V5SMFPE4NSQHYCKQDSVMGBEXQL_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "21.6030381",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://usdy.lumensworld.org/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDU7PGJCDM6DMEJFPGGAZU2FPA7U6X2INNFE6KKBX2DHX4MBTIZ2TW2I",
+        "paging_token": "USDY_GDU7PGJCDM6DMEJFPGGAZU2FPA7U6X2INNFE6KKBX2DHX4MBTIZ2TW2I_credit_alphanum4",
+        "num_claimable_balances": 0,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 2,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0000000",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "4999998560.0000000",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      },
+      {
+        "_links": {
+          "toml": {
+            "href": "https://usdy.lobstr.space/.well-known/stellar.toml"
+          }
+        },
+        "asset_type": "credit_alphanum4",
+        "asset_code": "USDY",
+        "asset_issuer": "GDZBJX5AQPN777VTX7CRLHNH5SUEGNX3DHYDG6FQ5JN34EJDJ2BYOZPJ",
+        "paging_token": "USDY_GDZBJX5AQPN777VTX7CRLHNH5SUEGNX3DHYDG6FQ5JN34EJDJ2BYOZPJ_credit_alphanum4",
+        "num_claimable_balances": 1,
+        "num_liquidity_pools": 0,
+        "num_contracts": 0,
+        "accounts": {
+          "authorized": 51,
+          "authorized_to_maintain_liabilities": 0,
+          "unauthorized": 0
+        },
+        "claimable_balances_amount": "0.0013175",
+        "liquidity_pools_amount": "0.0000000",
+        "contracts_amount": "0.0000000",
+        "balances": {
+          "authorized": "0.0764151",
+          "authorized_to_maintain_liabilities": "0.0000000",
+          "unauthorized": "0.0000000"
+        },
+        "flags": {
+          "auth_required": false,
+          "auth_revocable": false,
+          "auth_immutable": false,
+          "auth_clawback_enabled": false
+        }
+      }
+    ]
+  }
+}

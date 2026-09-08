@@ -1,0 +1,42 @@
+Keel candidate universe
+generated 2026-09-08T05:56:52Z against https://horizon.stellar.org
+
+PROPOSES ONLY. No inclusion criterion is applied here. Selection is
+docs/methodology/02-pair-selection.md section 5 and is not this tool's.
+
+candidates found : 37
+tickers surveyed : 1
+verified         : 15
+toml_mismatch    : 1
+toml_unreachable : 21
+unverified       : 0
+
+volume           : none. Volume is not served by /assets and this tool takes it from nowhere else, so no volume figure appears above.
+horizon 429s     : 0
+
+TICKERS WITH MORE THAN ONE ISSUER (1)
+Every row here is a ticker that cannot be used as an identifier.
+
+  CODE  ISSUERS  VERIFIED  PAGES
+  USDY  37       15        2
+
+VERIFIED CANDIDATES
+Both directions agreed: the account named the domain and the domain's
+stellar.toml named this exact (code, issuer) pair.
+
+  CODE  ISSUER                                                    TYPE    TRUSTLINES  POOLS  DOMAIN
+  USDY  GABKEFZMW246SZELTDPLAXXKFYN27LU4M4FVEJFP7HULI3JIFNZUAW26  alnum4  9           1      JPmorganchase.co.com
+  USDY  GAJXGKLUBHVYXJPIZYJ72DBTEMGGUIQMQQOV2VGBPKRKZ7BTMZXGYH4C  alnum4  1           0      stellarchains.io
+  USDY  GAW27CT24PFA7IHUCZVSVNB7XNTFREFPLZ6QVMZGTZ7AL6ZCQPTOG726  alnum4  14          3      Grayscale.co.com
+  USDY  GBHTCMYOXFHMNFTGGHSMUH4UKFZHQFLVYCZUCDAJ6VMJV7UBYSMZQWPX  alnum4  19          0      onxlm.com
+  USDY  GBQONCELXNRYUDGHPZDZXV32BVHXHVF3ML34OP2E4ZEI42HHMLLSMDAO  alnum4  17          3      franklintempleton.co.com
+  USDY  GBUF7CHICJNSGAHJJJYOG3GPMIIILQX65WFBSIUPKTVRY32U3FEANE62  alnum4  6           0      bybit.com.ro
+  USDY  GC2ETXXAFHJ2MEIFCGWBCDFK22OLCI3JS75QKVPYRUEPVA2KLFOUXAP6  alnum4  4           0      kucoin.com.ro
+  USDY  GCC6GH6LDSHHND72QYCKFO4VVR3O6OZUFR7DGT6ACUQVIF6UCLM2SWVN  alnum4  3           0      stellarchains.io
+  USDY  GCCASO3PQSMBHKKJM65D3NHFTZLWWIFVSHIHJQQDQTFN7YVTGXTCFX2T  alnum4  14          0      mastercard.co.com
+  USDY  GCWQQYWL5EF4JDMLL7ZASFBQBQDKOPKIJZ3SVFXUD5J3P7223GEM4JTA  alnum4  4           0      stellar.org.im
+  USDY  GD4NLHSEOF3FELGTSB6BGPZC3MLXB65IGANZGMFACDDC23EX62JF5PTD  alnum4  8           0      stellar.dtcc.network
+  USDY  GD4QWEIYXRNPGZ2KO3R246KAXCAPANZAKC4HQATJEXE7OMYIOAAYBARD  alnum4  2           0      treasury.dtcc.company
+  USDY  GD7XIQDHT2JVAUSJZBDSBOMMUKDAJZ7NRDWG7QG4GGRW7KCJ3IFICZH3  alnum4  2           0      xrpstellarclub.club
+  USDY  GDAEH2FUWBXF63N3M5YHMZCIGENAPIPWDBKA3XUOP5LUDT5MI3B6XBEX  alnum4  8           0      ondo.dtcc.markets
+  USDY  GDNSYIT7BZNLDXUVTFNQN5E3QJKY534IPNE4NJS4UYDGB2ZXBA4GZSOI  alnum4  8           0      rwa.spacexai.money

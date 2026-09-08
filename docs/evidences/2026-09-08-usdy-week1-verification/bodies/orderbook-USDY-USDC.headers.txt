@@ -1,0 +1,9 @@
+HTTP/1.1 400 Bad Request
+Date: Tue, 08 Sep 2026 05:59:22 GMT
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 596
+Connection: keep-alive
+Cache-Control: no-cache, no-store, max-age=0
+Latest-Ledger: 64327466
+Vary: Origin
+
