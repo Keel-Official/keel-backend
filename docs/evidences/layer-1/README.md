@@ -94,6 +94,13 @@ price, and its ordering and its depth boundaries are both wrong.
 
 ## 5. The order of work
 
+**The long form of this section is `layer-1-workspace.md` beside this file**, and it is
+tracked for a reason this section could not solve on its own: the worksheet template step
+1 names lives in `docs/internal/`, which is gitignored under DEC-004, so a clone can read
+the instruction and not the thing it points at. The four steps below stay because they
+are the whole procedure in four lines; the workspace file carries the traps, the choices
+and the definition of done.
+
 1. Transcribe from these files into the worksheet,
    `docs/internal/layer-1-worksheet-template.md`.
 2. Compute by hand from `docs/methodology/`. **Before looking at any engine output.**
@@ -120,3 +127,4 @@ code to match your numbers. Never adjust your numbers to match the code.
 | Date | Change |
 |---|---|
 | 7 September 2026 | Created. Eight candidates read at one ledger, five proposed, two excluded for hitting the page cap |
+| 8 September 2026 | Section 5 points at `layer-1-workspace.md`, the tracked long form of the procedure |
