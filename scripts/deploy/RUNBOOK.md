@@ -29,11 +29,18 @@ deployment missing the third looks exactly like a working one from outside.
 
 | Unit | Service | Without it |
 |---|---|---|
-| A Postgres that is not a throwaway | `postgres` | `keel serve` refuses to start when `schema_migrations` is empty |
+| A Postgres that is not a throwaway | **none, it is the host's** | `keel serve` refuses to start when it cannot connect, and again when `schema_migrations` is empty |
 | The read-only API | `keel-serve` | no endpoints |
 | The scanner | `keel-scan` | health reads `degraded` forever and every asset returns 404 "no metrics yet" |
 
-`caddy` is the fourth service and is not Keel: it holds the certificate, is the
+**THE FIRST UNIT IS NOT IN THIS STACK SINCE 11 SEPTEMBER 2026.** It was a
+`postgres` service until then; the box already runs one, so a second would be two
+databases on one machine with two backup stories, and the first wrong DSN would
+leave one of them silently empty. It is still one of the three units. What changed
+is that starting it, backing it up and upgrading it are the host's business and not
+this file's, and that `docker compose down -v` can no longer destroy it.
+
+`caddy` is the third service in this file and is not Keel: it holds the certificate, is the
 only container with a port open, and writes the access log.
 
 `keel-serve` and `keel-scan` run the **same image** at the **same tag**, with
@@ -148,8 +155,16 @@ If the provider has its own firewall in front of the box, a cloud security group
 or similar, **open it in both places**. One of the two being closed produces
 exactly the symptom of the other being closed.
 
-Nothing else needs to be open. `postgres` publishes no port at all and
-`keel-serve` publishes none either: Caddy is the only route in.
+Nothing else needs to be open. `keel-serve` publishes no port: Caddy is the only
+route in.
+
+**AND THE DATABASE PORT MUST NOT BE OPENED TO THE INTERNET, which is a new thing to
+say now that the database is the host's.** While Postgres was a service in this
+stack it published nothing at all, so there was no port to get wrong. The host's
+Postgres does listen on a port, and the containers reach it across the Docker
+bridge, which does not require it to be reachable from outside. Bind it to
+`localhost` and the Docker bridge only, never to `0.0.0.0`, and leave 5432 closed
+in both the host firewall and the provider's security group.
 
 ### 3.3 The box
 
@@ -198,35 +213,48 @@ the variable instead of starting something half configured.
 | Variable | Required | What it is |
 |---|---|---|
 | `KEEL_IMAGE_TAG` | yes | the commit SHA to run. **Never `latest`.** The deploy job rewrites this line, and rollback is editing it |
-| `KEEL_DSN` | yes | the Postgres DSN `keel serve` and `keel scan` connect with |
-| `POSTGRES_PASSWORD` | yes | the same password, for the database itself |
+| `KEEL_DSN` | yes | the DSN of the Postgres **already on this host**, which `keel serve` and `keel scan` connect with |
 | `KEEL_DOMAIN` | yes | `api.keels.app`. Section 2 |
 | `KEEL_CORS_ORIGINS` | yes | the dashboard's origins. Section 7 |
 | `KEEL_IMAGE` | no | defaults to `ghcr.io/keel-official/keel-backend` |
 | `KEEL_ACME_EMAIL` | no | Let's Encrypt expiry notices. Needs one line uncommented in the Caddyfile |
 
-`POSTGRES_USER=keel` and `POSTGRES_DB=keel` are literals in the compose file
-rather than entries here. Neither is a secret, and a value kept in two places is
-a value that drifts.
+**`POSTGRES_PASSWORD` LEFT THIS TABLE ON 11 SEPTEMBER 2026** along with the
+`postgres` service, and `POSTGRES_USER=keel` and `POSTGRES_DB=keel` left the
+compose file with it. This stack no longer creates a database, so it no longer
+sets that database's password: it is handed one that exists. The credentials
+inside `KEEL_DSN` are now whatever the host's Postgres already accepts, and
+creating a role and a database for Keel on that server is a step this runbook does
+not own.
 
-**THE PASSWORD APPEARS TWICE AND THAT IS THE ONE TRAP IN THIS FILE.**
-`POSTGRES_PASSWORD` and the password inside `KEEL_DSN` must be the same string.
-If they disagree, Postgres starts perfectly, `keel serve` fails authentication,
-and Caddy answers 502 with nothing in it that says why. So generate both from
-one shell variable in one command and never type either by hand:
+**THE ONE TRAP IN THIS FILE MOVED, AND IT IS NOW THE HOSTNAME RATHER THAN THE
+PASSWORD.** It used to be that the password appeared twice, in `POSTGRES_PASSWORD`
+and inside `KEEL_DSN`, and had to match. That trap is gone with the service. What
+replaced it is worse in one respect, because it fails identically for three
+different reasons: the host in `KEEL_DSN` must be `host.docker.internal`, which is
+the name `extra_hosts: host-gateway` creates inside the containers.
+
+| What you might write | What happens |
+|---|---|
+| `localhost` | inside a container that is the container itself. Connection refused, which reads exactly like Postgres being down |
+| `postgres` | the alias of the service that was removed. The name does not resolve |
+| `:5433` | the HOST-side port from `docker-compose.yml`, chosen there because a laptop's own Postgres owns 5432. It means nothing here |
+
+All three surface as Caddy answering 502 with nothing in it that says why, exactly
+as the password mismatch used to. `docker logs keel-prod-serve` is where the real
+message is, and section 9 is the long version.
 
 ```bash
 cd /opt/keel
 
-PW="$(openssl rand -base64 24 | tr -d '/+=')"
-cat > .env <<ENVFILE
+cat > .env <<'ENVFILE'
 # The commit SHA this box runs. The deploy job rewrites this line. Never latest.
 KEEL_IMAGE_TAG=REPLACE_WITH_A_COMMIT_SHA
 
-# The database. The host is the compose service name and the port is the
-# CONTAINER port, 5432. See section 9 before changing either.
-KEEL_DSN=postgres://keel:${PW}@postgres:5432/keel?sslmode=disable
-POSTGRES_PASSWORD=${PW}
+# The Postgres ALREADY ON THIS HOST. host.docker.internal is the host as seen
+# from inside a container; see the table above for the three spellings that fail
+# and section 9 for why. The port is the host's, normally 5432.
+KEEL_DSN=postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@host.docker.internal:5432/keel?sslmode=disable
 
 # The hostname Caddy serves and requests a certificate for. Section 2.
 KEEL_DOMAIN=api.keels.app
@@ -235,17 +263,28 @@ KEEL_DOMAIN=api.keels.app
 # wildcard. These are NOT this API's own origin. Section 7.
 KEEL_CORS_ORIGINS=https://keels.app,https://www.keels.app
 ENVFILE
-unset PW
 
 chmod 600 .env
-grep -c '^KEEL_\|^POSTGRES_' .env     # 5
+grep -c '^KEEL_' .env     # 4
 ```
 
+**THE HEREDOC IS QUOTED, `<<'ENVFILE'`, AND THAT MATTERS NOW THAT A PASSWORD IS
+PASTED INTO IT.** Unquoted, the shell would expand anything in the password that
+looks like `$foo`, and a password silently truncated at a dollar sign is a 502 with
+no message. Quoted, every character lands verbatim. The password does not pass
+through a shell variable at all any more, so there is nothing to `unset` and
+nothing left in the environment.
+
 `chmod 600` because this file holds the database password and `docker compose`
-reads it as the invoking user. `sslmode=disable` is correct in that DSN and only
-there: the connection never leaves the box, it crosses a private bridge network
-between two containers, and requiring TLS would mean issuing a certificate for a
-hostname that exists only inside Docker.
+reads it as the invoking user.
+
+`sslmode=disable` is defensible here and its reason changed with the service. It
+used to be that the connection crossed a private bridge network between two
+containers. It now crosses the Docker bridge from a container to the host, so it
+still never leaves the box, and requiring TLS would mean issuing a certificate for
+`host.docker.internal`. If the host's Postgres is ever moved off this machine, that
+argument is void and this becomes `require` or `verify-full` with a root
+certificate.
 
 Set `KEEL_IMAGE_TAG` to a real SHA before the first boot. Any commit whose
 image the deploy workflow has published works:
@@ -260,8 +299,8 @@ gh api /orgs/Keel-Official/packages/container/keel-backend/versions \
 
 ```bash
 cd /opt/keel
-docker compose -f docker-compose.prod.yml up -d postgres
-COMPOSE_FILE=docker-compose.prod.yml bash scripts/migrate.sh
+KEEL_MIGRATE_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5432/keel?sslmode=disable' \
+  bash scripts/migrate.sh
 ```
 
 **`scripts/migrate.sh` and nothing else.** Its own header states the rule: a
@@ -269,26 +308,48 @@ migration applied from two places is a migration nobody can say ran. It holds
 the ordering, the exactly-once bookkeeping in `schema_migrations`, and the
 per-file transaction.
 
-**WHY THE COMPOSE TRANSPORT AND NOT `KEEL_MIGRATE_DSN`.** That script has two
-transports. `KEEL_MIGRATE_DSN=... bash scripts/migrate.sh` drives `psql` over
-TCP and is the right form for a Postgres this compose file does not own, a
-managed database for instance. It cannot work **here**, because `postgres`
-publishes no host port at all: there is no address on the host for `psql` to
-connect to, by design, and adding one to run a migration would open the database
-to the internet for the sake of one command. `COMPOSE_FILE=...` points the
-script's other transport, `docker compose exec -T postgres psql`, at this
-project instead of at `docker-compose.yml`. It needs no port and no `psql` on
-the host.
+**THE TRANSPORT INVERTED ON 11 SEPTEMBER 2026 AND THE OLD INSTRUCTION IS QUOTED
+HERE BECAUSE IT WILL BE IN SOMEBODY'S SHELL HISTORY.** This section used to read:
 
-Expect `migrate: transport compose` and then
+```
+docker compose -f docker-compose.prod.yml up -d postgres
+COMPOSE_FILE=docker-compose.prod.yml bash scripts/migrate.sh
+```
+
+and it argued for that form at length: the `postgres` service published no host
+port at all, deliberately, so there was no address for `psql` to reach and
+`docker compose exec -T postgres psql` was the only transport available. **Both
+of those commands now fail.** The first with "no such service: postgres", the
+second with the same, because the service was removed when the host's own
+Postgres became the database. The reasoning was sound and its subject is gone.
+
+`KEEL_MIGRATE_DSN` is the transport that remains, and the argument that used to
+disqualify it is now the argument for it: the script's own header calls it "the
+right form for a Postgres this compose file does not own", which is exactly what
+this is.
+
+**THE HOSTNAME HERE IS NOT THE ONE IN `.env`, AND THAT IS NOT A TYPO.** This
+command runs on the HOST, so the database is at `localhost`. The containers run
+one bridge away, so for them the same database is at `host.docker.internal`. Two
+DSNs, one database, two vantage points. Writing the container's spelling here
+gives "could not translate host name", and writing the host's spelling in `.env`
+gives a refused connection from inside the container.
+
+It needs `psql` on the host. `apt-get install -y postgresql-client` if the host
+runs Postgres in a container and has no client, though a host running Postgres
+natively already has one.
+
+Expect `migrate: transport dsn` and then
 `migrate: 5 applied, 0 already present`. `keel serve` will now start; before
 this it refuses to, and that refusal is the point.
 
 **`.env` is read automatically and only from the project directory**, which is
-why every command in this runbook starts with `cd /opt/keel`. Run one from
-elsewhere and `docker compose` stops with "required variable POSTGRES_PASSWORD
-is missing a value", which is the `${VAR:?}` form reporting a missing file
-rather than a missing variable.
+why every `docker compose` command in this runbook starts with `cd /opt/keel`. Run
+one from elsewhere and it stops with "required variable KEEL_IMAGE_TAG is missing
+a value", which is the `${VAR:?}` form reporting a missing file rather than a
+missing variable. Note that the migration command above is the one step that does
+NOT read `.env`: its DSN is on the command line, which is why the password appears
+there and why that line is worth keeping out of shell history.
 
 ### 3.6 Declare the demonstration set
 
@@ -462,15 +523,30 @@ crontab -e
 ```cron
 # Keel: one database dump a day at 03:17 UTC, hashed and rotated.
 # 03:17 rather than 03:00 so it does not land with every other cron on the host.
-17 3 * * * cd /opt/keel && /usr/bin/env bash scripts/deploy/dump-database.sh >> /var/log/keel-dump.log 2>&1
+# KEEL_DUMP_DSN is the HOST's spelling of the DSN, so localhost and not
+# host.docker.internal. Keep this crontab at mode 600: it holds the password.
+17 3 * * * cd /opt/keel && KEEL_DUMP_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5432/keel?sslmode=disable' /usr/bin/env bash scripts/deploy/dump-database.sh >> /var/log/keel-dump.log 2>&1
 ```
+
+**`KEEL_DUMP_DSN` IS NEW AS OF 11 SEPTEMBER 2026 and an existing crontab line
+without it will fail every night.** The script used to dump through
+`docker compose exec -T postgres pg_dump`, which needed no credentials because it
+ran inside the database's own container. That service was removed when the host's
+Postgres became the database, so the script now runs `pg_dump` on the host against
+a DSN, and it reads that DSN from the environment rather than an argument because
+argv is world readable in `ps`. The script refuses to run with the variable unset
+and says so, rather than producing an empty dump.
+
+It also needs `pg_dump` on the host now, at least as new as the server. The
+version match used to be free, because client and server were one container.
 
 Run it once by hand first, because a cron entry that has never worked is a
 backup nobody has:
 
 ```bash
 cd /opt/keel
-bash scripts/deploy/dump-database.sh
+KEEL_DUMP_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5432/keel?sslmode=disable' \
+  bash scripts/deploy/dump-database.sh
 ls -la backups/
 ```
 
@@ -494,10 +570,14 @@ docker run --rm -v "$PWD/backups:/dumps:ro" postgres:16-alpine \
 # ;     Format: CUSTOM   <- this line is the one to look for
 ```
 
+The `docker run` form above still works and did not change with the database,
+because it only reads a file: it needs no server and no credentials. A host with
+`pg_restore` installed can run `pg_restore -l "$latest"` directly instead.
+
 **Use a mounted directory and not a pipe for that second command.** The obvious
-form, `docker compose exec -T postgres pg_restore -l /dev/stdin < file`, fails
+form, `pg_restore -l /dev/stdin < file`, fails
 with `did not find magic string in file header`: `pg_restore -l` on a custom
-format archive needs a seekable file, and stdin through `exec` is not one. That
+format archive needs a seekable file, and stdin through a pipe is not one. That
 error reads like a corrupt dump, which is the worst possible false alarm from a
 command whose entire job is to tell you the dump is fine.
 
@@ -681,22 +761,42 @@ the cause before restarting repeatedly, and **do not delete the `caddy_data`
 volume**, which holds the certificates and the ACME account key.
 
 **`502` from Caddy.** `keel-serve` is not running or not listening.
-`docker compose -f docker-compose.prod.yml logs keel-serve`. Two usual causes:
-`serve` refusing to start because `schema_migrations` is empty, which is section
-3.5 not having been run against this database, or the password mismatch below.
+`docker compose -f docker-compose.prod.yml logs keel-serve`. Since 11 September
+2026 there is no `depends_on` gate on the database, so this service CRASH LOOPS
+rather than waiting when the database is not ready. That is noisy and correct, and
+the log line is the diagnosis. Three usual causes, in the order they happen:
+
+1. `serve` cannot connect at all. The hostname or port in `KEEL_DSN` is wrong, and
+   section 9's table has the three spellings that fail.
+2. `serve` connects and refuses to start because `schema_migrations` is empty,
+   which is section 3.5 not having been run against this database.
+3. Authentication fails, below.
 
 **`502`, and `keel-serve`'s log says `password authentication failed for user
-"keel"`.** `POSTGRES_PASSWORD` and the password inside `KEEL_DSN` disagree.
-Section 3.4 generates both from one variable for exactly this reason. Note that
-changing `POSTGRES_PASSWORD` in `.env` after the volume exists does **not**
-change the password in the database: Postgres set it on first initialisation and
-ignores the variable afterwards. Either put the original password back into
-`.env`, or change it in the database:
+"keel"`.** The password inside `KEEL_DSN` is not the one the host's Postgres holds
+for that role.
+
+**THIS ENTRY USED TO SAY SOMETHING ELSE AND THE OLD CAUSE NO LONGER EXISTS.** It
+read: "`POSTGRES_PASSWORD` and the password inside `KEEL_DSN` disagree. Section 3.4
+generates both from one variable for exactly this reason. Note that changing
+`POSTGRES_PASSWORD` in `.env` after the volume exists does not change the password
+in the database: Postgres set it on first initialisation and ignores the variable
+afterwards." All of that was about a database this stack created. It creates none
+now, so there is one password and it is the host database's. Nothing in `.env` can
+change it and nothing needs to agree with it.
+
+Fix it in the database, from the host:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec postgres \
-  psql -U keel -d keel -c "ALTER USER keel PASSWORD 'the-one-in-KEEL_DSN';"
+psql 'postgres://postgres@localhost:5432/postgres' \
+  -c "ALTER USER keel PASSWORD 'the-one-in-KEEL_DSN';"
 ```
+
+or put the right password into `KEEL_DSN` and `docker compose -f
+docker-compose.prod.yml up -d keel-serve keel-scan`. **Change both services or
+neither:** they read the same variable, so a restart of one leaves the other on the
+old value, and the visible symptom is an API that works while the scanner writes
+nothing.
 
 **`connection refused` to Postgres, and the port number is the reason.** This is
 the 5433 story from `docker-compose.yml`, in its production form, and the
@@ -711,27 +811,41 @@ wildcard, so `localhost:5432` reaches the *host's* server and the symptom is
 into that, and `make migrate` never noticed because it goes through
 `docker compose exec` and touches no published port at all.
 
-**In production neither number is published.** `postgres` in
-`docker-compose.prod.yml` has no `ports:` key. So:
+**IN PRODUCTION THE DATABASE IS THE HOST'S, CHANGED 11 SEPTEMBER 2026, AND THIS
+WHOLE SECTION INVERTED WITH IT.** What it said before is quoted below, because it
+is the kind of thing that gets remembered rather than re-read:
 
-- **Inside `KEEL_DSN`, the port is 5432 and the host is `postgres`.** That is
-  the container port on the compose network. Writing 5433 there fails as a
-  refused connection, because 5433 is a host-side number that this file never
-  creates.
-- **From the host shell, no port works, and that is correct.** `psql -h
-  localhost -p 5432` and `-p 5433` both fail. There is no address to connect to
-  from outside the compose network, which is the single most valuable line in
-  that file: a Postgres reachable from the internet on a box with one password
-  is the worst thing this stack could do.
-- **So `KEEL_MIGRATE_DSN` cannot be used here**, and section 3.5 explains the
-  substitute. To get a shell on the database, go through the container:
+> **In production neither number is published.** `postgres` in
+> `docker-compose.prod.yml` has no `ports:` key. So: inside `KEEL_DSN`, the port
+> is 5432 and the host is `postgres`. From the host shell, no port works, and that
+> is correct. So `KEEL_MIGRATE_DSN` cannot be used here.
+
+Every one of those sentences is now false. There is no `postgres` service, the
+database listens on the host, and `KEEL_MIGRATE_DSN` is the only transport left.
+What holds instead:
+
+- **Inside `KEEL_DSN`, which the CONTAINERS read, the host is
+  `host.docker.internal` and the port is the host's, normally 5432.** That name
+  does not exist on Linux by default; `extra_hosts: host-gateway` in the compose
+  file is what creates it. `localhost` there is the container itself. `postgres`
+  there is a name that no longer resolves. And 5433 is still a
+  `docker-compose.yml` number that means nothing in production.
+- **From the host shell the database is at `localhost`**, on whatever port it
+  listens on. That is the spelling for `KEEL_MIGRATE_DSN` in section 3.5, for
+  `KEEL_DUMP_DSN` in section 6, and for a `psql` shell:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec postgres psql -U keel -d keel
+psql 'postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5432/keel'
 ```
 
-  If a port must be published temporarily, bind it to loopback only,
-  `"127.0.0.1:5433:5432"`, and remove it afterwards. Do not leave it.
+- **TWO DSNs, ONE DATABASE, AND THE DIFFERENCE IS ONLY THE HOSTNAME.** Swapping
+  them is the most likely mistake in this runbook now. The container spelling used
+  from the host gives "could not translate host name"; the host spelling used from
+  a container gives a refused connection that reads like Postgres being down.
+- **The port must not be reachable from the internet.** While Postgres was in this
+  stack it published nothing, so there was nothing to get wrong. Now it listens,
+  so bind it to `localhost` and the Docker bridge, never `0.0.0.0`, and keep 5432
+  closed in the host firewall and in the provider's security group. Section 3.2.
 
 **`health` reads `degraded` forever with `assetsMonitored` above 0.** Look at
 the scanner: `docker compose -f docker-compose.prod.yml logs keel-scan`. A scan

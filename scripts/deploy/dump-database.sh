@@ -46,17 +46,51 @@
 # disk as the database survives a dropped table, a bad migration and a bad
 # deploy. It does not survive losing the box, and nothing here pretends otherwise.
 
+# THE TRANSPORT CHANGED ON 11 SEPTEMBER 2026 AND THE OLD ONE IS RECORDED HERE
+# BECAUSE IT IS IN A CRONTAB SOMEWHERE. This script used to dump through
+# `docker compose exec -T postgres pg_dump`, which needed no password on any
+# command line and guaranteed the client matched the server's major version,
+# because both were the same container. That container is gone: the `postgres`
+# service was removed from docker-compose.prod.yml when the host's own Postgres
+# became the database, so `exec -T postgres` now fails with "no such service" and
+# a cron entry calling this would have started reporting a failed dump every day.
+#
+# It now runs `pg_dump` against a DSN, and the DSN comes from KEEL_DUMP_DSN in the
+# ENVIRONMENT and never from an argument. That is not decoration: a DSN on the
+# command line is visible to every user on the box in `ps`, and this one carries
+# the database password. In the environment of a running process it is readable by
+# its owner and by root, which is the same set that can read the dump itself.
+#
+# NOTE THAT KEEL_DUMP_DSN IS NOT KEEL_DSN. This script runs on the HOST, so its
+# hostname is the host's own, normally localhost. KEEL_DSN in .env is the
+# CONTAINERS' spelling, host.docker.internal, and using it here gives "could not
+# translate host name". The same split as the migration step; RUNBOOK.md section 9.
+#
+# THE CLIENT VERSION IS NOW THE OPERATOR'S PROBLEM and it used to be free. pg_dump
+# refuses to dump a server newer than itself, so a host with a 15 client and a 16
+# server fails with "server version mismatch". Install a client at least as new as
+# the server.
+
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-COMPOSE_FILE_PATH="docker-compose.prod.yml"
-SERVICE="postgres"
 OUT_DIR="${1:-backups}"
 KEEP_DAYS="${KEEL_DUMP_KEEP_DAYS:-14}"
+DSN="${KEEL_DUMP_DSN:-}"
 
-if [ ! -f "$COMPOSE_FILE_PATH" ]; then
-  echo "dump: $COMPOSE_FILE_PATH not found in $(pwd)" >&2
+if [ -z "$DSN" ]; then
+  echo "dump: KEEL_DUMP_DSN is not set." >&2
+  echo "      It is the DSN of the Postgres ON THIS HOST, normally with localhost as" >&2
+  echo "      the hostname, NOT the host.docker.internal spelling from .env." >&2
+  echo "      See scripts/deploy/RUNBOOK.md section 6." >&2
+  exit 1
+fi
+
+if ! command -v pg_dump >/dev/null 2>&1; then
+  echo "dump: pg_dump is not on PATH." >&2
+  echo "      The dump no longer runs inside a container, so the host needs a client" >&2
+  echo "      at least as new as the server: apt-get install -y postgresql-client" >&2
   exit 1
 fi
 
@@ -73,11 +107,11 @@ out="$OUT_DIR/keel-${ts}.dump"
 # interrupted dump must never be left looking like a good one, because the moment
 # it is needed is the moment nobody has time to check.
 #
-# `exec -T` and not `run --rm`: this uses the running container, so it needs no
-# second Postgres and no password on the command line. pg_dump inside the
-# container is the same major version as the server by construction.
-if docker compose -f "$COMPOSE_FILE_PATH" exec -T "$SERVICE" \
-     pg_dump -U keel -d keel -Fc > "${out}.partial"; then
+# THE DSN IS PASSED THROUGH THE ENVIRONMENT AND NOT AS AN ARGUMENT, for the reason
+# in the header: argv is world readable in `ps` and this string holds a password.
+# `pg_dump -d "$DSN"` would put it in argv, so PGDATABASE carries it instead;
+# pg_dump accepts a full connection URI in that variable.
+if PGDATABASE="$DSN" pg_dump -Fc > "${out}.partial"; then
   mv "${out}.partial" "$out"
 else
   rm -f "${out}.partial"

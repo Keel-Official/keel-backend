@@ -1,167 +1,77 @@
-# Keel on one small VPS. Four services, three volumes, two ports.
+# Keel on one small VPS. Three services, three volumes, two ports.
 #
-# THIS IS NOT docker-compose.yml WITH DIFFERENT VALUES, and it is a separate file
-# rather than an override for that reason. That file is a developer's Postgres,
-# published on 5433, plus an optional locally built image. This one runs a pinned
-# image from ghcr.io, a scanner, a reverse proxy holding certificates, and a
-# database whose volume is the deliverable's data.
+# scripts/deploy/RUNBOOK.md IS THE DOCUMENT TO READ FIRST. Nothing here is meant to
+# be understood from the YAML alone, and every long explanation lives there rather
+# than in both places.
 #
-# PREPARED, NOT APPLIED. Claude wrote this. The box, its DNS, its password and
-# the repository secrets are Al's, and Al applies them. Same PREPARE and APPLY
-# split as scripts/s3-archive/ and .github/workflows/deploy.yml. The runbook is
-# scripts/deploy/RUNBOOK.md and it is the document to read first: nothing here is
-# meant to be understood from the YAML alone.
+# PREPARED, NOT APPLIED. The box, its DNS, its password and the repository secrets
+# are Al's. No secret value is in this file: every one is a `${VAR:?}` reference
+# resolved from a `.env` beside it, and the `:?` form stops compose with the
+# variable's name instead of starting something half configured. See env.example.
 #
-# NO SECRET VALUE IS IN THIS FILE. Every one is a `${VAR:?}` reference resolved
-# from a `.env` beside it, which is gitignored and is Al's to write. The `:?`
-# form is not decoration: with a variable missing, `docker compose` refuses to
-# do anything and names the variable, instead of starting a stack configured
-# half way.
+# NO POSTGRES HERE SINCE 11 SEPTEMBER 2026: the box already runs one. Gone with it,
+# the `keel_pgdata` volume, `POSTGRES_PASSWORD`, and the `depends_on` gates. AND THE
+# MIGRATION TRANSPORT INVERTED: `docker compose exec -T postgres psql` no longer
+# exists, so `KEEL_MIGRATE_DSN=... bash scripts/migrate.sh` is the only one left.
+# RUNBOOK.md sections 3.5 and 9.
 #
-# Everything is addressed EXPLICITLY, because `docker compose` with no -f reads
-# docker-compose.yml:
+# Addressed explicitly, because `docker compose` with no -f reads
+# docker-compose.yml, which is the developer's Postgres and not this:
 #
 #   docker compose -f docker-compose.prod.yml pull
 #   docker compose -f docker-compose.prod.yml up -d
 #
-# A LIVE KEEL IS THREE UNITS AND NOT ONE: the database, `serve`, and `scan`.
-# Without the scanner the API is up, healthy in every mechanical sense, and
-# answers `degraded` with a 404 for every asset, because nothing has ever
-# computed a metric. That is a correct API serving an empty database, and it is
-# the state that reads as a working deployment to anybody who only checks that
-# the port answers.
+# A LIVE KEEL IS THREE UNITS: the database, `serve` and `scan`. Two are here and the
+# database is the host's. Without the scanner the API is up, healthy in every
+# mechanical sense, and answers `degraded` with a 404 for every asset.
 #
-# THE IMAGE IS PUBLISHED FOR amd64 AND arm64, so either kind of box runs this
-# stack and `docker pull` resolves the right one from a single tag. It was amd64
-# only until 11 September 2026, when `platforms: linux/amd64,linux/arm64` was
-# added to the publish step in .github/workflows/deploy.yml.
+# `name: keel-prod` IS NOT COSMETIC. With no name, compose derives the project from
+# the directory, so this file and docker-compose.yml would share every named volume
+# in the same clone. Container names are prefixed for a second reason: they are
+# global to the daemon and not scoped by project. Service names are NOT prefixed,
+# because they are the network aliases the Caddyfile proxies to.
 #
-# THE ONE THING THAT DID NOT BECOME TRUE WITH IT: the smoke test in that
-# workflow still runs the amd64 image only, because the runner is amd64 and an
-# arm64 image cannot be executed there. So on an arm64 host the first proof that
-# the binary starts is the deploy job's own version check against the live API.
-# `exec format error` at `up -d` is no longer the failure to expect, but if
-# something architecture-shaped does go wrong, that is where it surfaces.
-#
-# THE PROJECT NAME IS keel-prod AND IT IS NOT COSMETIC. With no `name:`,
-# `docker compose` derives the project from the DIRECTORY, which makes this file
-# and docker-compose.yml both the project `keel` in the same clone. They would
-# then share every named volume: this file's `keel_pgdata` and that file's are
-# one volume called `keel_keel_pgdata`, so a production stack started in a
-# developer's checkout would attach the developer's database, and
-# `docker compose down -v` against either file would destroy the other's data.
-#
-# EVERY container_name IS PREFIXED FOR A SECOND AND SEPARATE REASON. A container
-# name is global to the Docker daemon and is NOT scoped by project, so
-# `container_name: keel-postgres` in both files collides even once the projects
-# are named apart: the second stack to start gets "the container name is already
-# in use" and nothing else. Both of these were found by running this file in a
-# checkout that already had the development stack up, which is every
-# developer's checkout and no VPS.
-#
-# THE SERVICE NAMES ARE NOT PREFIXED, on purpose. A service name is the network
-# alias, so `keel-serve` is the hostname the Caddyfile proxies to and the
-# hostname caddy's healthcheck probes. Renaming a service means editing the
-# Caddyfile in the same commit; renaming a container means nothing outside
-# `docker ps`.
-#
-# MEMORY LIMITS ARE SET BECAUSE THE BOX IS SMALL. They total about 1.1 GB, so
-# this fits a 2 GB instance with room for the host. On a 1 GB instance it is
-# tight and Postgres is the one to lower first. A limit is a ceiling and not a
-# reservation: nothing here is prevented from using less.
+# The image is published for amd64 and arm64. Memory limits total about 576 MB, and
+# the host's Postgres needs its own on top of that.
 name: keel-prod
 
 services:
-  # ---------------------------------------------------------------- database
-  #
-  # NO PUBLISHED PORT. Not 5432, not 5433, none at all. Every client is on this
-  # network, and a Postgres reachable from the internet on a box with one
-  # password is the worst thing this file could do. That absence has a
-  # consequence for the migration step and RUNBOOK.md section 4 spells it out:
-  # `scripts/migrate.sh` must use its compose transport here, because its
-  # KEEL_MIGRATE_DSN transport needs a port that deliberately does not exist.
-  postgres:
-    image: postgres:16-alpine
-    container_name: keel-prod-postgres
-    environment:
-      # THE USER AND THE DATABASE ARE LITERALS AND NOT .env ENTRIES. Neither is
-      # a secret, and a value kept in two places is a value that drifts apart.
-      # They have to agree with the ones inside KEEL_DSN, which is why the
-      # runbook builds that string rather than asking anybody to type it.
-      POSTGRES_USER: keel
-      POSTGRES_DB: keel
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env, see scripts/deploy/RUNBOOK.md section 3.4}
-    volumes:
-      - keel_pgdata:/var/lib/postgresql/data
-      # migrations/ is NOT mounted into /docker-entrypoint-initdb.d, for the
-      # reason docker-compose.yml gives at length: Postgres runs that directory
-      # only on an empty data directory, so it would apply the first file once
-      # and silently ignore every file after it. scripts/migrate.sh is the only
-      # mechanism, in development and here.
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keel"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-
   # ---------------------------------------------------------------- the API
   keel-serve:
     image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA, see scripts/deploy/RUNBOOK.md section 3.4}
     container_name: keel-prod-serve
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # NOTHING GATES STARTUP: a depends_on can only wait for a container in this
+    # project and the database is not in it. `serve` therefore crash loops until
+    # Postgres answers and the migration has run. Noisy, correct, and never
+    # silent: read `docker logs keel-prod-serve` first.
+    extra_hosts:
+      # `host-gateway` is what creates this name; on Linux it does not exist
+      # otherwise. It is how KEEL_DSN reaches a Postgres installed on the host.
+      # IF THAT POSTGRES IS ITSELF A CONTAINER, drop this and put both keel
+      # services on its network with `networks: [dbnet]` plus an `external: true`
+      # entry beside the volumes block.
+      - "host.docker.internal:host-gateway"
     environment:
-      # THE DSN COMES FROM THE HOST AND IS NEVER ASSEMBLED HERE. cmd/keel/serve.go
-      # reads it as envOr("KEEL_DSN", store.DefaultDSN), so no -dsn flag is
-      # needed. Inside the DSN, the host is `postgres` and the port is 5432: that
-      # is the CONTAINER port. 5433 is the host-side number from
-      # docker-compose.yml and it means nothing on this network. RUNBOOK.md
-      # section 9 carries the full story, because this distinction has already
-      # cost this repository a day once.
+      # Read by cmd/keel/serve.go as envOr("KEEL_DSN", ...), so no -dsn flag.
+      # THE HOSTNAME IS THE MOST LIKELY THING TO BE WRONG. `localhost` is the
+      # container itself, `postgres` is the removed service, 5433 is a
+      # docker-compose.yml port. All three fail as a 502. RUNBOOK.md section 9.
       KEEL_DSN: ${KEEL_DSN:?set KEEL_DSN in .env, see scripts/deploy/RUNBOOK.md section 3.4}
-      # THE CORS ALLOWLIST, read once at startup by internal/api: see
-      # api.CORSEnvVar. These are the DASHBOARD's origins and not this API's own,
-      # which is the part that catches people out. api.keels.app is a different
-      # origin from keels.app as far as a browser is concerned, so the shared
-      # parent domain buys nothing and CORS is required rather than a formality.
-      # Changing this needs `up -d keel-serve`, not a reload. RUNBOOK.md
-      # section 7.
+      # The DASHBOARD's origins, not this API's own: api.keels.app and keels.app
+      # are different origins to a browser. Read once at startup, so a change
+      # needs `up -d keel-serve`. RUNBOOK.md section 7.
       KEEL_CORS_ORIGINS: ${KEEL_CORS_ORIGINS:?set KEEL_CORS_ORIGINS in .env, see scripts/deploy/RUNBOOK.md section 7}
-    # NO -historical, AND THAT IS THE WHOLE OF FR-19 FOR NOW. With the flag off,
-    # a request for a past ledger returns 503 HISTORICAL_UNAVAILABLE, which is
-    # the contract's own honest answer for a deployment that holds no replayed
-    # rows. Turning it on while the table is empty makes the same request a 404
-    # instead, which tells a consumer "that ledger is missing" rather than "this
-    # deployment does not serve history", and the second is the true statement.
-    #
-    # FLIPPING IT LATER IS A ONE-LINE CHANGE: add "-historical" to the list
-    # below and `up -d keel-serve`. Track B is building what writes those rows.
-    # Neither track waits for the other.
+    # NO -historical: with the flag off a past ledger returns 503
+    # HISTORICAL_UNAVAILABLE, which is true of a deployment holding no replayed
+    # rows. On, the same request would 404, which says the wrong thing. Adding
+    # "-historical" here plus `up -d keel-serve` is the whole flip.
     command: ["serve", "-addr", ":3000"]
-    # NO PUBLISHED PORT. Caddy is the only route in, so there is no way to reach
-    # the API over plain HTTP from outside and no second address that skips TLS.
-    # `curl localhost:3000` on the host will not answer, and that is the design.
+    # NO PUBLISHED PORT. Caddy is the only route in, so there is no second address
+    # that skips TLS and `curl localhost:3000` on the host will not answer.
     expose:
       - "3000"
-    # NO HEALTHCHECK ON THIS SERVICE, AND IT IS NOT AN OVERSIGHT. The runtime
-    # stage of the Dockerfile is gcr.io/distroless/static-debian12:nonroot: no
-    # shell, no curl, no wget, and `keel` has no health subcommand, so there is
-    # nothing inside this container that can make an HTTP request to it.
-    # `docker run --entrypoint sh` on that image fails with `exec: "sh":
-    # executable file not found in $PATH`.
-    #
-    # THE PROBE LIVES ON caddy INSTEAD, one service down, and it probes
-    # http://keel-serve:3000/v1/health. That is the only container in the stack
-    # with an HTTP client, and probing from there also covers the proxy hop that
-    # a probe from inside would not. Widening this image to answer a question the
-    # network can already answer would cost the blast radius the Dockerfile's
-    # header argues for.
+    # NO HEALTHCHECK HERE: the image is distroless, with no shell and no HTTP
+    # client, so nothing inside it can probe itself. The probe is on caddy.
     restart: unless-stopped
     deploy:
       resources:
@@ -170,27 +80,19 @@ services:
 
   # ---------------------------------------------------------------- the scanner
   #
-  # WITHOUT THIS THE API SERVES NOTHING. `scan` computes the metrics rows the API
-  # reads; the API never calls Horizon itself, which is rule 1 of internal/api's
-  # brief. It is a long-lived process with an interval rather than a cron, which
-  # is part of why one box is the recommended shape.
-  #
-  # THE SAME IMAGE AS keel-serve, DIFFERENT COMMAND. One tag, pulled once, two
-  # processes. If these two ever ran different tags they would compute and serve
-  # under different methodology versions, and the API would report a version its
-  # own rows were not produced by.
-  #
-  # 15 MINUTES IS ALSO THE BINARY'S DEFAULT, and it is written out rather than
-  # left implicit because the interval is the deployment's decision and a reader
-  # should not have to open cmd/keel/scan.go to learn what it is. NFR-6 caps this
-  # repository at 3000 Horizon requests an hour, against roughly three per pair
-  # per round.
+  # WITHOUT THIS THE API SERVES NOTHING: it produces the rows the API reads, and
+  # the API never calls Horizon itself. Same image and same tag as keel-serve on
+  # purpose; two tags would compute and serve under different methodology
+  # versions. 15m is also the binary's default, written out because the interval is
+  # the deployment's decision. NFR-6 caps this repository at 3000 Horizon requests
+  # an hour.
   keel-scan:
     image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA}
     container_name: keel-prod-scan
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # Same DSN as keel-serve and it must stay the same. Two different ones and the
+    # API serves an empty database while the scanner fills another.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       KEEL_DSN: ${KEEL_DSN:?set KEEL_DSN in .env}
     command: ["scan", "-interval", "15m"]
@@ -202,51 +104,39 @@ services:
 
   # ---------------------------------------------------------------- TLS
   #
-  # THE ONLY SERVICE WITH PORTS, and both of them are required. 80 is not
-  # optional even though the API is HTTPS only: Caddy solves the ACME HTTP-01
-  # challenge on it, and the HTTP to HTTPS redirect lives there. RUNBOOK.md
-  # section 3.2.
+  # THE ONLY SERVICE WITH PORTS, and 80 is required even though the API is HTTPS
+  # only: Caddy solves the ACME HTTP-01 challenge there. RUNBOOK.md section 3.2.
   caddy:
     image: caddy:2-alpine
     container_name: keel-prod-caddy
     depends_on:
       - keel-serve
     environment:
-      # The hostname Caddy serves and requests a certificate for. api.keels.app
-      # is the documented value and it lives in .env and in the runbook, never in
-      # the Caddyfile. Unset, Caddy will not start, and the Caddyfile's global
-      # block records the misleading error it prints in that case.
+      # Lives in .env and in the runbook, never in the Caddyfile. Unset, Caddy
+      # will not start. RUNBOOK.md section 2.
       KEEL_DOMAIN: ${KEEL_DOMAIN:?set KEEL_DOMAIN in .env, normally api.keels.app, see scripts/deploy/RUNBOOK.md section 2}
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # caddy_data HOLDS THE CERTIFICATES AND THE ACME ACCOUNT KEY. Losing it
-      # means re-issuing on the next start, and Let's Encrypt allows five
-      # duplicate certificates per name per week, so a container recreated a few
-      # times with no volume can exhaust that and leave the site without TLS for
-      # days. This is the volume not to prune.
+      # caddy_data HOLDS THE CERTIFICATES AND THE ACME ACCOUNT KEY. Let's Encrypt
+      # allows five duplicate certificates per name per week, so recreating this
+      # container without the volume a few times can leave the site without TLS
+      # for days. This is the volume not to prune.
       - caddy_data:/data
       - caddy_config:/config
-      # The access log. Caddy rolls it itself; see the Caddyfile.
       - caddy_logs:/var/log/caddy
-    # THE API'S HEALTH PROBE, AND IT IS DELIBERATELY ON THIS SERVICE. See the
-    # note on keel-serve: that image has no HTTP client in it. busybox wget is
-    # at /usr/bin/wget here, it performs a real GET, and it exits non-zero on
-    # any status but 2xx.
+    # THE API'S PROBE LIVES HERE because this is the only container in the stack
+    # with an HTTP client, and probing from here covers the proxy hop too.
     #
-    # IT ASSERTS HTTP 200 AND NEVER READS THE STATUS FIELD. `degraded` is a
-    # correct 200 response: the health handler reports it whenever no scan has
-    # been recorded, which is every deployment for up to fifteen minutes after
-    # first boot, and also any deployment whose last scan had failures. Treating
-    # that field as pass or fail would mark a working API unhealthy, and with
-    # `restart: unless-stopped` in place it would do so repeatedly. What this
-    # check answers is "does the API answer through the proxy", which is the
-    # question a restart can actually fix.
+    # IT ASSERTS HTTP 200 AND NEVER READS THE STATUS FIELD. `degraded` is a correct
+    # 200: the handler reports it whenever no scan has been recorded, which is
+    # every deployment for up to fifteen minutes after first boot. Treating it as a
+    # failure would restart a working API.
     #
-    # start_period covers first boot, where Postgres is ready but `serve` is
-    # still connecting and the certificate may not exist yet.
+    # start_period matters more without the database gate: `serve` may be crash
+    # looping in that window for a fault that is not caddy's.
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://keel-serve:3000/v1/health"]
       interval: 30s
@@ -259,8 +149,10 @@ services:
         limits:
           memory: 128M
 
+# keel_pgdata left with the postgres service, so this stack now owns no persistent
+# data except Caddy's certificates, and `down -v` can no longer destroy the
+# deliverable's dataset.
 volumes:
-  keel_pgdata:
   caddy_data:
   caddy_config:
   caddy_logs:
