@@ -1,0 +1,43 @@
+# Provenance for USTRY.GCRYUGD5-USDC.GA5ZSEJY-bookseries-2026-02-01_2026-03-01-cap400.csv
+# Written beside the CSV rather than inside it, for the reason DEC-010
+# gives: a leading '#' line is read as a header by csv.DictReader.
+#
+# ONE WALK PRODUCED EVERY ROW. The counts below are that walk's, not any
+# one row's. The per-row diagnostics are columns in the CSV.
+pair: USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+data_source: offers-implied
+methodology_version: 1.0.8-draft
+points: 30
+earliest_target_ledger: 61027032
+latest_target_ledger: 61429800
+sample_rule: first trade at or after each UTC midnight, plus any -also-ledger
+sample_source_file: docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-trades-2026-02-01_2026-03-01.csv
+operation_floor_ledger: 60987032
+trade_window_from_ledger: 60987032
+trade_lookahead_ledgers: 5000
+max_pages_per_account: 60
+max_pages_per_offering_account: 400
+earliest_offer_operation_ledger: 60988098
+accounts_walked: 222
+accounts_from_trades: 216
+accounts_from_live_offers: 6
+trades_read: 13831
+operations_read: 804937
+offer_operations: 14213
+walks_truncated: 36
+walks_stopped_at_floor: 167
+walks_failed: 5
+unsizable_operations: 0
+walk_complete: false
+requests: 1880
+elapsed_seconds: 6250
+#
+# A truncated or failed walk loses offers, and a lost offer reads as a
+# THINNER book rather than as an error. Read walks_truncated and
+# walks_failed before reading any row as a market that emptied.
+#
+# An offer created below the operation floor is invisible in EVERY row
+# equally, which is why the floor is one number for the whole series.
+# Compare earliest_offer_operation_ledger against it.
+#
+# NO POOL IS RECONSTRUCTED. Every row is order book only.
