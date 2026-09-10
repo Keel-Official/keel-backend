@@ -23,7 +23,10 @@
 //  4. NET/HTTP AND NOTHING ELSE. Go's ServeMux has had method and wildcard
 //     patterns since 1.22, so five routes need no router dependency. Rejected
 //     alternative: chi or gorilla/mux, which would be the third dependency in a
-//     repository that has two.
+//     repository that has two. CORS is the same answer: an exact-match allowlist
+//     is forty lines, and rs/cors would be the third dependency.
+//
+//  5. CORS IS AN ALLOWLIST AND NEVER A WILDCARD. See the CORS section below.
 package api
 
 import (
@@ -33,6 +36,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -67,7 +71,13 @@ type Config struct {
 	// binary serves an operator who has run `keel bookseries` over February and
 	// one who has not.
 	HistoricalAvailable bool
-	Logf                func(format string, args ...any)
+	// AllowedOrigins is the CORS allowlist, matched exactly. A nil slice means
+	// "read CORSEnvVar", which is what lets the browser surface be configured
+	// without cmd/keel growing a flag it would then have to keep in step with
+	// docker-compose. An empty non-nil slice means "allow no origin", so a
+	// caller that wants CORS off has a way to say so that is not a nil.
+	AllowedOrigins []string
+	Logf           func(format string, args ...any)
 }
 
 // Server is the read-only HTTP surface described by docs/api/keel-openapi.yaml.
@@ -76,6 +86,11 @@ type Config struct {
 type Server struct {
 	cfg Config
 	mux *http.ServeMux
+	// origins is the resolved allowlist. It is a slice and not a map because it
+	// is only ever searched, never iterated for output, and an allowlist holds a
+	// handful of entries: a linear scan over four strings is not the cost of a
+	// request, and a slice keeps non-negotiable rule 2 out of the question.
+	origins []string
 }
 
 // BasePath is the prefix every route carries. The contract's server URLs end in
@@ -92,7 +107,16 @@ func New(cfg Config) (*Server, error) {
 	if cfg.Logf == nil {
 		cfg.Logf = func(string, ...any) {}
 	}
-	s := &Server{cfg: cfg, mux: http.NewServeMux()}
+	origins := cfg.AllowedOrigins
+	if origins == nil {
+		origins = CORSOriginsFromEnv()
+	}
+	origins, err := normalizeOrigins(origins)
+	if err != nil {
+		return nil, err
+	}
+
+	s := &Server{cfg: cfg, mux: http.NewServeMux(), origins: origins}
 
 	s.mux.HandleFunc("GET "+BasePath+"/health", s.handleHealth)
 	s.mux.HandleFunc("GET "+BasePath+"/methodology", s.handleMethodology)
@@ -106,7 +130,7 @@ func New(cfg Config) (*Server, error) {
 // ServeMux produces for an unknown path, because a consumer parsing JSON should
 // not have to handle an HTML body on a typo.
 func (s *Server) Handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return s.withCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Keel-Methodology-Version", domain.MethodologyVersion)
 
 		if _, pattern := s.mux.Handler(r); pattern == "" {
@@ -115,7 +139,7 @@ func (s *Server) Handler() http.Handler {
 			return
 		}
 		s.mux.ServeHTTP(w, r)
-	})
+	}))
 }
 
 // ---------------------------------------------------------------- meta
@@ -536,6 +560,178 @@ func (s *Server) setStaleness(w http.ResponseWriter, m store.Metric) {
 		lag = 0
 	}
 	w.Header().Set("X-Keel-Staleness-Seconds", strconv.Itoa(lag))
+}
+
+// ---------------------------------------------------------------- CORS
+
+// CORSEnvVar names the environment variable that holds the allowlist, comma
+// separated, and it is the only place the browser surface is configured. It is
+// an environment variable and not a flag on `keel serve` because the deployment
+// that needs it is a container: a flag would have to be threaded through
+// cmd/keel and then kept in step with docker-compose.prod.yml by hand, and the
+// two drifting is the failure this avoids.
+//
+// UNSET means DefaultCORSOrigins. SET AND EMPTY means allow nothing, which is
+// the only way to turn CORS off, so `KEEL_CORS_ORIGINS=` in a compose file is a
+// statement rather than a typo the code repairs. Those two are deliberately not
+// the same, which is why this reads with os.LookupEnv rather than os.Getenv.
+const CORSEnvVar = "KEEL_CORS_ORIGINS"
+
+// DefaultCORSOrigins is the allowlist a deployment gets when it sets nothing:
+// local development only. Nothing public is in here, so a production deployment
+// that forgets CORSEnvVar serves no browser rather than serving every browser.
+//
+// PORT 5173 AND NOT 3000, which is worth a line because 3000 is the port in the
+// contract's own server URL and the default for `keel serve`. That is the API's
+// port, so the dashboard's dev server cannot also hold it; 5173 is Vite's
+// default and is what a dashboard started next to this API lands on. Both the
+// localhost and 127.0.0.1 spellings are listed because a browser sends the one
+// that was typed and the two are different origins.
+//
+// It is a function and not a package-level slice so that no caller can append
+// to the defaults of every other caller.
+func DefaultCORSOrigins() []string {
+	return []string{
+		"http://localhost:5173",
+		"http://127.0.0.1:5173",
+	}
+}
+
+// corsExposedHeaders are the response headers a browser is allowed to READ.
+//
+// WITHOUT THIS THE DASHBOARD LOSES BOTH OF THEM. The CORS default exposes six
+// headers and neither of these is among them, so `fetch` returns null for both
+// even though they are on the wire. Rule 4 of this package's brief says every
+// response carries them; a header the consumer cannot read does not satisfy it.
+const corsExposedHeaders = "X-Keel-Staleness-Seconds, X-Keel-Methodology-Version"
+
+// corsMaxAge is how long a browser may cache one preflight. Ten minutes: long
+// enough that a dashboard clicking through assets does not preflight every
+// call, short enough that shrinking the allowlist takes effect the same day.
+// Chrome caps this at 7200 regardless of what is sent.
+const corsMaxAge = "600"
+
+// CORSOriginsFromEnv reads the allowlist out of the environment. See CORSEnvVar
+// for what unset and set-but-empty each mean.
+func CORSOriginsFromEnv() []string {
+	raw, ok := os.LookupEnv(CORSEnvVar)
+	if !ok {
+		return DefaultCORSOrigins()
+	}
+	return strings.Split(raw, ",")
+}
+
+// normalizeOrigins trims each entry, drops the empties, and refuses a wildcard.
+//
+// THE WILDCARD IS AN ERROR AND NOT AN IGNORED ENTRY. Exact matching already
+// fails closed on "*", because no browser ever sends that as an Origin, so the
+// symptom of setting it would be a dashboard whose every request fails with no
+// header and no message. An operator who reaches for "*" is told at startup
+// instead, in the same spirit as New refusing a nil Reader: a server that
+// misbehaves per request is far harder to notice than one that will not boot.
+//
+// The trailing slash is trimmed rather than rejected. An Origin never carries
+// one, so `http://app.example.com/` in a compose file can only ever have been
+// meant as the origin above it, and failing on it would be pedantry paid for by
+// whoever is debugging the dashboard at the time.
+func normalizeOrigins(in []string) ([]string, error) {
+	out := make([]string, 0, len(in))
+	for _, o := range in {
+		o = strings.TrimSuffix(strings.TrimSpace(o), "/")
+		if o == "" {
+			continue
+		}
+		if o == "*" {
+			return nil, fmt.Errorf("api: %s must be an exact allowlist, not %q: "+
+				"the API is public today, and a wildcard cannot be narrowed later "+
+				"without breaking every client that relied on it", CORSEnvVar, o)
+		}
+		out = append(out, o)
+	}
+	return out, nil
+}
+
+// originAllowed matches BYTE FOR BYTE, which is what the Fetch standard compares
+// origins with. No suffix match, no subdomain match, no scheme coercion: the
+// three shortcuts that turn an allowlist into a wildcard somebody has to audit.
+func (s *Server) originAllowed(origin string) bool {
+	for _, a := range s.origins {
+		if a == origin {
+			return true
+		}
+	}
+	return false
+}
+
+// withCORS is the outermost middleware, so a preflight is answered before
+// routing and a cross-origin GET carries its headers whatever the inner handler
+// decides, the 404 for an unknown path included.
+//
+// FOUR DECISIONS IN HERE.
+//
+//  1. VARY: ORIGIN IS UNCONDITIONAL, and that is the one that matters on a
+//     shared cache. The response to an allowed origin differs from the response
+//     to a disallowed one, so a cache that keyed on the URL alone would serve
+//     the dashboard's copy, complete with its Allow-Origin header, to whoever
+//     asked next. Sending it only when the origin is allowed leaves exactly the
+//     dangerous case unmarked, because the response with no header is the one
+//     that must not be replayed to an origin that would have got one.
+//
+//  2. THE REQUEST ORIGIN IS ECHOED, never a stored string, and only after the
+//     match. That is what the standard requires of an allowlist with more than
+//     one entry: there is one header and it holds one origin.
+//
+//  3. A DISALLOWED ORIGIN STILL GETS ITS 200. This is not an authentication
+//     layer and it must not be read as one: the API is public, unauthenticated,
+//     and answers curl. What CORS decides is whether a BROWSER hands the body
+//     to a page's JavaScript, and refusing the request here would only turn a
+//     browser-side rule into a server-side one that curl walks straight past.
+//
+//  4. NO ACCESS-CONTROL-ALLOW-CREDENTIALS. There are no cookies, no
+//     authentication and no user data on this surface, so there is nothing for
+//     a credentialed request to carry. Sending it would also make the echoed
+//     origin load bearing in a way it is not today.
+func (s *Server) withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Vary", "Origin")
+
+		origin := r.Header.Get("Origin")
+		allowed := origin != "" && s.originAllowed(origin)
+		if allowed {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+
+		// The preflight. It is answered for every OPTIONS request, including one
+		// aimed at a path that does not exist: the browser learns nothing from a
+		// 404 here that the real GET will not tell it a moment later, and
+		// routing a preflight would mean teaching this middleware the route
+		// table. 204 rather than 200 because there is no body to send.
+		//
+		// The two Access-Control-Request-* headers are added to Vary as well,
+		// so a cache holding one preflight cannot answer a differently shaped
+		// one. Origin stays the first value, which is what requirement 4 reads.
+		if r.Method == http.MethodOptions {
+			w.Header().Add("Vary", "Access-Control-Request-Method")
+			w.Header().Add("Vary", "Access-Control-Request-Headers")
+			if allowed {
+				// GET AND OPTIONS IS THE WHOLE SURFACE. Every route in New is a
+				// GET and there is no method here that writes, so advertising
+				// anything else would describe an API this one is not.
+				w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+				w.Header().Set("Access-Control-Max-Age", corsMaxAge)
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Expose-Headers belongs on the actual response and is ignored on a
+		// preflight, so it is set here rather than above.
+		if allowed {
+			w.Header().Set("Access-Control-Expose-Headers", corsExposedHeaders)
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // ---------------------------------------------------------------- plumbing

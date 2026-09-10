@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -231,7 +232,14 @@ func newTestServer(t *testing.T, f *fakeReader) http.Handler {
 	s, err := New(Config{
 		Reader: f,
 		Params: domain.DefaultParams(),
-		Logf:   func(string, ...any) {},
+		// THE ALLOWLIST IS PASSED AND NOT INHERITED. A nil AllowedOrigins tells
+		// New to read KEEL_CORS_ORIGINS, so leaving it out here would make every
+		// test in this file depend on the environment of whoever runs it, and a
+		// developer with a wildcard exported would see New fail in forty tests
+		// that have nothing to do with CORS. The tests that mean to exercise the
+		// environment set it with t.Setenv and construct their own server.
+		AllowedOrigins: []string{testOrigin},
+		Logf:           func(string, ...any) {},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -510,7 +518,8 @@ func TestAnUnreplayedLedgerIs404AndNot500(t *testing.T) {
 			"7|61340263|" + domain.MethodologyVersion + "|" + string(domain.DataSourceOffersImplied): m,
 		},
 	}
-	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true})
+	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true,
+		AllowedOrigins: []string{testOrigin}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -987,7 +996,8 @@ func TestTheHistoricalReadAsksForAKeyThatCanExist(t *testing.T) {
 			"7|61340262|" + domain.MethodologyVersion + "|" + string(domain.DataSourceOffersImplied): m,
 		},
 	}
-	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true})
+	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true,
+		AllowedOrigins: []string{testOrigin}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1020,7 +1030,8 @@ func TestTheHistoricalResponseSaysItIsAReconstruction(t *testing.T) {
 			"7|61340262|" + domain.MethodologyVersion + "|" + string(domain.DataSourceOffersImplied): m,
 		},
 	}
-	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true})
+	s, err := New(Config{Reader: f, Params: domain.DefaultParams(), HistoricalAvailable: true,
+		AllowedOrigins: []string{testOrigin}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1036,5 +1047,335 @@ func TestTheHistoricalResponseSaysItIsAReconstruction(t *testing.T) {
 	if got, _ := body["dataSource"].(string); got != string(domain.DataSourceOffersImplied) {
 		t.Errorf("dataSource = %q, want %q so a reader can tell a rebuilt book from a measured one",
 			got, domain.DataSourceOffersImplied)
+	}
+}
+
+// ---------------------------------------------------------------- CORS
+
+// testOrigin is the allowlisted origin every server in this file is built with.
+// It is not a localhost spelling on purpose: a test that passes because the
+// origin happens to be in DefaultCORSOrigins would keep passing if the
+// allowlist stopped being consulted at all.
+const testOrigin = "https://dashboard.keel.test"
+
+// disallowedOrigin is a plausible attacker: same shape as testOrigin, one
+// character of hostname different.
+const disallowedOrigin = "https://dashboard.keel.test.evil.example"
+
+// requestFrom sends one request with an Origin header, which httptest.NewRequest
+// does not set for us. An empty origin sends none, which is what curl and every
+// server-to-server client look like.
+func requestFrom(t *testing.T, h http.Handler, method, path, origin string) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(method, path, nil)
+	if origin != "" {
+		req.Header.Set("Origin", origin)
+	}
+	if method == http.MethodOptions {
+		// A real preflight carries these two, and they are what separates a
+		// preflight from a bare OPTIONS request.
+		req.Header.Set("Access-Control-Request-Method", http.MethodGet)
+		req.Header.Set("Access-Control-Request-Headers", "Content-Type")
+	}
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
+}
+
+// assertVaryOrigin is called on every response in this section, allowed or not.
+// See decision 1 on withCORS: the response with no Allow-Origin header is
+// exactly the one a shared cache must not replay to an origin that would have
+// been given one, so Vary being conditional would leave the dangerous case
+// unmarked.
+func assertVaryOrigin(t *testing.T, rec *httptest.ResponseRecorder) {
+	t.Helper()
+	for _, v := range rec.Header().Values("Vary") {
+		if v == "Origin" {
+			return
+		}
+	}
+	t.Errorf("Vary = %q, want it to list Origin so no shared cache serves one origin's response to another",
+		rec.Header().Values("Vary"))
+}
+
+func TestCORSAllowedOriginIsEchoedBack(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	rec := requestFrom(t, newTestServer(t, f), http.MethodGet, BasePath+"/health", testOrigin)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	// THE REQUEST ORIGIN, not a wildcard and not a stored string. An allowlist
+	// with more than one entry has one header to answer with, so the value has
+	// to be the origin that asked.
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != testOrigin {
+		t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, testOrigin)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got == "*" {
+		t.Error("Access-Control-Allow-Origin is a wildcard, which cannot be narrowed later without breaking every client")
+	}
+	assertVaryOrigin(t, rec)
+
+	// Without Expose-Headers the browser reads null for both of these, and rule
+	// 4 of this package's brief is satisfied on the wire and not in the consumer.
+	expose := rec.Header().Get("Access-Control-Expose-Headers")
+	for _, want := range []string{"X-Keel-Staleness-Seconds", "X-Keel-Methodology-Version"} {
+		if !strings.Contains(expose, want) {
+			t.Errorf("Access-Control-Expose-Headers = %q, want it to list %s, or the dashboard cannot read it",
+				expose, want)
+		}
+	}
+
+	// The API is unauthenticated and holds no cookies, so there is nothing for a
+	// credentialed request to carry.
+	if got := rec.Header().Get("Access-Control-Allow-Credentials"); got != "" {
+		t.Errorf("Access-Control-Allow-Credentials = %q, want it absent on an unauthenticated surface", got)
+	}
+
+	// Regression on middleware ordering: the CORS wrapper is outermost, and the
+	// methodology header is set by the handler inside it.
+	if got := rec.Header().Get("X-Keel-Methodology-Version"); got != domain.MethodologyVersion {
+		t.Errorf("X-Keel-Methodology-Version = %q, want %q", got, domain.MethodologyVersion)
+	}
+}
+
+// TestCORSDisallowedOriginStillGets200 is the test that says what this layer is
+// NOT. CORS decides whether a browser hands the body to a page's JavaScript. It
+// is not authentication, the API is public, and refusing the request here would
+// only turn a browser-side rule into a server-side one that curl walks past.
+func TestCORSDisallowedOriginStillGets200(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	rec := requestFrom(t, newTestServer(t, f), http.MethodGet, BasePath+"/health", disallowedOrigin)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: CORS is not an authentication layer and must not answer one", rec.Code)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf("Access-Control-Allow-Origin = %q, want it absent for an origin off the allowlist", got)
+	}
+	if got := rec.Header().Get("Access-Control-Expose-Headers"); got != "" {
+		t.Errorf("Access-Control-Expose-Headers = %q, want it absent for an origin off the allowlist", got)
+	}
+	assertVaryOrigin(t, rec)
+
+	// The body is served in full. Nothing about the allowlist changes what the
+	// endpoint answers.
+	var body map[string]any
+	decodeBody(t, rec, &body)
+	if body["status"] == nil {
+		t.Error("the health body is empty for a disallowed origin; the API is public and answers everyone")
+	}
+}
+
+func TestCORSPreflightIs204(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	rec := requestFrom(t, newTestServer(t, f), http.MethodOptions, BasePath+"/health", testOrigin)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204; body %s", rec.Code, rec.Body.String())
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("preflight body = %q, want empty on a 204", rec.Body.String())
+	}
+	assertVaryOrigin(t, rec)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != testOrigin {
+		t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, testOrigin)
+	}
+	// GET and OPTIONS is the whole surface: every route is a GET and no method
+	// here writes.
+	if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, OPTIONS" {
+		t.Errorf("Access-Control-Allow-Methods = %q, want \"GET, OPTIONS\"", got)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Headers"); got != "Content-Type" {
+		t.Errorf("Access-Control-Allow-Headers = %q, want \"Content-Type\"", got)
+	}
+	// A Max-Age is required rather than a particular number: without one the
+	// browser preflights every single call.
+	age := rec.Header().Get("Access-Control-Max-Age")
+	if age == "" {
+		t.Error("Access-Control-Max-Age is absent, so a browser preflights every request")
+	}
+	if n, err := strconv.Atoi(age); err != nil || n <= 0 {
+		t.Errorf("Access-Control-Max-Age = %q, want a positive number of seconds", age)
+	}
+}
+
+// A preflight from an origin off the allowlist is answered, and answered with
+// nothing the browser can use. The 204 is the protocol; the absent
+// Allow-Origin is the refusal.
+func TestCORSPreflightFromDisallowedOriginGrantsNothing(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	rec := requestFrom(t, newTestServer(t, f), http.MethodOptions, BasePath+"/health", disallowedOrigin)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204", rec.Code)
+	}
+	assertVaryOrigin(t, rec)
+	for _, h := range []string{
+		"Access-Control-Allow-Origin",
+		"Access-Control-Allow-Methods",
+		"Access-Control-Allow-Headers",
+		"Access-Control-Max-Age",
+	} {
+		if got := rec.Header().Get(h); got != "" {
+			t.Errorf("%s = %q, want it absent: a disallowed origin is granted nothing", h, got)
+		}
+	}
+}
+
+// A request with no Origin at all is curl, or any server-to-server client. It
+// gets the ordinary answer and no CORS grant, and it still gets Vary, because
+// the response it receives is the one that must not be replayed to a browser.
+func TestCORSRequestWithNoOriginIsUntouched(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	rec := requestFrom(t, newTestServer(t, f), http.MethodGet, BasePath+"/health", "")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf("Access-Control-Allow-Origin = %q, want it absent when no Origin was sent", got)
+	}
+	assertVaryOrigin(t, rec)
+}
+
+// TestCORSMatchIsExact is the test that keeps the allowlist an allowlist. Every
+// entry here is a form that a suffix match, a prefix match or a scheme-blind
+// comparison would wave through.
+func TestCORSMatchIsExact(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	h := newTestServer(t, f)
+
+	for _, origin := range []string{
+		"http://dashboard.keel.test",           // the wrong scheme
+		"https://dashboard.keel.test:8080",     // a port the allowlist does not name
+		"https://evil.dashboard.keel.test",     // a subdomain of the allowed host
+		"https://dashboard.keel.test.evil.com", // the allowed origin as a prefix
+		"https://dashboard.keel.tes",           // one character short
+		"*",
+		"null", // what a browser sends from a file:// page or a sandboxed frame
+	} {
+		rec := requestFrom(t, h, http.MethodGet, BasePath+"/health", origin)
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+			t.Errorf("origin %q was allowed (header %q); the match must be byte for byte", origin, got)
+		}
+		assertVaryOrigin(t, rec)
+	}
+}
+
+// ---------------------------------------------------------------- CORS config
+
+// unsetCORSEnv removes KEEL_CORS_ORIGINS for the duration of one test and
+// restores whatever was there before.
+//
+// The t.Setenv call is not redundant. There is no t.Unsetenv, and t.Setenv is
+// what registers the cleanup that puts the variable back exactly as it was,
+// including putting it back to unset. Setting it and then removing it is how a
+// test reaches the genuinely-unset state without leaking into the next one.
+func unsetCORSEnv(t *testing.T) {
+	t.Helper()
+	t.Setenv(CORSEnvVar, "placeholder")
+	if err := os.Unsetenv(CORSEnvVar); err != nil {
+		t.Fatalf("unsetenv %s: %v", CORSEnvVar, err)
+	}
+}
+
+func newEnvServer(t *testing.T) http.Handler {
+	t.Helper()
+	s, err := New(Config{
+		Reader: &fakeReader{assets: []store.Asset{ustryPair(7)}},
+		Params: domain.DefaultParams(),
+		// Nil, which is what sends New to the environment. This is the one
+		// helper in this file that does that on purpose.
+		AllowedOrigins: nil,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	return s.Handler()
+}
+
+func allowOriginFor(t *testing.T, h http.Handler, origin string) string {
+	t.Helper()
+	return requestFrom(t, h, http.MethodGet, BasePath+"/health", origin).
+		Header().Get("Access-Control-Allow-Origin")
+}
+
+// The allowlist is configuration and never a literal in a handler, which is
+// what "the allowed origins come from a flag or environment variable rather
+// than being hardcoded" asks for.
+func TestCORSAllowlistComesFromTheEnvironment(t *testing.T) {
+	t.Setenv(CORSEnvVar, "https://keel.example, https://staging.keel.example/")
+	h := newEnvServer(t)
+
+	if got := allowOriginFor(t, h, "https://keel.example"); got != "https://keel.example" {
+		t.Errorf("first entry: Allow-Origin = %q, want the origin echoed back", got)
+	}
+	// Whitespace around a comma is what a human writes in a compose file, and
+	// the trailing slash can only ever have been meant as the origin without it,
+	// because a browser never sends one.
+	if got := allowOriginFor(t, h, "https://staging.keel.example"); got != "https://staging.keel.example" {
+		t.Errorf("second entry: Allow-Origin = %q, want the trimmed origin echoed back", got)
+	}
+	// Setting the variable REPLACES the defaults rather than extending them.
+	// A deployment that names its own origins is not also asking for localhost.
+	if got := allowOriginFor(t, h, "http://localhost:5173"); got != "" {
+		t.Errorf("localhost was allowed (%q) while %s named other origins; the variable replaces the defaults", got, CORSEnvVar)
+	}
+}
+
+// With nothing set the allowlist is local development only, so a deployment
+// that forgets the variable serves no browser rather than serving every browser.
+func TestCORSDefaultsToLocalDevelopmentOnly(t *testing.T) {
+	unsetCORSEnv(t)
+	h := newEnvServer(t)
+
+	defaults := DefaultCORSOrigins()
+	if len(defaults) == 0 {
+		t.Fatal("DefaultCORSOrigins is empty")
+	}
+	for _, o := range defaults {
+		if !strings.Contains(o, "localhost") && !strings.Contains(o, "127.0.0.1") {
+			t.Errorf("default origin %q is not a local one; a forgotten variable must not open a public origin", o)
+		}
+		if got := allowOriginFor(t, h, o); got != o {
+			t.Errorf("default origin %q: Allow-Origin = %q, want it allowed", o, got)
+		}
+	}
+	if got := allowOriginFor(t, h, "https://keel.example"); got != "" {
+		t.Errorf("a public origin was allowed by default (%q)", got)
+	}
+}
+
+// Set and empty is a statement, not a typo the code repairs: it is the only way
+// to say "no browser at all". Unset means the defaults, which is the test above.
+func TestCORSEmptyEnvironmentValueAllowsNothing(t *testing.T) {
+	t.Setenv(CORSEnvVar, "")
+	h := newEnvServer(t)
+
+	for _, o := range append(DefaultCORSOrigins(), "https://keel.example") {
+		if got := allowOriginFor(t, h, o); got != "" {
+			t.Errorf("origin %q was allowed (%q) with %s set to empty, which means allow nothing", o, got, CORSEnvVar)
+		}
+	}
+}
+
+// A wildcard is refused AT STARTUP rather than ignored. Exact matching already
+// fails closed on it, so the symptom of accepting it silently would be a
+// dashboard whose every request fails with no header and no message.
+func TestCORSWildcardIsRefusedAtStartup(t *testing.T) {
+	for _, raw := range []string{"*", "https://keel.example,*"} {
+		t.Setenv(CORSEnvVar, raw)
+		_, err := New(Config{
+			Reader: &fakeReader{},
+			Params: domain.DefaultParams(),
+		})
+		if err == nil {
+			t.Fatalf("%s=%q was accepted; a wildcard cannot be narrowed later without breaking every client", CORSEnvVar, raw)
+		}
+		if !strings.Contains(err.Error(), CORSEnvVar) {
+			t.Errorf("error %q does not name %s, so an operator cannot tell what to fix", err, CORSEnvVar)
+		}
 	}
 }
