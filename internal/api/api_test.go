@@ -463,20 +463,89 @@ func TestOmittedQuoteWithSeveralPairsSaysSoRatherThanChoosing(t *testing.T) {
 	}
 	h := newTestServer(t, f)
 
+	// THIS ASSERTION WAS INVERTED ON 11 SEPTEMBER 2026, and the old one is quoted
+	// here because it is the whole point of the change. It read:
+	//
+	//   if rec.Code != http.StatusBadRequest {
+	//       t.Fatalf("status = %d, want 400; the primary pair rule is not decided", rec.Code)
+	//   }
+	//
+	// The rule WAS undecided when that was written and refusing to guess was
+	// right. DEC-015 decided it on 5 September: the primary pair is USDC, always.
+	// So an omitted quote now resolves, and it must resolve to pair 7, the USDC
+	// one, rather than to whichever pair the store happened to return first.
+	rec := get(t, h, BasePath+"/asset/"+ustryID+"/depth")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; the primary pair is USDC and pair 7 is it. body %s",
+			rec.Code, rec.Body.String())
+	}
+	// Pair 8, the XLM one, has no metrics in this fake. Resolving to it would
+	// answer 404 rather than 200, so a 200 here is already evidence that the USDC
+	// pair was chosen. The header pins it a second way, from the fixture.
+	if got := rec.Header().Get("X-Keel-Methodology-Version"); got != domain.MethodologyVersion {
+		t.Errorf("methodology header = %q", got)
+	}
+
+	// Naming the quote explicitly resolves the same pair.
+	rec = get(t, h, BasePath+"/asset/"+ustryID+"/depth?quote=USDC:"+testUSDC.Issuer)
+	if rec.Code != http.StatusOK {
+		t.Errorf("with an explicit quote: status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+}
+
+// An asset with several pairs and NO USDC pair among them is the one case the
+// ambiguity error still describes, and it is not a decided case: the candidate
+// quote set in 02-pair-selection.md section 1 is exactly USDC and native XLM, so
+// calling the XLM pair primary would assert a rule the methodology does not hold.
+func TestOmittedQuoteWithNoUsdcPairStillRefusesToChoose(t *testing.T) {
+	other := domain.Asset{Code: "EURC", Issuer: "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+		Type: domain.AssetTypeAlphanum4}
+	f := &fakeReader{
+		pairs: map[string][]store.Asset{
+			"USTRY|" + testUSTRY.Issuer: {
+				{ID: 8, Base: testUSTRY, Quote: testXLM, Active: true},
+				{ID: 9, Base: testUSTRY, Quote: other, Active: true},
+			},
+		},
+		latest: map[int]store.Metric{8: riskFixture(), 9: riskFixture()},
+	}
+	h := newTestServer(t, f)
+
 	rec := get(t, h, BasePath+"/asset/"+ustryID+"/depth")
 	if rec.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400; the primary pair rule is not decided", rec.Code)
+		t.Fatalf("status = %d, want 400; no pair here is the primary quote", rec.Code)
 	}
 	var body errorBodyJSON
 	decodeBody(t, rec, &body)
 	if body.Error.Detail["quoteCandidates"] == nil {
 		t.Error("the error does not list the candidate quotes")
 	}
+	// The error says what it was looking for, not only that it failed. A consumer
+	// that gets this back can act on it without reading the methodology.
+	if got := body.Error.Detail["primaryQuote"]; got != domain.GlobalQuote().String() {
+		t.Errorf("primaryQuote in the error = %#v, want the global quote identity", got)
+	}
+}
 
-	// Naming the quote resolves it.
-	rec = get(t, h, BasePath+"/asset/"+ustryID+"/depth?quote=USDC:"+testUSDC.Issuer)
-	if rec.Code != http.StatusOK {
-		t.Errorf("with an explicit quote: status = %d, want 200; body %s", rec.Code, rec.Body.String())
+// The primary pair is matched on IDENTITY and never on the ticker. A pair quoted
+// in some other issuer's USDC is a different asset and must not be mistaken for
+// the primary: /assets?asset_code=USDC returns several issuers.
+func TestPrimaryQuoteIsMatchedOnIssuerAndNotOnTheCode(t *testing.T) {
+	impostor := domain.Asset{Code: "USDC", Issuer: "GBQBXAJPQBXAJPQBXAJPQBXAJPQBXAJPQBXAJPQBXAJPQBXAJPQBXAJP",
+		Type: domain.AssetTypeAlphanum4}
+	f := &fakeReader{
+		pairs: map[string][]store.Asset{
+			"USTRY|" + testUSTRY.Issuer: {
+				{ID: 8, Base: testUSTRY, Quote: testXLM, Active: true},
+				{ID: 9, Base: testUSTRY, Quote: impostor, Active: true},
+			},
+		},
+		latest: map[int]store.Metric{8: riskFixture(), 9: riskFixture()},
+	}
+
+	rec := get(t, newTestServer(t, f), BasePath+"/asset/"+ustryID+"/depth")
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400; a USDC from another issuer is not the primary quote", rec.Code)
 	}
 }
 
@@ -934,13 +1003,35 @@ func TestMethodologyReportsThresholdsAsStringsAndNamesItsUncalibrated(t *testing
 	if got, ok := th["oracleWindowSeconds"].(json.Number); !ok || got.String() != "900" {
 		t.Errorf("oracleWindowSeconds = %#v, want 900 from DefaultParams", th["oracleWindowSeconds"])
 	}
-	// The two unit keys the contract's example asserts are deliberately absent,
-	// because the thresholds are compared against quote-denominated notionals and
-	// declaring them XLM would be wrong for every other pair. Open question Q7.
+	// THIS ASSERTION WAS INVERTED ON 11 SEPTEMBER 2026. It read:
+	//
+	//   for _, key := range []string{"manipulationCheapUnit", "thinDepth5PctUnit"} {
+	//       if _, present := th[key]; present {
+	//           t.Errorf("%s is present; see the comment in handleMethodology and Q7", key)
+	//       }
+	//   }
+	//
+	// Both keys were withheld while Q7 was open, because there was no single unit
+	// to name and the contract's example named the wrong one. DEC-015 closed Q7 on
+	// 5 September: the quote asset is global and it is USDC. So both keys are
+	// served, and the test now pins the VALUE rather than the absence.
+	//
+	// The value must be the (code, issuer) identity. A bare 'USDC' is the failure
+	// this repository forbids by name: a consumer resolving that ticker itself can
+	// land on a different asset than the one the thresholds are counted in.
+	want := domain.GlobalQuote().String()
 	for _, key := range []string{"manipulationCheapUnit", "thinDepth5PctUnit"} {
-		if _, present := th[key]; present {
-			t.Errorf("%s is present; see the comment in handleMethodology and Q7", key)
+		got, present := th[key]
+		if !present {
+			t.Errorf("%s is absent; Q7 is closed and the unit is knowable", key)
+			continue
 		}
+		if got != want {
+			t.Errorf("%s = %#v, want %q", key, got, want)
+		}
+	}
+	if !strings.Contains(want, ":G") {
+		t.Fatalf("the global quote identity %q carries no issuer; a bare ticker must never be served here", want)
 	}
 }
 

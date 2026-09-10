@@ -206,14 +206,34 @@ func (s *Server) handleMethodology(w http.ResponseWriter, _ *http.Request) {
 	// name, so a new key needs no version bump. Every key ending in Pct is in
 	// percent, matching the convention the whole API follows.
 	//
-	// TWO KEYS THE CONTRACT'S EXAMPLE CARRIES ARE DELIBERATELY ABSENT:
-	// manipulationCheapUnit and thinDepth5PctUnit, both shown there as 'XLM'.
-	// domain.Thresholds holds no unit, and these thresholds are compared against
-	// notionals denominated in each asset's own QUOTE. Emitting 'XLM' would
-	// assert a unit that is wrong for every pair not quoted in XLM. That is open
-	// question Q7 in docs/methodology/02-pair-selection.md, and it is reported as
-	// a gap rather than papered over with a literal.
+	// THE TWO UNIT KEYS ARE SERVED AS OF 11 SEPTEMBER 2026, AND THE HISTORY IS
+	// WHY THEY LOOK LIKE THIS. They were absent, and the comment here said why:
+	// "domain.Thresholds holds no unit, and these thresholds are compared against
+	// notionals denominated in each asset's own QUOTE. Emitting 'XLM' would assert
+	// a unit that is wrong for every pair not quoted in XLM. That is open question
+	// Q7". Reporting the gap was right while Q7 was open. Al closed it on
+	// 5 September 2026: DEC-015 makes the quote asset GLOBAL and it is USDC, so
+	// there is exactly one unit now and it is knowable. The gap outlived its
+	// reason by six days.
+	//
+	// THE VALUE IS THE (code, issuer) PAIR AND NOT THE BARE TICKER 'USDC'. An
+	// asset is never matched on its code: /assets?asset_code=USDC returns several
+	// issuers, and a consumer that read 'USDC' here and resolved it itself could
+	// resolve it to a different asset than the one these thresholds are counted
+	// in. domain.GlobalQuote().String() is the same spelling the assetId path
+	// parameter and every pair in the response already use, so a consumer can
+	// compare it without parsing.
+	//
+	// The contract's example carried 'XLM' in both keys until 1.5.1, which was
+	// wrong for every pair, including the XLM ones: section 1 of
+	// docs/methodology/02-pair-selection.md converts an XLM-denominated depth to
+	// USDC BEFORE judging it against a threshold, so the threshold is a USDC
+	// figure even there.
+	quoteUnit := domain.GlobalQuote().String()
+
 	thresholds := map[string]any{
+		"manipulationCheapUnit":     quoteUnit,
+		"thinDepth5PctUnit":         quoteUnit,
 		"manipulationCheapAbsolute": t.ManipulationCheapAbsolute.String(),
 		"manipulationRatioLowPct":   t.ManipulationRatioLowPct.String(),
 		"thinDepth5PctAbsolute":     t.ThinDepth5PctAbsolute.String(),

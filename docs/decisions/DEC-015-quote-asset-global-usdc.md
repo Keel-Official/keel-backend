@@ -289,3 +289,56 @@ below the section it concerns, and no earlier sentence is edited or deleted.
 | Date | Amendment |
 | --- | --- |
 | 5 September 2026 | Record created. Al's decision in section 1, taken in `02-pair-selection.md` section 1 and marked DECIDED there. Section 4 opens the code-constant divergence, which is handed to Al. Section 8 records two amendments refused as RED, with the text drafted in section 9 |
+| 11 September 2026 | Section 12 added. Two consequences of section 1 reached the code and the contract six days after the decision, and both had been reporting the decision as still missing in the meantime |
+
+## 12. Two consequences applied on 11 September 2026, and the six day lag is the finding
+
+**Nothing in section 1 changed.** This section records where its consequences landed, and
+it is written because the lag is the part worth keeping rather than the change.
+
+**What was found.** Two places in the codebase were still describing the primary-pair
+question as open, in prose, after this record had closed it:
+
+1. `internal/api/assetid.go` refused to resolve an asset with more than one pair when
+   `quote` was omitted, and its own comment gave the reason: "decision D-1, and
+   `docs/methodology/02-pair-selection.md` is still a worksheet whose own checklist says
+   no decisions are recorded in it yet". That sentence was true when written. Section 2 of
+   that document now reads "The primary pair is USDC, always", so the refusal outlived its
+   reason and went on reporting a made decision as missing.
+2. `internal/api/api.go` withheld the two threshold unit keys, `manipulationCheapUnit` and
+   `thinDepth5PctUnit`, from `GET /v1/methodology`, because with a per-pair quote there was
+   no single unit to name. Q7 closing gave it one.
+
+**What was applied.**
+
+| Where | Change |
+| --- | --- |
+| `internal/domain/types.go` | `GlobalQuote()` added, returning the (code, issuer) identity. A function rather than a var, and in `domain` rather than in `api`, for the reasons in its own header |
+| `internal/api/assetid.go` | an omitted `quote` resolves to the `GlobalQuote()` pair, matched with `Asset.Equal` so another issuer's USDC does not qualify |
+| `internal/api/api.go` | both unit keys served, as the (code, issuer) identity and never the bare ticker |
+| `docs/api/keel-openapi.yaml` | 1.5.0 to **1.5.1**. The `quote` parameter's description corrected, and the methodology example's two `XLM` units corrected. A patch, because only a description and an example moved; the thresholds map is open ended by design so added keys are not a schema change. DEC-003's freeze was checked first and the contract is NOT FROZEN |
+| `docs/api/mocks/` | regenerated, `make api-mocks-check` passes |
+
+**THE CONTRACT WAS WRONG IN A DIFFERENT WAY AND THAT IS WORTH RECORDING SEPARATELY.** Its
+`quote` parameter had always described the primary pair as "the pair with the largest
+combined depth at 10 percent". No such rule was ever adopted anywhere in
+`docs/methodology/`, and it is a bad rule on its own terms: under it an asset's primary
+pair, and therefore its headline band, could change because depth moved rather than
+because risk did. So the implementation was not behind the contract here; the contract was
+carrying a rule the methodology never held. It was corrected rather than implemented.
+
+**Two assertions were INVERTED rather than deleted**, in `internal/api/api_test.go`:
+`TestOmittedQuoteWithSeveralPairsSaysSoRatherThanChoosing` expected a 400 and now expects
+the USDC pair, and the methodology test asserted the two keys were ABSENT and now pins
+their value. Each keeps the old assertion quoted in a comment above the new one, because a
+test of a deliberate gap that is quietly deleted takes the reason for the gap with it. Two
+tests were added: an asset with several pairs and no USDC pair among them still refuses to
+choose, which is the one case the ambiguity error still describes, and a USDC from a
+different issuer does not match the primary.
+
+**What this section does NOT do.** `ManipulationRatioLowPct` remains `1.0` in
+`internal/domain/types.go` and in the contract's example, even though DEC-017 sets it to
+`0.1`. That is DEC-017's own step 5 and its section 5 puts two of Al's steps before it:
+the methodology text, and one hand computed verdict. Changing the constant alone would
+have the API publish `0.1` while `09-flags-and-bands.md` section 6 still publishes `1.0`,
+which is worse than the present state where both are the superseded value and agree.

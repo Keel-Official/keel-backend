@@ -62,12 +62,30 @@ Three things to know before changing anything:
 
 ## Two things the contract does not say, and one it says imprecisely
 
-- **The primary pair rule is not implemented.** With `quote` omitted the contract
-  says to use the pair with the largest combined depth at 10 percent. That is
-  decision D-1 and `docs/methodology/02-pair-selection.md` is still a worksheet,
-  so a single pair resolves and several return 400 listing the candidates.
-  Choosing by any other rule here would be this package quietly making a
-  methodology decision.
+- ~~**The primary pair rule is not implemented.**~~ **IMPLEMENTED 11 September
+  2026, and the struck-through text is kept because the reason it was written is
+  the lesson.** It read: "With `quote` omitted the contract says to use the pair
+  with the largest combined depth at 10 percent. That is decision D-1 and
+  `docs/methodology/02-pair-selection.md` is still a worksheet, so a single pair
+  resolves and several return 400 listing the candidates. Choosing by any other
+  rule here would be this package quietly making a methodology decision."
+
+  Every sentence of that was true when written and the refusal was right. Two
+  things then changed and this brief did not notice either for six days. DEC-015
+  closed D-1 on 5 September: section 2 of that document reads "The primary pair is
+  USDC, always". And the contract's rule, largest combined depth at 10 percent,
+  turned out to be one the methodology never held, so it was corrected in contract
+  1.5.1 rather than implemented. An omitted `quote` now resolves to
+  `domain.GlobalQuote()`, matched with `Asset.Equal` so another issuer's USDC does
+  not qualify. The 400 survives for the one case that is still undecided: several
+  pairs with no USDC pair among them.
+
+  **The lesson for this package, and it is not about pairs.** The refusal was
+  correct and it was also a lock that outlived its key. A comment saying "this is
+  undecided" is a claim with a date on it, and nothing in the build re-checks it.
+  When you write one, name the record or the document that would close it, the way
+  the sentence above named D-1, because that name is what makes the staleness
+  findable later.
 - **The error enum has no code for two real states**: an ambiguous quote, and a
   monitored pair with no result yet. Both borrow a neighbouring code and are told
   apart by their message. Handoff item 18.
