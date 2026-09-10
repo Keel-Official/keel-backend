@@ -2,17 +2,39 @@ name: deploy
 
 # WHAT THIS WORKFLOW IS AND WHERE IT STOPS.
 #
-# It builds the image, proves the image actually serves, and publishes it to this
-# repository's own container registry. It does NOT put it on a host. That split is
-# deliberate and is the same one scripts/s3-archive/ is built on: an agent that
-# provisions the infrastructure its own evidence lives in has no chain of custody,
-# it has a filing cabinet. The hosting account, its secrets and the production
-# database are Al's, and the deploy job below refuses to invent them.
+# AMENDED 11 SEPTEMBER 2026, AND THE ORIGINAL TEXT IS KEPT RATHER THAN REPLACED,
+# because the reasoning did not change when the deploy job arrived. It read:
+#
+#   "It builds the image, proves the image actually serves, and publishes it to
+#   this repository's own container registry. It does NOT put it on a host. That
+#   split is deliberate and is the same one scripts/s3-archive/ is built on: an
+#   agent that provisions the infrastructure its own evidence lives in has no
+#   chain of custody, it has a filing cabinet. The hosting account, its secrets
+#   and the production database are Al's, and the deploy job below refuses to
+#   invent them."
+#
+# ONE CLAUSE OF THAT IS NOW FALSE AND THE REST IS NOT. It does put the image on a
+# host, because a host now exists. What has not changed is the split the sentence
+# was written to protect: this workflow PROVISIONS nothing. It does not create the
+# box, the DNS record, the database or the certificate; it connects to a box Al
+# built, with a key Al generated, at an address Al set, and it holds no credential
+# of its own. Every one of those is a repository variable or secret, and with any
+# of them missing the deploy job still refuses rather than guesses. The filing
+# cabinet sentence is why the job is gated on KEEL_DEPLOY_TARGET instead of having
+# a default, and it stays.
 #
 # IT NEVER RUNS ON A PUSH TO main. A deployment workflow that fires on every commit
 # and fails for want of a secret teaches people to ignore a red tick, and a red
-# tick nobody reads is worse than no check. It runs when a version tag is pushed,
-# or when somebody presses the button.
+# tick nobody reads is worse than no check.
+#
+# THE TWO JOBS DO NOT SHARE A TRIGGER, AND THAT IS DELIBERATE RATHER THAN AN
+# OVERSIGHT. The sentence here used to end "It runs when a version tag is pushed,
+# or when somebody presses the button", and that is still true of the IMAGE job.
+# The DEPLOY job runs on a version tag ONLY: it carries `if: github.ref_type ==
+# 'tag'`. So a workflow_dispatch builds, smoke tests and publishes, and deploys
+# nothing. Publishing an image is cheap and reversible; putting one in front of the
+# public API is a decision, and a decision gets a tag that says which release it
+# was. Pressing a button leaves no such record.
 
 on:
   push:
@@ -174,35 +196,43 @@ jobs:
 
   # ------------------------------------------------------------------ deploy
   #
-  # THIS JOB IS SKIPPED UNTIL AL CONFIGURES A TARGET, AND THAT IS THE HONEST
-  # STATE RATHER THAN A PLACEHOLDER. Two things are missing and neither is
-  # Claude's to supply: somewhere to run the image, and a database that is not a
-  # throwaway. Setting the repository variable KEEL_DEPLOY_TARGET is what turns
-  # this on, and until then the job reports what it is waiting for instead of
-  # pretending to have deployed.
+  # THIS JOB IS SKIPPED UNTIL AL CONFIGURES A TARGET, AND THAT IS THE HONEST STATE
+  # RATHER THAN A PLACEHOLDER. Setting the repository variable KEEL_DEPLOY_TARGET
+  # is what turns it on, and until then it reports what it is waiting for instead
+  # of pretending to have deployed. A job that "succeeded" without deploying would
+  # be a green tick that means nothing, which is the failure the trigger rules are
+  # also written against.
   #
-  # A job that "succeeded" without deploying would be a green tick that means
-  # nothing, which is the failure the trigger rules above are also written
-  # against.
+  # WHAT IT ASSERTS, AND IT IS ONE THING. That the API answering at the public URL
+  # reports the same methodologyVersion as the constant THIS commit compiles. That
+  # is the entire point of the job. DEC-014 section 5 is why: the contract once
+  # advertised a version the server did not return, and the generated mock served
+  # it, so "the deploy finished" and "the deploy put this code live" are different
+  # claims and only the second one is worth making.
   #
-  # WHAT CHANGED, 11 SEPTEMBER 2026. The "Refuse to guess" step is gone and the
-  # steps below replace it. The reason it existed has been answered rather than
-  # overridden: the shape of the host was the open question, and it is now a
-  # decision with a document behind it, scripts/vps-deploy/RUNBOOK.md. The split
-  # is unchanged. Claude wrote the compose file, the Caddyfile, the remote script
-  # and these steps; the box, its DNS, its password and the four settings below
-  # are Al's, and with any of them missing this job still refuses rather than
-  # guesses.
+  # WHAT IT DOES NOT ASSERT: the status field. `degraded` is correct for up to
+  # fifteen minutes after a deploy, because the health handler reports it until a
+  # scan has been recorded and `keel scan` runs on a fifteen minute interval.
+  # Asserting `ok` would mean either waiting a quarter of an hour in CI or seeding
+  # a scan to satisfy a check, and the second is the shape of tuning a test until
+  # it passes.
   #
-  # NO URL IS HARDCODED HERE. The host comes from vars.KEEL_DEPLOY_TARGET and
-  # the public address from vars.KEEL_PUBLIC_URL. api.keels.app is the documented
-  # value and it is documented in the runbook, which is where a reader looks for
-  # the deployment's facts, rather than in a workflow that would then be the
-  # second place it is written down.
+  # PLAIN ssh AND NO THIRD-PARTY ACTION. A marketplace action in this job would
+  # see the private key and the host, so trusting one is trusting whoever can push
+  # a tag to it. `ssh` is already on the runner and the whole invocation is nine
+  # lines below.
+  #
+  # NO STELLAR CREDENTIAL EXISTS ANYWHERE IN HERE. Keel is permanently read only:
+  # it never signs and never submits a transaction, and there is no signing code in
+  # the repository. The two secrets are an SSH key for a box and a host key to pin
+  # it, and neither can authorise anything on the network.
   deploy:
     name: deploy
     needs: image
     runs-on: ubuntu-latest
+    # VERSION TAGS ONLY. See the header: a workflow_dispatch publishes an image and
+    # deploys nothing.
+    if: github.ref_type == 'tag'
     steps:
       - name: What this is waiting for
         if: vars.KEEL_DEPLOY_TARGET == ''
@@ -213,78 +243,77 @@ jobs:
             echo "The image is built and published. Nothing is deployed, because no target is configured."
             echo ""
             echo "Everything below is prepared and unapplied. The steps are"
-            echo "\`scripts/vps-deploy/RUNBOOK.md\`, and all of this is Al's:"
+            echo "\`scripts/deploy/RUNBOOK.md\`, and all of this is Al's:"
             echo ""
-            echo "1. A host, and the DNS record for it. Runbook sections 3.1 to 3.3."
+            echo "1. A host, its architecture checked, and the DNS record for it."
+            echo "   Runbook sections 3.1 to 3.3. THE IMAGE IS amd64 ONLY."
             echo "2. The \`.env\` file on that host, including the database password."
             echo "   Runbook section 3.4."
             echo "3. The schema applied to it once, by hand:"
             echo "   \`COMPOSE_FILE=docker-compose.prod.yml bash scripts/migrate.sh\`."
             echo "   Runbook section 3.5. This job never migrates."
             echo "4. The demonstration set declared once. Runbook section 3.6."
-            echo "5. These four settings, which is what turns this job on. Runbook section 7:"
+            echo "5. These five settings, which are what turn this job on. Runbook section 10:"
             echo ""
             echo "   | setting | kind | value |"
             echo "   | --- | --- | --- |"
             echo "   | \`KEEL_DEPLOY_TARGET\` | variable | user@host, the SSH destination |"
-            echo "   | \`KEEL_PUBLIC_URL\` | variable | the public base URL, for the health check |"
+            echo "   | \`KEEL_HEALTH_URL\` | variable | the health endpoint to check after deploying |"
+            echo "   | \`KEEL_DEPLOY_PATH\` | variable | optional, defaults to /opt/keel |"
             echo "   | \`KEEL_DEPLOY_SSH_KEY\` | secret | private key for that host |"
-            echo "   | \`KEEL_DEPLOY_SSH_KNOWN_HOSTS\` | secret | \`ssh-keyscan\` of that host |"
-            echo ""
-            echo "A decision is also outstanding on \`-historical\`, which is FR-19. It ships"
-            echo "false until replayed rows exist in that database; see docker-compose.prod.yml."
+            echo "   | \`KEEL_DEPLOY_KNOWN_HOSTS\` | secret | \`ssh-keyscan\` of that host |"
             echo ""
             echo "Same PREPARE and APPLY split as scripts/s3-archive/: the runbook and the"
             echo "tooling are written here, the account and the secrets are not."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "no deploy target configured; nothing was deployed"
 
-      # EVERY REMAINING STEP IS GATED ON THE SAME CONDITION. A job-level `if`
-      # would skip the step above too, and the summary it writes is the whole
-      # value of this job while no target is configured.
+      # EVERY REMAINING STEP CARRIES THE SAME CONDITION. A job-level `if` would
+      # skip the step above too, and the summary it writes is the whole value of
+      # this job while no target is configured.
 
-      # THE PARTIAL CONFIGURATION IS ITS OWN FAILURE, and it fails BEFORE
-      # anything is touched. A target with no public URL would deploy and then
-      # have nothing to check itself against, which is the shape of a green tick
-      # that means nothing.
+      # THE PARTIAL CONFIGURATION FAILS BEFORE ANYTHING IS TOUCHED. A target with
+      # no health URL would deploy and then have nothing to check itself against,
+      # which is the shape of a green tick that means nothing.
       - name: Refuse a half-configured target
-        if: vars.KEEL_DEPLOY_TARGET != '' && vars.KEEL_PUBLIC_URL == ''
+        if: vars.KEEL_DEPLOY_TARGET != '' && vars.KEEL_HEALTH_URL == ''
         run: |
-          echo "KEEL_DEPLOY_TARGET is set and KEEL_PUBLIC_URL is not." >&2
+          echo "KEEL_DEPLOY_TARGET is set and KEEL_HEALTH_URL is not." >&2
           echo "" >&2
-          echo "The health check after the deploy calls \$KEEL_PUBLIC_URL/v1/health from this" >&2
-          echo "runner, over the public internet, which is the only place the check is worth" >&2
-          echo "anything. There is deliberately no default: guessing the public address of" >&2
-          echo "somebody else's host is how a deploy reports success against a URL nobody" >&2
-          echo "configured." >&2
+          echo "The version check after the deploy calls that URL from this runner, over the" >&2
+          echo "public internet, which is the only path that proves DNS, the certificate, the" >&2
+          echo "proxy and the API together. It is the entire point of this job." >&2
           echo "" >&2
-          echo "Set the repository variable KEEL_PUBLIC_URL. The documented value is in" >&2
-          echo "scripts/vps-deploy/RUNBOOK.md section 7." >&2
+          echo "There is deliberately no default and no URL written into this workflow:" >&2
+          echo "guessing the public address of somebody else's host is how a deploy reports" >&2
+          echo "success against a URL nobody configured." >&2
+          echo "" >&2
+          echo "Set the repository variable KEEL_HEALTH_URL. The documented value is in" >&2
+          echo "scripts/deploy/RUNBOOK.md section 10." >&2
           exit 1
 
-      # The checkout is for reading, not for shipping: the version assertion
-      # below compares what the live API serves against the constant in this
-      # commit's source. The host gets the code by fetching the same commit
-      # itself, in the deploy step.
+      # The checkout is for READING, not for shipping. The version assertion below
+      # compares what the live API serves against the constant in this commit's
+      # source; the host gets the code by fetching the same commit itself.
       - uses: actions/checkout@v4
         if: vars.KEEL_DEPLOY_TARGET != ''
 
       # THE HOST KEY IS PINNED AND NOT ACCEPTED. StrictHostKeyChecking=no on a
-      # deploy key is the difference between "SSH to my box" and "SSH to
-      # whatever answers that address today", and this job holds a key that can
-      # restart the deliverable's API. KEEL_DEPLOY_SSH_KNOWN_HOSTS is
-      # `ssh-keyscan` run once, from somewhere trusted.
+      # deploy key is the difference between "SSH to my box" and "SSH to whatever
+      # answers that address today", and this job holds a key that can restart the
+      # deliverable's API. KEEL_DEPLOY_KNOWN_HOSTS is `ssh-keyscan` run once, from
+      # somewhere trusted.
       - name: SSH, with the host key pinned
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:
           KEY: ${{ secrets.KEEL_DEPLOY_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.KEEL_DEPLOY_SSH_KNOWN_HOSTS }}
+          KNOWN_HOSTS: ${{ secrets.KEEL_DEPLOY_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           if [ -z "$KEY" ] || [ -z "$KNOWN_HOSTS" ]; then
             echo "KEEL_DEPLOY_TARGET is set but the SSH secrets are not." >&2
-            echo "Both KEEL_DEPLOY_SSH_KEY and KEEL_DEPLOY_SSH_KNOWN_HOSTS are needed." >&2
-            echo "See scripts/vps-deploy/RUNBOOK.md section 7." >&2
+            echo "Both KEEL_DEPLOY_SSH_KEY and KEEL_DEPLOY_KNOWN_HOSTS are needed." >&2
+            echo "See scripts/deploy/RUNBOOK.md section 10." >&2
             exit 1
           fi
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
@@ -293,14 +322,18 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      # TWO COMMANDS, AND THE ORDER IS THE POINT. The host checks out this exact
-      # commit first, then runs the deploy script FROM that checkout, so the
-      # version of the script that runs is the version being deployed rather
-      # than whatever the last deploy left behind.
+      # PIN THE TAG, PULL, UP. In that order, and the order is the point: .env is
+      # the record of what is live, so the tag is written there BEFORE compose
+      # reads it. A tag passed only on the command line would leave the file
+      # saying one thing while another ran, and the next person to type
+      # `docker compose up -d` by hand would silently change the running version.
       #
-      # A detached checkout of one SHA, not a pull of a branch: what is deployed
-      # is the commit this workflow run is for, and a `git pull` would deploy
-      # whatever main had reached by the time the SSH connected.
+      # The checkout on the host is a detached checkout of THIS commit, not a pull
+      # of a branch, so the compose file and the Caddyfile that come up are the
+      # ones this release was reviewed with.
+      #
+      # These are the same four commands section 5 of the runbook gives for a
+      # manual deploy. If one changes, both change.
       - name: Deploy
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:
@@ -309,77 +342,118 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          # THE REMOTE SCRIPT GOES OVER STDIN TO `bash -s`, and the values reach
-          # it as environment rather than as text spliced into it. Two reasons.
-          # `set -o pipefail` is not POSIX, so a script handed to whatever login
-          # shell the host happens to use fails on dash before it does anything;
-          # naming bash makes the remote shell this job's choice rather than the
-          # host's. And a quoted heredoc is expanded once, remotely, so nothing
-          # here has to survive two rounds of quoting.
+          # The remote script goes over stdin to `bash -s` and the values reach it
+          # as environment rather than as text spliced into it. `set -o pipefail`
+          # is not POSIX, so a script handed to whatever login shell the host uses
+          # can fail on dash before it does anything; naming bash makes the remote
+          # shell this job's choice. A quoted heredoc is expanded once, remotely,
+          # so nothing here survives two rounds of quoting.
           ssh -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "$TARGET" \
             "DEPLOY_PATH='$DEPLOY_PATH' SHA='$SHA' bash -s" <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
-          # A detached checkout of one SHA, and --depth 1 so the host does not
-          # carry the history it has no use for.
+
+          test -f .env || {
+            echo "no .env in $DEPLOY_PATH: this is first-time setup and not this job's" >&2
+            echo "work. See scripts/deploy/RUNBOOK.md section 3.4." >&2
+            exit 1
+          }
+
           git fetch --depth 1 origin "$SHA"
           git checkout --detach "$SHA"
-          bash scripts/vps-deploy/deploy-remote.sh "$SHA"
+
+          previous=$(grep '^KEEL_IMAGE_TAG=' .env | head -1 | cut -d= -f2- || echo "(none)")
+          # A temporary file and a move, so an interrupted write cannot leave a
+          # .env with no image tag in it, which is a file compose refuses outright.
+          sed "s|^KEEL_IMAGE_TAG=.*|KEEL_IMAGE_TAG=${SHA}|" .env > .env.next
+          chmod 600 .env.next
+          mv .env.next .env
+          echo "image tag: was ${previous}, now ${SHA}"
+
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml ps
           REMOTE
 
-      # THE CHECK IS MADE FROM HERE AND NOT FROM THE BOX, over the public
-      # internet and through Caddy, because that is the only path that proves
-      # what a consumer gets: DNS resolving, the certificate valid, the proxy
-      # routing, and the API answering. `curl localhost:3000` on the host proves
-      # none of those and passes when all four are broken.
-      #
-      # IT ASSERTS ON THE BODY AND NOT ONLY ON THE STATUS CODE, for the reason
-      # the smoke test above gives: DEC-014 section 5 records a contract
-      # advertising a version the server did not return.
-      - name: GET /v1/health over the internet, and check what it says
+      # WAIT ON THE STACK'S OWN HEALTH BEFORE ASKING THE INTERNET. The caddy
+      # service carries the healthcheck, because the API's image is distroless and
+      # has no HTTP client in it; it probes http://keel-serve:3000/v1/health and
+      # asserts 200 only. Waiting here means the curl below fails for a real
+      # reason rather than for arriving early.
+      - name: Wait for the stack to report healthy
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:
-          PUBLIC_URL: ${{ vars.KEEL_PUBLIC_URL }}
+          TARGET: ${{ vars.KEEL_DEPLOY_TARGET }}
+          DEPLOY_PATH: ${{ vars.KEEL_DEPLOY_PATH || '/opt/keel' }}
         run: |
           set -euo pipefail
-          url="${PUBLIC_URL%/}/v1/health"
-          echo "checking $url"
+          ssh -o StrictHostKeyChecking=yes "$TARGET" \
+            "DEPLOY_PATH='$DEPLOY_PATH' bash -s" <<'REMOTE'
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          for i in $(seq 1 30); do
+            state=$(docker inspect --format '{{.State.Health.Status}}' keel-prod-caddy 2>/dev/null || echo unknown)
+            echo "caddy health: $state"
+            [ "$state" = "healthy" ] && exit 0
+            sleep 5
+          done
+          echo "the caddy healthcheck did not reach healthy in about two and a half minutes" >&2
+          docker compose -f docker-compose.prod.yml ps >&2
+          docker compose -f docker-compose.prod.yml logs --tail 40 keel-serve >&2
+          exit 1
+          REMOTE
 
-          # Up to about three minutes. A restart is seconds, but a FIRST deploy
-          # is also waiting on an ACME certificate, and a TLS handshake that
-          # fails because the certificate has not been issued yet is
-          # indistinguishable here from one that fails because port 80 is shut.
-          # The runbook's section 9 is where that gets diagnosed; this loop just
-          # gives the normal case room.
-          for i in $(seq 1 40); do
-            if curl -fsS --max-time 10 "$url" > /tmp/health.json 2>/dev/null; then
+      # THE CHECK IS MADE FROM HERE AND NOT FROM THE BOX, over the public internet
+      # and through Caddy, because that is the only path that proves what a
+      # consumer gets: DNS resolving, the certificate valid, the proxy routing and
+      # the API answering. `curl localhost:3000` on the host proves none of those
+      # and passes when all four are broken.
+      - name: The version the live API serves is the version this commit compiles
+        if: vars.KEEL_DEPLOY_TARGET != ''
+        env:
+          HEALTH_URL: ${{ vars.KEEL_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          echo "checking $HEALTH_URL"
+
+          # Up to about a minute. The stack already reports healthy by now, so
+          # this is covering DNS and, on a first deploy, an ACME certificate that
+          # may still be seconds away. A TLS handshake failing because the
+          # certificate has not been issued is indistinguishable here from one
+          # failing because port 80 is shut; RUNBOOK.md section 9 is where that
+          # gets diagnosed.
+          for i in $(seq 1 12); do
+            if curl -fsS --max-time 10 "$HEALTH_URL" > /tmp/health.json 2>/dev/null; then
               break
             fi
             sleep 5
           done
           if [ ! -s /tmp/health.json ]; then
-            echo "no answer from $url after about three minutes" >&2
-            echo "scripts/vps-deploy/RUNBOOK.md section 9 is the diagnosis order." >&2
+            echo "no answer from $HEALTH_URL" >&2
+            echo "scripts/deploy/RUNBOOK.md section 9 is the diagnosis order." >&2
             exit 1
           fi
           cat /tmp/health.json
 
           # READ FROM THE SOURCE, NOT FROM A TOOLCHAIN, the same way the smoke
-          # test does. This form does not assume the version is a draft, so it
-          # keeps working on the day the suffix comes off.
+          # test does: `go run` would need Go on the runner at a version this
+          # workflow never pinned, and the thing being compared is a constant in a
+          # file that is right here. This form does not assume the version is a
+          # draft, so it keeps working on the day the suffix comes off.
           want=$(grep -oE 'MethodologyVersion = "[^"]+"' internal/domain/types.go | head -1 | cut -d'"' -f2)
           test -n "$want" || { echo "could not read MethodologyVersion from internal/domain/types.go" >&2; exit 1; }
           got=$(python3 -c 'import json; print(json.load(open("/tmp/health.json"))["methodologyVersion"])')
           echo "live API reports $got, this commit compiles $want"
-          test "$got" = "$want"
+          if [ "$got" != "$want" ]; then
+            echo "" >&2
+            echo "THE DEPLOY DID NOT PUT THIS COMMIT LIVE." >&2
+            echo "The API answered, so something is running: it is not this code." >&2
+            echo "Check KEEL_IMAGE_TAG on the host and whether the pull succeeded." >&2
+            exit 1
+          fi
 
-      # DEGRADED IS REPORTED AND NOT ASSERTED ON, and this is the same decision
-      # the smoke test above made for the same reason. The health handler reports
-      # degraded until a scan has been recorded, and `keel scan` runs on a
-      # fifteen minute interval, so for up to fifteen minutes after a deploy
-      # degraded is the correct answer. Asserting "ok" here would mean either
-      # waiting a quarter of an hour in CI or seeding a scan to satisfy a check,
-      # and the second one is the shape of tuning a test until it passes.
+      # REPORTED AND NEVER ASSERTED ON. See the job header: degraded is the
+      # correct answer for up to fifteen minutes after a deploy.
       - name: Report the health status without asserting on it
         if: vars.KEEL_DEPLOY_TARGET != ''
         run: |
@@ -388,29 +462,32 @@ jobs:
       - name: Say what was deployed
         if: vars.KEEL_DEPLOY_TARGET != '' && success()
         env:
-          PUBLIC_URL: ${{ vars.KEEL_PUBLIC_URL }}
+          HEALTH_URL: ${{ vars.KEEL_HEALTH_URL }}
         run: |
           {
             echo "### Deployed"
             echo ""
             echo "| | |"
             echo "| --- | --- |"
+            echo "| release | \`${{ github.ref_name }}\` |"
             echo "| commit | \`${{ github.sha }}\` |"
             echo "| image | \`${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}\` |"
-            echo "| health | ${PUBLIC_URL%/}/v1/health |"
+            echo "| health | ${HEALTH_URL} |"
             echo ""
-            echo "\`GET /v1/health\` over the public internet returned the same methodology"
-            echo "version this commit compiles."
+            echo "The API answering at that URL reports the same methodology version this"
+            echo "commit compiles. That is what this job asserts and it is the only thing it"
+            echo "asserts."
             echo ""
             echo "A \`degraded\` status within about fifteen minutes of a deploy is correct and"
-            echo "is not a failed deploy: the scanner runs on an interval and health reports"
-            echo "degraded until a round has been recorded. RUNBOOK.md section 3.8."
+            echo "is not a failed deploy: the scanner runs on a fifteen minute interval and"
+            echo "health reports degraded until a round has been recorded. RUNBOOK.md section 4."
             echo ""
             echo "**Rollback** is one line on the host, because every build is published under"
-            echo "its own commit SHA:"
+            echo "its own commit SHA. RUNBOOK.md section 5:"
             echo ""
             echo '```'
             echo "sed -i 's/^KEEL_IMAGE_TAG=.*/KEEL_IMAGE_TAG=<previous-sha>/' .env"
-            echo "docker compose -f docker-compose.prod.yml up -d keel-api keel-scan"
+            echo "docker compose -f docker-compose.prod.yml pull"
+            echo "docker compose -f docker-compose.prod.yml up -d keel-serve keel-scan"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
