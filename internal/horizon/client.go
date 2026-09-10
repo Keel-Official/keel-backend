@@ -66,6 +66,18 @@ import (
 // DefaultBaseURL is public mainnet Horizon. It is rate limited and needs no key.
 const DefaultBaseURL = "https://horizon.stellar.org"
 
+// defaultTimeout bounds one request including its body read. It is three
+// minutes rather than the thirty seconds this client used until 10 September
+// 2026, and Config.Timeout records the measurement that moved it.
+const defaultTimeout = 3 * time.Minute
+
+// defaultMaxBodyBytes caps one response body. 64 MB is not a measured ceiling
+// and does not pretend to be one; it is roughly four times the largest body
+// this repository has actually seen, 17.5 MB. What makes the number safe to
+// pick loosely is that exceeding it is now an error naming the cap rather than
+// a silent truncation. See ErrBodyTooLarge.
+const defaultMaxBodyBytes int64 = 64 << 20
+
 // BidAmountUnit names which asset the `amount` field of an order book BID is
 // denominated in.
 //
@@ -121,6 +133,25 @@ var (
 	// on its first real request. Evidence:
 	// docs/evidences/order_book_amount_units_2026-08-24.txt section 3.
 	ErrNoLatestLedger = errors.New("horizon: response carried no Latest-Ledger header")
+
+	// ErrBodyTooLarge means the response was bigger than Config.MaxBodyBytes and
+	// was NOT read. It exists because the alternative is worse than an error.
+	//
+	// Until 10 September 2026 this client read bodies through
+	// io.LimitReader(resp.Body, 8<<20) and never asked whether the limit had
+	// been reached. An oversized body therefore came back as a valid, silently
+	// truncated byte slice, and the first thing to notice was json.Unmarshal
+	// reporting "unexpected end of JSON input" with no mention of a size cap
+	// anywhere in the message. It cost 31 of 51 holder readings in one pull, and
+	// the wrong cause was diagnosed first, because the symptom names the decoder
+	// and not the reader that produced its input.
+	//
+	// A truncated body that parses is the danger this guards. JSON usually fails
+	// to parse when cut, which is what happened here, but a cut inside a
+	// collection can still parse and would then have been read as a SHORT HOLDER
+	// SET rather than as a failure, which is a wrong concentration figure rather
+	// than a missing one.
+	ErrBodyTooLarge = errors.New("horizon: response body exceeds the configured cap and was not read")
 )
 
 // StatusError is a non-retryable HTTP status from Horizon.
@@ -145,6 +176,29 @@ type Config struct {
 	MaxRetries int           // retries AFTER the first attempt
 	RetryBase  time.Duration // doubled per attempt
 	RetryCap   time.Duration
+
+	// Timeout bounds one whole request INCLUDING reading the body, which is the
+	// part that matters here. It is only consulted when HTTP is nil; a caller
+	// that supplies its own client owns its own timeout.
+	//
+	// THIRTY SECONDS IS NOT ENOUGH FOR /accounts?asset= AND THAT IS MEASURED, not
+	// assumed. That endpoint returns the FULL account object for every holder,
+	// not the one trustline balance this client reads off it, so a page of 200
+	// holders of a widely held asset is tens of megabytes: BTC:GDPJALI4 answered
+	// in 17.5 MB and 20.5 s on 10 September 2026. Under a recorder round the same
+	// page crossed 30 s and the body was cut mid-stream, which surfaces as
+	// "decode page 1: unexpected end of JSON input" rather than as a timeout, and
+	// it took 31 of 51 assets in one pull. The size is a property of the endpoint
+	// and not of the network, so a retry at the same timeout fails the same way.
+	Timeout time.Duration
+
+	// MaxBodyBytes caps one response body. Zero means defaultMaxBodyBytes.
+	//
+	// The cap has to clear the largest page /accounts?asset= can answer with,
+	// and that is far larger than it looks: the endpoint returns the FULL
+	// account object per holder, so a page of 200 holders of a widely held
+	// asset ran to 17.5 MB on BTC:GDPJALI4. The old 8 MB was under half of it.
+	MaxBodyBytes int64
 
 	// Budget requests per BudgetWindow. Public Horizon is about 3600/hour, and
 	// the default leaves headroom for whatever else shares the IP.
@@ -172,8 +226,14 @@ func (c Config) withDefaults() Config {
 		c.BaseURL = DefaultBaseURL
 	}
 	c.BaseURL = strings.TrimRight(c.BaseURL, "/")
+	if c.Timeout == 0 {
+		c.Timeout = defaultTimeout
+	}
+	if c.MaxBodyBytes == 0 {
+		c.MaxBodyBytes = defaultMaxBodyBytes
+	}
 	if c.HTTP == nil {
-		c.HTTP = &http.Client{Timeout: 30 * time.Second}
+		c.HTTP = &http.Client{Timeout: c.Timeout}
 	}
 	if c.MaxRetries == 0 {
 		c.MaxRetries = 4
@@ -486,9 +546,17 @@ func (c *Client) attempt(ctx context.Context, full string, requireLatest bool) (
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+	// Read ONE BYTE PAST the cap so that hitting the cap is detectable. The
+	// previous form read exactly the cap through io.LimitReader and returned no
+	// error, so an oversized body arrived as a valid short read and failed three
+	// layers up as "decode page 1: unexpected end of JSON input". See
+	// ErrBodyTooLarge for what that cost.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, c.cfg.MaxBodyBytes+1))
 	if err != nil {
 		return nil, 0, &transportError{err: err}
+	}
+	if int64(len(body)) > c.cfg.MaxBodyBytes {
+		return nil, 0, fmt.Errorf("%w: %s exceeds %d bytes", ErrBodyTooLarge, full, c.cfg.MaxBodyBytes)
 	}
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusTooManyRequests {

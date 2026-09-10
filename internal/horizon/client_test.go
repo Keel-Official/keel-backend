@@ -604,3 +604,46 @@ func TestManyPoolsUnderTheLimitAreAccepted(t *testing.T) {
 		t.Errorf("pool 5 FeeBP = %d, want 35 read from its own record", obs.Snapshot.Pools[5].FeeBP)
 	}
 }
+
+// An oversized body must fail as an oversized body, not as broken JSON.
+//
+// THIS IS THE REGRESSION TEST FOR A REAL DEFECT, found on 10 September 2026 and
+// not by reading the code. The reader capped bodies at 8 MB through an
+// io.LimitReader and never asked whether the cap had been reached, so a larger
+// response arrived as a silently truncated slice and surfaced as
+// "decode page 1: unexpected end of JSON input" from a decoder that knows
+// nothing about size caps. 31 of 51 holder readings failed that way in one
+// pull, and the size cap was the third thing suspected rather than the first,
+// because nothing in the message pointed at the reader.
+//
+// The assertion is deliberately on the ERROR IDENTITY and not on the failure
+// itself. Truncated JSON usually fails to parse, so a test that only checked
+// "does it error" passed against the broken reader too.
+func TestOversizedBodyIsAnErrorAndNotTruncatedSilently(t *testing.T) {
+	f := newFakeHorizon(t)
+	const cap64 = 4096
+	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) {
+		// Valid JSON, and comfortably over the cap set below.
+		_, _ = fmt.Fprintf(w, `{"pad":%q}`, strings.Repeat("x", cap64*4))
+	}
+	c, _ := f.client(func(cfg *Config) { cfg.MaxBodyBytes = cap64 })
+
+	_, err := c.GetSnapshot(context.Background(), testUSTRY, testUSDC)
+	if !errors.Is(err, ErrBodyTooLarge) {
+		t.Fatalf("error = %v, want ErrBodyTooLarge; a body cut at the cap must never reach the decoder", err)
+	}
+}
+
+// A body that exactly fills the cap is not oversized, and the off-by-one here
+// is the whole reason the reader asks for MaxBodyBytes+1 rather than comparing
+// against what a LimitReader happened to return.
+func TestBodyExactlyAtTheCapIsAccepted(t *testing.T) {
+	f := newFakeHorizon(t)
+	body := bookBody("1.2185312", "0.0001000")
+	f.handler["/order_book"] = func(w http.ResponseWriter, _ *http.Request) { _, _ = fmt.Fprint(w, body) }
+	c, _ := f.client(func(cfg *Config) { cfg.MaxBodyBytes = int64(len(body)) })
+
+	if _, err := c.GetSnapshot(context.Background(), testUSTRY, testUSDC); err != nil {
+		t.Fatalf("a body of exactly MaxBodyBytes must be accepted, got %v", err)
+	}
+}
