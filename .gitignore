@@ -160,3 +160,10 @@
 # rules at once. If it is ever wanted in git it has to be translated first and
 # rethought second.
 /laporan_pekerjaan_al.md
+
+# The daily pg_dump written by docker-compose.prod.yml's db-dump service. It is a
+# host directory bind mounted into that container, so it appears in whatever
+# checkout the production stack runs from. A database dump is not evidence this
+# repository keeps and it carries every row of a live database; recordings/samples/
+# is the archive that is meant to be in git, and this is not it.
+backups/
