@@ -31,11 +31,17 @@
 # the state that reads as a working deployment to anybody who only checks that
 # the port answers.
 #
-# THE IMAGE IS amd64 ONLY. Neither build step in .github/workflows/deploy.yml
-# passes a `platforms:` input, and the job runs on ubuntu-latest, so the
-# published manifest is linux/amd64 and nothing else. On an arm64 box, which is
-# what most of the cheap instances now are, this stack does not start. Check
-# `uname -m` before the first boot; RUNBOOK.md section 3.3 makes it a step.
+# THE IMAGE IS PUBLISHED FOR amd64 AND arm64, so either kind of box runs this
+# stack and `docker pull` resolves the right one from a single tag. It was amd64
+# only until 11 September 2026, when `platforms: linux/amd64,linux/arm64` was
+# added to the publish step in .github/workflows/deploy.yml.
+#
+# THE ONE THING THAT DID NOT BECOME TRUE WITH IT: the smoke test in that
+# workflow still runs the amd64 image only, because the runner is amd64 and an
+# arm64 image cannot be executed there. So on an arm64 host the first proof that
+# the binary starts is the deploy job's own version check against the live API.
+# `exec format error` at `up -d` is no longer the failure to expect, but if
+# something architecture-shaped does go wrong, that is where it surfaces.
 #
 # THE PROJECT NAME IS keel-prod AND IT IS NOT COSMETIC. With no `name:`,
 # `docker compose` derives the project from the DIRECTORY, which makes this file

@@ -151,21 +151,26 @@ exactly the symptom of the other being closed.
 Nothing else needs to be open. `postgres` publishes no port at all and
 `keel-serve` publishes none either: Caddy is the only route in.
 
-### 3.3 The box, and check the architecture first
+### 3.3 The box
 
-**The published image is `linux/amd64` only.** Neither build step in
-`.github/workflows/deploy.yml` passes a `platforms:` input and the job runs on
-`ubuntu-latest`, so there is no arm64 manifest. Many cheap instances are arm64,
-and on one of those this stack does not start.
+**Either architecture is fine.** The image is published as a manifest list
+covering `linux/amd64` and `linux/arm64`, so `docker pull` resolves the right
+one from the same tag and x86_64 and arm64 instances are both supported. That
+was not true before 11 September 2026, when `platforms:` was added to the
+publish step; a box provisioned against the older advice is still correct.
 
 ```bash
-uname -m     # must print x86_64
+uname -m     # x86_64 or aarch64, both supported
 ```
 
-If it prints `aarch64`, stop: either use an x86_64 instance, or the image job
-needs `platforms: linux/amd64,linux/arm64`, which is a change to a file this
-runbook does not own. Do not reach for qemu binfmt emulation for a service that
-runs continuously.
+**One caveat worth knowing rather than acting on.** The smoke test in
+`.github/workflows/deploy.yml` runs the amd64 image only, because the runner is
+amd64 and cannot execute an arm64 one. The arm64 image is cross-built and
+published without being started. Nothing in a Go binary built this way makes a
+startup difference likely, and the deploy job's version check against the live
+API would catch it, but on an arm64 host that check is the first thing that
+proves the binary runs. If it fails there and the version is simply absent
+rather than wrong, read `docker compose logs keel-serve` before assuming DNS.
 
 Then Docker, the compose plugin, and the repository:
 
@@ -736,8 +741,12 @@ reported correctly.
 **`assetsMonitored: 0`.** Section 3.6 was not run, or was run against a
 different database.
 
-**`exec format error` on `up -d`.** The box is arm64 and the image is amd64.
-Section 3.3.
+**`exec format error` on `up -d`.** This was the arm64 symptom until
+11 September 2026 and should no longer happen: the image is published for both
+architectures. If it does, the tag in `KEEL_IMAGE_TAG` predates that change.
+Check with `docker buildx imagetools inspect
+ghcr.io/keel-official/keel-backend:$(grep '^KEEL_IMAGE_TAG=' .env | cut -d= -f2)`,
+which lists the platforms in the manifest, and move to a newer tag. Section 3.3.
 
 **The dashboard sees a network error with no status code, and `curl` works.**
 That is CORS. Section 7, and read the `.env` value first: exact origins, no
