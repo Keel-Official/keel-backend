@@ -68,6 +68,13 @@ permissions:
   packages: write
 
 env:
+  # IMAGE_NAME IS DEFINED HERE BECAUSE TWO STEPS ALREADY REFERENCE IT. They were
+  # changed from `github.repository` to `env.IMAGE_NAME` on 11 September 2026 and
+  # the variable was never added, so both rendered empty and the job summary
+  # printed `ghcr.io/:<sha>` as the image somebody was meant to be able to pull.
+  # An undefined `env` expression is not an error in Actions; it is an empty
+  # string, which is why this survived a green run.
+  IMAGE_NAME: ${{ github.repository }}
   # No GO_VERSION here on purpose. Nothing in this workflow runs Go: the compiler
   # runs inside the image build, pinned by the FROM line in the Dockerfile, and
   # the smoke test reads the methodology version out of the source file rather
@@ -270,11 +277,22 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          # THE `edge` BRANCH OF THE SECOND TAG IS UNREACHABLE TODAY and is kept
-          # deliberately. Every trigger is a version tag since 11 September 2026,
-          # so this always resolves to the tag name. It becomes live again the
-          # moment a non-tag trigger is added to `on:`, which is exactly when a
-          # moving name is wanted and exactly when nobody would think to add one.
+          # THE TAG SET IS THE METADATA ACTION'S NOW, and the two literal tags that
+          # used to be written here are gone. They were the commit SHA and
+          # `${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}`, and a
+          # comment stood above them explaining that the `edge` half was unreachable
+          # while every trigger is a version tag. That comment outlived the lines it
+          # described by one commit, which is the thing this file keeps being fixed
+          # for.
+          #
+          # WHAT IS PUBLISHED ON A TAG PUSH IS ONE NAME: the full commit SHA, from
+          # `type=sha,format=long,prefix=`. The `type=raw,value=main` entry is gated
+          # on `is_default_branch`, which is false on a tag, so it never fires here.
+          # THAT IS WHAT THE DEPLOY STEP BELOW DEPENDS ON: it writes
+          # `KEEL_IMAGE_TAG=${SHA}` into the host's .env from `github.sha`, so the
+          # name it pulls and the name published here are the same forty characters.
+          # Changing the sha format, or adding a prefix back, breaks the deploy and
+          # not the build, one step later and with a `manifest unknown` from `pull`.
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
