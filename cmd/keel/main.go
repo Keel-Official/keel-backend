@@ -93,6 +93,16 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "holders":
+		// The trustline pull, on its own cadence rather than inside a scan round.
+		// A holder reading costs up to 26 Horizon requests per asset and `scan`
+		// runs four times an hour, so the two cannot share a schedule; the header
+		// of holders.go has the arithmetic. `scan` reads what this writes.
+		if err := runHolders(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel holders: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "serve":
 		// The read-only API. It answers every endpoint in the contract today;
 		// what it has no rows to return is metrics, because producing one needs
@@ -191,6 +201,7 @@ Subcommands:
   assets    declare and inspect the demonstration set ("keel assets -h")
   universe  build a candidate asset universe ("keel universe -h")
   scan      compute metrics for every active asset, store them in Postgres
+  holders   pull trustline holders and cache the concentration ("keel holders -h")
   serve     run the read API ("keel serve -h")
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    rebuild a pair's order book at a past ledger ("keel replay -h")
