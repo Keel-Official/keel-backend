@@ -1005,14 +1005,35 @@ state rather than a placeholder, and it is why the job does not fire on every
 push: a deploy workflow that fails for want of a secret teaches people to ignore
 a red tick.
 
-**It runs on version tags only.** The image build also runs on
-`workflow_dispatch`, and the deploy job deliberately does not: a manual dispatch
-builds and publishes, and deploying is a decision that gets a tag. So the way to
-deploy is:
+**It runs on version tags only, and the tag name has to carry a suffix.** The
+trigger is two patterns, `v*-development` and `v*-production`, so the way to deploy
+is:
 
 ```bash
-git tag -a v0.3.0 -m "..." && git push origin v0.3.0
+git tag -a v0.3.0-production -m "..." && git push origin v0.3.0-production
 ```
+
+**`git tag v0.3.0` TRIGGERS NOTHING**, and this block gave exactly that command
+until 11 September 2026, when the trigger was narrowed from `v*` to the two
+suffixed patterns. A bare name matched before and does not now. That failure is
+silent: a tag matching no pattern produces no red tick, no summary, and nothing in
+the Actions tab to notice, so the symptom is a release that appears to have been
+cut and a host still running the previous image.
+
+**THE TWO SUFFIXES DO THE SAME THING TODAY.** Both patterns run the same two jobs
+against the same single `KEEL_DEPLOY_TARGET`, so `-development` and `-production`
+are two names for one path and one host. If they are meant to reach different
+boxes, that is a second target and a job-level environment, and it is a change to
+make deliberately rather than a meaning to read into the names.
+
+**THERE IS NO LONGER A WAY TO PUBLISH AN IMAGE WITHOUT DEPLOYING.** The same edit
+removed `workflow_dispatch`, which was the route that built, smoke tested and
+published while deploying nothing. Every tag that builds an image now also attempts
+a deploy, gated only by `KEEL_DEPLOY_TARGET` being set. The paragraph that used to
+sit here explained why the two jobs did NOT share a trigger, and the reasoning was
+that publishing is cheap and reversible while putting an image in front of the
+public API is a decision. That reasoning has not been withdrawn; the mechanism that
+carried it has.
 
 **Repository variables** (Settings, Secrets and variables, Actions, Variables):
 

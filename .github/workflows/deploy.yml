@@ -27,19 +27,41 @@ name: deploy
 # and fails for want of a secret teaches people to ignore a red tick, and a red
 # tick nobody reads is worse than no check.
 #
-# THE TWO JOBS DO NOT SHARE A TRIGGER, AND THAT IS DELIBERATE RATHER THAN AN
-# OVERSIGHT. The sentence here used to end "It runs when a version tag is pushed,
-# or when somebody presses the button", and that is still true of the IMAGE job.
-# The DEPLOY job runs on a version tag ONLY: it carries `if: github.ref_type ==
-# 'tag'`. So a workflow_dispatch builds, smoke tests and publishes, and deploys
-# nothing. Publishing an image is cheap and reversible; putting one in front of the
-# public API is a decision, and a decision gets a tag that says which release it
-# was. Pressing a button leaves no such record.
+# THE TWO JOBS SHARE ONE TRIGGER NOW, AND THEY DID NOT BEFORE. The paragraph here
+# read "THE TWO JOBS DO NOT SHARE A TRIGGER", because the image job also ran on
+# `workflow_dispatch` and the deploy job refused a dispatch with `if:
+# github.ref_type == 'tag'`. The reasoning under it was that publishing an image is
+# cheap and reversible while putting one in front of the public API is a decision,
+# and a decision gets a tag that says which release it was, where pressing a button
+# leaves no such record.
+#
+# THE TRIGGER WAS NARROWED ON 11 SEPTEMBER 2026, and what it cost is worth stating
+# rather than discovering. `tags: ["v*"]` plus `workflow_dispatch` became the two
+# suffixed patterns below. So:
+#
+#   - `git tag v0.3.0` NO LONGER TRIGGERS ANYTHING. The name has to end in
+#     `-development` or `-production`. Section 10 of the runbook and the README
+#     carry the corrected form.
+#   - THERE IS NO LONGER A WAY TO PUBLISH AN IMAGE WITHOUT DEPLOYING. That was
+#     `workflow_dispatch`'s whole job. Every tag that builds an image now also
+#     attempts a deploy, gated only by KEEL_DEPLOY_TARGET.
+#   - `if: github.ref_type == 'tag'` on the deploy job is now always true. It is
+#     KEPT rather than deleted, because it is what makes the deploy job refuse a
+#     non-tag trigger if one is ever added back, and deleting it would move that
+#     guarantee into the `on:` block where nobody reads it twice.
+#
+# THE TWO SUFFIXES BEHAVE IDENTICALLY TODAY, and that is a fact about this file
+# rather than a recommendation. Both patterns run the same two jobs against the same
+# single KEEL_DEPLOY_TARGET, so `-development` and `-production` are two names for
+# one path. If they are meant to reach different hosts, that is a second target and
+# a job-level environment, and it is a change to make on purpose rather than
+# something to read into the names.
 
 on:
   push:
-    tags: ["v*"]
-  workflow_dispatch:
+    tags:
+      - "v*-development"
+      - "v*-production"
 
 permissions:
   contents: read
@@ -114,7 +136,10 @@ jobs:
       # ONE COMPUTED DATE RATHER THAN AN EVENT FIELD.
       # github.event.repository.updated_at is empty on workflow_dispatch, and a
       # label that is present on a tag build and blank on a manual one is worse
-      # than one that is always the same shape.
+      # than one that is always the same shape. The dispatch trigger was removed
+      # on 11 September 2026, so that asymmetry cannot occur today; the step stays
+      # because a computed date is the same shape under every trigger and needs no
+      # revisiting if one is added back.
       - name: Stamp
         id: stamp
         run: echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
@@ -236,6 +261,11 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          # THE `edge` BRANCH OF THE SECOND TAG IS UNREACHABLE TODAY and is kept
+          # deliberately. Every trigger is a version tag since 11 September 2026,
+          # so this always resolves to the tag name. It becomes live again the
+          # moment a non-tag trigger is added to `on:`, which is exactly when a
+          # moving name is wanted and exactly when nobody would think to add one.
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}
@@ -294,8 +324,9 @@ jobs:
     name: deploy
     needs: image
     runs-on: ubuntu-latest
-    # VERSION TAGS ONLY. See the header: a workflow_dispatch publishes an image and
-    # deploys nothing.
+    # VERSION TAGS ONLY, AND EVERY TRIGGER IS ONE SINCE 11 SEPTEMBER 2026, so this
+    # condition is always true today. See the header: it is kept so that adding a
+    # non-tag trigger to `on:` cannot silently start deploying.
     if: github.ref_type == 'tag'
     steps:
       - name: What this is waiting for

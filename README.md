@@ -427,12 +427,19 @@ API unhealthy on every fresh deploy.
 
 ## 2.5 Deploying a new version
 
-The deploy job runs on version tags only. A manual `workflow_dispatch` builds and
-publishes the image; deploying is a decision that gets a tag.
+The deploy job runs on version tags only, and the name has to end in
+`-development` or `-production`. Those are the two patterns in the trigger.
 
 ```bash
-git tag -a v0.3.0 -m "..." && git push origin v0.3.0
+git tag -a v0.3.0-production -m "..." && git push origin v0.3.0-production
 ```
+
+**A bare `v0.3.0` fires nothing**, and a tag that fires no workflow is silent: no
+red tick, no summary, nothing in the Actions tab. The two suffixes currently do the
+same thing, because both patterns run the same jobs against the same single
+`KEEL_DEPLOY_TARGET`. There is also no longer a route that publishes an image
+without deploying, since the same edit removed `workflow_dispatch`. Runbook section
+10 carries both points.
 
 The job SSHes with a pinned host key, rewrites `KEEL_IMAGE_TAG` in `.env` to the
 commit SHA, pulls, brings the stack up, waits for the `caddy` healthcheck, then curls
