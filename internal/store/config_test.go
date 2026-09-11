@@ -10,7 +10,7 @@ import (
 
 // A zero field must mean "the default" and never "unlimited". database/sql
 // reads a zero MaxOpenConns as unlimited and a zero lifetime as forever, so
-// this is the test that would fail if withDefaults were ever dropped in favour
+// this is the test that would fail if withDefaults were ever dropped in favor
 // of passing the struct straight through.
 func TestConfigZeroMeansDefaultAndNeverUnlimited(t *testing.T) {
 	got := Config{}.withDefaults()
