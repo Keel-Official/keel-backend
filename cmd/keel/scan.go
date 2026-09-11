@@ -55,6 +55,7 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strings"
 	"syscall"
 	"time"
 
@@ -87,6 +88,8 @@ func runScan(args []string) error {
 	bidUnit := fs.String("bid-amount-unit", string(horizon.BidAmountUnitQuote),
 		"which asset an order book bid amount is denominated in: quote or base. See BidAmountUnit in internal/horizon")
 	verify := fs.Bool("verify", true, "verify every asset's code, issuer and type on Horizon before the first round")
+	maxHolderAge := fs.Duration("max-holder-age", 48*time.Hour,
+		"ignore a cached holder reading older than this, so its figures are unevaluated rather than stale. 0 disables the bound")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel scan - compute metrics for every active asset and store them
@@ -161,14 +164,14 @@ after a crash is safe and a differing result is a finding rather than an overwri
 		applied[0], len(rows), domain.MethodologyVersion, unit)
 
 	if *once {
-		return scanOnce(ctx, s, client, rows, logger)
+		return scanOnce(ctx, s, client, rows, *maxHolderAge, logger)
 	}
 
 	logger.Printf("interval %s, Ctrl-C to stop", *interval)
 	ticker := time.NewTicker(*interval)
 	defer ticker.Stop()
 	for {
-		if err := scanOnce(ctx, s, client, rows, logger); err != nil {
+		if err := scanOnce(ctx, s, client, rows, *maxHolderAge, logger); err != nil {
 			return err
 		}
 		select {
@@ -182,7 +185,7 @@ after a crash is safe and a differing result is a finding rather than an overwri
 
 // scanOnce computes and stores one round, and opens a run row around it so that a
 // partial failure survives the process that produced it.
-func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows []store.Asset, logger *log.Logger) error {
+func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows []store.Asset, maxHolderAge time.Duration, logger *log.Logger) error {
 	startedAt := time.Now().UTC()
 	runID, err := s.StartRun(ctx, store.RunScan, startedAt)
 	if err != nil {
@@ -190,6 +193,8 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	}
 
 	var ok, failed, panicked, stored, alreadyThere int
+	var withHolders int
+	holderGaps := map[string]int{}
 	params := domain.DefaultParams()
 
 	for _, a := range rows {
@@ -204,7 +209,17 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 			continue
 		}
 
-		risk, didPanic, err := computeRisk(obs.Snapshot, params)
+		// FR-8 comes from the cache that `keel holders` fills, not from a pull of
+		// this round's own. See the header of holders.go for the request budget
+		// that forces the split.
+		sup, why := supportingFor(ctx, s, a.Base, time.Now().UTC(), maxHolderAge)
+		if sup != nil {
+			withHolders++
+		} else {
+			holderGaps[why]++
+		}
+
+		risk, didPanic, err := computeRisk(obs.Snapshot, params, sup)
 		if err != nil {
 			failed++
 			if didPanic {
@@ -234,15 +249,30 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 		}
 	}
 
-	notes := ""
+	var parts []string
 	if panicked > 0 {
-		notes = fmt.Sprintf("%d of %d asset(s) panicked inside internal/domain", panicked, len(rows))
+		parts = append(parts, fmt.Sprintf("%d of %d asset(s) panicked inside internal/domain", panicked, len(rows)))
 	}
-	if err := s.FinishRun(ctx, runID, time.Now().UTC(), ok, failed, notes); err != nil {
+	// THE RUN ROW IS THE ONLY PLACE THIS IS RECORDED, and that is a gap rather
+	// than a design. DEC-018 section 1 point 2 proposes that a metrics row carry
+	// the holder half's own snapshot ledger beside LedgerSeq; that record is a
+	// DRAFT and the column does not exist, so a stored row cannot say where its
+	// holder figures came from or how old they were. Until it is decided the
+	// provenance lives here, per round rather than per row, which is weaker and
+	// is better than nothing being written down at all.
+	parts = append(parts, fmt.Sprintf("holder concentration attached to %d of %d asset(s)", withHolders, ok))
+	for _, why := range sortedKeys(holderGaps) {
+		parts = append(parts, fmt.Sprintf("%d without: %s", holderGaps[why], why))
+	}
+
+	if err := s.FinishRun(ctx, runID, time.Now().UTC(), ok, failed, strings.Join(parts, "; ")); err != nil {
 		return fmt.Errorf("scan: %w", err)
 	}
-	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d requests this window",
-		ok, stored, alreadyThere, failed, client.Requests())
+	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d requests this window",
+		ok, stored, alreadyThere, failed, withHolders, client.Requests())
+	for _, why := range sortedKeys(holderGaps) {
+		logger.Printf("  no holder figures for %d asset(s): %s", holderGaps[why], why)
+	}
 
 	// Every asset panicking is not a scan that failed, it is a scan with nothing to
 	// compute with. Reported as itself so a scheduler is not told the wrong thing.
@@ -258,14 +288,14 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 // this one call: the panic being caught here comes from a package whose functions
 // are declared and unwritten, and a batch job is the one place where turning a
 // crash into a counted failure is the correct trade. See decision 1 in the header.
-func computeRisk(s domain.Snapshot, p domain.Params) (risk domain.AssetRisk, panicked bool, err error) {
+func computeRisk(s domain.Snapshot, p domain.Params, sup *domain.SupportingMetrics) (risk domain.AssetRisk, panicked bool, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panicked = true
 			err = fmt.Errorf("computing: panic: %v", r)
 		}
 	}()
-	risk, err = domain.ComputeAssetRisk(s, p)
+	risk, err = domain.ComputeAssetRiskWith(s, p, sup)
 	return risk, false, err
 }
 
@@ -295,4 +325,100 @@ func verifyAssets(ctx context.Context, client *horizon.Client, rows []store.Asse
 	}
 	logf("verified %d distinct asset(s) against Horizon", len(keys))
 	return nil
+}
+
+// supportingFor builds the supporting metrics for one asset from the newest
+// cached holder reading, and reports in one word why there are none when there
+// are none.
+//
+// IT DOES NOT CALL domain.ComputeSupporting, AND THAT IS THE CADENCE SPLIT RATHER
+// THAN A SHORTCUT. FR-8 is computed by domain.HolderConcentration at PULL time,
+// inside `keel holders`, because the pull is what has the trustline balances and
+// a scan round cannot afford to take one. The cache stores the three figures that
+// produced, not the balances behind them, so there is nothing here to recompute
+// and recomputing would mean re-pulling. The domain function still owns the
+// definition; it ran earlier, in the command whose budget allows it.
+//
+// THE TRADE HALF IS DEFERRED and every field it fills is left nil. That is the
+// split point in tugas-a.md section 6b, and it is a measured absence rather than
+// an oversight: domain.SummariseGenuine over no trades yields a nil
+// TradesExcludedPct and a nil LastGenuineTrade, so WASH_TRADE_SUSPECTED,
+// NO_GENUINE_TRADE_7D and NO_GENUINE_TRADE_30D stay unevaluated rather than
+// reading as checked and clear.
+//
+// WHAT IT RETURNS NIL FOR, and all four are the same statement: this round has no
+// holder answer, so the two holder flags must stay unevaluated. Zero would be a
+// measurement nobody made.
+func supportingFor(
+	ctx context.Context,
+	s *store.Store,
+	base domain.Asset,
+	now time.Time,
+	maxAge time.Duration,
+) (*domain.SupportingMetrics, string) {
+	// XLM has no trustlines at all, so there is no holder reading to want. It is
+	// a permanent property of the asset and not a gap in the data.
+	if base.IsNative() {
+		return nil, "native asset has no trustlines"
+	}
+
+	reading, err := s.LatestHolderReading(ctx, base, domain.MethodologyVersion)
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		return nil, "no holder reading yet, run `keel holders`"
+	case err != nil:
+		// Reported, not fatal. A database hiccup reading a cache must not cost
+		// the depth half of the round, which is the deliverable.
+		return nil, "holder reading unreadable: " + err.Error()
+	}
+
+	return supportingFromReading(reading, now, maxAge)
+}
+
+// supportingFromReading is the decision half of supportingFor, split out because
+// it is the half worth testing and it needs no database to make.
+func supportingFromReading(
+	reading store.HolderReading,
+	now time.Time,
+	maxAge time.Duration,
+) (*domain.SupportingMetrics, string) {
+	// THE BOUND IS A MECHANISM DECIDED HERE AND A NUMBER DECIDED ELSEWHERE.
+	// DEC-018 section 1 point 3 proposes 48 hours and its own section 7 says the
+	// figure is proposed rather than derived: nothing has measured how fast the
+	// top 1 per cent share of a thin Stellar asset moves. The flag carries that
+	// default so the assumption is visible and settable, and -max-holder-age=0
+	// disables the bound for whoever prefers the other alternative that record
+	// weighs, which is to let a stale reading through and label it.
+	if age := reading.Age(now); maxAge > 0 && age > maxAge {
+		return nil, fmt.Sprintf("holder reading older than %s", maxAge)
+	}
+
+	// A truncated pull is stored WITH its flag and WITHOUT figures, so this is
+	// the same refusal arriving one step later. domain.ErrHolderSetTruncated is
+	// where it started, and Top1Pct is checked as well as the flag because a
+	// complete pull whose population was empty after exclusions also has none.
+	if reading.Truncated {
+		return nil, "holder set was truncated, so concentration is unevaluated"
+	}
+	if reading.Top1Pct == nil {
+		return nil, "holder reading carries no concentration figures"
+	}
+
+	return &domain.SupportingMetrics{
+		HolderTop1Pct:  reading.Top1Pct,
+		HolderTop10Pct: reading.Top10Pct,
+		HolderHHI:      reading.HHI,
+	}, ""
+}
+
+// sortedKeys is non-negotiable rule 2 applied to a counter. Go randomizes map
+// order, and a round whose notes list the same gaps in a different order every
+// time cannot be diffed against the round before it.
+func sortedKeys(m map[string]int) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
 }
