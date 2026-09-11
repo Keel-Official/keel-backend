@@ -78,7 +78,7 @@ services:
   
   keel-scan:
     profiles: ["app"]
-    image: keel:local          # image yang sama dengan `keel`, dibangun sekali
+    image: ghcr.io/keel-official/keel-backend:${IMAGE_TAG:-main}    # image yang sama dengan `keel`, dibangun sekali
     container_name: keel-scan
     depends_on:
       postgres:

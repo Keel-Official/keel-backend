@@ -246,6 +246,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare Image Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=main,enable={{is_default_branch}}
+            type=sha,prefix=sha-,format=long
+
       # TWO ARCHITECTURES, ONE TAG. The registry gets a manifest list, so
       # `docker pull` on either kind of box resolves to the right image with no
       # tag suffix to remember and no second name to keep in step.
@@ -266,13 +275,13 @@ jobs:
           # so this always resolves to the tag name. It becomes live again the
           # moment a non-tag trigger is added to `on:`, which is exactly when a
           # moving name is wanted and exactly when nobody would think to add one.
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VCS_REF=${{ github.sha }}
             BUILD_DATE=${{ steps.stamp.outputs.date }}
           cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Say what was published
         run: |
@@ -280,7 +289,7 @@ jobs:
             echo "### Image published"
             echo ""
             echo '```'
-            echo "${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}"
+            echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}"
             echo '```'
             echo ""
             echo "Two platforms: linux/amd64 and linux/arm64, in one manifest list."
@@ -566,7 +575,7 @@ jobs:
             echo "| --- | --- |"
             echo "| release | \`${{ github.ref_name }}\` |"
             echo "| commit | \`${{ github.sha }}\` |"
-            echo "| image | \`${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}\` |"
+            echo "| image | \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\` |"
             echo "| health | ${HEALTH_URL} |"
             echo ""
             echo "The API answering at that URL reports the same methodology version this"
