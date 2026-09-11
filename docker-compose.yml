@@ -75,6 +75,23 @@ services:
     # CMD-SHELL form cannot run in it, and adding a binary purely to test the
     # process from inside would widen the image for a check the compose file can
     # get from outside. GET /v1/health is the endpoint.
+  
+  keel-scan:
+    profiles: ["app"]
+    image: keel:local          # image yang sama dengan `keel`, dibangun sekali
+    container_name: keel-scan
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # PERSIS SAMA dengan DSN service `keel`: port 5432 (port DALAM container),
+      # BUKAN 5433. 5433 hanya sisi HOST — dipakai di sini akan connection refused.
+      KEEL_DSN: "postgres://keel:keel_dev_only@postgres:5432/keel?sslmode=disable"
+    command: ["scan", "-interval", "15m"]
+    restart: unless-stopped
+    # Tidak ada port yang di-publish (scan tidak melayani HTTP) dan tidak ada
+    # healthcheck (image distroless, tanpa shell) — sama alasannya dengan `keel`.
+
 
 volumes:
   keel_pgdata:

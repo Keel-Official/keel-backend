@@ -120,7 +120,7 @@ services:
 
   # ---------------------------------------------------------------- the API
   keel-serve:
-    image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA, see scripts/deploy/RUNBOOK.md section 3.4}
+    image: ${KEEL_IMAGE:?set KEEL_IMAGE in .env to a commit SHA, see scripts/deploy/RUNBOOK.md section 3.4}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA, see scripts/deploy/RUNBOOK.md section 3.4}
     container_name: keel-prod-serve
     # THE GATE IS BACK. It waits for the database to accept connections and for
     # nothing else: the schema is NOT applied by it, so `serve` still refuses to

@@ -1,304 +1,503 @@
 # Keel
 
-Liquidity risk engine for the Stellar ecosystem.
+Liquidity risk engine for the Stellar ecosystem. It measures effective liquidity
+depth from the SDEX orderbook and AMM pool reserves.
 
 An oracle answers "what is the price". Keel answers "what volume can that price
 actually support".
 
-## Where this stands
+This file is how to RUN it. What is built and what is not, the layout, the
+recording workflow and the one CI job that is red on purpose are in the git
+history of this file, in `CLAUDE.md`, and in `docs/`.
 
-This repository is under construction. **The depth and manipulation engine computes
-as of 26 August 2026**, and `make conformance` passes against a golden fixture whose
-numbers were computed by hand before any implementation existed.
+---
 
-What exists: the methodology definitions, the API contract, that golden fixture, the
-shared types, the depth, manipulation cost, reference price, collateral and flag
-computations, architecture tests that enforce package purity, the live Horizon
-adapter with the cross-validation recorder, the Postgres persistence layer, and the
-read-only API.
+# 1. Running it locally
 
-What does not exist yet, and the list is specific on purpose:
+## 1.1 What you need
 
-- **The supporting metrics.** Holder concentration, the volume-to-supply ratios and
-  the time since the last genuine trade are declared, stored and served, and none of
-  them is computed. Their DEFINITIONS are not written either:
-  `docs/methodology/07-supporting-metrics.md` is still a worksheet. Every result
-  reports the six flags that depend on them as `unevaluated`, which is not the same
-  claim as clear.
-- **Layer 3 at the full sample size.** `keel crosscheck` executes it and the first
-  run compared 37 of the 60 recordings with zero mismatches; the SOW asks for at
-  least 50. Nothing is broken: seven hours passed between the recording and the
-  comparison and 23 pairs had an offer move in the gap, four of them exactly one
-  offer. `docs/evidences/2026-08-26-layer3-crosscheck.md` section 4 has the fix,
-  and it is a step in the recorder workflow rather than code.
-  **That sentence is a hypothesis and, until 31 August 2026, nothing had tested
-  it.** Every row in that run had the same seven hour delay, so the run holds no
-  contrast, and no row recorded its delay, so a second run could not have been
-  compared against it. `make record-batch` is the second arm: it records a batch
-  and rebuilds it inside the same hour, and every comparison row now carries the
-  measured gap. Two batches at two delays, and one batch is one sample.
-- **Historical POOL reserves.** `keel replay` rebuilds a past ORDER BOOK from the
-  operations that posted it, and reconstructs no pool at all, so the snapshot it
-  returns carries none. That is not a claim that no pool existed.
-  `/liquidity_pools/{id}/operations` can answer it and DEC-002 section 2.3 calls
-  that side the cleaner of the two, because it has no account discovery gap. Until
-  it is written, any depth computed from a replayed snapshot is order book only.
-- **Hubble.** Still deferred, DEC-002. What changed on 26 August 2026 is that it is
-  no longer the only route to a past book: `keel replay` is DEC-002 section 2.3,
-  and section 2.3's own precondition, "only attempt this if 2.1 and 2.2 prove
-  insufficient", was met and measured in
-  `docs/evidences/2026-08-26-ustry-february-trades-implied.md`.
-- **A hand computed check on the AMM half.**
-  `testdata/fixtures/ustry_pre_exploit.md` records `Pools: []` while the pool that
-  genuinely existed at that ledger is in `GoldenSnapshot()`, so the with-pool depth
-  and manipulation tables have no expected values yet. The AMM formulas are
-  implemented from the methodology and checked only by invariants, and the header of
-  `internal/domain/compute.go` says which functions are in that position.
+Docker with the compose plugin, Go 1.23 or newer, `curl`, and `jq` for reading the
+responses. Nothing else. No Stellar key, no API token: Keel is permanently read
+only, it never signs and never submits a transaction.
 
-What that means for the commands you can run:
+## 1.2 The four commands, in this order
 
-| Command | State |
+```bash
+docker compose up -d                             # Postgres only
+make migrate                                     # apply migrations/ in order
+make assets PAIRS=configs/recorder-pairs.json    # declare the demonstration set
+docker compose --profile app up -d --build       # the API and the scanner
+```
+
+Each one exists for a reason, and skipping one fails in a way that does not look
+like the step you skipped.
+
+**`docker compose up -d` does NOT start the API.** The `keel` and `keel-scan`
+services sit behind `profiles: ["app"]`, so this command brings up Postgres and
+nothing else. That is deliberate: `make up` has meant "a database on 5433" since
+this repository existed, and a service that started with it would change what one
+command does to every existing workflow, including the store integration suite.
+
+**The database is published on host port 5433, not 5432.** A Postgres already
+installed on the host takes 5432 first, and the symptom is
+`role "keel" does not exist` rather than a refused connection. Inside the compose
+network the port is 5432, because that is the container's own port and the
+published mapping does not apply to it. `store.DefaultDSN` already points at 5433,
+so nothing needs an argument.
+
+**`make migrate` is the only mechanism that applies the schema.** The migrations
+are deliberately not mounted into Postgres's `docker-entrypoint-initdb.d`, because
+that directory runs only when the data directory is empty: it would apply the
+first file on a fresh volume and silently ignore every file after it.
+
+**`make assets` is not optional and its `PAIRS=` is not optional either.** The
+scanner reads which pairs to measure from the `assets` table, never from a file,
+so an empty table means the scanner measures nothing. The Makefile default points
+at `scripts/record-pairs.example.json`, which holds ONE pair, so name the list you
+want. `configs/recorder-pairs.json` is the eight provisional pairs;
+`configs/demonstration-set.json` is the sixty.
+
+## 1.3 Confirm it came up
+
+```bash
+docker compose --profile app ps
+docker compose logs -f keel
+```
+
+The `keel` container has no healthcheck, on purpose. Its image is distroless: no
+shell, no curl, no wget, so the usual `CMD-SHELL` probe cannot run inside it, and
+adding a binary purely to test the process from inside would widen the image for a
+check that can be made from outside. `GET /v1/health` is the healthcheck.
+
+## 1.4 The five endpoints
+
+Everything is under `/v1`. All five are read only, and no request can reach
+Horizon: every figure served was computed by the scanner beforehand and stored. A
+popular asset triggering a Horizon request per call would burn the rate limit
+budget in minutes. The consequence is that metrics always lag, which NFR-1 accepts
+explicitly and the `X-Keel-Staleness-Seconds` header reports.
+
+Every response carries `X-Keel-Methodology-Version`. Every response holding a
+figure also carries `X-Keel-Staleness-Seconds`.
+
+### `GET /v1/health` - is the engine actually working
+
+```bash
+curl -s localhost:3000/v1/health | jq
+```
+
+```json
+{
+  "status": "ok",
+  "latestScanAt": "2026-09-11T06:10:55.2804Z",
+  "latestScanLedgerSeq": 64374091,
+  "assetsMonitored": 64,
+  "methodologyVersion": "1.0.8-draft",
+  "historicalAvailable": false
+}
+```
+
+This is not a ping. It answers whether the numbers you are about to read are worth
+trusting. `status` is derived from the last scan and three separate states are
+called `degraded` rather than merged: no scan at all, a scan that started and
+never finished, and a scan that finished with failures. A crashed scan looks
+exactly like a fast one from the outside, which is why the second is distinguished.
+
+**`degraded` right after startup is correct and is not a failure.** The scanner
+runs on a 15 minute interval, so the first round takes a few minutes to finish.
+`latestScanLedgerSeq` comes from the newest metrics row and not from the `runs`
+table, because `runs` records the job and not the ledger it reached.
+
+`historicalAvailable: false` is deliberate. See the `?ledger=` note below.
+
+### `GET /v1/methodology` - which parameters produced those numbers
+
+```bash
+curl -s localhost:3000/v1/methodology | jq
+```
+
+Returns the methodology version and every threshold: `manipulationCheapAbsolute`,
+`thinDepth5PctAbsolute`, `spreadExtremePct`, `holderTop1ExtremePct`,
+`oracleWindowSeconds` and the rest. The point is that a consumer can apply its own
+thresholds, which is also why every flag is reported separately rather than rolled
+into one verdict.
+
+Two things in the response are worth reading closely. `calibrated: false` states
+plainly that the thresholds were chosen from the magnitude of the Blend incident of
+February 2026 and conservative judgement, not calibrated against a set of
+incidents. And the two unit keys carry the full `(code, issuer)` pair:
+
+```json
+"manipulationCheapUnit": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+```
+
+never the bare ticker `USDC`. An asset is never matched on its code: 97 distinct
+assets share the AQUA ticker, and a consumer that read `USDC` here and resolved it
+itself could resolve it to a different asset than the one these thresholds are
+counted in.
+
+The values come from `Config.Params` rather than being read back from
+`domain.DefaultParams()` inside the handler, so a deployment running non-default
+parameters cannot report the defaults.
+
+### `GET /v1/assets` - the monitored set, with a risk summary each
+
+```bash
+curl -s 'localhost:3000/v1/assets?limit=3' | jq
+curl -s 'localhost:3000/v1/assets?band=CRITICAL&limit=5' | jq
+curl -s 'localhost:3000/v1/assets?hasFlag=THIN_DEPTH_5PCT' | jq '.total'
+```
+
+This is the entry point, and where you get valid `assetId` values for the two
+endpoints below. Four query parameters:
+
+| Parameter | Values |
 |---|---|
-| `make test` | works, and must be green |
-| `make ci` | works, and must be green. It runs the linter as of 6 September 2026, at the version `.github/workflows/ci.yml` pins, so this target and the CI job are now the same gate |
-| `make lint` | works, `golangci-lint` at the pinned version. Uses the binary if you have it and `go run`s the pinned one if you do not |
-| `make arch` | works, enforces purity of `internal/domain` |
-| `make manual-check` | works, and **exits non-zero on purpose**: it counts the Layer 1 hand recomputations under `testdata/manual/`, and 0 of 5 exist. Deliberately not part of `make ci`, because a gate that is permanently red stops being read. The standing record is P2-23 in `scripts/audit-verification.sh`, and CI runs it in its own expected-red job |
-| `make up` | works, starts local Postgres |
-| `make conformance` | **green since 26 August 2026.** Fourteen tests against the golden fixture. The build tag came out the same day, so these also run inside `make test` and CI; this target runs the package alone and verbosely |
-| `make record-once` | works, records one round of live Horizon snapshots and exits |
-| `make record` | works, records every 30 minutes until stopped. Needs `PAIRS` |
-| `make record-holders` | works, one round of pairs plus the trustline holder distribution of every base asset. `HOLDER_PAGES` raises the cap |
-| `make survey` | works, prints one liquidity row per pair from Horizon. A triage instrument, not a measurement. Needs `PAIRS` |
-| `make assets` | works, declares the demonstration set. Needs the database |
-| `make serve` | works, serves every endpoint in the contract. Needs the database |
-| `make store-test` | works, the `internal/store` integration tests. Needs the database |
-| `make scan` | works, computes and stores one result per asset per ledger. The supporting metric fields are stored null, because they are not computed yet. Needs the database |
-| `make backtest` | works, writes the trade-implied history of a pair as two CSV files. Needs `PAIRS`, `FROM`, `TO`. No database |
-| `make replay` | works, rebuilds a pair's order book at a past ledger from the operations that posted it. Needs `PAIRS` and `LEDGER`. No database. **Read the completeness line it prints**: a book missing an offer reads as a thin book |
-| `make bookseries` | works, the same book at MANY past ledgers from ONE walk, plus the methodology over each. Needs `PAIRS` and `CSV`; `FROM_TRADES` derives one target per UTC day from a trades CSV at no request cost. No database. **Every row carries its own diagnostics**, because a walk that failed makes a thin book look like a trend |
-| `make image` | works, builds the container image by hand. Does not publish; `.github/workflows/deploy.yml` is what publishes, and only after a smoke test |
-| `make crosscheck` | works, runs validation Layer 3 over the committed recordings. No database. First run, 26 August 2026: 60 recordings, 37 match, 0 mismatch, 23 partial |
-| `make record-batch` | works, records a batch and cross-checks it inside the same hour, one CSV row per comparison carrying the measured gap. `CROSSCHECK_AFTER` is the delay, default 5m and refused at an hour. No database. Writes under gitignored `measurements/` |
+| `band` | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
+| `hasFlag` | one of the enumerated flags, for example `THIN_DEPTH_5PCT`, `MANIPULATION_CHEAP`, `SPREAD_EXTREME`, `ZERO_DEPTH_2PCT`, `PRICE_SOURCE_CONFLICT` |
+| `limit` | 1 to 200, default 50 |
+| `offset` | paging, with `total` in the response |
 
-### One CI job is red on purpose, and only one
+A typo in `band` or `hasFlag` returns 400 `INVALID_RANGE` rather than an empty
+list. That is the whole reason they are matched against an enumeration: an empty
+list reads as "no asset has this problem", which is a different and much worse
+answer than "you spelled the flag wrong".
 
-The repository is public, so the checks are visible before the deliverable is
-finished. Read them this way:
+Each item carries `band`, `bandConfidence`, the flag list, `midPrice`,
+`priceSource`, `depth5PctBuySide`, `maxSafeCollateral` and `ledgerSeq`.
 
-| Job | Expected |
+### `GET /v1/asset/{assetId}/depth` - the question Keel exists to answer
+
+```bash
+curl -s 'localhost:3000/v1/asset/XLM/depth' | jq
+curl -s 'localhost:3000/v1/asset/USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/depth' | jq
+```
+
+Not "what is the price" but "what volume can that price take". The response holds
+depth at delta 0.02, 0.05 and 0.10 split into `fromSdex` and `fromAmm`,
+manipulation cost at delta 0.5, 1, 10 and 100 both combined and order book only,
+the collateral ceilings, the flags, the band, and `warnings` explaining any field
+that is null for a structural reason rather than a missing one. Example, on a pair
+with an active pool:
+
+> maxReachablePrice and costToMaxReachablePrice are null because an active pool is
+> present: under a constant product curve the price tends to infinity as the base
+> reserve tends to zero, so every target is reachable and a highest price has no
+> meaning
+
+Six flags come back under `unevaluatedFlags` rather than as clear. The holder
+concentration, volume-to-supply and last-genuine-trade metrics they depend on are
+declared, stored and served, and none of them is computed yet. `unevaluated` is
+not the same claim as clear, and the response says which it is.
+
+**`assetId` is `CODE:ISSUER`, or `XLM` for the native asset.** A value that does
+not match the contract's pattern is rejected with 400 `INVALID_ASSET_ID` before it
+reaches a query. The asset TYPE is never inferred from the code length: it is read
+from the `assets` table. USTRY and PYUSD are both five character codes and both
+`credit_alphanum12`, and asking Horizon for either as `credit_alphanum4` returns an
+empty order book with no error, so a length rule measures a different asset or
+nothing at all.
+
+Two query parameters:
+
+- **`?quote=`** picks the quote asset. Omitted, you get the primary pair, which is
+  USDC globally under DEC-015. An asset measured against several quotes with no
+  USDC among them returns 400 with a `quoteCandidates` list, because calling one of
+  them "primary" would assert a rule the methodology does not contain.
+- **`?ledger=`** asks for a past ledger, and on this stack it always returns
+  **503 `HISTORICAL_UNAVAILABLE`**. `serve` runs without `-historical`, the Hubble
+  path is deferred by DEC-002, and returning a live figure wearing a historical
+  label is the one genuinely dangerous alternative.
+
+### `GET /v1/asset/{assetId}/history` - the same metrics over time
+
+```bash
+curl -s 'localhost:3000/v1/asset/XLM/history?from=64300000&to=64380000&resolution=day' | jq
+```
+
+`from` and `to` are required positive ledger sequences and the range is capped at
+1,555,200 ledgers, which is 90 days at one ledger every five seconds.
+`resolution` is `hour` or `day`, default `day`. `source` is one of `horizon`,
+`hubble`, `offers-implied`, `trades-implied`, default `horizon`.
+
+Two decisions inside this endpoint are worth knowing before you chart anything.
+
+**One series is one data source.** `horizon` is the only one of the four that is a
+direct reading; the others are a warehouse copy and two reconstructions, and
+`trades-implied` is a lower bound rather than a measurement. Charting them together
+as one line would present the weakest point in the range as the same kind of number
+as the strongest.
+
+**Downsampling selects, it does not average.** Averaging a band or a flag set is
+meaningless. Buckets holding nothing are reported in a separate `gaps` array rather
+than interpolated away.
+
+### The error paths, which are worth testing too
+
+```bash
+curl -s 'localhost:3000/v1/assets?limit=999' | jq -c .
+# {"error":{"code":"INVALID_RANGE","message":"limit: must be between 1 and 200"}}
+
+curl -s 'localhost:3000/v1/asset/not-an-asset/depth' | jq -c .
+# {"error":{"code":"INVALID_ASSET_ID", ...}}
+
+curl -s 'localhost:3000/v1/asset/FAKE:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN/depth' | jq -c .
+# {"error":{"code":"ASSET_NOT_MONITORED", ...}}
+
+curl -s 'localhost:3000/v1/asset/XLM/depth?ledger=64000000' | jq -c .
+# 503 {"error":{"code":"HISTORICAL_UNAVAILABLE", ...}}
+
+curl -s 'localhost:3000/v1/asset/XLM/history?from=1&to=99999999' | jq -c .
+# {"error":{"code":"INVALID_RANGE","detail":{"maxLedgers":1555200, ...}}}
+
+curl -s localhost:3000/v1/nope | jq -c .
+# 404, and it is JSON: a consumer parsing JSON should not get an HTML body on a typo
+```
+
+**Two different conditions share the code `ASSET_NOT_MONITORED`**: "not part of the
+demonstration set" and "monitored, but no metrics computed yet". The contract's
+error enum has no third value, so the message is what separates them.
+
+### One pass over everything
+
+```bash
+BASE=localhost:3000/v1
+for p in health methodology assets; do
+  printf '%-14s ' "/$p"; curl -s -o /dev/null -w '%{http_code}\n' "$BASE/$p"
+done
+printf '%-14s ' /asset/XLM/depth
+curl -s -o /dev/null -w '%{http_code}\n' "$BASE/asset/XLM/depth"
+printf '%-14s ' /asset/XLM/history
+curl -s -o /dev/null -w '%{http_code}\n' "$BASE/asset/XLM/history?from=64300000&to=64380000"
+```
+
+## 1.5 When something is wrong
+
+| Symptom | Cause |
 |---|---|
-| `build, vet, arch, test` | green |
-| `golangci-lint` | green |
-| `layer 1 hand recomputation (expected red until 5 of 5 land)` | **RED, and it says so in its own name** |
+| Nothing answers on port 3000 | `--profile app` was omitted. `docker compose up -d` alone starts Postgres only |
+| `role "keel" does not exist` | a client is talking to a Postgres that is not this container. The container is on 5433; `make store-test` runs a preflight that names which server answered |
+| `/v1/assets` returns `"total": 0` | `make assets` has not run, or ran against the one-pair default list |
+| `/v1/health` stays `degraded` | the first scan round has not finished. `docker compose logs -f keel-scan`. It is also `degraded` if a scan finished with failures |
+| every asset returns 404 "no metrics yet" | the `assets` table is declared but the scanner has not stored a row for it yet |
+| `serve: no migrations are applied` | `make migrate` has not run. The refusal is deliberate: a server that starts without a schema fails per request instead of at startup, and the second is far harder to notice |
 
-The red one counts the hand recomputations under `testdata/manual/`, of which 0 of
-5 exist. They are worked by hand by Al and Claude may not write them, which is the
-point of them: they are the independent check on the engine's numbers, so a number
-produced by the thing being tested would not be evidence. The job turns green when
-the fifth lands and not before. `make manual-check` is the same check locally, and
-it is deliberately not part of `make ci`.
+## 1.6 Without Docker for the Go half
 
-**The other two were red too, for eight consecutive runs from 31 August to 6
-September 2026, and that was not on purpose.** `golangci-lint` had 45 findings and
-nothing local reported them: `make ci` ran gofmt, build, vet, the architecture tests
-and the tests, and did not run the linter, so the README's "must be green" was true
-of a gate that was not the gate CI runs. Both are the same gate now. The findings
-were 18 spellings, 18 revive, 8 unchecked writes to stdout and one dead method, and
-they are recorded in the commit that cleared them rather than summarised here.
-
-Exit code 3 is deliberately distinct from 1 so that a scheduler can tell "not
-built yet" apart from "failed". **No subcommand means "not built yet" any more**, as
-of 26 August 2026, when `keel replay` got a body and the helper that printed that
-line went with it. `keel scan` still uses the code, for a case that is not unbuilt
-and reads the same way to a scheduler: a round where every asset panicked has
-nothing to store.
-
-## Starting from nothing
+Postgres still comes from compose; `serve` and `scan` can run on the host against
+it, which is faster to iterate on.
 
 ```bash
-git clone https://github.com/Keel-Official/keel-backend.git
-cd keel-backend
-
-make ci          # gofmt, build, vet, architecture tests, and tests. Must be green
-go run ./cmd/keel version
-
-make up          # start local Postgres, optional at this stage
-make migrate     # apply migrations/ in order, tracked in schema_migrations
+docker compose up -d && make migrate
+make assets PAIRS=configs/recorder-pairs.json
+go run ./cmd/keel scan -once     # one round and exit, instead of every 15 minutes
+make serve                       # :3000
 ```
 
-`make migrate` is the only way migrations are applied. They are deliberately not
-mounted into Postgres's `docker-entrypoint-initdb.d`, because that directory runs
-only when the data directory is empty: it applies the first file on a fresh volume
-and silently ignores every file after it.
+`-historical` is the flag that flips `?ledger=` from 503 to a real lookup, and it
+should stay off until there are replayed rows to serve.
 
-## Recording cross-validation evidence, and why it starts before anything else
+## 1.7 Stopping
 
 ```bash
-make record-once                                     # one round, into recordings/
-make record-once PAIRS=configs/recorder-pairs.json   # the eight provisional pairs
-cp scripts/record-pairs.example.json my-pairs.json   # then edit it
-make record PAIRS=my-pairs.json                      # every 30 minutes, Ctrl-C to stop
+docker compose --profile app down     # keeps the data
+docker compose --profile app down -v  # destroys keel_pgdata as well
 ```
 
-`configs/recorder-pairs.json` holds eight pairs, all quoted in USDC, and it is
-PROVISIONAL: `docs/methodology/02-pair-selection.md` section 5 supersedes it once
-written, and nothing in it is a methodology claim. It is what
-`.github/workflows/record.yml` records hourly.
+---
 
-Layer 3 of `docs/methodology/10-validation.md` compares a live Horizon reading of
-a ledger against a reconstruction of that same ledger, and that is what satisfies
-the SOW promise of cross-validation over 50 or more sample ledgers. The live half
-has to be taken while the ledger is current. **It is the only work in this
-repository that cannot be caught up later**, so the recorder was written before
-the storage layer and before the API.
+# 2. Running it in production
 
-Each file is `recordings/{pair}/{date}/{ledgerBefore}.json.gz` and holds ONLY the
-raw response bodies: the order book and the liquidity pools, each with the exact
-URL requested, the HTTP status, the body verbatim as a string, and that body's
-sha256. It parses nothing and converts nothing. Nothing is ever overwritten; a
-name already taken gets a monotonic suffix.
+**`scripts/deploy/RUNBOOK.md` is the authority and this section is the map to it.**
+Every long explanation lives there rather than in both places, because a second home
+for a procedure drifts.
 
-That is recording schema 2, and it is the default. Schema 1 wrote
-`recordings/{pair}/{ledgerSeq}.json.gz` and held the parsed conclusions beside
-the bytes; it is still reachable with `-schema 1` and every file it wrote stays
-readable, but the parsed half is the half that had to be revised once already,
-when the bid amount unit turned out to be quote-denominated. A recording that
-claims nothing cannot go stale that way.
+**Status: PREPARED, NOT APPLIED.** The compose file, the Caddyfile, the dump script
+and the deploy workflow are written. The box, its DNS, its database password and the
+repository secrets are Al's, and Al applies them. The deploy job is gated on the
+repository variable `KEEL_DEPLOY_TARGET`: until it is set the job writes a summary
+saying what it is waiting for and deploys nothing.
 
-An empty pool list and a non-2xx are both recorded and kept. The recorder makes
-no judgement about data quality, and `ledger_consistent` says whether the two
-requests were served from the same ledger rather than hiding it.
+That split is not a courtesy. An agent that provisions the storage its own evidence
+lives in has no chain of custody, it has a filing cabinet. It is the same division as
+`scripts/s3-archive/`, and `CLAUDE.md` carries it as a zone rule: `scripts/deploy/` is
+GREEN to prepare and RED to apply.
 
-The raw stream is not tracked by git; `recordings/samples/` is the exception,
-because the schema's own header promises 60 recordings as committed evidence. See
-the reason in `.gitignore`. That directory is PLURAL because
-`docs/methodology/10-validation.md` names it that way, and it is the deliverable.
+## 2.1 What is deployed, because it is more than "the API"
 
-Which assets to record is decision D-1 and
-`docs/methodology/02-pair-selection.md` is still a worksheet, so no asset list is
-compiled into the binary. The `-pairs` file is data, and the shipped one is an
-example rather than a selection.
+A live Keel is three units, and a deployment missing the third looks exactly like a
+working one from outside.
 
-### The holder distribution, which is worse than the order book in one way
-
-```bash
-make record-holders PAIRS=my-pairs.json                  # one round of pairs AND holders
-make record-holders PAIRS=my-pairs.json HOLDER_PAGES=60  # raise the 5000 account cap
-```
-
-**Check the asset's real holder count before switching this on.** A reading that hits
-the page cap is written, flagged, and logged as TRUNCATED, and it answers a holder
-count as a lower bound and a concentration question not at all, because the account it
-did not reach may be the largest one. Horizon's own figure is one request away and
-`HOLDER_PAGES` above is how the cap is raised; the comment on that variable in the
-`Makefile` carries the command.
-
-For the long-running recorder, give holders their own cadence with
-`-holder-interval`. Without one they are read on every `-interval` round, which sets
-the pace of a balance that moves over days by the pace of a book that moves in
-seconds, and this is the one recording here whose file size grows with the asset:
-
-```bash
-go run ./cmd/keel record -pairs my-pairs.json -interval 30m -holders -holder-interval 6h
-```
-
-`-holders` adds `recordings/holders/{asset}/{ledgerSeq}.json.gz`, one file per
-ledger per BASE asset, holding every trustline holder, the issuer among them and
-flagged, and the issued supply. `07-supporting-metrics.md` promises holder
-concentration and a volume-to-supply ratio, and both are computed from exactly
-this.
-
-**The order book can be reconstructed from history and a trustline balance
-cannot.** That is why the golden fixture's book is labelled `offers-implied`: it
-was rebuilt from the operations that posted it. Horizon serves no historical
-balance at all, by any route, so a holder concentration figure for a past ledger
-is not recoverable from Horizon once the moment has passed. Hubble can answer it
-and DEC-002 defers Hubble.
-
-It is off by default, and that is a budget decision. A pair snapshot is three
-requests whatever the market looks like; a holder reading is one request per two
-hundred accounts, so a large asset can spend an hourly budget on its own. The cap
-is `-holder-pages`, 25 pages or 5000 accounts by default, and a reading that hits
-the cap says so in the file and in the log rather than quietly returning a
-subset. A truncated reading is a lower bound on the holder count and answers no
-concentration question at all, because the holder it is missing may be the
-largest one.
-
-Nothing computes these numbers yet. What counts as a holder is decision D-5 and
-which supply the ratio uses is D-6, both in a worksheet that says of itself that
-no definitions are recorded in it. The adapter therefore excludes nothing and
-ranks nothing: it records what is there, so the decision can be applied later,
-and applied both ways, against the same evidence.
-
-## The database
-
-```bash
-make up && make migrate                  # start Postgres, apply migrations/
-make assets PAIRS=my-pairs.json          # declare the demonstration set
-make store-test                          # the integration tests, needs the above
-```
-
-`keel assets` declares the demonstration set and `keel scan` fills it in: one metrics
-row per asset per ledger, plus a `runs` row recording what the job attempted. `runs`
-exists so a scan that stored nothing is visible rather than silent, which is worth as
-much now that scans do store something as it was while they could not.
-
-**The container is published on 5433, not 5432.** A Postgres already installed on
-the host takes 5432 before the container can, `make migrate` does not notice
-because it goes through `docker compose exec`, and the symptom is `role "keel"
-does not exist` rather than a refused connection. The published port moved on 26
-August 2026 and `DefaultDSN` moved with it, so the defaults need no argument.
-
-**If a connection still fails with `role "keel" does not exist`**, something on
-this machine is answering 5433 too. `make store-test` runs a preflight before the
-suite and says which it is, rather than failing 31 tests identically. Point the
-client at the container explicitly:
-
-```bash
-make store-test KEEL_TEST_DSN="postgres://keel:keel_dev_only@<container-address>:5433/keel?sslmode=disable"
-KEEL_DSN="..." make assets
-```
-
-To see what is still unsettled in this repository before contributing:
-
-```bash
-bash scripts/audit-verification.sh
-```
-
-That script re-runs every claim of the repository audit and prints which ones still
-hold. The audit document itself is not in the repository and there is no point
-looking for it: `docs/internal/` is gitignored, because DEC-004 requires it out
-before the repository goes public. So the script IS the public form of the audit.
-Every line it prints carries its own finding id, and those ids are what the
-decision records in `docs/decisions/` cite. It also recomputes the golden fixture
-arithmetic from the raw `price_r` values, outside Go, as a cross-check.
-
-## Layout
-
-| Directory | Contents | State |
+| Unit | Service | Without it |
 |---|---|---|
-| `cmd/keel` | single entrypoint, several subcommands | skeleton |
-| `internal/domain` | shared types in `types.go`, the methodology in `compute.go`, the flag and band rules in `flags.go` | present. The supporting metric formulas are not written, and neither are their definitions |
-| `internal/conformance` | golden fixture and conformance tests, black-box against `internal/domain` | present and green |
-| `internal/horizon` | live data adapter and the cross-validation recorder | present |
-| `internal/hubble` | historical data adapter, deferred, see DEC-002 | empty |
-| `internal/store` | Postgres persistence for assets, metrics and runs | present |
-| `internal/api` | read-only HTTP handlers, five endpoints | present |
-| `migrations` | Postgres schema, applied with `make migrate` | present, reconciled with TDD section 5 |
-| `docs/methodology` | the methodology deliverable | present |
-| `docs/decisions` | decision records | present |
-| `docs/api` | OpenAPI contract | present |
-| `docs/evidences` | raw on-chain evidence from Horizon | present |
-| `testdata/fixtures` | golden fixture, computed by hand | present |
-| `scripts` | one-off tools and verification | present |
+| Postgres that is not a throwaway | `postgres` | `serve` refuses to start, twice: no connection, then empty `schema_migrations` |
+| The read-only API | `keel-serve` | no endpoints |
+| The scanner | `keel-scan` | health reads `degraded` forever and every asset returns 404 "no metrics yet" |
 
-## Non-negotiable rules
+`caddy` is a fourth service and is not Keel: it holds the certificate, is the only
+container with a port open to the internet, and writes the access log. It is
+deliberately not on the same Docker network as `postgres`.
 
-They live in `CLAUDE.md`, and some are enforced mechanically by
-`internal/domain/arch_test.go`: no I/O in a pure package, no `float64`, no
-`time.Now`, no goroutines. A rule that lives only in a document gets broken within
-two weeks.
+`keel-serve` and `keel-scan` run the **same image at the same tag** with different
+commands. Two tags would mean the scanner computing rows under one methodology
+version while the API reported another.
+
+## 2.2 The compose file must be named explicitly
+
+```bash
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+`docker compose` with no `-f` reads `docker-compose.yml`, which is the developer's
+Postgres and not this. The prod file sets `name: keel-prod` for the same class of
+reason: with no name, compose derives the project from the directory, so both files
+in one clone would share every named volume, including `keel_pgdata`, which is the
+throwaway database and the real dataset under the same name.
+
+## 2.3 First-time setup, in dependency order
+
+Sections in the runbook, and DNS is first because Caddy asks for a certificate as
+soon as it loads.
+
+| Step | Runbook | The thing that bites |
+|---|---|---|
+| DNS | 3.1 | `api.keels.app` only. `keels.app` and `www` are on Vercel |
+| Firewall | 3.2 | 80 and 443 both inbound. 80 is not optional, the ACME challenge needs it |
+| The box | 3.3 | amd64 and arm64 are both published from the same tag |
+| `.env` | 3.4 | six variables, one secret, `chmod 600` |
+| Schema | 3.5 | `scripts/migrate.sh`, by hand, and it is Al's to run |
+| Demonstration set | 3.6 | sixty pairs, from `configs/demonstration-set.json` |
+| First boot | 3.7 | wait for `certificate obtained successfully` |
+
+**The hostname is configuration, and adding a second one takes the API down.** Caddy
+requests a certificate for every hostname in the Caddyfile at load. An ACME challenge
+for a name whose DNS points at Vercel cannot succeed, Caddy retries with backoff, and
+the site that does resolve here is degraded while it does. Adding `keels.app` "so the
+bare domain redirects" does not add a redirect, it takes the API down.
+
+**`KEEL_DSN` is not a variable on this box and setting it does nothing.** The DSN is
+composed inside `docker-compose.prod.yml` from `POSTGRES_USER`, `POSTGRES_PASSWORD`
+and `POSTGRES_DB`, so the password is written on the box exactly once and the
+hostname is a service name in a committed file rather than something an operator
+types. The prefix is `KEEL_`, never `DATABASE_`: a `DATABASE_*` variable is accepted
+by compose, ignored by the binary, and silent.
+
+**The role and the database must both be `keel`.** `scripts/migrate.sh` has
+`psql -U keel -d keel` written into its compose transport. Set `POSTGRES_USER=app`
+and everything starts, the API connects, and only the migration fails, which is the
+hardest kind of break to find because nothing else looks wrong.
+
+**`POSTGRES_PASSWORD` is read only when `initdb` runs, which is only when the volume
+is empty.** Changing it after first boot does not change the password in the
+database. It changes the password every client uses, so every client stops connecting
+and the database itself is untouched.
+
+## 2.4 Verifying a deploy, and what a correct first response looks like
+
+Run this from a laptop and not over SSH. From the box, `localhost` can answer in ways
+the internet cannot, and DNS and the certificate are half of what is being checked.
+
+```bash
+curl -s https://api.keels.app/v1/health
+curl -sI http://api.keels.app/v1/health | head -1        # 308 Permanent Redirect
+curl -s -o /dev/null -w '%{http_code} verify=%{ssl_verify_result}\n' \
+  https://api.keels.app/v1/health                        # 200 verify=0
+dig +short keels.app A                                   # Vercel, not the VPS
+curl -sI https://api.keels.app/v1/health | grep -i 'x-keel-'
+```
+
+**`"status": "degraded"` with `latestScanAt: null` is the correct FIRST response and
+is not a failed deploy.** It becomes `ok` within about fifteen minutes, when the first
+scan round finishes. A deployment that answered `ok` here would be answering for a
+scan that never ran.
+
+Only `x-keel-methodology-version` comes back on a fresh deployment.
+`X-Keel-Staleness-Seconds` reports how far behind the ledger a RESULT was when it was
+computed, so there is nothing to report until the first scan has written one.
+
+`assetsMonitored: 0` alongside `degraded` is also correct: the API is up, the schema
+is applied, and step 3.6 has not run. One step left rather than a failure.
+
+In `docker compose ps`, the healthcheck lives on `caddy` and probes
+`http://keel-serve:3000/v1/health`, because the API's distroless image has no HTTP
+client inside it. **That probe asserts HTTP 200 and never reads the `status` field**,
+since `degraded` is a correct 200 and treating it as a failure would mark a working
+API unhealthy on every fresh deploy.
+
+## 2.5 Deploying a new version
+
+The deploy job runs on version tags only. A manual `workflow_dispatch` builds and
+publishes the image; deploying is a decision that gets a tag.
+
+```bash
+git tag -a v0.3.0 -m "..." && git push origin v0.3.0
+```
+
+The job SSHes with a pinned host key, rewrites `KEEL_IMAGE_TAG` in `.env` to the
+commit SHA, pulls, brings the stack up, waits for the `caddy` healthcheck, then curls
+the public health URL from the runner and fails unless the served
+`methodologyVersion` equals the constant that commit compiles. That version check is
+the entire point of the job: the contract once advertised a version the server did
+not return, and the generated mock served it.
+
+**The job does not migrate.** Section 3.5 is by hand, deliberately, so a schema
+change and an image change are never coupled in a way that pretends to be reversible.
+
+## 2.6 Rollback
+
+Every image is published under its own commit SHA, so rollback needs no rebuild.
+
+```bash
+cd /opt/keel
+grep KEEL_IMAGE_TAG .env
+sed -i 's/^KEEL_IMAGE_TAG=.*/KEEL_IMAGE_TAG=<previous-sha>/' .env
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d keel-serve keel-scan
+```
+
+`.env` is the record of what is live, which is why the tag lives there rather than
+being passed on a command line. A tag passed only to `up` would leave the file saying
+one thing while another ran.
+
+**A migration is not rolled back this way.** Pointing back at an image that predates
+an applied migration runs old code against a newer schema.
+
+## 2.7 Backups, and they are not optional
+
+**`docker compose -f docker-compose.prod.yml down -v` destroys `keel_pgdata` and with
+it every metric row the deliverable is built on.** The stack owns its database again
+as of 11 September 2026, so this is possible.
+
+One host cron line calls `scripts/deploy/dump-database.sh`, which writes
+`backups/keel-<timestamp>.dump` in custom format with a `.sha256` beside it and
+rotates at 14 days. `KEEL_DUMP_DSN` is required and the script refuses to run without
+it rather than producing an empty dump. Runbook section 6 has the crontab line, the
+`postgresql-client-18` prerequisite, and how to verify a dump is a readable archive
+rather than 20 KB of nothing.
+
+**The dumps are on the same disk as the database.** That survives a dropped table, a
+bad migration and a bad deploy. It does not survive losing the box. Offsite is
+`scripts/s3-archive/`, prepared and blocked on Al, and section 6.1 is written as
+blocked rather than as working.
+
+## 2.8 CORS
+
+An exact-match allowlist, never a wildcard, set through `KEEL_CORS_ORIGINS` in the
+host's `.env`, comma separated, no trailing slash. Those are the dashboard's origins
+and not this API's own. Runbook section 7 explains why a shared parent domain buys
+nothing here.
+
+---
+
+## References
+
+- API contract: `docs/api/keel-openapi.yaml`, with generated examples in `docs/api/mocks/`
+- Methodology, the paid deliverable: `docs/methodology/`
+- Architecture decisions: `docs/decisions/`
+- Deployment: `scripts/deploy/RUNBOOK.md`
+- Repository audit: `bash scripts/audit-verification.sh`
+- Working zones and the non-negotiable rules: `CLAUDE.md`
 
 ## Language
 
