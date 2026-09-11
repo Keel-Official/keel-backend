@@ -1,9 +1,16 @@
 # Putting the API on the internet
 
-**Status: PREPARED, NOT APPLIED. Nothing in this directory runs by itself.**
-The deploy job in `.github/workflows/deploy.yml` is gated on the repository
-variable `KEEL_DEPLOY_TARGET`, and until it is set the job writes a summary
-saying what it is waiting for and deploys nothing.
+**Status: APPLIED BY HAND, NOT BY THE PIPELINE, as of 12 September 2026.**
+`https://api.keels.app` serves and `GET /v1/health` reads `ok`. What has never
+completed is the deploy JOB: both of its runs failed, and the stack that is serving
+was brought up over SSH by Al rather than by CI. Section 11 is the field by field
+record of what was measured and what is still only written down, and it is the
+section to read before trusting any other in this file.
+
+**Nothing in this directory runs by itself.** The deploy job in
+`.github/workflows/deploy.yml` is gated on the repository variable
+`KEEL_DEPLOY_TARGET`. That variable is now set, so the gate is open and the job's
+remaining failures are its own.
 
 Prepared 11 September 2026 by Claude. Same division as `scripts/s3-archive/` and
 `scripts/history-migration/`: the compose file, the nginx server block, the dump
@@ -260,13 +267,29 @@ curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker <VPS_USER>   # log out and back in
 sudo apt-get install -y git
 
-sudo mkdir -p /opt/keel && sudo chown <VPS_USER> /opt/keel
-git clone https://github.com/Keel-Official/keel-backend.git /opt/keel
-cd /opt/keel
+# THE CHECKOUT PATH IS A VARIABLE AND NOT A CONSTANT. Set it once, here, and
+# every command in this document reads it. Put the export in ~/.bashrc too, or
+# the next login loses it and the commands below fail in the confusing way
+# described under 3.4: a missing `.env` reported as a missing variable.
+export KEEL_DIR=/srv/app/keel/keel-backend
+
+sudo mkdir -p "$KEEL_DIR" && sudo chown <VPS_USER> "$KEEL_DIR"
+git clone https://github.com/Keel-Official/keel-backend.git "$KEEL_DIR"
+cd "$KEEL_DIR"
 ```
 
-`/opt/keel` is the path the deploy job expects, overridable with the repository
-variable `KEEL_DEPLOY_PATH`. See section 10.
+**THE PATH USED TO BE WRITTEN AS `/opt/keel` IN NINETEEN PLACES IN THIS DOCUMENT,
+AND ON THE HOST THAT EXISTS IT IS `/srv/app/keel/keel-backend`.** Both were true at
+once for a day: the repository variable `KEEL_DEPLOY_PATH` was set to the real path
+while every command here still said `/opt/keel`, so the deploy job went to one
+directory and anybody following this document by hand went to another. A command
+that is copied out of a runbook and lands in the wrong directory does not fail
+loudly, it reports a missing variable, which is the failure section 9 spends a
+paragraph on.
+
+Whatever `KEEL_DIR` is set to here must equal the repository variable
+`KEEL_DEPLOY_PATH`. The deploy job defaults that variable to `/opt/keel` when it is
+unset, which is the only place that string still means anything. See section 10.
 
 ### 3.4 The `.env` file, and every variable in it
 
@@ -353,7 +376,7 @@ connects, and only the migration fails, which is the hardest kind of break to fi
 because nothing else looks wrong.
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 
 cat > .env <<'ENVFILE'
 # The commit SHA this box runs. The deploy job rewrites this line. Never latest.
@@ -429,7 +452,7 @@ gh api /orgs/Keel-Official/packages/container/keel-backend/versions \
 ### 3.5 The schema, once, and it is Al's to run
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 COMPOSE_FILE=docker-compose.prod.yml bash scripts/migrate.sh
 ```
 
@@ -464,7 +487,7 @@ job is to be the one reliable step.
 is unavailable needs a route. On this host it reads:
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 KEEL_MIGRATE_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5433/keel?sslmode=disable' \
   bash scripts/migrate.sh
 ```
@@ -494,7 +517,7 @@ Postgres containers on this box that failure is available again.
 point.
 
 **`.env` is read automatically and only from the project directory**, which is
-why every `docker compose` command in this runbook starts with `cd /opt/keel`. Run
+why every `docker compose` command in this runbook starts with `cd "$KEEL_DIR"`. Run
 one from elsewhere and it stops with "required variable KEEL_IMAGE_TAG is missing
 a value", which is the `${VAR:?}` form reporting a missing file rather than a
 missing variable. The compose transport above reads `.env` for the same reason and
@@ -509,7 +532,7 @@ file, so the table has to be populated once. The pair list is not inside the
 image, which is why it is bind mounted for this one command.
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 docker compose -f docker-compose.prod.yml run --rm \
   -v "$PWD/configs:/configs:ro" \
   keel-serve assets -pairs /configs/demonstration-set.json
@@ -522,7 +545,7 @@ supersedes it.
 ### 3.7 First boot
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml ps
@@ -551,7 +574,7 @@ checkout: nginx reads `/etc/nginx/sites-enabled/`, so installing the server bloc
 is a copy and a symlink.
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 sudo cp scripts/deploy/nginx-keel.conf /etc/nginx/sites-available/keel
 sudo ln -sfn /etc/nginx/sites-available/keel /etc/nginx/sites-enabled/keel
 sudo nginx -t
@@ -592,6 +615,65 @@ timer exists and that a dry run completes:
 systemctl list-timers | grep certbot
 sudo certbot renew --dry-run
 ```
+
+#### The third route, and it is the one this host actually took
+
+**MEASURED 12 SEPTEMBER 2026, NOT ARGUED.** `openssl s_client` against the origin
+returns:
+
+```
+subject  = C=US, CN=Cloudflare
+issuer   = Cloudflare, Inc., CN=Managed CA ...
+notAfter = Sep  7 15:43:00 2041 GMT
+```
+
+That is a **Cloudflare Origin CA certificate**, not Let's Encrypt. Neither route
+above was taken, `api.keels.app` is proxied through Cloudflare rather than pointed
+straight at the box, and everything this section says about certbot describes a
+mechanism that is not installed here. The two routes are kept rather than deleted
+because a box without Cloudflare in front still needs one of them, and because a
+runbook that quietly rewrites itself to match whatever was done last loses the
+ability to say that something else was intended.
+
+What this route buys: nothing expires for fifteen years, no ACME challenge, no
+renewal timer, and therefore none of the ninety-day failure this section was written
+to prevent. Set Cloudflare's SSL/TLS mode to **Full (strict)**.
+
+**WHAT IT COSTS, AND THIS IS THE PART THAT MUST NOT BE FORGOTTEN. A Cloudflare
+Origin CA certificate is trusted by Cloudflare and by nothing else.** It is not a
+publicly trusted certificate. The consequences are concrete:
+
+- Turning the orange cloud off, so the record becomes DNS-only, breaks the site
+  immediately with a certificate error in every browser. The proxy is now a hard
+  dependency of the service, not a performance choice.
+- Anything that reaches the origin IP directly, bypassing Cloudflare, gets an
+  untrusted certificate. That includes an uptime checker pointed at the IP.
+- `curl https://api.keels.app` from the deploy runner goes through Cloudflare and is
+  fine. `curl --resolve api.keels.app:443:<origin-ip>` is not, and needs `-k`.
+
+**Section 2's apex-and-www reasoning still holds and is now enforced somewhere
+else.** The name is resolved by Cloudflare, so the record for `api` and the record
+for the apex are edited in the same dashboard, one hop away from each other. Section
+2 says what must never move; it did not anticipate that both names would be editable
+from one screen.
+
+**THE PORT 80 BLOCK IS NOT SERVING ON THIS HOST**, measured the same day and from
+outside Cloudflare:
+
+```
+curl --resolve api.keels.app:443:<origin-ip> https://api.keels.app/v1/health   -> 200
+curl --resolve api.keels.app:80:<origin-ip>  http://api.keels.app/v1/health    -> 404
+```
+
+443 answers, 80 returns nginx's default 404 rather than the `301` that
+`nginx-keel.conf` line 56 asks for. So the port 80 `server` block in this file is
+either not installed or is being shadowed by another site holding
+`listen 80 default_server`. **It causes no visible symptom today** because Cloudflare
+terminates the client's connection and speaks to the origin on 443, and because the
+Origin CA route needs no ACME challenge on 80. That is exactly why it is written
+down: it is a latent fault that will surface the day somebody switches back to
+certbot, and nothing will connect it to this decision by then. Diagnosis and fix are
+in section 9.
 
 **THE PROXY PORT IS ONE SETTING IN TWO FILES.** `proxy_pass` in the nginx file and
 `KEEL_BIND_ADDR` in `.env` have to name the same port. They both default to
@@ -678,7 +760,7 @@ that.
 The stack's own view, from the box:
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 docker compose -f docker-compose.prod.yml ps
 curl -s http://127.0.0.1:3000/v1/health          # or KEEL_BIND_ADDR, if set
 sudo tail -5 /var/log/nginx/keel-access.log
@@ -711,7 +793,7 @@ Every image is published under its own commit SHA, so rollback is one line and
 needs no rebuild:
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 grep KEEL_IMAGE_TAG .env                                   # what is running now
 sed -i 's/^KEEL_IMAGE_TAG=.*/KEEL_IMAGE_TAG=<previous-sha>/' .env
 docker compose -f docker-compose.prod.yml pull
@@ -752,7 +834,7 @@ crontab -e
 # loopback mapping docker-compose.prod.yml publishes. Inside the containers the
 # same database is at postgres:5432. Keep this crontab at mode 600: it holds the
 # password.
-17 3 * * * cd /opt/keel && KEEL_DUMP_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5433/keel?sslmode=disable' /usr/bin/env bash scripts/deploy/dump-database.sh >> /var/log/keel-dump.log 2>&1
+17 3 * * * cd /srv/app/keel/keel-backend && KEEL_DUMP_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5433/keel?sslmode=disable' /usr/bin/env bash scripts/deploy/dump-database.sh >> /var/log/keel-dump.log 2>&1
 ```
 
 **`KEEL_DUMP_DSN` IS REQUIRED and an older crontab line without it fails every
@@ -779,7 +861,7 @@ Run it once by hand first, because a cron entry that has never worked is a
 backup nobody has:
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 KEEL_DUMP_DSN='postgres://keel:REPLACE_WITH_THE_DB_PASSWORD@localhost:5433/keel?sslmode=disable' \
   bash scripts/deploy/dump-database.sh
 ls -la backups/
@@ -792,7 +874,7 @@ It writes `backups/keel-<timestamp>.dump` in `pg_dump` custom format, a
 **Check a dump is real rather than assuming it:**
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 
 # the hash first
 ( cd backups && sha256sum -c "$(ls -t *.dump.sha256 | head -1)" )
@@ -946,7 +1028,7 @@ page's JavaScript.
 ## 8. Reading logs
 
 ```bash
-cd /opt/keel
+cd "$KEEL_DIR"
 
 # the three services, live
 docker compose -f docker-compose.prod.yml logs -f
@@ -1010,7 +1092,7 @@ says why the variable should be deleted from `.env` rather than left set.
 **`docker compose` refuses to do anything and names a variable.** That is the
 `${VAR:?...}` form working. Every REQUIRED value in section 3.4 uses it; the five
 optional `KEEL_DB_*` rows do not and can never produce this message. Two causes:
-the variable really is missing, or you are not in `/opt/keel`, because `.env` is
+the variable really is missing, or you are not in `$KEEL_DIR`, because `.env` is
 read only from the project directory.
 
 **certbot cannot issue.** In this order: `dig +short api.keels.app A` from off the
@@ -1155,6 +1237,68 @@ the scanner: `docker compose -f docker-compose.prod.yml logs keel-scan`. A scan
 that cannot reach Horizon, or that fails on every asset, is a degraded status
 reported correctly.
 
+**`degraded` with `latestScanAt: null` while `assetsMonitored` is right, and this
+one is narrower than the entry above.** Those two fields together say something
+precise. `scanOnce` in `cmd/keel/scan.go` opens the run row with `StartRun` BEFORE
+the asset loop and closes it with `FinishRun` after, and a failure on an individual
+asset inside the loop is counted and skipped rather than raised. So a round that
+merely fails on all sixty assets still finishes, and `latestScanAt` is then set with
+`assetsFailed` at sixty. **`latestScanAt` staying null therefore means no round has
+ever reached its end**, which is a different fault: the process is dying mid-round,
+or dying before the loop, or is not running.
+
+```bash
+docker ps | grep keel-scan      # "Created N hours ago" but "Up 12 minutes" is a restart loop
+docker inspect keel-prod-scan --format '{{.State.OOMKilled}} restarts={{.RestartCount}} exit={{.State.ExitCode}}'
+docker compose -f docker-compose.prod.yml logs --tail 100 keel-scan
+```
+
+Read it in this order:
+
+- **`OOMKilled: true`, or `exit=137` with an empty log.** The memory limit. `keel-scan`
+  carries `deploy.resources.limits.memory` in `docker-compose.prod.yml`, and the
+  Horizon client's own body cap is 64 MB per response while a round walks sixty pairs
+  in sequence. An OOM kill leaves no application log line at all, which is why the
+  symptom is silence rather than an error, and why `RestartCount` is the field that
+  gives it away. Raise the limit in the compose file and
+  `docker compose -f docker-compose.prod.yml up -d keel-scan`.
+- **`scan: verifying <ASSET>: ...` with a transport error.** `-verify` defaults to
+  true and `verifyAssets` returns on the FIRST failure, before any run row exists.
+  A network fault reaching Horizon therefore looks like an asset problem. Tell the
+  two apart: a bad asset names one asset and fails the same way every restart, a
+  blocked egress fails on whichever asset happens to be first. Confirm with
+  `docker compose -f docker-compose.prod.yml run --rm keel-scan -once -verify=false`.
+- **`scan: the demonstration set is empty`.** Section 3.6 was not run. The scanner
+  reads the asset list ONCE at startup, so seeding after the container is up needs a
+  restart of `keel-scan` before it is seen.
+- **No `keel-scan` line in `docker ps` at all.** It was never started, or was stopped
+  by hand, which `restart: unless-stopped` deliberately does not undo.
+
+**Plain HTTP does not redirect to HTTPS, and behind Cloudflare there is no symptom.**
+`nginx-keel.conf` has a port 80 `server` block that serves the ACME challenge
+location and `301`s everything else. Measure the origin directly, because through
+the proxy you are testing Cloudflare rather than this box:
+
+```bash
+curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\n' \
+  --resolve api.keels.app:80:<origin-ip> http://api.keels.app/v1/health
+```
+
+`301` is correct. `404` means nginx answered from a different site: either the block
+is not installed, or another site holds `listen 80 default_server` and wins. Check
+which file claims 80 and reload:
+
+```bash
+sudo nginx -T | grep -n -A3 'listen 80'
+sudo ln -sfn /etc/nginx/sites-available/keel /etc/nginx/sites-enabled/keel
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**It is worth fixing even while it costs nothing**, and section 3.8 says why: with a
+Cloudflare Origin CA certificate there is no ACME challenge to serve and no visible
+breakage, so the fault sits still until somebody moves back to certbot, and then it
+presents as "certbot cannot issue" with nothing pointing back here.
+
 **`assetsMonitored: 0`.** Section 3.6 was not run, or was run against a
 different database.
 
@@ -1215,7 +1359,7 @@ carried it has.
 |---|---|---|
 | `KEEL_DEPLOY_TARGET` | `<VPS_USER>@<VPS_IPV4>` | the SSH destination. Setting it is what turns the job on |
 | `KEEL_HEALTH_URL` | `https://api.keels.app/v1/health` | what the job curls after deploying. No default and no URL in the workflow: with a target set and this missing, the job fails and says so |
-| `KEEL_DEPLOY_PATH` | `/opt/keel` | optional, defaults to `/opt/keel` |
+| `KEEL_DEPLOY_PATH` | `/srv/app/keel/keel-backend` | where the checkout lives on the host. Optional in the workflow, which defaults to `/opt/keel`; SET IT, because the default is not where this host's checkout is, and it must match `KEEL_DIR` in section 3.3 |
 
 **Repository secrets:**
 
@@ -1296,28 +1440,63 @@ production stack started in a developer's checkout would attach the developer's
 database; the second meant it would not start at all. Reasoning about the file
 would not have found either.
 
-**NOT run, and the host now exists, so this list is a work queue rather than a
-statement about an absent box:**
+### The stack went live on 12 September 2026, and most of the queue below closed
 
-- **The whole of nginx.** `scripts/deploy/nginx-keel.conf` has never been loaded by
-  an nginx anywhere. Not `nginx -t`, not the proxy, not the header block, not the
-  port 80 challenge location. It is a translation of a Caddyfile that did work, and
-  a translation is not a measurement.
-- **The certificate.** `KEEL_DOMAIN=localhost` let the one real run skip ACME
-  entirely, so nothing has tested an issuance, the port 80 challenge, the renewal
-  timer, or the apex-and-www reasoning in section 2. That reasoning is argued, not
-  measured, and under nginx it fails quietly rather than loudly, which section 2
-  says is the worse of the two.
-- **The loopback publish.** `keel-serve` has never been started with a published
-  port. The `127.0.0.1` binding is the whole of what keeps the API off the public
-  internet and `ss -ltnp | grep 3000` is the check that has not been run.
-- **The SSH deploy.** The workflow's deploy steps have never completed. As of 11
-  September 2026 the SSH step itself has been reached and refused with
+**The service is serving.** Measured from off the box, against
+`https://api.keels.app`:
+
+| What | Reading |
+|---|---|
+| `GET /v1/health` | `"status": "ok"` |
+| `latestScanAt` | 6.7 minutes old against a 15 minute interval, so the schedule is running and not a single round that happened to finish |
+| `latestScanLedgerSeq` | 64381285 |
+| `assetsMonitored` | 60 |
+| `GET /v1/assets` | `total: 60`, with `midPrice`, `depth5PctBuySide`, `maxSafeCollateral`, `band` and `flags` populated |
+| `methodologyVersion` | `1.0.8-draft`, equal to the constant in `internal/domain/types.go` |
+| `historicalAvailable` | `false`, which is correct until Track B writes the rows |
+
+**So these are now measurements rather than instructions**, and the entries they
+replace are struck from the queue below:
+
+- **nginx, the 443 half.** The server block is loaded and proxying. Direct to the
+  origin IP on 443, bypassing Cloudflare, `GET /v1/health` returns 200. **The port 80
+  half is NOT serving**, and that is the one part of the file still unmeasured in the
+  way it was written; section 3.8 and section 9 both carry it.
+- **The certificate.** Issued, but by neither route this document described. It is a
+  Cloudflare Origin CA certificate valid to 2041. Section 3.8 has the third route and
+  what it costs. The ACME challenge, the renewal timer and the ninety-day failure are
+  therefore **not tested and no longer on the path**, which is a different statement
+  from tested and working.
+- **The loopback publish.** `docker ps` shows `127.0.0.1:3000->3000/tcp` on
+  `keel-prod-serve`. The API is reachable only through the proxy.
+- **Section 7, re-run against nginx.** An allowed origin gets **exactly one**
+  `Access-Control-Allow-Origin` header, counted both through Cloudflare and direct to
+  the origin, so neither nginx nor Cloudflare adds a second one. A disallowed origin
+  gets **zero**. That is the assertion Caddy used to carry and it now holds under the
+  proxy that is actually serving.
+- **3.5 and 3.6 on the real host.** Both were run against the production database,
+  and `assetsMonitored: 60` is read from it rather than from a laptop.
+
+**STILL NOT RUN, and this is the remaining queue:**
+
+- **The SSH deploy, and it has never completed once.** Both runs of the workflow have
+  failed. The first reached the SSH step and was refused with
   `Permission denied (publickey,password)`, which at least proves
   `KEEL_DEPLOY_KNOWN_HOSTS` is right, because a wrong one fails earlier and
-  differently. The `git fetch`, the `compose pull` from `ghcr.io` and the new
-  loopback health probe have all run nowhere.
+  differently. The second got further, pulled the image and started the stack, and
+  then died on `failed to bind host port 0.0.0.0:80/tcp: address already in use`,
+  which is the Caddy collision this host's whole nginx arrangement exists to avoid:
+  the tag it deployed predated Caddy's removal. **What is serving now was brought up
+  by hand.** So `git fetch`, `compose pull` and the post-deploy version assertion have
+  all run nowhere, and the rollback story in section 5, which is pointing at the
+  previous image tag, has never been exercised.
+- **`KEEL_HEALTH_URL` is set to `/v1/health`**, a bare path rather than a URL. The
+  workflow runs `curl -fsS "$HEALTH_URL"` verbatim, so the step that proves the live
+  API serves the version this commit compiles cannot pass in its current form.
+  Section 10 documents the correct value and it has not been applied.
+- **The port 80 redirect**, above.
 - **The cron dump on a schedule.** `dump-database.sh` has not been run against
   this stack, and the 14 day rotation has not been waited out.
 - **A restore.** No dump has been restored into an empty database. Section 6.1
-  says this, and it is the gap most worth closing first.
+  says this, and with the stack now holding real measurements it is the gap most
+  worth closing first: there is now something to lose.

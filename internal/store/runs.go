@@ -1,4 +1,4 @@
-// The runs table: one row per scan or replay job.
+// The runs table: one row per scan, replay or holder pull.
 //
 // It exists so that a partial failure is visible instead of silent. One asset
 // failing must not fail a whole scan, which means the scan finishes reporting
@@ -14,18 +14,26 @@ import (
 	"time"
 )
 
-// RunKind is the CHECK on runs.kind. There are two, and `record` is deliberately
-// not one of them: the cross-validation recorder writes files and touches no
-// table, so giving it a run row would imply a database dependency it does not
-// have.
+// RunKind is the CHECK on runs.kind. There are three, and `record` is
+// deliberately not one of them: the cross-validation recorder writes files and
+// touches no table, so giving it a run row would imply a database dependency it
+// does not have.
 type RunKind string
 
-// The two kinds of run. A scan reads live data, a replay recomputes a past
+// The three kinds of run. A scan reads live data, a replay recomputes a past
 // ledger from history, and keeping them apart is what stops a replay's output
 // being quoted as a live measurement.
+//
+// RunHolders was added on 12 September 2026 with migrations/0006, and it is a
+// kind of its own rather than a scan for the same reason: a holder pull is
+// current trustline state with no ledger that describes it exactly, taken on its
+// own cadence because it does not fit inside a scan round's request budget.
+// Counting one as a scan would put a figure of that shape inside a count of
+// rounds that each measure one ledger.
 const (
-	RunScan   RunKind = "scan"
-	RunReplay RunKind = "replay"
+	RunScan    RunKind = "scan"
+	RunReplay  RunKind = "replay"
+	RunHolders RunKind = "holders"
 )
 
 // Run is one execution of the engine, recorded so that every stored figure can
@@ -45,9 +53,9 @@ type Run struct {
 // the one recorded, and so this package needs no clock of its own.
 func (s *Store) StartRun(ctx context.Context, kind RunKind, startedAt time.Time) (int64, error) {
 	switch kind {
-	case RunScan, RunReplay:
+	case RunScan, RunReplay, RunHolders:
 	default:
-		return 0, fmt.Errorf("store: run kind %q is not scan or replay", kind)
+		return 0, fmt.Errorf("store: run kind %q is not one of scan, replay or holders", kind)
 	}
 	var id int64
 	if err := s.db.QueryRowContext(ctx,

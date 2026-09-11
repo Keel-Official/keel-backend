@@ -1,13 +1,19 @@
 # DEC-016: The SOW names Horizon where the PRD names Hubble
 
-**Status:** Proposed. Drafted by the assistant; not in effect until Al accepts.
-**Date:** 2026-09-06
+**Status:** Accepted by Al, 12 September 2026. **OPTION A**, which section 6
+recommends: the PRD's wording is amended to match the SOW, criterion 3 is scored as
+cross-validation against Horizon, and FR-13 and FR-14 are re-priced from MUST to the
+Phase 3 improvement DEC-002 section 4 already called them.
+**Date drafted:** 2026-09-06
 **Kind:** Scope. It changes no formula, no threshold and no stored value. What it
 changes is which document the third Deliverable 1 acceptance criterion is scored
 against, and whether two MUST-priority requirements are owed to the funder or were
 added by the builders on top of what was promised.
 **Drafted by:** Claude
-**Decided by:** nobody yet. **This record proposes and does not decide.**
+**Decided by:** Al, 12 September 2026, Option A. Between 6 and 12 September this
+line read "nobody yet" and the record proposed rather than decided; that is kept in the
+version history rather than erased, because which of three options was taken is the
+part a later reader needs and "Accepted" alone does not carry it.
 **Zone:** `docs/decisions/` (YELLOW). Claude drafts and amends a record here and must
 not create or reverse a decision. Every option in section 6 is Al's.
 **Settles:** the question DEC-002 section 8.3 left open and said it could not close.
@@ -174,8 +180,26 @@ four lines of it.
 | B | write the Hubble gap into the handoff, with FR-13 and FR-14 named and priced | nothing further |
 | C | write `internal/hubble/`, the adapter, its tests and the 50-pair tabulation | `gcloud auth login` and a project with the BigQuery sandbox |
 
+**ROW A IS THE ONE IN FORCE SINCE 12 SEPTEMBER 2026.** What it has produced so far,
+and what it has not:
+
+| Item | Owner | State |
+|---|---|---|
+| amend this record to Accepted | Claude | done, 12 September 2026 |
+| `docs/internal/delivery-tracker.md` | Claude | done. NOT in any clone: `.gitignore` line 145 excludes that directory, so this is Al's local copy and a reader of the repository cannot check it |
+| re-anchor DEC-002 section 8 to the settled reading | Claude | NOT DONE. `docs/decisions/` belongs to Track B under `tugas-a.md` section 7, and re-anchoring an open question inside a record Track B may be reading is where two tracks collide. Named here so it is not mistaken for finished |
+| every other brief that scores criterion 3 | Claude | the tracked ones are four files under `docs/evidences/`, which section 7 also gives to Track B. NOT DONE, and for the same reason |
+| the PRD's own wording | **Al** | not done. That file is RED and it is the one that defines what finished means |
+| the written note to the Ambassador Chapter Lead | **Al** | not done, and section 7 condition 1 makes it binding rather than courteous |
+
+**THE TWO CONDITIONS IN SECTION 7 ARE NOT SATISFIED BY THIS ROW BEING TAKEN.** Until
+the Ambassador is told in writing, Option A and a quiet rescore are indistinguishable
+from outside, which is the sceptic's reading section 7 says the distinction has to
+survive.
+
 ## 10. Version history
 
 | Date | Change |
 |---|---|
 | 6 September 2026 | Drafted. Records the first reading of the SOW inside this repository, establishes reading 1 of DEC-002 section 8.3, and hands three options to Al |
+| 12 September 2026 | **Accepted by Al, Option A.** The header said `Accepted by Al` and `Decided by: nobody yet` at the same time for part of that day, which is why this row names the option: a record that says it was accepted without saying to what settles nothing, and section 9 assigns different work under each of the three. Section 7's two conditions bind with it and NEITHER is done yet: the amendment is disclosed to the Ambassador Chapter Lead in writing before the deliverable is assessed, and the Hubble gap goes into the handoff whichever option was chosen. Without the first, Option A and a quiet rescore differ by nothing a reader can see |

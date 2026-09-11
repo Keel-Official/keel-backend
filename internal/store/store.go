@@ -88,7 +88,7 @@ type Store struct {
 // unlimited for MaxOpenConns and as forever for the two lifetimes, and a
 // half-filled struct silently meaning unlimited is the wrong failure for a
 // value that arrives from an environment variable. Nothing here needs an
-// unlimited pool, so the ambiguity is resolved in favour of the safe reading.
+// unlimited pool, so the ambiguity is resolved in favor of the safe reading.
 //
 // The numbers live in a struct rather than in Open's body because the values
 // that suit a developer laptop and the values that suit the deployed host are
@@ -115,7 +115,7 @@ type Config struct {
 }
 
 // DefaultConfig is the pool Keel ran with before any of it was configurable, so
-// a caller that passes nothing gets exactly the previous behaviour, plus a ping
+// a caller that passes nothing gets exactly the previous behavior, plus a ping
 // that now has a deadline.
 //
 // A scan walks assets one at a time and the API is read-only, so a large pool

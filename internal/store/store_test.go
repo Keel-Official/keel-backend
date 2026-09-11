@@ -194,9 +194,14 @@ func fullRisk() domain.AssetRisk {
 		MaxSafeCollateralManipulation: decp("0"),
 
 		Supporting: domain.SupportingMetrics{
-			HolderTop1Pct:     decp("99.9999990000000001"),
-			HolderTop10Pct:    decp("100"),
-			HolderHHI:         decp("9999.99998"),
+			HolderTop1Pct:  decp("99.9999990000000001"),
+			HolderTop10Pct: decp("100"),
+			HolderHHI:      decp("9999.99998"),
+			// DEC-018 point 2: the holder figures never travel without the ledger
+			// they were read at, and it is deliberately NOT LedgerSeq. Two ledgers
+			// earlier than the book, so a test that confused the two would see it.
+			HolderSnapshotLedger: ledgerPtr(61340261),
+
 			VolumeToSupplyD1:  decp("0.0000001"),
 			VolumeToSupplyD7:  decp("0.0000002"),
 			VolumeToSupplyD30: decp("0.0000003"),
@@ -1025,3 +1030,6 @@ func assertStringsEqual(t *testing.T, name string, got, want []string) {
 		}
 	}
 }
+
+// ledgerPtr is the pointer form a ledger sequence needs on an optional field.
+func ledgerPtr(n uint32) *uint32 { return &n }

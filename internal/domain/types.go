@@ -503,9 +503,39 @@ func DefaultParams() Params {
 // SupportingMetrics fields are nil when they cannot be computed.
 // Nil means "unknown", NOT zero.
 type SupportingMetrics struct {
-	HolderTop1Pct         *decimal.Decimal
-	HolderTop10Pct        *decimal.Decimal
-	HolderHHI             *decimal.Decimal
+	HolderTop1Pct  *decimal.Decimal
+	HolderTop10Pct *decimal.Decimal
+	HolderHHI      *decimal.Decimal
+
+	// HolderSnapshotLedger is the ledger the three figures above were read at,
+	// and it is NOT the AssetRisk.LedgerSeq they end up beside. DEC-018 point 2,
+	// accepted 12 September 2026.
+	//
+	// Three sentences, as types.go requires. It sits on this struct rather than on
+	// AssetRisk because the three holder figures and the ledger they came from are
+	// one measurement, and a shape that lets them be carried separately is a shape
+	// where they can be separated, which is the whole failure the record describes.
+	// DEC-011 already settled that a trustline pull resolves to one snapshot ledger
+	// and said in as many words that it is "the LedgerSeq the pull carries
+	// downstream", so this field is that sentence given somewhere to live rather
+	// than a new idea. It changes no contract: internal/api/wire.go maps the
+	// response field by field and internal/store/jsonb.go declares its own storage
+	// shapes, so neither picks a new field up by accident, and DEC-018 point 4,
+	// which would expose it, is still a draft nobody has accepted.
+	//
+	// REJECTED ALTERNATIVE: pass it beside the struct, as a second argument to
+	// store.SaveMetrics and a second return from the scan helper. That was built
+	// first and thrown away. It made the invariant something each call site had to
+	// remember instead of something the type guarantees, it needed a validator in
+	// the store to catch the case where somebody forgot, and it broke ten existing
+	// tests that pass a result carrying holder figures through the one-argument
+	// door. The version you are reading needed a single line changed in one test
+	// fixture.
+	//
+	// Nil when the three figures are nil. The store refuses the two states where
+	// they disagree, and migrations/0007 refuses them again in SQL.
+	HolderSnapshotLedger *uint32
+
 	VolumeToSupplyD1      *decimal.Decimal
 	VolumeToSupplyD7      *decimal.Decimal
 	VolumeToSupplyD30     *decimal.Decimal
