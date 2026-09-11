@@ -433,8 +433,9 @@ jobs:
       # `docker compose up -d` by hand would silently change the running version.
       #
       # The checkout on the host is a detached checkout of THIS commit, not a pull
-      # of a branch, so the compose file and the Caddyfile that come up are the
-      # ones this release was reviewed with.
+      # of a branch, so the compose file that comes up is the one this release was
+      # reviewed with. The nginx server block is NOT deployed this way: it lives in
+      # /etc/nginx on the host and is Al's to install. RUNBOOK.md section 3.8.
       #
       # These are the same four commands section 5 of the runbook gives for a
       # manual deploy. If one changes, both change.
@@ -479,12 +480,23 @@ jobs:
           docker compose -f docker-compose.prod.yml ps
           REMOTE
 
-      # WAIT ON THE STACK'S OWN HEALTH BEFORE ASKING THE INTERNET. The caddy
-      # service carries the healthcheck, because the API's image is distroless and
-      # has no HTTP client in it; it probes http://keel-serve:3000/v1/health and
-      # asserts 200 only. Waiting here means the curl below fails for a real
-      # reason rather than for arriving early.
-      - name: Wait for the stack to report healthy
+      # WAIT FOR THE API ON LOOPBACK BEFORE ASKING THE INTERNET, so the public curl
+      # below fails for a real reason rather than for arriving early.
+      #
+      # THIS USED TO READ A CONTAINER HEALTHCHECK AND THERE IS NO LONGER ONE TO
+      # READ. It polled `docker inspect keel-prod-caddy` for `healthy`, because the
+      # caddy service carried the stack's only healthcheck: keel-serve's image is
+      # distroless, with no shell and no HTTP client, so nothing inside it can probe
+      # itself. Caddy was removed on 11 September 2026 when nginx took over TLS on
+      # the host, and its healthcheck went with it.
+      #
+      # SO THE PROBE MOVED OUT OF THE STACK AND ONTO THE HOST. curl is on the box
+      # and the API is published on loopback, which is the whole reason that port is
+      # published at all. What this no longer covers is the proxy hop, which the
+      # caddy probe did cover from inside the network. The public check in the next
+      # step covers it instead, and covers DNS and the certificate with it, so
+      # nothing is lost between the two of them.
+      - name: Wait for the API to answer on loopback
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:
           TARGET: ${{ vars.KEEL_DEPLOY_TARGET }}
@@ -495,23 +507,33 @@ jobs:
             "DEPLOY_PATH='$DEPLOY_PATH' bash -s" <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
+          # READ THE BIND ADDRESS FROM .env RATHER THAN ASSUMING IT. The compose
+          # file defaults to 127.0.0.1:3000 and this box may hold 3000 for the other
+          # application, in which case KEEL_BIND_ADDR names something else and this
+          # check has to follow it. grep rather than `source`, because .env holds
+          # the database password and sourcing it would put that in this shell.
+          bind=$(grep -E '^KEEL_BIND_ADDR=' .env | head -1 | cut -d= -f2- || true)
+          [ -n "$bind" ] || bind=127.0.0.1:3000
+          echo "probing http://${bind}/v1/health"
           for i in $(seq 1 30); do
-            state=$(docker inspect --format '{{.State.Health.Status}}' keel-prod-caddy 2>/dev/null || echo unknown)
-            echo "caddy health: $state"
-            [ "$state" = "healthy" ] && exit 0
+            if curl -fsS --max-time 5 "http://${bind}/v1/health" >/dev/null 2>&1; then
+              echo "the API answers on loopback"
+              exit 0
+            fi
             sleep 5
           done
-          echo "the caddy healthcheck did not reach healthy in about two and a half minutes" >&2
+          echo "the API did not answer on ${bind} in about two and a half minutes" >&2
           docker compose -f docker-compose.prod.yml ps >&2
           docker compose -f docker-compose.prod.yml logs --tail 40 keel-serve >&2
           exit 1
           REMOTE
 
       # THE CHECK IS MADE FROM HERE AND NOT FROM THE BOX, over the public internet
-      # and through Caddy, because that is the only path that proves what a
+      # and through nginx, because that is the only path that proves what a
       # consumer gets: DNS resolving, the certificate valid, the proxy routing and
-      # the API answering. `curl localhost:3000` on the host proves none of those
-      # and passes when all four are broken.
+      # the API answering. The loopback curl in the previous step proves the fourth
+      # of those and passes when the first three are broken, which is exactly why it
+      # is not the last word.
       - name: The version the live API serves is the version this commit compiles
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:

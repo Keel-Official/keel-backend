@@ -312,8 +312,8 @@ docker compose --profile app down -v  # destroys keel_pgdata as well
 Every long explanation lives there rather than in both places, because a second home
 for a procedure drifts.
 
-**Status: PREPARED, NOT APPLIED.** The compose file, the Caddyfile, the dump script
-and the deploy workflow are written. The box, its DNS, its database password and the
+**Status: PREPARED, NOT APPLIED.** The compose file, the nginx server block, the
+dump script and the deploy workflow are written. The box, its DNS, its database password and the
 repository secrets are Al's, and Al applies them. The deploy job is gated on the
 repository variable `KEEL_DEPLOY_TARGET`: until it is set the job writes a summary
 saying what it is waiting for and deploys nothing.
@@ -334,9 +334,17 @@ working one from outside.
 | The read-only API | `keel-serve` | no endpoints |
 | The scanner | `keel-scan` | health reads `degraded` forever and every asset returns 404 "no metrics yet" |
 
-`caddy` is a fourth service and is not Keel: it holds the certificate, is the only
-container with a port open to the internet, and writes the access log. It is
-deliberately not on the same Docker network as `postgres`.
+There was a fourth service, `caddy`, and it was **removed on 11 September 2026**
+because the box already runs nginx for another application and two processes cannot
+both hold 80 and 443. TLS, the HTTP redirect, the security headers and the access log
+are nginx's now, on the host, from `scripts/deploy/nginx-keel.conf`. The `edge`
+network went with it, since it existed only to give Caddy a route to the API without
+giving it one to Postgres, and nginx is outside Docker entirely.
+
+**The stack therefore has no healthcheck on the API at all.** `keel-serve` is
+distroless, with no shell and no HTTP client, and Caddy was the only container that
+could probe it. The two checks that replace it are both outside the stack: the deploy
+job curls the loopback port over SSH, and then curls the public URL from the runner.
 
 `keel-serve` and `keel-scan` run the **same image at the same tag** with different
 commands. Two tags would mean the scanner computing rows under one methodology
@@ -357,24 +365,30 @@ throwaway database and the real dataset under the same name.
 
 ## 2.3 First-time setup, in dependency order
 
-Sections in the runbook, and DNS is first because Caddy asks for a certificate as
-soon as it loads.
+Sections in the runbook, in dependency order.
 
 | Step | Runbook | The thing that bites |
 |---|---|---|
 | DNS | 3.1 | `api.keels.app` only. `keels.app` and `www` are on Vercel |
 | Firewall | 3.2 | 80 and 443 both inbound. 80 is not optional, the ACME challenge needs it |
 | The box | 3.3 | amd64 and arm64 are both published from the same tag |
+| nginx and the certificate | 3.8 | the server block is copied into `/etc/nginx` by hand, then certbot |
 | `.env` | 3.4 | six variables, one secret, `chmod 600` |
 | Schema | 3.5 | `scripts/migrate.sh`, by hand, and it is Al's to run |
 | Demonstration set | 3.6 | sixty pairs, from `configs/demonstration-set.json` |
 | First boot | 3.7 | wait for `certificate obtained successfully` |
 
-**The hostname is configuration, and adding a second one takes the API down.** Caddy
-requests a certificate for every hostname in the Caddyfile at load. An ACME challenge
-for a name whose DNS points at Vercel cannot succeed, Caddy retries with backoff, and
-the site that does resolve here is degraded while it does. Adding `keels.app` "so the
-bare domain redirects" does not add a redirect, it takes the API down.
+**Serving a second hostname breaks the certificate, and under nginx it breaks it
+quietly.** Caddy requested a certificate for every hostname in its config at load, so
+naming `keels.app` took the API down at once and the mistake announced itself. nginx
+accepts a second `server_name` without complaint and serves it; the breakage moves to
+certbot, which still cannot solve a challenge for a name pointed at Vercel, and shows
+up as a renewal that stops working weeks later. The loud failure was the better of
+the two and it is no longer available.
+
+**The hostname is no longer configuration either.** `KEEL_DOMAIN` was read only by
+Caddy, so it is a dead variable now and the runbook says to delete it from `.env`.
+The name is a literal in `scripts/deploy/nginx-keel.conf`.
 
 **`KEEL_DSN` is not a variable on this box and setting it does nothing.** The DSN is
 composed inside `docker-compose.prod.yml` from `POSTGRES_USER`, `POSTGRES_PASSWORD`
@@ -419,11 +433,13 @@ computed, so there is nothing to report until the first scan has written one.
 `assetsMonitored: 0` alongside `degraded` is also correct: the API is up, the schema
 is applied, and step 3.6 has not run. One step left rather than a failure.
 
-In `docker compose ps`, the healthcheck lives on `caddy` and probes
-`http://keel-serve:3000/v1/health`, because the API's distroless image has no HTTP
-client inside it. **That probe asserts HTTP 200 and never reads the `status` field**,
-since `degraded` is a correct 200 and treating it as a failure would mark a working
-API unhealthy on every fresh deploy.
+**`docker compose ps` no longer tells you whether the API serves.** The healthcheck
+used to live on `caddy` and probe `http://keel-serve:3000/v1/health`; with Caddy gone
+nothing in the stack has an HTTP client, so `running` means only that the process has
+not exited. Ask the API directly from the box with
+`curl -s http://127.0.0.1:3000/v1/health`. **Whatever probes it must assert HTTP 200
+and never read the `status` field**, since `degraded` is a correct 200 and treating
+it as a failure would mark a working API unhealthy on every fresh deploy.
 
 ## 2.5 Deploying a new version
 
@@ -442,8 +458,9 @@ without deploying, since the same edit removed `workflow_dispatch`. Runbook sect
 10 carries both points.
 
 The job SSHes with a pinned host key, rewrites `KEEL_IMAGE_TAG` in `.env` to the
-commit SHA, pulls, brings the stack up, waits for the `caddy` healthcheck, then curls
-the public health URL from the runner and fails unless the served
+commit SHA, pulls, brings the stack up, curls the API on its loopback port over the
+same SSH connection until it answers, then curls the public health URL from the
+runner and fails unless the served
 `methodologyVersion` equals the constant that commit compiles. That version check is
 the entire point of the job: the contract once advertised a version the server did
 not return, and the generated mock served it.

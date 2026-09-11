@@ -6,16 +6,17 @@ variable `KEEL_DEPLOY_TARGET`, and until it is set the job writes a summary
 saying what it is waiting for and deploys nothing.
 
 Prepared 11 September 2026 by Claude. Same division as `scripts/s3-archive/` and
-`scripts/history-migration/`: the compose file, the Caddyfile, the dump script,
-this document and the workflow steps are written here, and the box, its DNS, its
+`scripts/history-migration/`: the compose file, the nginx server block, the dump
+script, this document and the workflow steps are written here, and the box, its DNS,
+its
 password and the repository secrets are Al's. Claude cannot rent a VPS, must not
 hold the key to one, and must not be the party that provisions the
 infrastructure the deliverable's evidence is served from.
 
 | File | What it is |
 |---|---|
-| `docker-compose.prod.yml` | the four services, at the repository root |
-| `Caddyfile` | TLS, the reverse proxy and the access log, at the repository root |
+| `docker-compose.prod.yml` | the three services, at the repository root |
+| `scripts/deploy/nginx-keel.conf` | TLS, the reverse proxy and the access log. Installed into `/etc/nginx` by hand. Section 3.8 |
 | `scripts/deploy/dump-database.sh` | one dump, called by cron. Section 6 |
 | `.github/workflows/deploy.yml` | the deploy job, gated until section 10 is done |
 | `scripts/migrate.sh` | the only mechanism that applies the schema, in production too |
@@ -53,9 +54,24 @@ and the hostname is a service name in the compose file rather than a value someb
 types into `.env`, which deletes the three-spelling trap that used to live in
 section 9.
 
-`caddy` is the fourth service in this file and is not Keel: it holds the
-certificate, is the only container with a port open to the internet, and writes the
-access log. It is deliberately NOT on the same Docker network as `postgres`.
+**THERE WAS A FOURTH SERVICE AND IT IS GONE AS OF 11 SEPTEMBER 2026.** `caddy` held
+the certificate, was the only container with a port open to the internet, wrote the
+access log, and was deliberately kept off the same Docker network as `postgres`. It
+was removed because this box already runs nginx for another application, and two
+processes cannot both hold 80 and 443. The one that was already there keeps them.
+
+**What moved, and where it went.** TLS, the HTTP redirect, the security headers and
+the access log are now nginx's, on the host, from
+`scripts/deploy/nginx-keel.conf`. Section 3.8 installs it. The `edge` network went
+with Caddy, because it existed only to give Caddy a route to `keel-serve` without
+giving it one to `postgres`, and nginx is not in this project at all.
+
+**What it cost, and this is the part to carry:** the stack now has NO healthcheck on
+the API. `keel-serve` is distroless, with no shell and no HTTP client, so it cannot
+probe itself, and Caddy was the only container in the stack that could probe it.
+`docker compose ps` will report `keel-serve` as running and tell you nothing about
+whether it serves. The two checks that replace it are both outside the stack and
+both in section 4.
 
 `keel-serve` and `keel-scan` run the **same image** at the **same tag**, with
 different commands. That is deliberate rather than convenient: two tags would
@@ -78,28 +94,44 @@ a different application, in a different repository, **already deployed on
 Vercel**, and their DNS points at Vercel. **This box must not serve them, must
 not redirect them, and must not request a certificate for them.**
 
-**That is a startup failure and not a matter of taste.** Caddy asks for a
-certificate for every hostname in the Caddyfile as soon as it loads. An ACME
-challenge for a name whose DNS answers with Vercel's address cannot succeed: the
-CA connects to the address the world sees, which is not this host. Caddy then
-retries with backoff, and the site that *does* resolve here is degraded or down
-while it does. Adding `keels.app` to the Caddyfile "so the bare domain
-redirects" does not add a redirect. It takes the API down.
+**UNDER CADDY THIS WAS A STARTUP FAILURE. UNDER NGINX IT IS QUIETER, AND THAT IS
+WORSE RATHER THAN BETTER.** The paragraph here read: Caddy asks for a certificate
+for every hostname in the Caddyfile as soon as it loads, an ACME challenge for a
+name whose DNS answers with Vercel's address cannot succeed because the CA connects
+to the address the world sees, Caddy then retries with backoff, and the site that
+*does* resolve here is degraded while it does. So adding `keels.app` "so the bare
+domain redirects" did not add a redirect, it took the API down.
 
-The Caddyfile carries that reasoning in a comment at the top, so the next person
-to reach for a `redir` block reads it there rather than here.
+nginx does none of that. It will accept a `server_name keels.app;` block without
+complaint and serve it, and the breakage moves to certbot, which still cannot solve
+a challenge for a name pointed at Vercel. **The failure is then a renewal that
+stops working weeks later rather than a site that will not start now.** A loud
+failure at the moment of the mistake was the better of the two, and it is no longer
+available.
 
-**The hostname is configuration.** `KEEL_DOMAIN` in the host's `.env`, read by
-the `caddy` service, substituted into the Caddyfile as `{$KEEL_DOMAIN}`. The
-documented value is:
+`scripts/deploy/nginx-keel.conf` carries that reasoning in a comment at the top, so
+the next person to reach for a second `server_name` reads it there rather than here.
 
-```
-KEEL_DOMAIN=api.keels.app
-```
+**THE HOSTNAME IS NO LONGER CONFIGURATION, AND `KEEL_DOMAIN` IS NOW A DEAD
+VARIABLE.** It used to live in the host's `.env`, read by the `caddy` service and
+substituted into the Caddyfile as `{$KEEL_DOMAIN}`, with no default, so an unset
+value stopped Caddy rather than serving the wrong name.
 
-It is not hardcoded in the Caddyfile and has no default there, so an unset value
-stops Caddy at startup rather than serving the wrong name. The error it prints
-is misleading; section 9 has it.
+Nothing reads it now. Caddy was its only consumer: no Go file reads it, and with
+that service removed no line of `docker-compose.prod.yml` does either. The name is
+written into `scripts/deploy/nginx-keel.conf` as a literal, twice, because stock
+nginx does no environment substitution in a config file and the envsubst templating
+that the nginx *container* offers is not available to an nginx installed on the
+host.
+
+**So delete the `KEEL_DOMAIN` line from `.env`.** A variable that is set, looks
+load bearing, and is read by nothing is the failure the deploy workflow's own
+header names about a declared and unused Go version: somebody will later believe it
+is being honoured, change it, and wonder why nothing moved. Section 3.4's table no
+longer lists it.
+
+If the hostname ever changes, it changes in `nginx-keel.conf` and in the
+`KEEL_HEALTH_URL` repository variable, and those two are the whole of it.
 
 ---
 
@@ -107,9 +139,12 @@ is misleading; section 9 has it.
 
 Placeholders to substitute: `<VPS_IPV4>`, `<VPS_IPV6>`, `<VPS_USER>`.
 
-Steps are in dependency order and DNS is first for a reason: Caddy asks for a
-certificate within seconds of its first start, so the record has to exist and
-have propagated **before** step 3.7.
+Steps are in dependency order and DNS is still first, though the reason changed
+with Caddy. It read "Caddy asks for a certificate within seconds of its first
+start". Nothing asks automatically now: certbot is run by hand in step 3.8, and it
+fails if the record does not resolve to this box. So the record has to exist and
+have propagated **before** step 3.8 rather than before 3.7, and the stack in 3.7
+comes up perfectly well without it.
 
 ### 3.1 DNS: one record, or two if the host has IPv6
 
@@ -150,12 +185,18 @@ dig +short keels.app A           # Vercel's address. NOT <VPS_IPV4>
 | 443 | TCP | the API |
 
 **Port 80 is the step that gets skipped, and because the API is HTTPS only,
-skipping it looks defensible.** It is not, for two reasons. Caddy solves the
-ACME HTTP-01 challenge on port 80, so with it closed the certificate is never
-issued and there is no HTTPS to be "only" on. And port 80 is where the HTTP to
-HTTPS redirect lives: with it closed, anybody who types the hostname without a
-scheme gets a connection timeout instead of a 308, which reads as "the API is
-down".
+skipping it looks defensible.** It is not, for two reasons, and neither changed
+when Caddy did. The ACME HTTP-01 challenge is solved on port 80, so with it closed
+the certificate is never issued and there is no HTTPS to be "only" on. And port 80
+is where the HTTP to HTTPS redirect lives: with it closed, anybody who types the
+hostname without a scheme gets a connection timeout instead of a 301, which reads
+as "the API is down".
+
+**BOTH PORTS ARE PROBABLY ALREADY OPEN, because nginx was already serving another
+application on this box before Keel arrived.** Check rather than assume, and check
+that nginx and not something else holds them: `sudo ss -ltnp | grep -E ':(80|443)'`
+should name `nginx`. If a `docker-proxy` process appears there, something published
+a container port on a public address and section 3.7's warning applies to it.
 
 ```bash
 sudo ufw allow OpenSSH
@@ -169,8 +210,14 @@ If the provider has its own firewall in front of the box, a cloud security group
 or similar, **open it in both places**. One of the two being closed produces
 exactly the symptom of the other being closed.
 
-Nothing else needs to be open. `keel-serve` publishes no port: Caddy is the only
-route in.
+Nothing else needs to be open, and in particular **the API's own port must not
+be**. `keel-serve` used to publish nothing at all, because Caddy reached it over a
+Docker network. It now publishes `127.0.0.1:3000` so that nginx on the host can
+reach it, and loopback is the whole of what keeps that off the internet. The same
+`ss` check applies: `ss -ltnp | grep 3000` must show `127.0.0.1:3000` and never
+`0.0.0.0:3000`. A bare `"3000:3000"` in the compose file would serve the API over
+plain HTTP on the public address, past nginx and past `ufw`, while `ufw status`
+looked correct.
 
 **AND NOTHING NEEDS TO BE OPENED FOR THE DATABASE, WHICH IS THE THIRD ANSWER THIS
 PARAGRAPH HAS GIVEN IN A DAY.** The compose file publishes Postgres as
@@ -247,10 +294,9 @@ file and never by a typo here.
 | `POSTGRES_DB` | yes | **must be `keel`**, see the warning below |
 | `POSTGRES_USER` | yes | **must be `keel`**, see the warning below |
 | `POSTGRES_PASSWORD` | yes | the database password, and the only secret on this box. `openssl rand -base64 32` |
-| `KEEL_DOMAIN` | yes | `api.keels.app`. Section 2 |
 | `KEEL_CORS_ORIGINS` | yes | the dashboard's origins. Section 7 |
-| `KEEL_IMAGE` | no | defaults to `ghcr.io/keel-official/keel-backend` |
-| `KEEL_ACME_EMAIL` | no | Let's Encrypt expiry notices. Needs one line uncommented in the Caddyfile |
+| `KEEL_IMAGE` | yes | `ghcr.io/keel-official/keel-backend`. It had a default until 11 September 2026 and `keel-serve` now requires it, while `keel-scan` still defaults. Setting it satisfies both |
+| `KEEL_BIND_ADDR` | no | where the API listens on this box. Defaults to `127.0.0.1:3000`. Section 3.8 |
 | `KEEL_DB_MAX_OPEN_CONNS` | no | connection pool ceiling. Default 8 |
 | `KEEL_DB_MAX_IDLE_CONNS` | no | idle connections kept. Default 4, and capped at the ceiling above |
 | `KEEL_DB_CONN_MAX_LIFETIME` | no | Go duration, e.g. `30m`. Default `30m` |
@@ -319,8 +365,23 @@ POSTGRES_DB=keel
 POSTGRES_USER=keel
 POSTGRES_PASSWORD=REPLACE_WITH_A_GENERATED_PASSWORD
 
-# The hostname Caddy serves and requests a certificate for. Section 2.
-KEEL_DOMAIN=api.keels.app
+# The image, which stopped having a default in the compose file on 11 September
+# 2026. Without this line compose stops and names the variable.
+KEEL_IMAGE=ghcr.io/keel-official/keel-backend
+
+# WHERE THE API LISTENS ON THIS BOX, for nginx to proxy to. Optional: leave it out
+# and the compose file uses 127.0.0.1:3000. Set it if another application on this
+# host already holds 3000, and change the proxy_pass port in
+# scripts/deploy/nginx-keel.conf to match, because the two are one setting written
+# in two files. Check first with `ss -ltnp | grep 3000`.
+#
+# 127.0.0.1 IS NOT DECORATION. Drop it and the API is served over plain HTTP on the
+# public address, past nginx and past ufw. Section 3.2.
+#KEEL_BIND_ADDR=127.0.0.1:3000
+
+# THERE IS NO KEEL_DOMAIN LINE and one here would be read by nothing. Caddy was its
+# only consumer and Caddy is gone; the hostname is a literal in
+# scripts/deploy/nginx-keel.conf now. Section 2.
 
 # The dashboard's origins, exact, comma separated, no trailing slash, no
 # wildcard. These are NOT this API's own origin. Section 7.
@@ -467,14 +528,76 @@ docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml ps
 ```
 
-Four services running. Watch the certificate being issued, which takes seconds
-when 3.1 and 3.2 are right and never happens when they are not:
+Three services running. **Nothing here reports whether the API actually serves**,
+because the stack no longer holds a healthcheck for it: `keel-serve` is distroless
+and Caddy, which used to probe it, is gone. `ps` says `running` for a container
+that is crash looping between polls. Ask the API instead:
 
 ```bash
-docker compose -f docker-compose.prod.yml logs -f caddy
+curl -s http://127.0.0.1:3000/v1/health          # or KEEL_BIND_ADDR, if set
+docker compose -f docker-compose.prod.yml logs --tail 40 keel-serve
 ```
 
-`certificate obtained successfully` is the line to wait for.
+A JSON body with `"status": "degraded"` is the correct answer here. Section 4 reads
+it field by field. **Nothing is reachable from the internet yet**: that is section
+3.8, and this is the last step that works without DNS.
+
+### 3.8 nginx and the certificate, and both are Al's
+
+**This box already runs nginx, which is why Caddy was removed from the stack on 11
+September 2026.** So this section is an nginx site added beside the one already
+there, not an nginx installed. Nothing under `scripts/deploy/` is loaded from the
+checkout: nginx reads `/etc/nginx/sites-enabled/`, so installing the server block
+is a copy and a symlink.
+
+```bash
+cd /opt/keel
+sudo cp scripts/deploy/nginx-keel.conf /etc/nginx/sites-available/keel
+sudo ln -sfn /etc/nginx/sites-available/keel /etc/nginx/sites-enabled/keel
+sudo nginx -t
+```
+
+**`nginx -t` FAILS AT THIS POINT AND THAT IS EXPECTED.** The file names certificate
+paths under `/etc/letsencrypt/live/api.keels.app/` that do not exist until certbot
+has run, and nginx refuses to load a TLS server block whose certificate is missing.
+Two ways round it, and the first is less fiddly:
+
+```bash
+# Let certbot write the TLS half itself, from an HTTP-only server block.
+sudo certbot --nginx -d api.keels.app
+```
+
+`certbot --nginx` edits the site in place, adds the `listen 443 ssl` half and the
+certificate paths, and installs the renewal timer. **It will rewrite parts of this
+file**, which is the cost of the easy road: the installed copy and
+`scripts/deploy/nginx-keel.conf` then differ, and the one in git stops being the
+record of what is serving. Diff them afterwards and carry anything certbot dropped
+back by hand, in particular the four security headers and the proxy timeouts.
+
+```bash
+# Or issue the certificate first with the webroot plugin, then enable the site
+# exactly as written, with no rewriting.
+sudo certbot certonly --webroot -w /var/www/html -d api.keels.app
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+The second form is what `nginx-keel.conf` is written for: its port 80 block already
+serves `/.well-known/acme-challenge/` from `/var/www/html` and redirects everything
+else, which is both what certbot needs now and what renewal needs in ninety days.
+
+**The renewal is the part that fails silently three months later.** Check that the
+timer exists and that a dry run completes:
+
+```bash
+systemctl list-timers | grep certbot
+sudo certbot renew --dry-run
+```
+
+**THE PROXY PORT IS ONE SETTING IN TWO FILES.** `proxy_pass` in the nginx file and
+`KEEL_BIND_ADDR` in `.env` have to name the same port. They both default to
+`127.0.0.1:3000`. If 3000 was already taken on this box, both move together, and
+the symptom of moving only one is a 502 whose `/var/log/nginx/keel-error.log` line
+reads `connect() failed (111: Connection refused)` and names the port nginx tried.
 
 ---
 
@@ -557,16 +680,28 @@ The stack's own view, from the box:
 ```bash
 cd /opt/keel
 docker compose -f docker-compose.prod.yml ps
+curl -s http://127.0.0.1:3000/v1/health          # or KEEL_BIND_ADDR, if set
+sudo tail -5 /var/log/nginx/keel-access.log
 ```
 
-`caddy` should read `healthy`. **That healthcheck lives on `caddy` and probes
-`http://keel-serve:3000/v1/health`, and the reason is worth knowing**: the API's
-image is `gcr.io/distroless/static-debian12:nonroot`, which has no shell, no
-curl and no wget, and `keel` has no health subcommand, so nothing inside that
-container can make an HTTP request to it. `caddy` is the only container in the
-stack with an HTTP client. **The probe asserts HTTP 200 and never reads the
-`status` field**, because `degraded` is a correct 200 and treating it as a
-failure would mark a working API unhealthy on every fresh deploy.
+**`ps` NO LONGER TELLS YOU WHETHER THE API SERVES, AND THIS IS THE ONE REGRESSION
+THE NGINX MOVE CAUSED.** It used to: `caddy` carried a healthcheck that probed
+`http://keel-serve:3000/v1/health`, so `healthy` in that column meant the API had
+answered within the last thirty seconds and the proxy hop worked. Caddy was removed
+on 11 September 2026 and there is nothing left in the stack to carry that probe.
+`keel-serve`'s image is `gcr.io/distroless/static-debian12:nonroot`, which has no
+shell, no curl and no wget, and `keel` has no health subcommand, so nothing inside
+that container can make an HTTP request to itself.
+
+**So `running` now means the process has not exited, and nothing more.** A
+container crash looping between two polls reads as running. The `curl` above is
+what replaced it, and the deploy job runs the same request over SSH before it
+trusts the public one.
+
+**Whatever probes this, it must assert HTTP 200 and never read the `status`
+field.** `degraded` is a correct 200: the handler reports it whenever no scan has
+been recorded, which is every deployment for up to fifteen minutes. That rule
+outlived the healthcheck that first needed it.
 
 ---
 
@@ -761,10 +896,17 @@ Four things about the value:
   `docker compose -f docker-compose.prod.yml up -d keel-serve`. There is no
   reload.
 
-**Caddy adds no CORS header and must not be made to.** The allowlist lives in
-one place, `internal/api`, and two `Access-Control-Allow-Origin` headers on one
-response is not a lenient case a browser picks from, it is a hard failure. The
-Caddyfile says so where somebody would otherwise add it.
+**nginx adds no CORS header and must not be made to.** The allowlist lives in one
+place, `internal/api`, and two `Access-Control-Allow-Origin` headers on one response
+is not a lenient case a browser picks from, it is a hard failure.
+`scripts/deploy/nginx-keel.conf` says so where somebody would otherwise add it, the
+same way the Caddyfile did before 11 September 2026.
+
+**NGINX HAS A SECOND WAY TO BREAK THIS THAT CADDY DID NOT.** An `add_header` inside
+a `location` block replaces every header inherited from the `server` block rather
+than adding to them. So a single `add_header` dropped into the `location /` block,
+for CORS or for anything else, silently removes the four security headers above it.
+The installed file carries that warning at the point where somebody would type it.
 
 Verify from a laptop:
 
@@ -774,7 +916,7 @@ curl -sI -H 'Origin: https://keels.app' https://api.keels.app/v1/health \
   | grep -i 'access-control-allow-origin'
 # access-control-allow-origin: https://keels.app
 
-# Exactly ONE such header, which is what proves Caddy is not adding a second
+# Exactly ONE such header, which is what proves nginx is not adding a second
 curl -sI -H 'Origin: https://keels.app' https://api.keels.app/v1/health \
   | grep -ci 'access-control-allow-origin'          # 1
 
@@ -806,48 +948,64 @@ page's JavaScript.
 ```bash
 cd /opt/keel
 
-# the four services, live
+# the three services, live
 docker compose -f docker-compose.prod.yml logs -f
 
 # one of them, bounded
 docker compose -f docker-compose.prod.yml logs --since 1h keel-scan
 docker compose -f docker-compose.prod.yml logs --tail 100 keel-serve
-docker compose -f docker-compose.prod.yml logs caddy | grep -i certificate
 ```
 
-The **access log is a file**, on the `caddy_logs` volume, rolled by Caddy at
-10 MiB with five kept, so it is capped near 50 MiB. That cap is a disk budget
-rather than a retention policy: on a small VPS the same disk holds Postgres and
-the dumps, and an access log that fills it takes down the database, which is far
-worse than losing last week's requests.
+**THE ACCESS LOG IS NGINX'S NOW AND IT IS NOT IN THIS PROJECT.** It used to be a
+JSON file on the `caddy_logs` volume, rolled by Caddy at 10 MiB with five kept, so
+`docker compose exec caddy` reached it and `jq` could ask it questions. Since 11
+September 2026 it is an ordinary nginx access log on the host, in the combined
+format:
 
 ```bash
-# the raw file
-docker compose -f docker-compose.prod.yml exec caddy \
-  tail -n 50 /var/log/caddy/access.log
+sudo tail -n 50 /var/log/nginx/keel-access.log
+sudo tail -n 50 /var/log/nginx/keel-error.log
 
-# it is JSON, so ask it questions rather than grepping
-docker compose -f docker-compose.prod.yml exec caddy \
-  sh -c 'tail -n 2000 /var/log/caddy/access.log' \
-  | jq -r '[.status, .request.method, .request.uri] | @tsv' | sort | uniq -c | sort -rn | head
-
-# what the rolled files look like
-docker compose -f docker-compose.prod.yml exec caddy ls -la /var/log/caddy/
+# status codes over the last few thousand requests
+sudo tail -n 2000 /var/log/nginx/keel-access.log | awk '{print $9}' | sort | uniq -c | sort -rn
 ```
 
-`jq` runs on the host in that second command, so install it there rather than in
-the container.
+**WHAT THE MOVE COST, AND IT IS WORTH KNOWING BEFORE YOU NEED THE LOG.** Caddy wrote
+JSON, so a question could be asked with `jq` and no regex. nginx writes the combined
+format, so the commands above are `awk` over positional fields and they break on a
+user agent containing a quote. Switching nginx to a JSON `log_format` is a few lines
+and is deliberately not done here, because this box's other application already
+reads its logs in the combined format and one host with two log formats is worse
+than one awkward format.
+
+**THE ROTATION IS LOGROTATE'S AND IT IS NOT AUTOMATIC FOR A NEW FILE NAME.** Caddy's
+10 MiB times five was a disk budget rather than a retention policy: on a small VPS
+the same disk holds Postgres and the dumps, and an access log that fills it takes
+down the database, which is far worse than losing last week's requests. That budget
+is now whatever `/etc/logrotate.d/nginx` says. Check that it covers these two files,
+because a file nginx writes and logrotate does not know about grows without limit:
+
+```bash
+grep -r 'log/nginx' /etc/logrotate.d/ | head
+sudo logrotate -d /etc/logrotate.d/nginx 2>&1 | grep -i keel
+```
 
 ---
 
 ## 9. Troubleshooting
 
-**Caddy will not start and says `server block without any key is global
-configuration, and if used, it must be first`.** `KEEL_DOMAIN` is empty. A site
-block with no address in front of it is how a Caddyfile spells "global options",
-and there is already one of those, so the error describes the shape the empty
-variable left behind rather than the order of the blocks. Check
-`grep KEEL_DOMAIN .env`.
+**`nginx -t` says `cannot load certificate ... No such file or directory`.** The
+site is enabled and certbot has not run for this name yet. Section 3.8, and it is
+expected rather than wrong: nginx refuses to load a TLS block whose certificate is
+missing, which is the correct behaviour and the reason certbot comes after the copy
+rather than before it.
+
+**A paragraph that used to be here is gone with Caddy, and it is recorded because
+the symptom was so misleading.** An empty `KEEL_DOMAIN` made Caddy say `server block
+without any key is global configuration, and if used, it must be first`, which
+describes the shape an empty variable left behind rather than the order of the
+blocks. `KEEL_DOMAIN` is read by nothing now, so the error cannot occur. Section 2
+says why the variable should be deleted from `.env` rather than left set.
 
 **`docker compose` refuses to do anything and names a variable.** That is the
 `${VAR:?...}` form working. Every REQUIRED value in section 3.4 uses it; the five
@@ -855,15 +1013,27 @@ optional `KEEL_DB_*` rows do not and can never produce this message. Two causes:
 the variable really is missing, or you are not in `/opt/keel`, because `.env` is
 read only from the project directory.
 
-**No certificate, and the Caddy log retries.** In this order: `dig +short
-api.keels.app A` from off the box and check it is `<VPS_IPV4>`; check port 80 is
-open from off the box, in the provider's firewall as well as `ufw`; check the
-Caddyfile names only `{$KEEL_DOMAIN}` and that no apex or www block has crept
-in. Let's Encrypt allows five duplicate certificates per name per week, so find
-the cause before restarting repeatedly, and **do not delete the `caddy_data`
-volume**, which holds the certificates and the ACME account key.
+**certbot cannot issue.** In this order: `dig +short api.keels.app A` from off the
+box and check it is `<VPS_IPV4>`; check port 80 is open from off the box, in the
+provider's firewall as well as `ufw`; check the challenge reaches the webroot, with
+`sudo tail /var/log/nginx/keel-access.log` while certbot runs, looking for a request
+to `/.well-known/acme-challenge/`; check no apex or www `server_name` has crept into
+any enabled site, with `grep -r server_name /etc/nginx/sites-enabled/`. Let's Encrypt
+allows five duplicate certificates per name per week, so find the cause before
+retrying repeatedly, and **do not delete `/etc/letsencrypt/`**, which holds the
+certificates and the ACME account key. The rate limit is per name and is not reset
+by removing files.
 
-**`502` from Caddy.** `keel-serve` is not running or not listening.
+**`502` from nginx, and the error log names the port.** Read
+`sudo tail /var/log/nginx/keel-error.log` first, because it separates two causes
+that look identical from outside. `connect() failed (111: Connection refused)` means
+nothing is listening on the port nginx tried, which is either `keel-serve` being
+down or **`proxy_pass` and `KEEL_BIND_ADDR` naming different ports**, section 3.8.
+`upstream timed out` means it is listening and slow, which is the API's own problem
+and not the proxy's.
+
+If the port is right and nothing is listening, `keel-serve` is not running or not
+listening.
 `docker compose -f docker-compose.prod.yml logs keel-serve`. The `depends_on`
 gate holds it until `pg_isready` passes, so it should no longer crash loop waiting
 for a database that is merely slow to start. **The gate does not cover the schema**,
@@ -950,9 +1120,13 @@ difference is the one sentence that matters:**
 
 - **Inside the containers the host is `postgres` and the port is 5432.** That is a
   service name on the `data` network in `docker-compose.prod.yml`, not a value
-  anybody types. `keel-serve` and `keel-scan` are on that network; `caddy`
-  deliberately is not, so a shell in the Caddy container cannot reach the database
-  and that is not a fault.
+  anybody types. `keel-serve` and `keel-scan` are both on it, and since 11 September
+  2026 they are the only two containers in the project, so it is now the only
+  network. It used to be the point of the split that `caddy` was deliberately NOT on
+  it and a shell in the Caddy container could not reach the database. nginx is on
+  the host, outside Docker entirely, so it has no route to the `data` network at
+  all: the separation is stronger than the one it replaced, and it is a property of
+  where nginx runs rather than of anything configured here.
 - **From the host shell the database is at `localhost:5433`**, which is the
   difference from the first version: there IS a published port now, bound to
   loopback only. That is the spelling for `KEEL_MIGRATE_DSN` in section 3.5, for
@@ -1063,9 +1237,16 @@ cat ./keel-deploy               # into KEEL_DEPLOY_SSH_KEY, then delete both fil
 
 What the job does, in order: SSH with that key and a pinned host key, rewrite
 `KEEL_IMAGE_TAG` in `.env` to this commit's SHA, `docker compose pull`,
-`docker compose up -d`, wait for the `caddy` healthcheck to report healthy, then
-`curl $KEEL_HEALTH_URL` **from the runner over the public internet** and fail
-unless the served `methodologyVersion` equals the constant this commit compiles.
+`docker compose up -d`, curl the API on its loopback port over the same SSH
+connection until it answers, then `curl $KEEL_HEALTH_URL` **from the runner over the
+public internet** and fail unless the served `methodologyVersion` equals the
+constant this commit compiles.
+
+**The loopback step reads `KEEL_BIND_ADDR` out of `.env`** rather than assuming
+3000, by grep and not by sourcing the file, because `.env` holds the database
+password. It replaced a `docker inspect keel-prod-caddy` poll when Caddy was
+removed: with no container healthcheck left in the stack, the probe had to move
+onto the host, which has curl.
 
 **That version check is the entire point of the job.** It reports the `status`
 field and never asserts on it, because `degraded` is the correct answer for up
@@ -1082,9 +1263,19 @@ The job does not migrate. Section 3.5 and section 5 say why.
 out and one that was executed is the question a reader should be asking.
 
 **Run for real, 11 September 2026, on a laptop, against this repository's
-`docker-compose.prod.yml` and `Caddyfile`:** the full stack with
-`KEEL_DOMAIN=localhost`, which is the one value that makes Caddy use its own
-internal CA and skip ACME entirely. Sections 3.5, 3.6 and 3.7 verbatim, then the
+`docker-compose.prod.yml` and the `Caddyfile` AS THEY THEN WERE:** the full stack
+with `KEEL_DOMAIN=localhost`, which was the one value that made Caddy use its own
+internal CA and skip ACME entirely.
+
+**THAT RUN NO LONGER DESCRIBES THIS STACK, AND SAYING SO IS THE POINT OF THIS
+SECTION.** Caddy was removed hours later, on the same day, when the box turned out
+to already run nginx. So the TLS half, the redirect, the header assertions and the
+CORS header count in section 7 were all measured against a proxy that is not the one
+serving now. What still holds from it is everything below Caddy: 3.5, 3.6 and the
+compose file's own behaviour. **What has been measured nowhere is the nginx server
+block in `scripts/deploy/nginx-keel.conf`**, which has never been loaded by an nginx
+anywhere, and section 3.8 is written as instructions rather than as a transcript for
+that reason. Sections 3.5, 3.6 and 3.7 verbatim, then the
 checks in section 4 and section 7.
 
 What that established, each of them a live response rather than a reading of the
@@ -1093,7 +1284,8 @@ quotes that number; the section 4 body exactly as printed, `assetsMonitored: 60`
 included; port 80 answering `308`; `curl localhost:3000` not answering, so the
 API really is reachable only through the proxy; and the whole of section 7,
 including **exactly one** `Access-Control-Allow-Origin` header on an allowed
-response, which is what proves Caddy adds no second one.
+response, which is what proved Caddy added no second one. That assertion has to be
+re-run against nginx, and section 7 is where it lives.
 
 **Two collisions were found that way and fixed, and they are why this section
 exists.** Both appear only in a checkout that already has the development stack
@@ -1104,13 +1296,27 @@ production stack started in a developer's checkout would attach the developer's
 database; the second meant it would not start at all. Reasoning about the file
 would not have found either.
 
-**NOT run, and each needs the host that does not exist yet:**
+**NOT run, and the host now exists, so this list is a work queue rather than a
+statement about an absent box:**
 
-- **The ACME certificate.** `KEEL_DOMAIN=localhost` deliberately avoids it, so
-  nothing has tested a real issuance, the port 80 challenge, or the
-  apex-and-www reasoning in section 2. That reasoning is argued, not measured.
-- **The SSH deploy.** The workflow's deploy steps have never run. The `git
-  fetch`, the `compose pull` from `ghcr.io` and the SSH itself have run nowhere.
+- **The whole of nginx.** `scripts/deploy/nginx-keel.conf` has never been loaded by
+  an nginx anywhere. Not `nginx -t`, not the proxy, not the header block, not the
+  port 80 challenge location. It is a translation of a Caddyfile that did work, and
+  a translation is not a measurement.
+- **The certificate.** `KEEL_DOMAIN=localhost` let the one real run skip ACME
+  entirely, so nothing has tested an issuance, the port 80 challenge, the renewal
+  timer, or the apex-and-www reasoning in section 2. That reasoning is argued, not
+  measured, and under nginx it fails quietly rather than loudly, which section 2
+  says is the worse of the two.
+- **The loopback publish.** `keel-serve` has never been started with a published
+  port. The `127.0.0.1` binding is the whole of what keeps the API off the public
+  internet and `ss -ltnp | grep 3000` is the check that has not been run.
+- **The SSH deploy.** The workflow's deploy steps have never completed. As of 11
+  September 2026 the SSH step itself has been reached and refused with
+  `Permission denied (publickey,password)`, which at least proves
+  `KEEL_DEPLOY_KNOWN_HOSTS` is right, because a wrong one fails earlier and
+  differently. The `git fetch`, the `compose pull` from `ghcr.io` and the new
+  loopback health probe have all run nowhere.
 - **The cron dump on a schedule.** `dump-database.sh` has not been run against
   this stack, and the 14 day rotation has not been waited out.
 - **A restore.** No dump has been restored into an empty database. Section 6.1

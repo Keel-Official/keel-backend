@@ -1,4 +1,23 @@
-# Keel on one small VPS. Four services, four volumes, two ports.
+# Keel on one small VPS. Three services, one volume, two loopback ports.
+#
+# CADDY WAS REMOVED ON 11 SEPTEMBER 2026 BECAUSE THE BOX ALREADY RUNS NGINX, and
+# the reasoning it carried is not withdrawn, only rehoused. Two processes cannot
+# both hold 80 and 443, and the one that was already there and already serving
+# another application is the one that keeps them. So TLS, the HTTP redirect, the
+# security headers and the access log all moved to nginx ON THE HOST, and
+# `scripts/deploy/nginx-keel.conf` is the prepared server block that carries them.
+#
+# WHAT THAT COSTS, STATED PLAINLY RATHER THAN DISCOVERED: this stack no longer
+# contains anything with an HTTP client, so it has no healthcheck for the API at
+# all. Caddy held the only one, because keel-serve's image is distroless. The
+# deploy job now curls the loopback port over SSH instead, and the public check
+# from the runner is unchanged. Neither is a container healthcheck, so
+# `docker compose ps` will never again tell you the API answers.
+#
+# WHAT IT ALSO COSTS: the `edge` network is gone with it. It existed to give Caddy
+# a route to keel-serve without giving it one to Postgres. nginx is not in this
+# project and reaches the API through a published port instead, so there is nothing
+# left for `edge` to separate.
 #
 # scripts/deploy/RUNBOOK.md IS THE DOCUMENT TO READ FIRST. Nothing here is meant to
 # be understood from the YAML alone, and every long explanation lives there rather
@@ -42,11 +61,13 @@
 # in the same clone, INCLUDING keel_pgdata, which is the developer's throwaway
 # database and this one's real dataset under the same name. Container names are
 # prefixed for a second reason: they are global to the daemon and not scoped by
-# project. Service names are NOT prefixed, because they are the network aliases the
-# Caddyfile proxies to and the hostname inside the DSN.
+# project. Service names are NOT prefixed, because `postgres` is the hostname inside
+# the DSN below. That used to read "the network aliases the Caddyfile proxies to and
+# the hostname inside the DSN"; the proxy half went with Caddy, and nginx reaches the
+# API by published port rather than by service name.
 #
-# The image is published for amd64 and arm64. Memory limits total about 1.1 GB now
-# that Postgres is one of them, against roughly 576 MB before.
+# The image is published for amd64 and arm64. Memory limits total about 960 MB: 512
+# for Postgres, 192 for the API and 256 for the scanner.
 name: keel-prod
 
 services:
@@ -164,18 +185,38 @@ services:
     # rows. On, the same request would 404, which says the wrong thing. Adding
     # "-historical" here plus `up -d keel-serve` is the whole flip.
     command: ["serve", "-addr", ":3000"]
-    # NO PUBLISHED PORT. Caddy is the only route in, so there is no second address
-    # that skips TLS and `curl localhost:3000` on the host will not answer.
-    expose:
-      - "3000"
-    # TWO NETWORKS, and this is the only service on both: `edge` is how Caddy
-    # reaches it, `data` is how it reaches Postgres. Caddy is not on `data`, so the
-    # container facing the internet has no route to the database at all.
+    # PUBLISHED ON LOOPBACK, WHICH IT WAS NOT BEFORE. This block read "NO PUBLISHED
+    # PORT. Caddy is the only route in, so there is no second address that skips TLS
+    # and `curl localhost:3000` on the host will not answer." Caddy is gone and nginx
+    # is not in this project, so a published port is now the only way it can be
+    # reached, and `curl` on the host does answer.
+    #
+    # 127.0.0.1 IS THE WHOLE OF THE PROTECTION AND IT IS NOT OPTIONAL. A bare
+    # "3000:3000" binds 0.0.0.0, and Docker writes its publish rules into nat
+    # PREROUTING ahead of the chains ufw manages: the API would be reachable on
+    # http://<public ip>:3000, without TLS, bypassing nginx entirely, while
+    # `ufw status` looked correct. That is the same trap the Postgres block above
+    # names, and it is worse here because the port answers rather than refusing.
+    #
+    # CONFIGURABLE, BECAUSE THIS BOX IS SHARED. 3000 is a popular number and the
+    # application already on this host may hold it. Check before first boot with
+    # `ss -ltnp | grep 3000`, and if it is taken set KEEL_BIND_ADDR in .env to
+    # something free, for example 127.0.0.1:3100. The container port stays 3000
+    # either way, because that is what `command:` below binds.
+    ports:
+      - "${KEEL_BIND_ADDR:-127.0.0.1:3000}:3000"
+    # ONE NETWORK NOW. This used to be the only service on both `edge` and `data`,
+    # `edge` being how Caddy reached it. nginx runs on the host and arrives through
+    # the published port above, so `data` is all that is left to be on.
     networks:
-      - edge
       - data
     # NO HEALTHCHECK HERE: the image is distroless, with no shell and no HTTP
-    # client, so nothing inside it can probe itself. The probe is on caddy.
+    # client, so nothing inside it can probe itself. It used to be probed from the
+    # caddy container, which was the only one in the stack that could make an HTTP
+    # request. NOTHING PROBES IT NOW. `docker compose ps` reports this container as
+    # running and says nothing about whether it serves. The two checks that remain
+    # are both outside the stack: the deploy job curls the loopback port over SSH,
+    # and then curls the public URL from the runner. RUNBOOK.md section 4.
     restart: unless-stopped
     deploy:
       resources:
@@ -209,7 +250,8 @@ services:
       KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
     command: ["scan", "-interval", "15m"]
     # `data` ONLY, and it still reaches Horizon: a user-defined bridge is not
-    # `internal`, so outbound works. What it does not have is a route from Caddy.
+    # `internal`, so outbound works. What it does not have is a published port, so
+    # nothing off this box can address it.
     networks:
       - data
     restart: unless-stopped
@@ -218,71 +260,24 @@ services:
         limits:
           memory: 256M
 
-  # ---------------------------------------------------------------- TLS
-  #
-  # THE ONLY SERVICE WITH PORTS ON A PUBLIC ADDRESS, and 80 is required even though
-  # the API is HTTPS only: Caddy solves the ACME HTTP-01 challenge there.
-  # RUNBOOK.md section 3.2.
-  caddy:
-    image: caddy:2-alpine
-    container_name: keel-prod-caddy
-    depends_on:
-      - keel-serve
-    environment:
-      # Lives in .env and in the runbook, never in the Caddyfile. Unset, Caddy
-      # will not start. RUNBOOK.md section 2.
-      KEEL_DOMAIN: ${KEEL_DOMAIN:?set KEEL_DOMAIN in .env, normally api.keels.app, see scripts/deploy/RUNBOOK.md section 2}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # caddy_data HOLDS THE CERTIFICATES AND THE ACME ACCOUNT KEY. Let's Encrypt
-      # allows five duplicate certificates per name per week, so recreating this
-      # container without the volume a few times can leave the site without TLS
-      # for days. This is the volume not to prune.
-      - caddy_data:/data
-      - caddy_config:/config
-      - caddy_logs:/var/log/caddy
-    # `edge` ONLY. This is the container the internet talks to and it has no route
-    # to Postgres. It does not need one.
-    networks:
-      - edge
-    # THE API'S PROBE LIVES HERE because this is the only container in the stack
-    # with an HTTP client, and probing from here covers the proxy hop too.
-    #
-    # IT ASSERTS HTTP 200 AND NEVER READS THE STATUS FIELD. `degraded` is a correct
-    # 200: the handler reports it whenever no scan has been recorded, which is
-    # every deployment for up to fifteen minutes after first boot. Treating it as a
-    # failure would restart a working API.
-    #
-    # start_period is generous because a first boot now includes initdb.
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://keel-serve:3000/v1/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-
-# TWO NETWORKS, SPLIT BY WHAT FACES THE INTERNET. Compose's implicit default
-# network would put all four services on one bridge and give Caddy a route to
-# Postgres, which it has no use for. Neither is `internal`, because keel-scan
-# needs to reach Horizon.
+# ONE NETWORK. There were two, `edge` and `data`, split by what faced the internet:
+# Caddy sat on `edge` so that the container the internet talked to had no route to
+# Postgres. With Caddy gone nothing in this project faces the internet, so there is
+# nothing left to separate and the second bridge would be an empty gesture.
+#
+# It is NOT `internal`, because keel-scan has to reach Horizon.
 networks:
-  edge:
   data:
 
 # keel_pgdata IS THE DELIVERABLE'S DATASET and it is back in this stack as of
 # 11 September 2026. `docker compose -f docker-compose.prod.yml down -v` deletes
 # it. Use `down` without `-v`, and take the dump in RUNBOOK.md section 6 off the
 # box, because a backup on the same disk as the volume is not a backup.
+# ONE VOLUME NOW. caddy_data held the certificates and the ACME account key,
+# caddy_config its autosaved config, caddy_logs the access log. All three went with
+# the service on 11 September 2026. THEY ARE NOT DELETED ON THE BOX by removing them
+# here: `docker volume ls` will still show `keel-prod_caddy_data` and the others
+# until somebody prunes them, and they are worth keeping until nginx is confirmed
+# serving, because they hold the only issued certificate this stack ever had.
 volumes:
   keel_pgdata:
-  caddy_data:
-  caddy_config:
-  caddy_logs:
