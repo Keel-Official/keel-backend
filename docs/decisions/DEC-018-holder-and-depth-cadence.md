@@ -1,12 +1,20 @@
 # DEC-018: A metrics row mixes two cadences, and the older half carries its own ledger
 
-**Status:** Accepted by Al
+**Status:** **PARTIALLY ACCEPTED.** Point 2 of section 1 is accepted by Al, 12
+September 2026, and is implemented. Points 1, 3, 4 and 5 are still proposals and
+nothing in them is in force. The distinction is not bookkeeping: point 4 is a contract
+change and point 3 carries a number nobody has measured, so a reader who takes
+"Accepted" to cover the whole of section 1 would believe two things that are not true.
 **Date drafted:** 2026-09-12
 **Kind:** Data provenance. It does not change any formula, any threshold or any
 computation. It decides what a stored row MEANS once its two halves stop coming from
 one ledger, and what the contract says about that.
 **Drafted by:** Claude
-**Decided by:** pending
+**Decided by:** Al, 12 September 2026, point 2 only. The header read `Accepted by Al`
+and `Decided by: pending` at the same time for part of that day, which is the second
+time in one day a record in this directory has carried both lines at once. DEC-016 is
+the first, and the lesson each time is the same: "accepted" without saying to WHAT is
+not a decision a later reader can act on.
 **Zone:** `docs/decisions/` (YELLOW). Claude drafts and amends a record here and must
 not create or reverse a decision. Section 1 is Al's. Sections 2 and 3 are arithmetic
 and code readings and are evidence, not decision.
@@ -17,28 +25,64 @@ section 2, and the A1 work in `cmd/keel/scan.go` and `internal/store/`.
 
 ---
 
-## 1. The proposed decision
+## 1. The decision, one point of which is in force
 
-1. **Holder concentration and order book depth are read on DIFFERENT cadences, and
-   that is permanent rather than an interim measure.** Depth is read every scan round.
-   The holder pull runs on its own schedule, once a day, and `scan` reads the newest
-   cached reading rather than pulling one of its own.
+**Point 2 is ACCEPTED and implemented. Everything else in this section is still a
+proposal.** Each point says which it is.
 
-2. **A metrics row therefore carries two ledgers, and BOTH are stored.** `LedgerSeq`
-   stays what it is today: the ledger the book and the pools were read at. The holder
-   half carries the `snapshot_ledger` of the pull it came from, under a separate
-   column, and that column is never null when a holder figure is non-null.
+1. *(proposed)* **Holder concentration and order book depth are read on DIFFERENT
+   cadences, and that is permanent rather than an interim measure.** Depth is read
+   every scan round. The holder pull runs on its own schedule, once a day, and `scan`
+   reads the newest cached reading rather than pulling one of its own.
 
-3. **A holder reading older than `MaxHolderAge` makes holder concentration
+   Built, and NOT because this point was accepted: section 2's arithmetic leaves no
+   other shape available, so the code took the only road while the record went on
+   proposing that it is the right one permanently. That is worth separating, because
+   "we had to" and "we decided to" age differently.
+
+2. **ACCEPTED 12 September 2026, and implemented. A metrics row therefore carries two
+   ledgers, and BOTH are stored.** `LedgerSeq` stays what it is today: the ledger the
+   book and the pools were read at. The holder half carries the `snapshot_ledger` of
+   the pull it came from, under a separate column, and that column is never null when
+   a holder figure is non-null.
+
+   **How it landed**, so the next reader does not have to reconstruct it:
+   `migrations/0007_metrics_holder_snapshot_ledger.sql` adds the column and a CHECK,
+   and `domain.SupportingMetrics` gains `HolderSnapshotLedger` beside the three
+   figures. It is on THAT struct, and not passed alongside it, so that the figures and
+   their ledger are one value and no call site can separate them; the version where it
+   travelled as a second argument was built first and discarded, and the comment on the
+   field records why.
+
+   **The gap is readable from the row alone**, with no join and no clock:
+   `ledger_seq - holder_snapshot_ledger` is the distance in ledgers and Stellar closes
+   one about every five seconds. First row written under it read 133 ledgers, about
+   eleven minutes.
+
+   **The CHECK is `NOT VALID`.** It binds every future write and skips the rows written
+   between the commit that wired holder figures into `scan` and the one that added the
+   column. Those carry figures and no provenance, which is the state this record
+   describes, and nulling them would be an overwrite of a stored measurement that
+   `internal/store/store.go` decision 2 forbids. The migration header names both
+   rejected repairs and gives the one query that finds the affected set.
+
+3. *(proposed)* **A holder reading older than `MaxHolderAge` makes holder concentration
    `unevaluated`, not stale.** The proposed value is **48 hours**. Past it,
    `HolderTop1Pct`, `HolderTop10Pct` and `HolderHHI` are nil and the two holder flags
    read `unevaluated` exactly as they do when a pull was truncated.
 
-4. **The API exposes the holder half's own ledger and its age.** A consumer that
+   **The MECHANISM is built and the NUMBER is not decided.** `keel scan` takes
+   `-max-holder-age`, defaulting to 48 hours, and `0` disables the bound entirely,
+   which is the alternative section 5 weighs. It is a flag rather than a constant
+   precisely because this point is unaccepted: section 7 item 1 says the figure is
+   proposed and not derived, so it had to be settable by whoever disagrees rather than
+   compiled in by whoever drafted it.
+
+4. *(proposed, and it is a CONTRACT CHANGE)* **The API exposes the holder half's own ledger and its age.** A consumer that
    cannot see the gap cannot reason about it, and the gap is a property of the answer
    rather than of the implementation.
 
-5. **This record does not permit the gap to grow silently.** If the holder cadence
+5. *(proposed)* **This record does not permit the gap to grow silently.** If the holder cadence
    ever moves from daily, `MaxHolderAge` is reconsidered in the same change, because
    the two numbers only mean something as a pair.
 
@@ -135,24 +179,31 @@ revisiting if a third cadence ever appears; see section 7.
 
 ---
 
-## 6. What changes on acceptance
+## 6. What changed, and what has not
 
-Nothing computational. `internal/domain` is untouched: `ComputeSupporting` already
-takes holders as an input and already returns nil figures when they are absent or
-truncated, so a stale reading is expressed with the machinery that exists.
+| Change | Point | State |
+|---|---|---|
+| `migrations/0006`: the holder cache table carries `snapshot_ledger` | 1 | done |
+| `migrations/0007`: `metrics.holder_snapshot_ledger`, plus a `NOT VALID` CHECK | **2** | **done** |
+| `domain.SupportingMetrics.HolderSnapshotLedger` | **2** | **done** |
+| `internal/store`: the pair refused apart, in Go before the CHECK sees it | **2** | **done** |
+| `internal/store`: `LatestHolderReading` returns the reading and its `Age` | 1 | done |
+| `cmd/keel/scan.go`: reads the newest reading and applies the bound | 1, 3 | done as a FLAG, see point 3 |
+| `docs/api/`: the holder ledger and age become response fields | 4 | **NOT done, and not accepted.** A contract change, so a version bump under DEC-003 |
+| `docs/methodology/07-supporting-metrics.md` section 2 | 1 | **NOT done.** The one edit outside Track A's files; that directory is Track B's under `tugas-a.md` section 7 except where a record assigns it. Name the owner before editing it |
 
-- `migrations/`: the holder cache table carries `snapshot_ledger`, and the `metrics`
-  table gains a nullable column for the holder half's ledger.
-- `internal/store/`: `LatestHolderReading` returns the reading with its
-  `snapshot_ledger` and its age.
-- `cmd/keel/scan.go`: reads the newest reading, applies `MaxHolderAge`, and passes
-  `HoldersKnown: false` when it is exceeded.
-- `docs/api/`: the holder ledger and age become response fields, which is a contract
-  change and therefore a version bump under DEC-003.
-- `docs/methodology/07-supporting-metrics.md` section 2: the anchoring caveat gains
-  the second distance. **This is the one edit outside Track A's files**, and under the
-  carve-out in `tugas-a.md` section 7 the methodology directory is Track B's except
-  where a record assigns it. Name the owner before editing it.
+**One claim this section made while it was a draft was WRONG and is corrected rather
+than quietly dropped.** It said `internal/domain` would be untouched, because
+`ComputeSupporting` already returns nil figures when holders are absent. The first half
+is false: point 2 put `HolderSnapshotLedger` on `domain.SupportingMetrics`, which is a
+change to a YELLOW file in that package and carries the three-sentence justification
+the package requires. The second half is true and is why the holder half needed no new
+computation.
+
+It was wrong for a reason worth keeping: the draft assumed the ledger would travel
+beside the figures rather than inside them, and that assumption made the domain look
+untouched. Building it the other way is what showed the assumption was the weaker
+design, and the field's own comment records the comparison.
 
 ---
 

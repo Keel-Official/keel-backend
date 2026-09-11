@@ -318,3 +318,86 @@ func TestStartRunStillRefusesAnUnknownKind(t *testing.T) {
 		t.Fatal("kind \"record\" was accepted; the recorder writes files and touches no table")
 	}
 }
+
+// ---------------------------------------------------------------- DEC-018 point 2
+
+// The two halves of a row come from two ledgers, and the older half carries its
+// own. Round-tripped rather than asserted on the way in, because the question is
+// whether the column survives storage, and because a reader of the row is the
+// person the rule exists for.
+func TestHolderFiguresRoundTripWithTheirOwnLedger(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	want := fullRisk()
+	if _, _, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), want); err != nil {
+		t.Fatalf("SaveMetrics: %v", err)
+	}
+
+	got, err := s.LatestMetrics(ctx, assetID, domain.MethodologyVersion)
+	if err != nil {
+		t.Fatalf("LatestMetrics: %v", err)
+	}
+	if got.Risk.Supporting.HolderSnapshotLedger == nil {
+		t.Fatal("the holder snapshot ledger came back nil; the figures lost their provenance in storage")
+	}
+	if *got.Risk.Supporting.HolderSnapshotLedger != *want.Supporting.HolderSnapshotLedger {
+		t.Errorf("holder snapshot ledger came back %d, wrote %d",
+			*got.Risk.Supporting.HolderSnapshotLedger, *want.Supporting.HolderSnapshotLedger)
+	}
+	// THE WHOLE POINT: it is not the row's own ledger. A row that returned
+	// LedgerSeq here would look correct and would say the two halves are
+	// simultaneous, which is the claim DEC-018 exists to stop.
+	if *got.Risk.Supporting.HolderSnapshotLedger == got.Risk.LedgerSeq {
+		t.Error("the holder ledger equals the row's ledger; the fixture no longer distinguishes them")
+	}
+}
+
+// A number without the ledger it came from is a rumor. The store refuses it
+// before migrations/0007's CHECK has to, so the error names the field.
+func TestSaveMetricsRefusesHolderFiguresWithNoLedger(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	risk := fullRisk()
+	risk.Supporting.HolderSnapshotLedger = nil
+
+	if _, _, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), risk); err == nil {
+		t.Fatal("holder figures were stored with no ledger of their own")
+	}
+}
+
+// The mirror case, and it is not symmetric politeness: a ledger with no figures
+// records the provenance of nothing, and would make the column's meaning
+// ambiguous for every reader after it.
+func TestSaveMetricsRefusesALedgerWithNoHolderFigures(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	risk := fullRisk()
+	risk.Supporting.HolderTop1Pct = nil
+	risk.Supporting.HolderTop10Pct = nil
+	risk.Supporting.HolderHHI = nil
+	// and HolderSnapshotLedger is left set
+
+	if _, _, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), risk); err == nil {
+		t.Fatal("a holder snapshot ledger was stored beside no holder figures")
+	}
+}
+
+// A row with neither is the ordinary case for an asset nobody has pulled yet, and
+// it must stay ordinary rather than becoming an error.
+func TestSaveMetricsAcceptsARowWithNoHolderHalfAtAll(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	risk := fullRisk()
+	risk.Supporting.HolderTop1Pct = nil
+	risk.Supporting.HolderTop10Pct = nil
+	risk.Supporting.HolderHHI = nil
+	risk.Supporting.HolderSnapshotLedger = nil
+
+	if _, inserted, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), risk); err != nil || !inserted {
+		t.Fatalf("a row with no holder half was refused: inserted=%v err=%v", inserted, err)
+	}
+}

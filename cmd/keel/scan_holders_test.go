@@ -57,6 +57,16 @@ func TestSupportingFromReadingAttachesAFreshCompleteReading(t *testing.T) {
 		t.Errorf("HHI came through as %v, want %v", sup.HolderHHI, r.HHI)
 	}
 
+	// DEC-018 POINT 2. The figures and the ledger they were read at travel
+	// together, and internal/store refuses the pair broken apart, so a nil here
+	// would only move the failure one call later.
+	if sup.HolderSnapshotLedger == nil {
+		t.Fatal("figures came through with no HolderSnapshotLedger; a number without its ledger is a rumor")
+	}
+	if *sup.HolderSnapshotLedger != r.SnapshotLedger {
+		t.Errorf("holder snapshot ledger is %d, want %d", *sup.HolderSnapshotLedger, r.SnapshotLedger)
+	}
+
 	// THE TRADE HALF IS DEFERRED AND MUST STAY ABSENT. If any of these ever
 	// becomes non-nil without the trade half being built, three flags would flip
 	// from unevaluated to evaluated on data nobody gathered.
@@ -88,10 +98,10 @@ func TestSupportingFromReadingHonoursADisabledBound(t *testing.T) {
 	if sup, why := supportingFromReading(r, now, 48*time.Hour); sup != nil {
 		t.Fatal("a month old reading passed the default bound")
 	} else if why == "" {
-		t.Error("no reason recorded")
+		t.Errorf("refused with reason %q; want a reason", why)
 	}
-	if sup, _ := supportingFromReading(r, now, 0); sup == nil {
-		t.Error("-max-holder-age=0 did not disable the bound")
+	if sup, _ := supportingFromReading(r, now, 0); sup == nil || sup.HolderSnapshotLedger == nil {
+		t.Error("-max-holder-age=0 did not disable the bound, or dropped the ledger")
 	}
 }
 
@@ -102,7 +112,7 @@ func TestSupportingFromReadingTreatsTheBoundAsInclusive(t *testing.T) {
 	now := time.Date(2026, 9, 12, 12, 0, 0, 0, time.UTC)
 
 	exactly := freshReading(now.Add(-48 * time.Hour))
-	if sup, why := supportingFromReading(exactly, now, 48*time.Hour); sup == nil {
+	if sup, why := supportingFromReading(exactly, now, 48*time.Hour); sup == nil || sup.HolderSnapshotLedger == nil {
 		t.Errorf("a reading exactly at the bound was refused: %s", why)
 	}
 	justPast := freshReading(now.Add(-48*time.Hour - time.Second))

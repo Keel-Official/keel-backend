@@ -55,6 +55,9 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 	if err := validRisk(risk); err != nil {
 		return 0, false, err
 	}
+	if err := validHolderProvenance(risk.Supporting); err != nil {
+		return 0, false, err
+	}
 
 	depth, err := encodeDepth(risk.Depth)
 	if err != nil {
@@ -100,7 +103,8 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 			max_safe_collateral, max_safe_collateral_liquidation, max_safe_collateral_manipulation,
 			holder_top1_pct, holder_top10_pct, holder_hhi,
 			volume_to_supply, last_genuine_trade, trades_excluded_pct,
-			flags, unevaluated_flags, band, band_confidence, warnings
+			flags, unevaluated_flags, band, band_confidence, warnings,
+			holder_snapshot_ledger
 		) VALUES (
 			$1, $2, $3, $4,
 			$5, $6,
@@ -112,7 +116,8 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 			$18::numeric, $19::numeric, $20::numeric,
 			$21::numeric, $22::numeric, $23::numeric,
 			$24::jsonb, $25::jsonb, $26::numeric,
-			$27::text[], $28::text[], $29, $30, $31::text[]
+			$27::text[], $28::text[], $29, $30, $31::text[],
+			$32::bigint
 		)
 		ON CONFLICT (asset_id, ledger_seq, methodology_version, data_source) DO NOTHING
 		RETURNING id`,
@@ -128,6 +133,7 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 		volume, trade, numeric(risk.Supporting.TradesExcludedPct),
 		flagStrings(risk.Flags), flagStrings(risk.UnevaluatedFlags),
 		string(risk.Band), string(risk.BandConfidence), stringsOrEmpty(risk.Warnings),
+		nullLedger(risk.Supporting.HolderSnapshotLedger),
 	).Scan(&id)
 
 	// DO NOTHING returns no row, which arrives here as ErrNoRows. That is the
@@ -157,6 +163,7 @@ const metricColumns = `
 	m.max_safe_collateral_manipulation::text,
 	m.holder_top1_pct::text, m.holder_top10_pct::text, m.holder_hhi::text,
 	m.volume_to_supply, m.last_genuine_trade, m.trades_excluded_pct::text,
+	m.holder_snapshot_ledger,
 	to_jsonb(m.flags), to_jsonb(m.unevaluated_flags), m.band, m.band_confidence,
 	to_jsonb(m.warnings)`
 
@@ -293,6 +300,7 @@ func scanMetric(sc scanner) (Metric, error) {
 		top1, top10, hhi                      sql.NullString
 		volumeBody, tradeBody                 []byte
 		excludedPct                           sql.NullString
+		holderLedger                          sql.NullInt64
 		flagsBody, unevaluatedBody            []byte
 		warningsBody                          []byte
 		band, bandConfidence                  string
@@ -310,6 +318,7 @@ func scanMetric(sc scanner) (Metric, error) {
 		&cmax, &cmaxLiquidation, &cmaxManipulate,
 		&top1, &top10, &hhi,
 		&volumeBody, &tradeBody, &excludedPct,
+		&holderLedger,
 		&flagsBody, &unevaluatedBody, &band, &bandConfidence, &warningsBody,
 	); err != nil {
 		return Metric{}, err
@@ -373,6 +382,10 @@ func scanMetric(sc scanner) (Metric, error) {
 	}
 	if m.Risk.Supporting.HolderHHI, err = readNumeric(hhi, "holder_hhi"); err != nil {
 		return Metric{}, err
+	}
+	if holderLedger.Valid {
+		v := uint32(holderLedger.Int64)
+		m.Risk.Supporting.HolderSnapshotLedger = &v
 	}
 	if m.Risk.Supporting.TradesExcludedPct, err = readNumeric(excludedPct, "trades_excluded_pct"); err != nil {
 		return Metric{}, err
@@ -557,4 +570,36 @@ func (s *Store) LatestSummaries(ctx context.Context, f SummaryFilter) ([]Metric,
 		out = append(out, m)
 	}
 	return out, total, rows.Err()
+}
+
+// nullLedger renders an optional ledger sequence for a BIGINT parameter, nil as
+// SQL NULL. Ledger sequences are uint32 in the domain and BIGINT here, because
+// Postgres has no unsigned integer and a uint32 does not fit an INT.
+func nullLedger(v *uint32) any {
+	if v == nil {
+		return nil
+	}
+	return int64(*v)
+}
+
+// validHolderProvenance is migrations/0007's CHECK, refused here first so the
+// error names the field rather than the constraint.
+//
+// It is the Go half of DEC-018 point 2: holder figures never travel without the
+// ledger they were read at. The three figures move together because one call to
+// domain.HolderConcentration produces all three from one pull, so any of them
+// being present is the condition.
+func validHolderProvenance(sup domain.SupportingMetrics) error {
+	hasFigures := sup.HolderTop1Pct != nil || sup.HolderTop10Pct != nil || sup.HolderHHI != nil
+
+	switch {
+	case hasFigures && sup.HolderSnapshotLedger == nil:
+		return errors.New("store: the result carries holder concentration figures and no HolderSnapshotLedger; " +
+			"a number without the ledger it came from is a rumor, and the two halves of this row come from " +
+			"different ledgers (DEC-018 point 2)")
+	case !hasFigures && sup.HolderSnapshotLedger != nil:
+		return errors.New("store: a holder snapshot ledger is set and the result carries no holder figures; " +
+			"that records the provenance of nothing")
+	}
+	return nil
 }

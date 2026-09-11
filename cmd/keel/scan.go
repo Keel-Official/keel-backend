@@ -377,6 +377,12 @@ func supportingFor(
 
 // supportingFromReading is the decision half of supportingFor, split out because
 // it is the half worth testing and it needs no database to make.
+//
+// THE LEDGER TRAVELS INSIDE THE STRUCT, which is DEC-018 point 2 and is why this
+// returns one value rather than a pair. domain.SupportingMetrics carries
+// HolderSnapshotLedger beside the three figures precisely so that no call site
+// has to remember to keep them together, and internal/store refuses a struct
+// where one is set and the other is not.
 func supportingFromReading(
 	reading store.HolderReading,
 	now time.Time,
@@ -404,10 +410,12 @@ func supportingFromReading(
 		return nil, "holder reading carries no concentration figures"
 	}
 
+	ledger := reading.SnapshotLedger
 	return &domain.SupportingMetrics{
-		HolderTop1Pct:  reading.Top1Pct,
-		HolderTop10Pct: reading.Top10Pct,
-		HolderHHI:      reading.HHI,
+		HolderTop1Pct:        reading.Top1Pct,
+		HolderTop10Pct:       reading.Top10Pct,
+		HolderHHI:            reading.HHI,
+		HolderSnapshotLedger: &ledger,
 	}, ""
 }
 
