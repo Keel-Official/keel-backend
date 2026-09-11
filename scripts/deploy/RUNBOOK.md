@@ -206,9 +206,13 @@ variable `KEEL_DEPLOY_PATH`. See section 10.
 
 `.env` is gitignored, lives beside the compose file, and is the only place any
 value on this box is configured. **No secret appears in any committed file.**
-Nothing in `.env` has a default in the compose file: every reference is
-`${VAR:?...}`, so a missing value stops `docker compose` with a message naming
-the variable instead of starting something half configured.
+Every REQUIRED value is referenced as `${VAR:?...}` in the compose file, so a
+missing one stops `docker compose` with a message naming the variable instead of
+starting something half configured. The five optional `KEEL_DB_*` rows added on
+11 September 2026 are the exception and are referenced as `${VAR:-}`: unset means
+empty, the binary reads empty as unset, and `store.DefaultConfig` answers. They
+are listed in the compose file rather than omitted so that setting one here is
+enough, with no edit to a committed file.
 
 | Variable | Required | What it is |
 |---|---|---|
@@ -218,6 +222,27 @@ the variable instead of starting something half configured.
 | `KEEL_CORS_ORIGINS` | yes | the dashboard's origins. Section 7 |
 | `KEEL_IMAGE` | no | defaults to `ghcr.io/keel-official/keel-backend` |
 | `KEEL_ACME_EMAIL` | no | Let's Encrypt expiry notices. Needs one line uncommented in the Caddyfile |
+| `KEEL_DB_MAX_OPEN_CONNS` | no | connection pool ceiling. Default 8 |
+| `KEEL_DB_MAX_IDLE_CONNS` | no | idle connections kept. Default 4, and capped at the ceiling above |
+| `KEEL_DB_CONN_MAX_LIFETIME` | no | Go duration, e.g. `30m`. Default `30m` |
+| `KEEL_DB_CONN_MAX_IDLE_TIME` | no | Go duration. Default `5m` |
+| `KEEL_DB_PING_TIMEOUT` | no | Go duration. Default `5s`. See below |
+
+**`KEEL_DB_PING_TIMEOUT` IS THE ONE OF THE FIVE THAT EARNS ITS ROW**, and it is
+here because of the hostname trap immediately below. `keel serve` and `keel scan`
+verify the connection before doing anything, and until 11 September 2026 that
+check had no deadline. A `KEEL_DSN` naming a host that REFUSES a connection fails
+at once; one naming a host that DROPS the packets, which is the ordinary
+behaviour of a firewall, hung the container until the kernel gave up. Now it is
+five seconds and a log line. Raise it only on a slow link; a value that does not
+parse, or that is zero or negative, refuses to start rather than falling back,
+because a pool silently the wrong size is worse than a container that will not
+come up. The four pool rows are here for completeness and the defaults suit this
+box: the API is read only and the scanner walks assets one at a time.
+
+**THE PREFIX IS `KEEL_`, NOT `DATABASE_`.** Nothing in this repository reads a
+`DATABASE_*` variable. One set in `.env` is accepted by `docker compose`, ignored
+by the binary, and silent, which is the failure this note exists to prevent.
 
 **`POSTGRES_PASSWORD` LEFT THIS TABLE ON 11 SEPTEMBER 2026** along with the
 `postgres` service, and `POSTGRES_USER=keel` and `POSTGRES_DB=keel` left the
@@ -748,9 +773,10 @@ variable left behind rather than the order of the blocks. Check
 `grep KEEL_DOMAIN .env`.
 
 **`docker compose` refuses to do anything and names a variable.** That is the
-`${VAR:?...}` form working. Every value in section 3.4 is required and none has
-a default. Two causes: the variable really is missing, or you are not in
-`/opt/keel`, because `.env` is read only from the project directory.
+`${VAR:?...}` form working. Every REQUIRED value in section 3.4 uses it; the five
+optional `KEEL_DB_*` rows do not and can never produce this message. Two causes:
+the variable really is missing, or you are not in `/opt/keel`, because `.env` is
+read only from the project directory.
 
 **No certificate, and the Caddy log retries.** In this order: `dig +short
 api.keels.app A` from off the box and check it is `<VPS_IPV4>`; check port 80 is
@@ -767,7 +793,11 @@ rather than waiting when the database is not ready. That is noisy and correct, a
 the log line is the diagnosis. Three usual causes, in the order they happen:
 
 1. `serve` cannot connect at all. The hostname or port in `KEEL_DSN` is wrong, and
-   section 9's table has the three spellings that fail.
+   section 9's table has the three spellings that fail. Since 11 September 2026 the
+   log says `store: ping: no answer within 5s` when the host swallowed the packets
+   rather than refusing them, which distinguishes a wrong hostname from a wrong
+   port without further work. `KEEL_DB_PING_TIMEOUT` in section 3.4 sets that
+   figure.
 2. `serve` connects and refuses to start because `schema_migrations` is empty,
    which is section 3.5 not having been run against this database.
 3. Authentication fails, below.

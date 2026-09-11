@@ -79,7 +79,7 @@ func runScan(args []string) error {
 	fs := flag.NewFlagSet("scan", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 
-	dsn := fs.String("dsn", envOr("KEEL_DSN", store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
+	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
 	baseURL := fs.String("horizon", horizon.DefaultBaseURL, "Horizon base URL")
 	interval := fs.Duration("interval", 15*time.Minute, "how often to scan")
 	once := fs.Bool("once", false, "scan one round and exit")
@@ -120,10 +120,9 @@ after a crash is safe and a differing result is a finding rather than an overwri
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	s, err := store.Open(ctx, *dsn)
+	s, err := openStore(ctx, *dsn)
 	if err != nil {
-		return fmt.Errorf("%w\n  hint: `make up && make migrate` first. The container publishes 5433, not 5432, "+
-			"so a DSN still naming 5432 reaches whatever else is on the host", err)
+		return err
 	}
 	defer func() { _ = s.Close() }()
 

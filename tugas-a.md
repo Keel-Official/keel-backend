@@ -47,8 +47,10 @@ cleanly by file, which is what keeps you out of each other's way.
 its full set of metrics instead of six blank ones, the asset list is the real
 demonstration set, and there is a video showing it working.
 
-Your estimated load is **about 38 hours**, which is roughly the 8 days remaining at the
-SOW's own pace of 4.6 hours per builder per day. Track B is about 36.
+Your estimated load is **about 49 hours**, revised up on 10 September 2026 when A7 joined
+this track and A1 was re-costed. One builder over the 8 remaining days at the SOW's own
+pace of 4.6 hours per day is about 37, so **this track does not fit and section 6b names
+the split point.** Track B is about 36.
 
 ---
 
@@ -179,25 +181,78 @@ internal/domain/compute.go:553
 ```
 
 **The consequence a reviewer will see.** Six risk flags come back `unevaluated` on every
-asset. `docs/methodology/09-flags-and-bands.md` section 2 says confidence drops to
-`partial` whenever a high-tier flag is unevaluated, and it requires a dashboard to display
-that word. So **every row of the demonstration set currently shows `partial` confidence**,
-and four of those six flags are fixed by this one item.
+asset, and `docs/methodology/09-flags-and-bands.md` section 2 drops confidence to
+`partial` whenever **any** critical or high tier flag is unevaluated. It also requires a
+dashboard to display that word. So **every row of the demonstration set currently shows
+`partial` confidence.**
+
+Which item closes which flag, because the answer is not "this one". Tiers are from
+`internal/domain/flags.go:68`:
+
+| Flag | Tier | Closed by |
+|---|---|---|
+| `HOLDER_CONCENTRATION_EXTREME` | **HIGH** | A1, holder half |
+| `HOLDER_CONCENTRATION_HIGH` | MEDIUM | A1, holder half |
+| `NO_GENUINE_TRADE_30D` | **HIGH** | A1, trade half |
+| `NO_GENUINE_TRADE_7D` | MEDIUM | A1, trade half |
+| `WASH_TRADE_SUSPECTED` | MEDIUM | A1, trade half |
+| `MANIPULATION_RATIO_LOW` | **HIGH** | **A7**, not this item |
+
+**A1 ALONE DOES NOT MAKE `bandConfidence` READ `full`, AND NEITHER DOES A1 COMPLETE.**
+The rule is at `flags.go:282`, and three of the six flags above are HIGH tier. One of
+those three is `MANIPULATION_RATIO_LOW`, which stays unevaluated until A7 lands. An
+earlier version of this file claimed A1 lifted confidence to full; it does not, and the
+tier column is why. Confidence reaches `full` only when **A1 and A7 are both done**.
+
+**The shape of A1, decided 10 September 2026.** It does not fit inside a scan round, and
+that is arithmetic rather than opinion. `scan` runs every 15 minutes. One holder reading
+costs 1 summary request plus 1 per page of 200 accounts, capped at 25 pages
+(`internal/horizon/holders.go:79`). Sixty assets is up to 1,560 requests per round, four
+rounds an hour is 6,240, against a budget of 3,000. So the supporting metrics run on
+their own cadence, and the two halves want different shapes:
+
+- **Holders are STATE**, a snapshot of who holds how much at one ledger. The decision: a
+  new cache table plus a separate `keel holders` command that fills it once a day, and
+  `scan` reads the newest reading and carries its snapshot ledger into the result.
+- **Trades are an EVENT LOG**, append only. The first backfill is expensive and every
+  read after it is cheap if you ask by cursor rather than by time range. A
+  snapshot-shaped cache is the wrong fit, so do not reuse the holder table for it.
+
+**One consequence worth naming rather than discovering at commit three:** a `metrics` row
+will then carry depth from this ledger and holder concentration from yesterday's reading.
+That changes what the row MEANS, not only how it is filled. DEC-011 already handles the
+non-atomic holder snapshot with a `snapshot_ledger` and a `mixed` label. The differing
+cadence is not recorded anywhere yet, and it should be before the first row is stored.
 
 **Done when:**
 
+- `keel holders` fills the cache table for every asset in the set, and records a
+  truncated reading WITH its flag rather than dropping it.
 - `make scan` stores holder concentration (top 1%, top 10%, HHI), the volume-to-supply
   ratio, and the time since the last genuine trade, for every asset in the set.
 - `curl localhost:3000/v1/asset/<id>/depth` returns those fields populated, not null.
-- `bandConfidence` reads `full` for an asset with complete data, and still reads `partial`
-  where data is genuinely missing, with the reason named. Zero and absent are different
-  values and the engine already distinguishes them: keep that.
+- The four flags in the table above marked "A1" no longer appear in `unevaluated_flags`,
+  and an asset whose holder reading was truncated STILL reports the holder flags as
+  unevaluated. `HolderConcentration` returns `ErrHolderSetTruncated` for that case
+  (`internal/domain/supporting.go:751`) and that error is not to be worked around: zero
+  and absent are different values, and a truncated holder set answers a concentration
+  question not at all.
 - New tests cover it, and `make ci` is green.
 
-**Files you will touch:** `cmd/keel/scan.go`, and likely `internal/store/metrics.go` plus a
-new file in `migrations/`. Read `internal/store/metrics.go` line 5 first: it records that
-`Supporting.GenuineVolumeInWindow` has no column yet, which tells you whether you need a
-migration before you start.
+**Files you will touch:** `cmd/keel/scan.go`, a new command file under `cmd/keel/`,
+`internal/store/`, and a new file in `migrations/`.
+
+**No migration is needed for the three metrics themselves**, and this was checked rather
+than assumed: `migrations/0001_core.sql` lines 98 to 103 already carry `holder_top1_pct`,
+`holder_top10_pct`, `holder_hhi`, `volume_to_supply`, `last_genuine_trade` and
+`trades_excluded_pct`. One field is deliberately NOT persisted,
+`Supporting.GenuineVolumeInWindow`; `internal/store/metrics.go` line 5 explains why and a
+test asserts the gap. Do not add a column for it.
+
+**The migration you DO need is the holder cache**, plus one thing that is easy to miss:
+`runs.kind` carries a CHECK constraint with exactly two values, `scan` and `replay`
+(`internal/store/runs.go:27`), so a third run kind is a schema change and not just a Go
+constant.
 
 **What to read before writing anything:** `docs/methodology/07-supporting-metrics.md`,
 which defines all three measures, and `internal/domain/supporting.go`, which implements
@@ -212,7 +267,10 @@ timeout and a 64 MB body cap for exactly this reason, and the comments there exp
 incident. Budget your Horizon requests: public Horizon allows about 3,600 per hour per IP
 and the scanner defaults to 3,000.
 
-**Estimate: 14 hours.** The largest single item in either track, and the highest value.
+**Estimate: 20 hours**, revised up from the 14 this file first carried, because the trade
+half was costed as part of the holder half and it is not. The largest single item in either
+track, and the highest value. **The trade half is also the natural split point** if the
+track runs out of days: see section 6b.
 
 ---
 
@@ -370,6 +428,95 @@ recording setup is not Al-only.
 
 ---
 
+### A7. Implement `MANIPULATION_RATIO_LOW`, the last unevaluated high-tier flag
+
+**Added to this track on 10 September 2026, having first been placed in neither track.**
+The reason for both decisions is worth reading, because it is about the boundary rather
+than about the flag.
+
+**What it is.** `docs/methodology/09-flags-and-bands.md` section 4 compared a bare ratio
+against a threshold its own section 6 declares in per cent, so the rule read either as
+0.1 per cent or as 100 per cent depending on which half you trusted. Those differ by a
+factor of a hundred. `internal/domain/flags.go` refused to guess and left the flag
+`stateUnevaluated`, with the ambiguity written into a comment beside it, and
+`internal/domain/supporting_test.go:213` asserts that it stays that way. That was the
+right call. `docs/decisions/DEC-017-manipulation-ratio-low-units.md` settles it: the rule
+gains the `* 100` it was missing, `circulating_supply_value` is a quote-denominated
+value, and the threshold is `0.1`.
+
+**Why it was in neither track at first, and why that changed.** Its chain of work crosses
+three owners: `internal/domain/` is Track A's, `docs/methodology/` is Track B's, and the
+hand computation is in a locked directory only Al may write in. Any placement broke the
+one property these two files exist to have. **Then Al took Track A**, which puts the
+methodology text and the hand computation in the same hands as the code, so the whole
+chain now sits inside this track and crosses nothing.
+
+**Why it is worth doing at all**, given the SOW never names this flag: it is HIGH tier,
+and it is the last high-tier flag left unevaluated once A1 is done. Every asset Keel has
+ever scored carries `partial` confidence, and **without A7 that stays true no matter how
+much of A1 lands.** See the tier table in A1.
+
+**The order is DEC-017 section 5 and it is a gate, not a suggestion.** Steps 1 to 6:
+the holder pull comes first, which A1 already builds; then Al writes the rule and the
+definition into the methodology; then Al hand computes the expected verdict for one asset;
+only then the code, the threshold constant, and the version bump across the twelve
+methodology files and `internal/domain/types.go`.
+
+**Step 3 gates step 4 and that gate matters more here than usual.** The rule was
+unimplementable for long enough that nothing was ever checked against it, so there is no
+existing behaviour to regress against. The hand computation is the only thing that will
+have checked the implementation at all.
+
+**A warning about two files that already exist.** Two Layer 1 files carrying this flag's
+name were committed on 10 September with figures matching DEC-017 section 3, which is the
+engine's own measurement, and with their input rows still unfilled. **Those cannot serve
+as step 3's oracle**, because a number produced by the thing it is meant to test is a
+restatement rather than evidence. Step 3 needs a figure worked from the raw holder pull
+and the book at one ledger.
+
+**Done when:** the flag evaluates, `ManipulationRatioLowPct` is `0.1`, a hand computed
+verdict for one asset exists and the implementation agrees with it, the version moves
+across the whole set under DEC-014's one-version rule, and
+`TestManipulationRatioLowStaysUnevaluated` is replaced by a test of the real behaviour
+rather than deleted quietly.
+
+**Files:** `internal/domain/flags.go`, `internal/domain/types.go`,
+`docs/methodology/09-flags-and-bands.md` sections 4 and 6, then the twelve methodology
+headers. **AL ONLY** for the methodology text and the hand computation.
+
+**Estimate: 5 hours**, of which about 2 are Al's alone.
+
+---
+
+## 6b. The hours do not fit, and here is the split point
+
+Adding A7 and re-costing A1 puts this track at **about 49 hours**: A1 20, A2 2, A3 10 plus
+2 of Al's, A4 6, A5 2, A6 4, A7 5. One builder over the 8 remaining days at the SOW's own
+4.6 hours per day is about **37**. So the track is over by roughly twelve hours and
+pretending otherwise is how a deadline arrives as a surprise.
+
+The SOW says what to do about that in its own words: *"If the work feels larger, it should
+be reduced or split into more achievable phases."*
+
+**The split point is A1's trade half**, and it is a clean one. Ship the holder half, which
+closes `HOLDER_CONCENTRATION_EXTREME` and `HOLDER_CONCENTRATION_HIGH`, and defer the trade
+half. That costs about 10 hours and leaves three flags unevaluated instead of one.
+
+**If more has to go, this is the order and the reasoning:**
+
+1. **A4, the demonstration set rebuild.** The current file already holds 60 pairs, so the
+   SOW's "at least 50" is satisfied today. What is lost is that the file still calls itself
+   provisional. That is a question at review, not a failure.
+2. **A5, the README refresh.** Trim it to correcting the one paragraph that A1 makes
+   false rather than the whole section.
+3. **A1's trade half**, as above.
+
+**What must not be cut:** A3, because a deliverable nobody can reach scores zero however
+good the code is, and A6, because it is a named evidence item. A2 costs two hours and
+unblocks another repository, so cutting it saves nothing worth having.
+
+---
+
 ## 7. The boundary with Track B
 
 **Files Track B owns. Do not edit them.** If you need a change in one, write it down and
@@ -400,6 +547,13 @@ Dockerfile, docker-compose*.yml, Caddyfile
 3. **The `-historical` flag.** Yours, in the deploy config. It flips from off to on after
    Track B's rows exist. Until then a 503 is the correct answer, so shipping without it is
    not shipping something broken.
+4. **`docs/methodology/`, and this one is a CARVE-OUT rather than a shared file.** Added
+   10 September 2026 when A7 joined this track. A7 edits
+   `09-flags-and-bands.md` **sections 4 and 6 only**, and it owns the version bump across
+   the whole set. Track B's item B5 owns `06-oracle-resilience.md` and everything else in
+   that directory, and **B5 does not perform a version bump.** DEC-014's one-version rule
+   means a change in one file moves all twelve headers, so that operation has to have one
+   owner or two people will do it twice and disagree. It is yours, in A7.
 
 Nothing else. No item in your list waits on any item in theirs.
 
@@ -408,8 +562,11 @@ Nothing else. No item in your list waits on any item in theirs.
 ## 8. Definition of done for Track A
 
 ```
-[ ] A1  make scan stores holder concentration, volume-to-supply and last-genuine-trade
-[ ] A1  the API returns those fields populated, and bandConfidence reads full
+[ ] A1  a holder cache table exists, and runs.kind accepts the third kind
+[ ] A1  keel holders fills it, and a truncated reading is stored WITH its flag
+[ ] A1  make scan stores holder concentration, and a truncated reading stays unevaluated
+[ ] A1  make scan stores volume-to-supply and last-genuine-trade (the trade half)
+[ ] A1  the API returns all of those fields populated, not null
 [ ] A2  a browser on another origin can call the API
 [ ] A3  docker-compose.prod.yml, Caddyfile, runbook and deploy step written
 [ ] A3  AL: host, DNS, KEEL_DEPLOY_TARGET, KEEL_DSN, migrate run once
@@ -417,11 +574,19 @@ Nothing else. No item in your list waits on any item in theirs.
 [ ] A4  demonstration set regenerated from 02-pair-selection.md section 5, 50+ assets
 [ ] A5  README.md describes the real state
 [ ] A6  a 3 to 5 minute demo recording exists
+[ ] A7  AL: the methodology text, and one hand computed verdict as step 3's oracle
+[ ] A7  MANIPULATION_RATIO_LOW evaluates at a threshold of 0.1, version bumped once
+[ ] A1+A7  ONLY NOW does bandConfidence read full. Neither one does it alone
+[ ] the differing-cadence consequence is recorded, as an amendment or a new record
 [ ] make ci green on every commit
 ```
 
 When all of these are true, the SOW's Deliverable 3 evidence line, "Live dashboard URL and
 demo recording", is satisfiable, and Deliverable 2's "Live API URL" is satisfied.
+
+**Read section 6b before treating this list as a plan.** It is about 49 hours against
+about 37 available, and it names the split point rather than leaving the overrun to be
+discovered on day 29.
 
 ---
 

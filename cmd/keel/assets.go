@@ -43,7 +43,7 @@ func runAssets(args []string) error {
 	pairsPath := fs.String("pairs", "", "declare every pair in this file, then list. Copy scripts/record-pairs.example.json")
 	list := fs.Bool("list", false, "list the demonstration set and exit")
 	all := fs.Bool("all", false, "with -list, include deactivated pairs")
-	dsn := fs.String("dsn", envOr("KEEL_DSN", store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
+	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel assets - declare and inspect the demonstration set
@@ -68,14 +68,9 @@ deactivated, because metrics rows reference these ids.
 	}
 
 	ctx := context.Background()
-	s, err := store.Open(ctx, *dsn)
+	s, err := openStore(ctx, *dsn)
 	if err != nil {
-		// The most common cause on a developer machine is a DSN naming 5432,
-		// which is a second Postgres and not the one docker-compose started, so
-		// the hint is here rather than in a document nobody reads at the moment
-		// it fails.
-		return fmt.Errorf("%w\n  hint: `make up && make migrate` first. The container publishes 5433, not 5432, "+
-			"so a DSN still naming 5432 reaches whatever else is on the host", err)
+		return err
 	}
 	defer func() { _ = s.Close() }()
 
@@ -138,11 +133,4 @@ func forStore(a domain.Asset) domain.Asset {
 		a.Code = "XLM"
 	}
 	return a
-}
-
-func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
 }

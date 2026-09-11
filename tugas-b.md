@@ -50,7 +50,9 @@ report's empty sections get filled with what the data actually says, and the cli
 told about a date correction nobody has told them about yet.
 
 Your estimated load is **about 36 hours**, which is roughly the 8 days remaining at the
-SOW's own pace of 4.6 hours per builder per day. Track A is about 38.
+SOW's own pace of 4.6 hours per builder per day. Track A was re-costed to about 49 on
+10 September 2026 and names its own split point, so if days run short, that side sheds
+work before this one does.
 
 ---
 
@@ -357,11 +359,19 @@ Twelve documents exist and eleven are complete. Two things are open:
    about. Either the gap closes or the explanation gets stated where a reviewer will meet it
    first.
 
-**AL ONLY** for the definitions themselves. **Yours:** the cross-references, the version
-bookkeeping across all twelve files, the check that no document contradicts another, and
-drafting the amendment for Al to approve.
+**AL ONLY** for the definitions themselves. **Yours:** the cross-references, the check
+that no document contradicts another, and drafting the amendment for Al to approve.
 
-**Estimate: 4 hours.**
+**DO NOT PERFORM THE VERSION BUMP, and this changed on 10 September 2026.** Track A's new
+item A7 also changes this directory, in `09-flags-and-bands.md` sections 4 and 6, and
+DEC-014's one-version rule moves all twelve headers on any single change. Two people
+bumping the same set produces two different version numbers and a set that disagrees with
+itself, which is the exact failure DEC-014 was written after. So the bump has one owner and
+it is A7. You draft your text, and it rides A7's bump. Item 2 above, the gap between the
+documents at `1.1.0-draft` and the code at `1.0.8-draft`, is closed by that same bump
+rather than by you.
+
+**Estimate: 4 hours**, down slightly because the bookkeeping moved to A7.
 
 ---
 
@@ -459,6 +469,15 @@ docs/decisions/       testdata/
    HISTORICAL_UNAVAILABLE` rather than something wrong. So **you are not blocking their
    deployment and they are not blocking your work.** When B4 lands, tell them and they flip
    one line.
+4. **`docs/methodology/`, and this one is a CARVE-OUT rather than a shared file.** Added
+   10 September 2026. Track A gained an item, A7, that implements
+   `MANIPULATION_RATIO_LOW` under DEC-017, and it edits `09-flags-and-bands.md`
+   **sections 4 and 6 only**. Everything else in that directory is yours, including all of
+   `06-oracle-resilience.md`.
+   **AND THE VERSION BUMP IS THEIRS, NOT YOURS.** DEC-014's one-version rule means a
+   change in any one file moves all twelve headers, so that operation must have exactly one
+   owner or two people will do it twice and disagree about the number. B5 therefore drafts
+   its text and hands it to A7's single bump. See B5.
 
 Nothing else. No item in your list waits on any item in theirs.
 

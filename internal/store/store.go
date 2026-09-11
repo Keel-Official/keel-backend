@@ -83,26 +83,117 @@ type Store struct {
 	closeFn func() error
 }
 
-// Open connects and verifies the connection before returning. A Store that
-// cannot reach its database is not a Store, and finding that out on the first
-// query instead of here is how a scan gets halfway through before failing.
+// Config sizes the connection pool and bounds the opening ping. A ZERO FIELD
+// MEANS "use the default", never "unlimited": database/sql reads a zero as
+// unlimited for MaxOpenConns and as forever for the two lifetimes, and a
+// half-filled struct silently meaning unlimited is the wrong failure for a
+// value that arrives from an environment variable. Nothing here needs an
+// unlimited pool, so the ambiguity is resolved in favour of the safe reading.
+//
+// The numbers live in a struct rather than in Open's body because the values
+// that suit a developer laptop and the values that suit the deployed host are
+// not the same, and the caller is the only side that knows which one it is.
+// This package still reads its configuration from nobody: cmd/keel builds the
+// struct from the environment and hands it over. Rejected alternative: reading
+// the environment here, which would put a second source of truth for
+// deployment settings inside a package whose brief is that it stores and reads
+// and computes nothing.
+type Config struct {
+	MaxOpenConns    int
+	MaxIdleConns    int
+	ConnMaxLifetime time.Duration
+	ConnMaxIdleTime time.Duration
+
+	// PingTimeout bounds the verification ping in Open, and it is the field
+	// worth explaining. Without it the ping inherits the caller's context,
+	// which in every cmd/keel command is a signal context with no deadline, so
+	// a DSN naming a host that drops packets rather than refusing them hangs
+	// until the kernel's TCP timeout instead of failing in seconds. A wrong
+	// hostname is the most likely deployment mistake, so it is the one that
+	// should fail fast.
+	PingTimeout time.Duration
+}
+
+// DefaultConfig is the pool Keel ran with before any of it was configurable, so
+// a caller that passes nothing gets exactly the previous behaviour, plus a ping
+// that now has a deadline.
+//
+// A scan walks assets one at a time and the API is read-only, so a large pool
+// buys nothing and a bounded one keeps a runaway loop from exhausting
+// Postgres's connection slots. That argument is unchanged; it is now a default
+// rather than the only option.
+func DefaultConfig() Config {
+	return Config{
+		MaxOpenConns:    8,
+		MaxIdleConns:    4,
+		ConnMaxLifetime: 30 * time.Minute,
+		ConnMaxIdleTime: 5 * time.Minute,
+		PingTimeout:     5 * time.Second,
+	}
+}
+
+// withDefaults fills every unset field. See Config on why zero means default.
+func (c Config) withDefaults() Config {
+	d := DefaultConfig()
+	if c.MaxOpenConns <= 0 {
+		c.MaxOpenConns = d.MaxOpenConns
+	}
+	if c.MaxIdleConns <= 0 {
+		c.MaxIdleConns = d.MaxIdleConns
+	}
+	if c.ConnMaxLifetime <= 0 {
+		c.ConnMaxLifetime = d.ConnMaxLifetime
+	}
+	if c.ConnMaxIdleTime <= 0 {
+		c.ConnMaxIdleTime = d.ConnMaxIdleTime
+	}
+	if c.PingTimeout <= 0 {
+		c.PingTimeout = d.PingTimeout
+	}
+	return c
+}
+
+// Open connects with DefaultConfig and verifies the connection before
+// returning. A Store that cannot reach its database is not a Store, and finding
+// that out on the first query instead of here is how a scan gets halfway
+// through before failing.
 func Open(ctx context.Context, dsn string) (*Store, error) {
+	return OpenWithConfig(ctx, dsn, Config{})
+}
+
+// OpenWithConfig is Open with the pool and the ping deadline supplied by the
+// caller. An idle connection above MaxOpenConns is pointless, so MaxIdleConns
+// is capped rather than left to produce a pool that opens and closes a
+// connection on every other query.
+func OpenWithConfig(ctx context.Context, dsn string, cfg Config) (*Store, error) {
 	if dsn == "" {
 		dsn = DefaultDSN
 	}
+	cfg = cfg.withDefaults()
+	if cfg.MaxIdleConns > cfg.MaxOpenConns {
+		cfg.MaxIdleConns = cfg.MaxOpenConns
+	}
+
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("store: open: %w", err)
 	}
-	// A scan walks assets one at a time and the API is read-only, so a large
-	// pool buys nothing and a bounded one keeps a runaway loop from exhausting
-	// Postgres's connection slots.
-	db.SetMaxOpenConns(8)
-	db.SetMaxIdleConns(4)
-	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetMaxOpenConns(cfg.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.MaxIdleConns)
+	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
+	db.SetConnMaxIdleTime(cfg.ConnMaxIdleTime)
 
-	if err := db.PingContext(ctx); err != nil {
+	pingCtx, cancel := context.WithTimeout(ctx, cfg.PingTimeout)
+	defer cancel()
+	if err := db.PingContext(pingCtx); err != nil {
 		_ = db.Close()
+		// The deadline is reported as itself rather than as a bare
+		// "context deadline exceeded", because the two causes want different
+		// fixes: a refused connection is the wrong port, a timed-out one is
+		// almost always the wrong host.
+		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
+			return nil, fmt.Errorf("store: ping: no answer within %s: %w", cfg.PingTimeout, err)
+		}
 		return nil, fmt.Errorf("store: ping: %w", err)
 	}
 	return &Store{db: db, closeFn: db.Close}, nil

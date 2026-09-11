@@ -34,7 +34,7 @@ func runServe(args []string) error {
 	fs.SetOutput(os.Stderr)
 
 	addr := fs.String("addr", ":3000", "address to listen on")
-	dsn := fs.String("dsn", envOr("KEEL_DSN", store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
+	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
 	// Off by default and named after what it actually gates. DEC-002 defers the
 	// Hubble path, so with no historical source the honest answer to a ledger
 	// query is 503 HISTORICAL_UNAVAILABLE rather than a live figure wearing a
@@ -66,10 +66,9 @@ Stellar network.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	s, err := store.Open(ctx, *dsn)
+	s, err := openStore(ctx, *dsn)
 	if err != nil {
-		return fmt.Errorf("%w\n  hint: `make up && make migrate` first. The container publishes 5433, not 5432, "+
-			"so a DSN still naming 5432 reaches whatever else is on the host", err)
+		return err
 	}
 	defer func() { _ = s.Close() }()
 
