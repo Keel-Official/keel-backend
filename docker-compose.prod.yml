@@ -1,4 +1,4 @@
-# Keel on one small VPS. Three services, three volumes, two ports.
+# Keel on one small VPS. Four services, four volumes, two ports.
 #
 # scripts/deploy/RUNBOOK.md IS THE DOCUMENT TO READ FIRST. Nothing here is meant to
 # be understood from the YAML alone, and every long explanation lives there rather
@@ -9,11 +9,23 @@
 # resolved from a `.env` beside it, and the `:?` form stops compose with the
 # variable's name instead of starting something half configured. See env.example.
 #
-# NO POSTGRES HERE SINCE 11 SEPTEMBER 2026: the box already runs one. Gone with it,
-# the `keel_pgdata` volume, `POSTGRES_PASSWORD`, and the `depends_on` gates. AND THE
-# MIGRATION TRANSPORT INVERTED: `docker compose exec -T postgres psql` no longer
-# exists, so `KEEL_MIGRATE_DSN=... bash scripts/migrate.sh` is the only one left.
-# RUNBOOK.md sections 3.5 and 9.
+# THE DATABASE CAME BACK ON 11 SEPTEMBER 2026, THE SAME DAY IT LEFT, and the
+# reversal is written here rather than left to `git log` because the reason it left
+# is still true. It left because the box already ran a Postgres and a stack that
+# owns no data cannot destroy any. It came back because the operators of that box
+# settled on one Postgres container per application, and Keel is an application on
+# it. No decision record governs either move; if one is ever written, this
+# paragraph is the history it starts from.
+#
+# WHAT THE REVERSAL COSTS, STATED PLAINLY: `down -v` on this file destroys
+# `keel_pgdata` and with it every metric row the deliverable is built on. That was
+# impossible for one day. It is possible again. Section 6 of the runbook is the
+# backup that makes it survivable, and it is no longer optional.
+#
+# WHAT IT BUYS: the database is inside the project again, so `depends_on` gates
+# startup, `docker compose exec -T postgres` is a transport again, and the hostname
+# is a service name in this file rather than a value somebody types into `.env`.
+# The three-spelling trap in RUNBOOK.md section 9 is gone with it.
 #
 # Addressed explicitly, because `docker compose` with no -f reads
 # docker-compose.yml, which is the developer's Postgres and not this:
@@ -21,42 +33,114 @@
 #   docker compose -f docker-compose.prod.yml pull
 #   docker compose -f docker-compose.prod.yml up -d
 #
-# A LIVE KEEL IS THREE UNITS: the database, `serve` and `scan`. Two are here and the
-# database is the host's. Without the scanner the API is up, healthy in every
-# mechanical sense, and answers `degraded` with a 404 for every asset.
+# A LIVE KEEL IS THREE UNITS: the database, `serve` and `scan`. All three are here
+# now. Without the scanner the API is up, healthy in every mechanical sense, and
+# answers `degraded` with a 404 for every asset.
 #
 # `name: keel-prod` IS NOT COSMETIC. With no name, compose derives the project from
 # the directory, so this file and docker-compose.yml would share every named volume
-# in the same clone. Container names are prefixed for a second reason: they are
-# global to the daemon and not scoped by project. Service names are NOT prefixed,
-# because they are the network aliases the Caddyfile proxies to.
+# in the same clone, INCLUDING keel_pgdata, which is the developer's throwaway
+# database and this one's real dataset under the same name. Container names are
+# prefixed for a second reason: they are global to the daemon and not scoped by
+# project. Service names are NOT prefixed, because they are the network aliases the
+# Caddyfile proxies to and the hostname inside the DSN.
 #
-# The image is published for amd64 and arm64. Memory limits total about 576 MB, and
-# the host's Postgres needs its own on top of that.
+# The image is published for amd64 and arm64. Memory limits total about 1.1 GB now
+# that Postgres is one of them, against roughly 576 MB before.
 name: keel-prod
 
 services:
+  # ---------------------------------------------------------------- the database
+  #
+  # 18.4 AND PINNED TO THE PATCH, matching the other application's Postgres on this
+  # box. Two Postgres containers on one host that disagree about the major version
+  # is a second `pg_dump` to install and a second upgrade to plan, for nothing.
+  #
+  # NOTE THE SKEW WITH DEVELOPMENT: docker-compose.yml runs postgres:16-alpine, so
+  # tests pass against 16 and production runs 18. The five migrations are safe
+  # across it, the highest requirement being NULLS NOT DISTINCT in 0005, which
+  # needs 15. Raising the developer's image is a separate change because it forces
+  # every clone to recreate its volume.
+  postgres:
+    image: postgres:18.4
+    container_name: keel-prod-postgres
+    environment:
+      # THE ROLE AND THE DATABASE ARE BOTH `keel` AND THAT IS LOAD BEARING.
+      # scripts/migrate.sh's compose transport runs `psql -U keel -d keel` with
+      # those names written into it, so changing either here breaks the migration
+      # without breaking anything else, which is the worst kind of break.
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB=keel in .env, see scripts/deploy/RUNBOOK.md section 3.4}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER=keel in .env, see scripts/deploy/RUNBOOK.md section 3.4}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env, see scripts/deploy/RUNBOOK.md section 3.4}
+      # THE IMAGE'S OWN DEFAULT FOR 18, WRITTEN OUT. The official image moved the
+      # data directory under a version-numbered path and declares the VOLUME one
+      # level above it, so the mount below is the parent and this is the child. Get
+      # this pair wrong and Postgres initialises a fresh cluster inside an existing
+      # volume, reporting nothing, and the old rows are simply not there.
+      PGDATA: /var/lib/postgresql/18/docker
+    volumes:
+      - keel_pgdata:/var/lib/postgresql
+    # PUBLISHED ON LOOPBACK ONLY, AND ON 5433 RATHER THAN 5432.
+    #
+    # Loopback because a bare "5432:5432" binds 0.0.0.0 and Docker writes its
+    # publish rules into nat PREROUTING, ahead of the chains ufw manages: the
+    # database would be open to the internet while `ufw status` looked correct.
+    #
+    # 5433 because this box runs one Postgres per application and 5432 is the
+    # number the next one will reach for. It is also the number this repository
+    # already associates with Keel's own Postgres, in docker-compose.yml and in
+    # store.DefaultDSN.
+    #
+    # It is published at all only for the two things that run on the HOST rather
+    # than in a container: scripts/migrate.sh over KEEL_MIGRATE_DSN, and
+    # scripts/deploy/dump-database.sh. Nothing in this file uses it; the services
+    # below reach the database by service name on the `data` network.
+    ports:
+      - "127.0.0.1:5433:5432"
+    # THE GATE THE OTHER SERVICES WAIT ON. `pg_isready` returns true only once the
+    # cluster accepts connections, which on a first boot is after initdb has run.
+    # The doubled `$$` escapes compose's own interpolation so the variable is read
+    # by the shell inside the container.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          # shared_buffers defaults to 128 MB and nothing here overrides it. This
+          # ceiling leaves room for that plus the backends, the WAL writer and
+          # autovacuum. Raise it before tuning anything, not after.
+          memory: 512M
+
   # ---------------------------------------------------------------- the API
   keel-serve:
     image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA, see scripts/deploy/RUNBOOK.md section 3.4}
     container_name: keel-prod-serve
-    # NOTHING GATES STARTUP: a depends_on can only wait for a container in this
-    # project and the database is not in it. `serve` therefore crash loops until
-    # Postgres answers and the migration has run. Noisy, correct, and never
-    # silent: read `docker logs keel-prod-serve` first.
-    extra_hosts:
-      # `host-gateway` is what creates this name; on Linux it does not exist
-      # otherwise. It is how KEEL_DSN reaches a Postgres installed on the host.
-      # IF THAT POSTGRES IS ITSELF A CONTAINER, drop this and put both keel
-      # services on its network with `networks: [dbnet]` plus an `external: true`
-      # entry beside the volumes block.
-      - "host.docker.internal:host-gateway"
+    # THE GATE IS BACK. It waits for the database to accept connections and for
+    # nothing else: the schema is NOT applied by it, so `serve` still refuses to
+    # start until scripts/migrate.sh has run, and that refusal is the point.
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
+      # COMPOSED HERE, NOT SET IN .env, and that is the change worth noticing. The
+      # password now appears exactly once on this box, in POSTGRES_PASSWORD, and
+      # every DSN is built from it. The old KEEL_DSN put the same password in a
+      # second place and the hostname in a place where three wrong spellings were
+      # all plausible. Both traps are gone: the host is a service name in this
+      # file and cannot be typed wrong in .env.
+      #
       # Read by cmd/keel/serve.go as envOr("KEEL_DSN", ...), so no -dsn flag.
-      # THE HOSTNAME IS THE MOST LIKELY THING TO BE WRONG. `localhost` is the
-      # container itself, `postgres` is the removed service, 5433 is a
-      # docker-compose.yml port. All three fail as a 502. RUNBOOK.md section 9.
-      KEEL_DSN: ${KEEL_DSN:?set KEEL_DSN in .env, see scripts/deploy/RUNBOOK.md section 3.4}
+      KEEL_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      # sslmode=disable is correct HERE and would not be over a network: this
+      # connection never leaves the Docker bridge on one host.
+      #
       # The DASHBOARD's origins, not this API's own: api.keels.app and keels.app
       # are different origins to a browser. Read once at startup, so a change
       # needs `up -d keel-serve`. RUNBOOK.md section 7.
@@ -65,9 +149,11 @@ services:
       # ARE OPTIONAL: unset here means empty, which cmd/keel/env.go reads as
       # unset and answers with store.DefaultConfig. They are passed through
       # rather than omitted so that setting one in .env is enough, with no edit
-      # to this file. KEEL_DB_PING_TIMEOUT is the one that matters on this host:
-      # a KEEL_DSN naming a hostname that drops packets hangs the container's
-      # startup without it, instead of crash looping with a readable error.
+      # to this file.
+      #
+      # KEEL_DB_MAX_OPEN_CONNS is the one to look at on this box now. The default
+      # is 8 here and 8 in keel-scan, so 16 of the cluster's 100 connection slots,
+      # against a Postgres that serves nothing else.
       KEEL_DB_MAX_OPEN_CONNS: ${KEEL_DB_MAX_OPEN_CONNS:-}
       KEEL_DB_MAX_IDLE_CONNS: ${KEEL_DB_MAX_IDLE_CONNS:-}
       KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
@@ -82,6 +168,12 @@ services:
     # that skips TLS and `curl localhost:3000` on the host will not answer.
     expose:
       - "3000"
+    # TWO NETWORKS, and this is the only service on both: `edge` is how Caddy
+    # reaches it, `data` is how it reaches Postgres. Caddy is not on `data`, so the
+    # container facing the internet has no route to the database at all.
+    networks:
+      - edge
+      - data
     # NO HEALTHCHECK HERE: the image is distroless, with no shell and no HTTP
     # client, so nothing inside it can probe itself. The probe is on caddy.
     restart: unless-stopped
@@ -99,20 +191,27 @@ services:
   # the deployment's decision. NFR-6 caps this repository at 3000 Horizon requests
   # an hour.
   keel-scan:
-    image: ${KEEL_IMAGE:?set KEEL_IMAGE in .env}
+    image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA}
     container_name: keel-prod-scan
-    # Same DSN as keel-serve and it must stay the same. Two different ones and the
-    # API serves an empty database while the scanner fills another.
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      KEEL_DSN: ${KEEL_DSN:?set KEEL_DSN in .env}
+      # THE SAME EXPRESSION AS keel-serve, CHARACTER FOR CHARACTER. Two DSNs that
+      # drift and the API serves an empty database while the scanner fills another.
+      # Composing both from the same three variables is what makes drift require an
+      # edit to this file rather than a typo in .env.
+      KEEL_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
       KEEL_DB_MAX_OPEN_CONNS: ${KEEL_DB_MAX_OPEN_CONNS:-}
       KEEL_DB_MAX_IDLE_CONNS: ${KEEL_DB_MAX_IDLE_CONNS:-}
       KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
       KEEL_DB_CONN_MAX_IDLE_TIME: ${KEEL_DB_CONN_MAX_IDLE_TIME:-}
       KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
     command: ["scan", "-interval", "15m"]
+    # `data` ONLY, and it still reaches Horizon: a user-defined bridge is not
+    # `internal`, so outbound works. What it does not have is a route from Caddy.
+    networks:
+      - data
     restart: unless-stopped
     deploy:
       resources:
@@ -121,8 +220,9 @@ services:
 
   # ---------------------------------------------------------------- TLS
   #
-  # THE ONLY SERVICE WITH PORTS, and 80 is required even though the API is HTTPS
-  # only: Caddy solves the ACME HTTP-01 challenge there. RUNBOOK.md section 3.2.
+  # THE ONLY SERVICE WITH PORTS ON A PUBLIC ADDRESS, and 80 is required even though
+  # the API is HTTPS only: Caddy solves the ACME HTTP-01 challenge there.
+  # RUNBOOK.md section 3.2.
   caddy:
     image: caddy:2-alpine
     container_name: keel-prod-caddy
@@ -144,6 +244,10 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - caddy_logs:/var/log/caddy
+    # `edge` ONLY. This is the container the internet talks to and it has no route
+    # to Postgres. It does not need one.
+    networks:
+      - edge
     # THE API'S PROBE LIVES HERE because this is the only container in the stack
     # with an HTTP client, and probing from here covers the proxy hop too.
     #
@@ -152,8 +256,7 @@ services:
     # every deployment for up to fifteen minutes after first boot. Treating it as a
     # failure would restart a working API.
     #
-    # start_period matters more without the database gate: `serve` may be crash
-    # looping in that window for a fault that is not caddy's.
+    # start_period is generous because a first boot now includes initdb.
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://keel-serve:3000/v1/health"]
       interval: 30s
@@ -166,10 +269,20 @@ services:
         limits:
           memory: 128M
 
-# keel_pgdata left with the postgres service, so this stack now owns no persistent
-# data except Caddy's certificates, and `down -v` can no longer destroy the
-# deliverable's dataset.
+# TWO NETWORKS, SPLIT BY WHAT FACES THE INTERNET. Compose's implicit default
+# network would put all four services on one bridge and give Caddy a route to
+# Postgres, which it has no use for. Neither is `internal`, because keel-scan
+# needs to reach Horizon.
+networks:
+  edge:
+  data:
+
+# keel_pgdata IS THE DELIVERABLE'S DATASET and it is back in this stack as of
+# 11 September 2026. `docker compose -f docker-compose.prod.yml down -v` deletes
+# it. Use `down` without `-v`, and take the dump in RUNBOOK.md section 6 off the
+# box, because a backup on the same disk as the volume is not a backup.
 volumes:
+  keel_pgdata:
   caddy_data:
   caddy_config:
   caddy_logs:
