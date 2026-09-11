@@ -70,6 +70,41 @@ func (a Asset) Equal(o Asset) bool {
 	return a.Code == o.Code && a.Issuer == o.Issuer && a.Type == o.Type
 }
 
+// GlobalQuote is the quote asset every threshold in this package is denominated
+// in, and the primary pair of every asset. It is USDC, issuer GA5ZSEJY..., which
+// is decision D-1 and Q7, settled by DEC-015 and recorded in
+// docs/methodology/02-pair-selection.md sections 1 and 2: "The primary pair is
+// USDC, always."
+//
+// THREE DECISIONS, since this package is a yellow zone.
+//
+// It is a FUNCTION rather than a package-level var because a var of struct type
+// is writable by anything in this package, and a quote asset that one call site
+// can reassign is a methodology decision with a race attached. It lives in
+// domain rather than in internal/api because two consumers already need it, the
+// pair resolver and the methodology endpoint, and a constant duplicated in two
+// packages is the second-home drift this repository keeps paying for. And it
+// carries the ISSUER, not the bare code, because rule 5 of the repository's own
+// brief is that an asset is the pair (code, issuer) and is never matched on the
+// ticker: /assets?asset_code=USDC returns several issuers and only this one is
+// the asset the thresholds mean.
+//
+// REJECTED: reading it out of configs/demonstration-set.json at startup, where
+// the same identity already appears on every pair. That would make a methodology
+// constant depend on a file whose own note calls itself PROVISIONAL, and it would
+// let a bad config silently redefine what every threshold is denominated in.
+//
+// It does NOT encode the candidate quote set, which section 1 of that document
+// fixes at exactly two members, USDC and native XLM. That set belongs wherever
+// pair selection is implemented; this is only the primary.
+func GlobalQuote() Asset {
+	return Asset{
+		Code:   "USDC",
+		Issuer: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+		Type:   AssetTypeAlphanum4,
+	}
+}
+
 // ---------------------------------------------------------------- Prices
 
 // Price is an exact rational, always expressed as quote per base.

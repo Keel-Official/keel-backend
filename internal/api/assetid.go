@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Keel-Official/keel-backend/internal/domain"
 	"github.com/Keel-Official/keel-backend/internal/store"
 )
 
@@ -70,19 +71,34 @@ func parseAssetID(raw string) (code, issuer string, err error) {
 // resolvePair turns the assetId path value and the optional quote query into one
 // stored pair.
 //
-// WHEN `quote` IS OMITTED the contract says the asset's primary pair is used,
-// defined as the pair with the largest combined depth at 10 percent. THAT RULE IS
-// NOT IMPLEMENTED, and not because it is hard. It is decision D-1, and
-// docs/methodology/02-pair-selection.md is still a worksheet whose own checklist
-// says no decisions are recorded in it yet. Picking the pair by any other rule
-// here, largest depth today or first alphabetically, would be this package
-// quietly making a methodology decision and having it read back as if it had been
-// chosen deliberately.
+// WHEN `quote` IS OMITTED the primary pair is used, and the primary pair is the
+// GLOBAL QUOTE ASSET: USDC, issuer GA5ZSEJY..., domain.GlobalQuote().
 //
-// So: one pair for the asset resolves without a quote, and several make the
-// request ambiguous and say so, listing the candidates. Note that the contract's
-// error enum has no code for an ambiguous identity, so INVALID_ASSET_ID carries
-// it. That gap is handoff item 18.
+// IMPLEMENTED 11 SEPTEMBER 2026, AND THE HISTORY IS THE POINT. Until then this
+// returned an ambiguity error whenever an asset had more than one pair, and the
+// comment here said the rule was undecided: "decision D-1, and
+// docs/methodology/02-pair-selection.md is still a worksheet whose own checklist
+// says no decisions are recorded in it yet". Refusing to guess was right while
+// that was true. It stopped being true on 5 September 2026, when Al resolved Q7
+// and DEC-015 made the quote asset global; section 2 of that document now reads
+// "The primary pair is USDC, always. It follows from section 1 and requires no
+// rule." So the refusal outlived its reason by six days and went on reporting a
+// decision as missing after it had been made, which is the stale-lock pattern
+// this repository has paid for more than once.
+//
+// NOTE WHAT THE CONTRACT SAID, because it was wrong in a different way. Its
+// `quote` parameter described the primary pair as "the pair with the largest
+// combined depth at 10 percent", a rule nobody ever adopted and which DEC-015
+// supersedes: a band could then move because depth moved, not because risk did.
+// Corrected in contract 1.5.1 rather than implemented.
+//
+// THE AMBIGUITY ERROR IS KEPT for the one case it still describes: an asset with
+// several pairs and no USDC pair among them. That is not a decided case, because
+// the candidate set in section 1 is exactly USDC and native XLM, so such an asset
+// is measured only against XLM and calling that pair "primary" would assert a
+// rule the methodology does not contain. The contract's error enum has no code
+// for an ambiguous identity, so INVALID_ASSET_ID still carries it, which remains
+// handoff item 18.
 func (s *Server) resolvePair(ctx context.Context, r *http.Request) (store.Asset, *apiError) {
 	code, issuer, err := parseAssetID(r.PathValue("assetId"))
 	if err != nil {
@@ -106,14 +122,23 @@ func (s *Server) resolvePair(ctx context.Context, r *http.Request) (store.Asset,
 		if len(pairs) == 1 {
 			return pairs[0], nil
 		}
+		// The primary pair, by identity and not by depth. Equal compares all
+		// three fields, so a pair quoted in some other issuer's USDC does not
+		// match and is not silently treated as the primary.
+		primary := domain.GlobalQuote()
+		for _, p := range pairs {
+			if p.Quote.Equal(primary) {
+				return p, nil
+			}
+		}
 		candidates := make([]string, 0, len(pairs))
 		for _, p := range pairs {
 			candidates = append(candidates, p.Quote.String())
 		}
 		return store.Asset{}, &apiError{http.StatusBadRequest, codeInvalidAssetID,
-			"This asset is measured against more than one quote asset, and which one is " +
-				"primary is not decided yet. Pass ?quote= to choose.",
-			map[string]any{"quoteCandidates": candidates}}
+			"This asset is measured against more than one quote asset and none of them " +
+				"is " + primary.String() + ", which is the primary quote. Pass ?quote= to choose.",
+			map[string]any{"quoteCandidates": candidates, "primaryQuote": primary.String()}}
 	}
 
 	quoteCode, quoteIssuer, err := parseAssetID(quoteRaw)

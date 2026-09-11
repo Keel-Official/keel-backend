@@ -27,25 +27,54 @@ name: deploy
 # and fails for want of a secret teaches people to ignore a red tick, and a red
 # tick nobody reads is worse than no check.
 #
-# THE TWO JOBS DO NOT SHARE A TRIGGER, AND THAT IS DELIBERATE RATHER THAN AN
-# OVERSIGHT. The sentence here used to end "It runs when a version tag is pushed,
-# or when somebody presses the button", and that is still true of the IMAGE job.
-# The DEPLOY job runs on a version tag ONLY: it carries `if: github.ref_type ==
-# 'tag'`. So a workflow_dispatch builds, smoke tests and publishes, and deploys
-# nothing. Publishing an image is cheap and reversible; putting one in front of the
-# public API is a decision, and a decision gets a tag that says which release it
-# was. Pressing a button leaves no such record.
+# THE TWO JOBS SHARE ONE TRIGGER NOW, AND THEY DID NOT BEFORE. The paragraph here
+# read "THE TWO JOBS DO NOT SHARE A TRIGGER", because the image job also ran on
+# `workflow_dispatch` and the deploy job refused a dispatch with `if:
+# github.ref_type == 'tag'`. The reasoning under it was that publishing an image is
+# cheap and reversible while putting one in front of the public API is a decision,
+# and a decision gets a tag that says which release it was, where pressing a button
+# leaves no such record.
+#
+# THE TRIGGER WAS NARROWED ON 11 SEPTEMBER 2026, and what it cost is worth stating
+# rather than discovering. `tags: ["v*"]` plus `workflow_dispatch` became the two
+# suffixed patterns below. So:
+#
+#   - `git tag v0.3.0` NO LONGER TRIGGERS ANYTHING. The name has to end in
+#     `-development` or `-production`. Section 10 of the runbook and the README
+#     carry the corrected form.
+#   - THERE IS NO LONGER A WAY TO PUBLISH AN IMAGE WITHOUT DEPLOYING. That was
+#     `workflow_dispatch`'s whole job. Every tag that builds an image now also
+#     attempts a deploy, gated only by KEEL_DEPLOY_TARGET.
+#   - `if: github.ref_type == 'tag'` on the deploy job is now always true. It is
+#     KEPT rather than deleted, because it is what makes the deploy job refuse a
+#     non-tag trigger if one is ever added back, and deleting it would move that
+#     guarantee into the `on:` block where nobody reads it twice.
+#
+# THE TWO SUFFIXES BEHAVE IDENTICALLY TODAY, and that is a fact about this file
+# rather than a recommendation. Both patterns run the same two jobs against the same
+# single KEEL_DEPLOY_TARGET, so `-development` and `-production` are two names for
+# one path. If they are meant to reach different hosts, that is a second target and
+# a job-level environment, and it is a change to make on purpose rather than
+# something to read into the names.
 
 on:
   push:
-    tags: ["v*"]
-  workflow_dispatch:
+    tags:
+      - "v*-development"
+      - "v*-production"
 
 permissions:
   contents: read
   packages: write
 
 env:
+  # IMAGE_NAME IS DEFINED HERE BECAUSE TWO STEPS ALREADY REFERENCE IT. They were
+  # changed from `github.repository` to `env.IMAGE_NAME` on 11 September 2026 and
+  # the variable was never added, so both rendered empty and the job summary
+  # printed `ghcr.io/:<sha>` as the image somebody was meant to be able to pull.
+  # An undefined `env` expression is not an error in Actions; it is an empty
+  # string, which is why this survived a green run.
+  IMAGE_NAME: ${{ github.repository }}
   # No GO_VERSION here on purpose. Nothing in this workflow runs Go: the compiler
   # runs inside the image build, pinned by the FROM line in the Dockerfile, and
   # the smoke test reads the methodology version out of the source file rather
@@ -81,20 +110,75 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # QEMU IS WHAT MAKES THE arm64 HALF OF THE PUBLISH STEP POSSIBLE. This
+      # runner is amd64, and building a linux/arm64 image on it means executing
+      # the arm64 build stage under emulation, which needs binfmt_misc handlers
+      # registered. They are not registered on a GitHub-hosted runner by
+      # default, so without this step the arm64 build fails inside the golang
+      # stage rather than at the buildx invocation, which is a confusing place
+      # to read the error.
+      #
+      # IT MAKES A TAG BUILD SLOWER, AND THE COST WAS MEASURED RATHER THAN
+      # ASSUMED, because the folklore here is wrong by a wide margin. Building
+      # this repository's image with `--no-cache`, one platform at a time, on an
+      # arm64 laptop on 11 September 2026: 14 seconds native, 30 seconds
+      # emulated. So emulation costs about 2x on this workload, not the order of
+      # magnitude usually quoted for Go under QEMU. A tag build gains roughly the
+      # length of one build, not minutes.
+      #
+      # THAT MEASUREMENT IS WHY THE DOCKERFILE WAS LEFT ALONE. The durable fix is
+      # to stop emulating and cross-compile, which Go does natively: `FROM
+      # --platform=$BUILDPLATFORM` on the build stage plus `GOARCH=$TARGETARCH`
+      # on the build command, which keeps the compiler running on the runner's
+      # own architecture. It is three lines and it is the right shape. At 2x on a
+      # build this size it is not yet worth spending a change to the image's
+      # definition on, and the number above is what to re-check before deciding
+      # otherwise. The ratio was taken with the arm64 half native and the amd64
+      # half emulated; on a GitHub runner those swap, and the ratio is what
+      # carries over rather than the seconds.
+      - uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
       # ONE COMPUTED DATE RATHER THAN AN EVENT FIELD.
       # github.event.repository.updated_at is empty on workflow_dispatch, and a
       # label that is present on a tag build and blank on a manual one is worse
-      # than one that is always the same shape.
+      # than one that is always the same shape. The dispatch trigger was removed
+      # on 11 September 2026, so that asymmetry cannot occur today; the step stays
+      # because a computed date is the same shape under every trigger and needs no
+      # revisiting if one is added back.
       - name: Stamp
         id: stamp
         run: echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
+      # SINGLE PLATFORM HERE, DELIBERATELY, AND THE PUBLISH STEP BELOW IS THE
+      # MULTI-PLATFORM ONE.
+      #
+      # THE REASON IS WHAT THIS STEP IS FOR. It loads the image into the local
+      # daemon so the next steps can RUN it: `docker run keel:smoke serve` and
+      # then a real HTTP request against it. This runner is amd64, so an arm64
+      # image loaded here could not be executed, and building one under QEMU
+      # emulation purely to not run it would double the slowest part of the job
+      # for nothing.
+      #
+      # `load: true` also cannot hold more than one platform on this runner. A
+      # manifest list needs an image store that can represent one, and a
+      # GitHub-hosted runner has the classic docker store rather than the
+      # containerd one, so the export fails there. That is store-dependent and
+      # not a universal law, which is why the paragraph above is the reason to
+      # rely on and this one is only the mechanism.
+      #
+      # WHAT THIS COSTS, STATED PLAINLY: the arm64 image is published without
+      # ever having been started. The smoke test proves that THIS COMMIT serves
+      # and reports the right methodology version, on amd64. It does not prove
+      # the arm64 binary starts. Nothing in a cross-built Go binary makes that
+      # likely to differ, and the deploy job's version check against the live
+      # API is what would catch it on an arm64 host, one step later than here.
       - name: Build the image, load it locally, do not push yet
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64
           load: true
           push: false
           tags: keel:smoke
@@ -169,18 +253,53 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare Image Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=main,enable={{is_default_branch}}
+            type=sha,format=long,prefix=
+
+      # TWO ARCHITECTURES, ONE TAG. The registry gets a manifest list, so
+      # `docker pull` on either kind of box resolves to the right image with no
+      # tag suffix to remember and no second name to keep in step.
+      #
+      # WHY arm64 IS HERE AT ALL: most of the cheap single instances now are
+      # arm64, and an amd64-only image turns "which box" into a decision that
+      # has to be made before the first deploy and cannot be revisited without a
+      # rebuild. The failure it prevents is `exec format error` at `up -d`, which
+      # says nothing about architecture to somebody who has not met it before.
       - name: Tag and publish
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}
+          # THE TAG SET IS THE METADATA ACTION'S NOW, and the two literal tags that
+          # used to be written here are gone. They were the commit SHA and
+          # `${{ github.ref_type == 'tag' && github.ref_name || 'edge' }}`, and a
+          # comment stood above them explaining that the `edge` half was unreachable
+          # while every trigger is a version tag. That comment outlived the lines it
+          # described by one commit, which is the thing this file keeps being fixed
+          # for.
+          #
+          # WHAT IS PUBLISHED ON A TAG PUSH IS ONE NAME: the full commit SHA, from
+          # `type=sha,format=long,prefix=`. The `type=raw,value=main` entry is gated
+          # on `is_default_branch`, which is false on a tag, so it never fires here.
+          # THAT IS WHAT THE DEPLOY STEP BELOW DEPENDS ON: it writes
+          # `KEEL_IMAGE_TAG=${SHA}` into the host's .env from `github.sha`, so the
+          # name it pulls and the name published here are the same forty characters.
+          # Changing the sha format, or adding a prefix back, breaks the deploy and
+          # not the build, one step later and with a `manifest unknown` from `pull`.
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VCS_REF=${{ github.sha }}
             BUILD_DATE=${{ steps.stamp.outputs.date }}
           cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Say what was published
         run: |
@@ -188,10 +307,12 @@ jobs:
             echo "### Image published"
             echo ""
             echo '```'
-            echo "${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}"
+            echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}"
             echo '```'
             echo ""
-            echo "It passed a smoke test: schema applied with scripts/migrate.sh, container started, GET /v1/health returned the same methodology version this commit compiles."
+            echo "Two platforms: linux/amd64 and linux/arm64, in one manifest list."
+            echo ""
+            echo "The amd64 image passed a smoke test: schema applied with scripts/migrate.sh, container started, GET /v1/health returned the same methodology version this commit compiles. The arm64 image was cross-built and published without being started; see the comment on the smoke build step."
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ------------------------------------------------------------------ deploy
@@ -230,8 +351,9 @@ jobs:
     name: deploy
     needs: image
     runs-on: ubuntu-latest
-    # VERSION TAGS ONLY. See the header: a workflow_dispatch publishes an image and
-    # deploys nothing.
+    # VERSION TAGS ONLY, AND EVERY TRIGGER IS ONE SINCE 11 SEPTEMBER 2026, so this
+    # condition is always true today. See the header: it is kept so that adding a
+    # non-tag trigger to `on:` cannot silently start deploying.
     if: github.ref_type == 'tag'
     steps:
       - name: What this is waiting for
@@ -245,8 +367,8 @@ jobs:
             echo "Everything below is prepared and unapplied. The steps are"
             echo "\`scripts/deploy/RUNBOOK.md\`, and all of this is Al's:"
             echo ""
-            echo "1. A host, its architecture checked, and the DNS record for it."
-            echo "   Runbook sections 3.1 to 3.3. THE IMAGE IS amd64 ONLY."
+            echo "1. A host and the DNS record for it. Runbook sections 3.1 to 3.3."
+            echo "   The image is published for amd64 AND arm64, so either is fine."
             echo "2. The \`.env\` file on that host, including the database password."
             echo "   Runbook section 3.4."
             echo "3. The schema applied to it once, by hand:"
@@ -329,8 +451,9 @@ jobs:
       # `docker compose up -d` by hand would silently change the running version.
       #
       # The checkout on the host is a detached checkout of THIS commit, not a pull
-      # of a branch, so the compose file and the Caddyfile that come up are the
-      # ones this release was reviewed with.
+      # of a branch, so the compose file that comes up is the one this release was
+      # reviewed with. The nginx server block is NOT deployed this way: it lives in
+      # /etc/nginx on the host and is Al's to install. RUNBOOK.md section 3.8.
       #
       # These are the same four commands section 5 of the runbook gives for a
       # manual deploy. If one changes, both change.
@@ -375,12 +498,23 @@ jobs:
           docker compose -f docker-compose.prod.yml ps
           REMOTE
 
-      # WAIT ON THE STACK'S OWN HEALTH BEFORE ASKING THE INTERNET. The caddy
-      # service carries the healthcheck, because the API's image is distroless and
-      # has no HTTP client in it; it probes http://keel-serve:3000/v1/health and
-      # asserts 200 only. Waiting here means the curl below fails for a real
-      # reason rather than for arriving early.
-      - name: Wait for the stack to report healthy
+      # WAIT FOR THE API ON LOOPBACK BEFORE ASKING THE INTERNET, so the public curl
+      # below fails for a real reason rather than for arriving early.
+      #
+      # THIS USED TO READ A CONTAINER HEALTHCHECK AND THERE IS NO LONGER ONE TO
+      # READ. It polled `docker inspect keel-prod-caddy` for `healthy`, because the
+      # caddy service carried the stack's only healthcheck: keel-serve's image is
+      # distroless, with no shell and no HTTP client, so nothing inside it can probe
+      # itself. Caddy was removed on 11 September 2026 when nginx took over TLS on
+      # the host, and its healthcheck went with it.
+      #
+      # SO THE PROBE MOVED OUT OF THE STACK AND ONTO THE HOST. curl is on the box
+      # and the API is published on loopback, which is the whole reason that port is
+      # published at all. What this no longer covers is the proxy hop, which the
+      # caddy probe did cover from inside the network. The public check in the next
+      # step covers it instead, and covers DNS and the certificate with it, so
+      # nothing is lost between the two of them.
+      - name: Wait for the API to answer on loopback
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:
           TARGET: ${{ vars.KEEL_DEPLOY_TARGET }}
@@ -391,23 +525,33 @@ jobs:
             "DEPLOY_PATH='$DEPLOY_PATH' bash -s" <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
+          # READ THE BIND ADDRESS FROM .env RATHER THAN ASSUMING IT. The compose
+          # file defaults to 127.0.0.1:3000 and this box may hold 3000 for the other
+          # application, in which case KEEL_BIND_ADDR names something else and this
+          # check has to follow it. grep rather than `source`, because .env holds
+          # the database password and sourcing it would put that in this shell.
+          bind=$(grep -E '^KEEL_BIND_ADDR=' .env | head -1 | cut -d= -f2- || true)
+          [ -n "$bind" ] || bind=127.0.0.1:3000
+          echo "probing http://${bind}/v1/health"
           for i in $(seq 1 30); do
-            state=$(docker inspect --format '{{.State.Health.Status}}' keel-prod-caddy 2>/dev/null || echo unknown)
-            echo "caddy health: $state"
-            [ "$state" = "healthy" ] && exit 0
+            if curl -fsS --max-time 5 "http://${bind}/v1/health" >/dev/null 2>&1; then
+              echo "the API answers on loopback"
+              exit 0
+            fi
             sleep 5
           done
-          echo "the caddy healthcheck did not reach healthy in about two and a half minutes" >&2
+          echo "the API did not answer on ${bind} in about two and a half minutes" >&2
           docker compose -f docker-compose.prod.yml ps >&2
           docker compose -f docker-compose.prod.yml logs --tail 40 keel-serve >&2
           exit 1
           REMOTE
 
       # THE CHECK IS MADE FROM HERE AND NOT FROM THE BOX, over the public internet
-      # and through Caddy, because that is the only path that proves what a
+      # and through nginx, because that is the only path that proves what a
       # consumer gets: DNS resolving, the certificate valid, the proxy routing and
-      # the API answering. `curl localhost:3000` on the host proves none of those
-      # and passes when all four are broken.
+      # the API answering. The loopback curl in the previous step proves the fourth
+      # of those and passes when the first three are broken, which is exactly why it
+      # is not the last word.
       - name: The version the live API serves is the version this commit compiles
         if: vars.KEEL_DEPLOY_TARGET != ''
         env:
@@ -471,7 +615,7 @@ jobs:
             echo "| --- | --- |"
             echo "| release | \`${{ github.ref_name }}\` |"
             echo "| commit | \`${{ github.sha }}\` |"
-            echo "| image | \`${{ env.REGISTRY }}/${{ github.repository }}:${{ github.sha }}\` |"
+            echo "| image | \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\` |"
             echo "| health | ${HEALTH_URL} |"
             echo ""
             echo "The API answering at that URL reports the same methodology version this"

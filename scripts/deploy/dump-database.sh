@@ -46,17 +46,73 @@
 # disk as the database survives a dropped table, a bad migration and a bad
 # deploy. It does not survive losing the box, and nothing here pretends otherwise.
 
+# THE TRANSPORT CHANGED ON 11 SEPTEMBER 2026 AND THE OLD ONE IS RECORDED HERE
+# BECAUSE IT IS IN A CRONTAB SOMEWHERE. This script used to dump through
+# `docker compose exec -T postgres pg_dump`, which needed no password on any
+# command line and guaranteed the client matched the server's major version,
+# because both were the same container. That container went away when the host's
+# own Postgres briefly became the database, so `exec -T postgres` failed with "no
+# such service" and a cron entry calling this would have reported a failed dump
+# every day.
+#
+# It now runs `pg_dump` against a DSN, and the DSN comes from KEEL_DUMP_DSN in the
+# ENVIRONMENT and never from an argument. That is not decoration: a DSN on the
+# command line is visible to every user on the box in `ps`, and this one carries
+# the database password. In the environment of a running process it is readable by
+# its owner and by root, which is the same set that can read the dump itself.
+#
+# THE `postgres` SERVICE CAME BACK THE SAME DAY AND THIS SCRIPT DID NOT FOLLOW IT.
+# THAT IS A DECISION, NOT AN OVERSIGHT, AND IT IS THE PART OF THIS HEADER WORTH
+# READING. The compose transport is available again and it is genuinely better on
+# two axes: no password anywhere, and the client version matched to the server for
+# free. It is not taken because a backup that only works while the database happens
+# to be a container in this compose project is a backup that breaks the next time
+# somebody moves that decision, and that decision moved twice in one day. The DSN
+# form works against a container, against a host install, and against a managed
+# database. A backup is the wrong place to optimise for the current arrangement.
+#
+# NOTE THAT KEEL_DUMP_DSN IS NOT THE DSN THE CONTAINERS USE. This script runs on
+# the HOST, so it reaches the database through the loopback port the compose file
+# publishes: localhost:5433. The containers reach the same database as
+# postgres:5432, a service name on the `data` network. Using the container's
+# spelling here gives "could not translate host name"; using this one from inside a
+# container gives a refused connection. The same split as the migration step;
+# RUNBOOK.md section 9.
+#
+# THE PORT IS 5433 AND NOT 5432. This box runs one Postgres container per
+# application and 5432 belongs to another one. A dump taken against 5432 either
+# fails or, worse, succeeds against somebody else's database.
+#
+# THE CLIENT VERSION IS THE OPERATOR'S PROBLEM AND IT IS THE PRICE OF THE CHOICE
+# ABOVE. pg_dump refuses to dump a server newer than itself, so the host needs a
+# client at least as new as the server, which is 18.4. Ubuntu ships 16 and fails
+# with "server version mismatch". RUNBOOK.md section 3.5 has the PGDG repository
+# lines that install postgresql-client-18.
+
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-COMPOSE_FILE_PATH="docker-compose.prod.yml"
-SERVICE="postgres"
 OUT_DIR="${1:-backups}"
 KEEP_DAYS="${KEEL_DUMP_KEEP_DAYS:-14}"
+DSN="${KEEL_DUMP_DSN:-}"
 
-if [ ! -f "$COMPOSE_FILE_PATH" ]; then
-  echo "dump: $COMPOSE_FILE_PATH not found in $(pwd)" >&2
+if [ -z "$DSN" ]; then
+  echo "dump: KEEL_DUMP_DSN is not set." >&2
+  echo "      This runs on the HOST, so the database is at localhost:5433, which is" >&2
+  echo "      the loopback port docker-compose.prod.yml publishes. NOT postgres:5432," >&2
+  echo "      which is the containers' spelling, and NOT 5432, which on this box is" >&2
+  echo "      another application's Postgres." >&2
+  echo "      See scripts/deploy/RUNBOOK.md section 6." >&2
+  exit 1
+fi
+
+if ! command -v pg_dump >/dev/null 2>&1; then
+  echo "dump: pg_dump is not on PATH." >&2
+  echo "      This runs on the host, not in the server's container, so it needs a" >&2
+  echo "      client at least as new as the server, which is 18.4. Ubuntu ships 16" >&2
+  echo "      and fails with \"server version mismatch\": install postgresql-client-18" >&2
+  echo "      from the PGDG repository. RUNBOOK.md section 3.5 has the three lines." >&2
   exit 1
 fi
 
@@ -73,11 +129,11 @@ out="$OUT_DIR/keel-${ts}.dump"
 # interrupted dump must never be left looking like a good one, because the moment
 # it is needed is the moment nobody has time to check.
 #
-# `exec -T` and not `run --rm`: this uses the running container, so it needs no
-# second Postgres and no password on the command line. pg_dump inside the
-# container is the same major version as the server by construction.
-if docker compose -f "$COMPOSE_FILE_PATH" exec -T "$SERVICE" \
-     pg_dump -U keel -d keel -Fc > "${out}.partial"; then
+# THE DSN IS PASSED THROUGH THE ENVIRONMENT AND NOT AS AN ARGUMENT, for the reason
+# in the header: argv is world readable in `ps` and this string holds a password.
+# `pg_dump -d "$DSN"` would put it in argv, so PGDATABASE carries it instead;
+# pg_dump accepts a full connection URI in that variable.
+if PGDATABASE="$DSN" pg_dump -Fc > "${out}.partial"; then
   mv "${out}.partial" "$out"
 else
   rm -f "${out}.partial"

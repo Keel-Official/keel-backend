@@ -2,6 +2,27 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.5.1, 11 September 2026. TWO CORRECTIONS AND NO SCHEMA CHANGE, which is why it
+  # is a patch. Both are places where this file described a rule that DEC-015 had
+  # already replaced on 5 September, so the contract was six days out of date with
+  # the methodology it is supposed to express.
+  #
+  #  1. The `quote` parameter said the primary pair is "the pair with the largest
+  #     combined depth at 10 percent". No such rule was ever adopted, and it is a
+  #     bad one: a band would move because depth moved rather than because risk
+  #     did. docs/methodology/02-pair-selection.md section 2 says "The primary
+  #     pair is USDC, always". The server implements that as of the same day; it
+  #     used to answer INVALID_ASSET_ID for a multi-pair asset with no quote.
+  #  2. The methodology example carried manipulationCheapUnit: XLM and
+  #     thinDepth5PctUnit: XLM. Both are USDC, and were wrong even for XLM pairs,
+  #     because section 1 of that document converts an XLM-denominated depth to
+  #     USDC before judging it. The server omitted both keys entirely rather than
+  #     serve a wrong unit, and now serves them as the (code, issuer) identity.
+  #
+  # The thresholds map is open ended by design, so adding keys to it is not a
+  # schema change and needs no minor bump. This is a patch because the only things
+  # that moved are a parameter DESCRIPTION and an EXAMPLE.
+  #
   # 1.5.0, 5 September 2026. Four ADDITIVE fields on AssetRisk carrying the pair
   # decision: primaryQuote, pairsEvaluated, bandDrivenBy and xlmUsdcRate, plus the
   # PairSummary schema the third of those needs. Minor and not patch, because the
@@ -107,7 +128,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.8-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.5.0
+  version: 1.5.1
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -233,10 +254,10 @@ paths:
                   separately so that consumers can apply their own thresholds.
                 thresholds:
                   manipulationCheapAbsolute: '10000.0000000'
-                  manipulationCheapUnit: XLM
+                  manipulationCheapUnit: USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
                   manipulationRatioLowPct: '1.0'
                   thinDepth5PctAbsolute: '50000.0000000'
-                  thinDepth5PctUnit: XLM
+                  thinDepth5PctUnit: USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
                   holderTop1ExtremePct: '50.0'
                   holderTop10HighPct: '80.0'
                   genuineTradeStaleDays: 30
@@ -435,8 +456,20 @@ components:
       in: query
       description: |
         The quote asset used as the unit of measurement. If omitted, the asset's
-        primary pair is used, meaning the pair with the largest combined depth at
-        10 percent.
+        PRIMARY pair is used, and the primary pair is always
+        USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN. That is
+        `docs/methodology/02-pair-selection.md` section 2, and it follows from
+        section 1: the candidate quote set is exactly USDC and native XLM, and
+        every threshold is a USDC figure.
+
+        It is a fixed identity and not a measurement, so the pair this resolves to
+        does not change when depth changes. Until contract 1.5.1 this parameter
+        described the primary pair as the one with the largest combined depth at
+        10 percent; no such rule was ever adopted and DEC-015 replaced it.
+
+        An asset measured against several quotes with no USDC pair among them
+        cannot resolve without this parameter and answers 400 INVALID_ASSET_ID
+        listing its `quoteCandidates` and the `primaryQuote` it was looking for.
       schema:
         type: string
         pattern: '^(XLM|[A-Za-z0-9]{1,12}(:|%3A)G[A-Z2-7]{55})$'

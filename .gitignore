@@ -16,6 +16,21 @@
 # Env
 .env
 .env.*
+#
+# THE TEMPLATE IS `env.example`, WITHOUT THE LEADING DOT, and that name is chosen
+# rather than inherited. `.env.*` above swallows `.env.example`, so a file whose
+# entire purpose is to be read out of a fresh clone would not be in the clone. Two
+# routes out of that, and the cheaper one was taken: a negation line here, or a
+# filename the pattern does not match.
+#
+# The filename won because a second lock points the same way. `.claude/settings.json`
+# denies `Read(.env)` and `Read(.env.*)`, so `.env.example` is unwritable by Claude
+# too. Narrowing that deny rule would be a LOOSENING of the permission surface and
+# loosenings are Al's, so asking for one to publish a file of placeholders is a bad
+# trade. `env.example` is outside both patterns and needs neither change.
+#
+# If the conventional dotted name is ever wanted instead, it takes BOTH: a `!`
+# negation here and a narrowing of those two deny rules. Both are Al's.
 
 # Claude Code personal settings
 .claude/settings.local.json

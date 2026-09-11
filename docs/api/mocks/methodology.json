@@ -5,10 +5,10 @@
   "calibrationNote": "The thresholds were chosen based on the magnitude of the Blend incident of February 2026 and on conservative judgement, not calibrated against a set of incidents. Every flag is reported separately so that consumers can apply their own thresholds.",
   "thresholds": {
     "manipulationCheapAbsolute": "10000.0000000",
-    "manipulationCheapUnit": "XLM",
+    "manipulationCheapUnit": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
     "manipulationRatioLowPct": "1.0",
     "thinDepth5PctAbsolute": "50000.0000000",
-    "thinDepth5PctUnit": "XLM",
+    "thinDepth5PctUnit": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
     "holderTop1ExtremePct": "50.0",
     "holderTop10HighPct": "80.0",
     "genuineTradeStaleDays": 30,
