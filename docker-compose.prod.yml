@@ -303,13 +303,25 @@ services:
     networks:
       - data
     restart: unless-stopped
-    # A GUARD AND NOT A LOAD-BEARING NUMBER, since 12 September 2026. It was 512M
-    # and the container was OOM killed on the fourth asset of every pass, silently,
-    # because an OOM kill leaves no log line. The cause was GetHolders retaining
-    # every raw /accounts page; this command now sets DiscardRawHolderPages, which
-    # bounds what is held, so this limit no longer has to accommodate the largest
-    # asset anybody ever adds to the set. Raised anyway, because a guard sized just
-    # above the old failure is not a guard.
+    # 256M, AND THE HISTORY IS THE POINT. It was 512M, the container was OOM
+    # killed on the fourth asset of every pass, and the cause was GetHolders
+    # retaining every raw /accounts page: at the 25 page cap that is about 437 MB
+    # for one asset. The retention is now bounded by DiscardRawHolderPages, so the
+    # peak is one page plus the decoded holders rather than every page at once.
+    #
+    # IT WAS RAISED TO 1G IN THE SAME CHANGE AND THAT WAS A MISTAKE, made within
+    # the hour and corrected here. Sizing a guard against the failure it just saw
+    # is reasonable; doing it without checking what the host has is not. The four
+    # limits in this file then summed to about 2 GB on a box that does not have
+    # that, the kernel started killing whatever it liked, and `keel-scan` was
+    # among the casualties: /v1/health went `degraded` with `latestScanAt` null
+    # while the API answered intermittently.
+    #
+    # THE SUM OF THESE FOUR LIMITS IS A PROPERTY OF THE HOST AND NOT OF THIS FILE,
+    # which is the lesson worth carrying. postgres 512M + keel-serve 192M +
+    # keel-scan 256M + this 256M is about 1.2 GB, which leaves room on a small
+    # VPS. Anybody raising one of them is spending a shared budget nothing here
+    # measures, so check `free -m` on the box first.
     #
     # MORE THAN keel-scan GETS, and the reason is the endpoint rather than the
     # work. /accounts?asset= returns the FULL account object per holder, and one
@@ -320,7 +332,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 256M
 
 networks:
   data:
