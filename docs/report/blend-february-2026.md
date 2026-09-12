@@ -1,371 +1,148 @@
-# Could Keel have warned about the Blend incident of February 2026?
+# USTRY/USDC: February 2026 historical evidence report
 
-**Status: DRAFT, and two of its sections are empty on purpose.** Sections 5 and 6
-are the ones that answer the title, and they are filled from a measurement that was
-still running when this structure was written. Nothing is written into them in
-advance. See section 10 for what is outstanding and who owns it.
+**Status:** review draft, 12 September 2026. Limited-evidence scope approved by the
+project owner; this report and its external message still require final approval.
+No real historical risk rows have been loaded by this work.
 
-**Version:** draft, 5 September 2026
-**Methodology version:** `1.0.8-draft`, the version the engine stamps on every
-result quoted here. The methodology documents are at `1.1.0-draft` and describe a
-multi-pair rule the engine does not implement yet; DEC-014 and DEC-015 are where
-that gap is recorded. Nothing in this report depends on it: USTRY is measured
-against USDC and USDC is the unit the thresholds are in.
-**Asset:** `USTRY`, issuer `GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC`,
-against `USDC`, issuer `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`.
-The identity is fixed by `docs/decisions/DEC-001-ustry-identity.md` and an asset is
-the pair (code, issuer), never the ticker.
+Keel measures executable liquidity and the volume a quoted price can support.
+This investigation cannot establish a reliable daily risk series or a first-warning
+date before the 22 February incident. It does establish specific offer cancellations
+and identifies why the available replay output is not suitable for that claim.
 
----
+## Scope and identity
 
-## 1. What this report claims, and what it does not
+The requested window is 1 February 2026 00:00 UTC through 1 March 2026 00:00 UTC,
+exclusive. Available diagnostics contain 28 daily samples and two additional
+control samples; they are not continuous observations. Exact sample ledgers and
+times appear in the [diagnostic appendix](../evidences/track-b-2026-09-12/daily-output-review.md).
 
-**It claims** that the state of the USTRY/USDC order book in February 2026 can be
-rebuilt from public Stellar data, that Keel's published methodology applied to that
-state produces a risk band on each day of the month, and that the resulting series
-either does or does not cross into `CRITICAL` before the exploit date. Which of
-those two it is, is section 6.
-
-**It does not claim** that anybody would have acted on the warning, that Keel
-existed at the time, or that the thresholds it uses are calibrated. They are chosen,
-and `docs/methodology/11-limitations.md` says so in those words.
-
-**It especially does not claim to be free of hindsight.** Section 7 is about that
-and it is not a formality: this report knows the date of the attack, and a backtest
-that knows the outcome can find a signal in almost anything. What makes the claim
-checkable rather than rhetorical is that every threshold used here was written down
-before the series was computed, and section 9 says exactly how a reader can confirm
-that from the repository's own history.
-
-**If the series shows no clear signal before the exploit date, that is the finding
-and it is reported as one.** The PRD says so first, at section 10: "If the backtest
-does not show a clear signal, that is not a project failure but a finding that has
-to be reported honestly. Reporting it as it is does far more for long term
-credibility than tuning thresholds until the result looks good."
-
-## 2. The incident, from the chain
-
-| | |
-|---|---|
-| Date | 22 February 2026 |
-| Ledger the manipulation executed in | **61340263**, closed 2026-02-22T00:10:21Z |
-| What happened | the USTRY price was pushed up roughly 100 times through a thinly traded feed and the position was then used as collateral to borrow about $61 million in XLM |
-| Where that is stated | `docs/context/Keel_PRD.md` section 1. The date correction from May to February is `docs/decisions/DEC-001-ustry-identity.md` section 1 |
-
-The order book immediately before that trade, at the end of ledger **61340262**, is
-in `testdata/fixtures/ustry_pre_exploit.md`. Every figure in it was computed by hand
-in a spreadsheet before any implementation existed, and that file is in a directory
-the engine's authors cannot write to. The two levels were the whole book:
-
-```
-Asks: [ { price_r: {266843207, 2500000}, amount: 1.2185312 } ]   price 106.7372828
-Bids: [ { price_r: {1057, 1000},         amount: 0.0001000 } ]   price   1.0570000
-Pools: []
-```
-
-**One ask and one bid, and 105 dollars of nothing between them.**
-
-## 3. What Keel says about that state
-
-Applying the methodology to the book above, at ledger 61340262:
-
-| Quantity | Value | Where the rule is written |
+| Asset | Issuer | Type |
 |---|---|---|
-| reference price `P0` | 53.8971414 | `03-reference-price.md` |
-| `spreadPct` | 196.0777141 per cent | `03-reference-price.md` |
-| depth at ±2, ±5, ±10 per cent, both sides | **0** on all six | `04-depth.md` |
-| manipulation cost to move the price 50 per cent | **0**, and the target is **reachable** | `05-manipulation-cost.md` |
-| `maxReachablePrice` | 106.7372828 | `05-manipulation-cost.md` section 5 |
-| cost to reach it | **0** | |
-| ratio of that price to the real price of 1.057 | **100.98** | |
-| band | **CRITICAL** | `09-flags-and-bands.md` |
-| flags | `ZERO_DEPTH_2PCT`, `THIN_DEPTH_5PCT`, `SPREAD_EXTREME`, `MANIPULATION_CHEAP` | `09-flags-and-bands.md` |
+| USTRY | `GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC` | `credit_alphanum12` |
+| USDC | `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN` | `credit_alphanum4` |
 
-**The line that matters most is the cost of zero.** An attacker does not pay for the
-trade that moves the price. They pay for the third-party liquidity they have to
-consume on the way to it, and on this book there was none to consume: no ask was
-cheaper than the target, so nothing had to be bought, and the one ask sitting at
-106.74 was enough to make the target reachable. `05-manipulation-cost.md` section 1
-is the definition and this report does not restate it in its own words.
+Risk notionals use USDC; prices use USDC per USTRY. The [pool coverage inventory](pool-coverage.md)
+identifies the one known pair pool and the periods for which reserve evidence is
+missing or conditional. It precedes any historical load and does not certify that
+the pool list is exhaustive.
 
-`bandConfidence` is **partial**, not full. Six flags need supply data, trade history
-or trustline distribution that a book snapshot cannot carry, and they are reported as
-`unevaluated` rather than as clear. A metric that could not be assessed is never
-counted as a passing metric; `09-flags-and-bands.md` section 2 is the rule.
+## What the evidence supports
 
-## 4. Where the historical data comes from, and why it is not a measurement
-
-Horizon serves no order book at a past ledger. It serves every operation and the
-result of every operation for ever, and a book is what those operations left behind.
-Keel rebuilds the book by replaying `manage_sell_offer` and `manage_buy_offer`
-operations up to a target ledger and applying the trades that consumed them.
-
-**Every figure in section 5 therefore carries `dataSource: offers-implied` and is a
-reconstruction rather than a reading.** It is a stronger source than the trade stream
-would be, because an offer proves liquidity that was *posted* while a trade proves
-only liquidity that was *consumed*, but it is not the same thing as a snapshot and
-this report does not present it as one.
-
-**The method was checked against the hand-computed fixture before it was trusted.**
-On 5 September 2026 the book at control ledger 61340262 was rebuilt this way and the
-methodology run over it, and every quantity in section 3 came back identical to the
-figures worked by hand. The reading is
-`docs/evidences/2026-09-05-control-ledger-validation.md`, and the artefact and its
-provenance sidecar are beside it.
-
-**Three limits of the method, each counted on every run rather than assumed away:**
-
-1. An offer whose owner never traded and is not resting today is not discovered.
-2. An account walk that fails or hits its page cap loses that account's offers.
-3. No AMM pool is reconstructed at all, so every figure here is order book only.
-
-The first two make the rebuilt book **thinner** than the market was, which overstates
-risk rather than understating it. That is the conservative direction and it is
-principle P-2 in the PRD. The third is a genuine gap and section 8 carries it.
-
-## 5. The book, day by day, through February 2026
-
-> **EMPTY UNTIL THE SERIES LANDS.** This section is a table of one row per day, from
-> 1 to 28 February, each row carrying the ledger sampled, the size posted on each
-> side, the spread, the depth ladder, the manipulation cost at each rung, the flags
-> and the band. It is generated by the command in section 9 and its raw form is the
-> CSV named there. Nothing is written here by hand.
->
-> The sample rule, fixed in code before the run: **the first trade at or after each
-> UTC midnight**, and each row reports the instant actually sampled and how far it
-> fell from midnight. First trade rather than nearest to midnight, so a row labelled
-> with a day never describes the state the market was in the evening before.
->
-> Two extra rows sit outside the daily grid and are marked as such: control ledger
-> 61340262 and the incident ledger 61340263.
->
-> **THE SERIES LANDED ON 8 SEPTEMBER 2026 AND THIS SECTION IS STILL EMPTY.** That is a
-> different state from waiting for it, so the reason is recorded rather than left as an
-> unexplained blank. The run is
-> `docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-bookseries-2026-02-01_2026-03-01.csv`,
-> 30 rows over 222 accounts and 763,674 operations, and the reading of it is
-> `docs/evidences/2026-09-08-february-book-series.md`.
->
-> **Six of the thirty rows describe a book that could not have existed.** From
-> 23 February onward the reconstruction is CROSSED, best bid above best ask, which the
-> matching engine makes impossible: the same dust ask of 0.0000001 USTRY sits unmoved at
-> 1.0573892029461328 from 9 February to 28 February while the bids climb past it. Its
-> `missing_offer_ids` column reads 203 on every row and `fold_complete` reads false, so
-> the fold says of itself that it never resolved the operations that would have removed
-> such an offer.
->
-> **The transition this report exists to date sits inside those six rows.** The band
-> reads CRITICAL on every row from 1 to 24 February and LOW from 25 February, and the
-> flip is carried by depth figures that jump from 0.0000011 to 225,347 in one day while
-> the best ask never leaves the ghost. Publishing that as a market which healed after the
-> exploit would be publishing an artefact with a date on it.
->
-> **What the same run does establish, and it is not small:** the reconstruction
-> reproduces the golden fixture's ask amounts exactly at both control ledgers,
-> 1.2185315 against 1.2185312 and 1.1684312 against 1.1684309, both differing by the
-> 0.0000003 of dust, and the change across the manipulation is 0.0501003 in both, which
-> is the exploit's USTRY volume to the last decimal. Section 2 of the evidence document
-> carries that arithmetic in full.
->
-> The two roads out are priced in section 6 of that document. Neither is Claude's to
-> choose.
->
-> **12 SEPTEMBER 2026: THE GHOST HAS AN OFFER ID, AND THE DAMAGE STARTS TWO WEEKS
-> EARLIER THAN THE PARAGRAPH ABOVE SAYS.** The reading is
-> `docs/evidences/2026-09-12-crossed-book-ustry-february.md`. The ask is offer
-> `1822775941`, held by `GBPFB6XN`, priced `1981860307/1874295956`, and it is one
-> stroop left over by the fill at ledger 61143619 on 8 February. Horizon's own
-> per-offer index says only two trades ever touched it and its owner never named it
-> again through ledger 61344294, so neither route the fold can see removed it.
->
-> **Two consequences for this section, and both narrow what can be published.**
->
-> First, **`best_ask` is wrong on every row from 9 February onward, not from the 23rd**.
-> The thirteen rows from 9 to 21 February are not crossed and look untroubled, and they
-> are wrong in exactly the same way: a phantom ask priced below the real one. Every
-> figure derived from it goes with it, which is `p0`, `spread_pct`, both depth ladders
-> and the band. The crossed rows were never the extent of the damage, only the part
-> that announced itself.
->
-> Second, **the fix priced in section 6 of the 8 September document would not have
-> worked.** It buys more pages, and the measurement above shows there is no page to
-> find. What removed the offer left no operation on this pair and no trade in it, and
-> the issuer never touched the trustline either: 59 operations in the window, none of
-> them an authorization change or a clawback.
->
-> **AND THE QUESTION THAT DOCUMENT DECLINED TO PICK IS NOW PICKED, FROM A FILE ALREADY
-> IN THIS REPOSITORY.** The manipulation at ledger 61340263 was a buy, and a buy fills
-> from the cheapest ask upward. That ledger holds **exactly one fill**, `0.0501003` USTRY
-> at `106.7372828` against offer `1824788980`. Had a one stroop ask at `1.0573892` been
-> resting, the manipulation would have eaten it first. It did not, so the offer was not
-> there. **`testdata/fixtures/ustry_pre_exploit.md` is right and the reconstruction is
-> wrong**, which is the opposite of what the 8 September reading left open, and it means
-> the fixture's zero depth argument survives intact.
->
-> The same logic dates the removal to **six minutes on 8 February**, between ledgers
-> 61143619 and 61143682, because the first trade priced above the phantom had to clear it
-> first. So the series carries a phantom for **twenty days** rather than for six rows.
->
-> **What landed in the code rather than in this section**: `domain.OrderBook.Crossed()`,
-> carried by `SeriesPoint` and `ReplayResult`, refused by both `Complete()` methods,
-> written as a `crossed` column and a `crossed_points` sidecar line by `bookseries`, and
-> printed with both ratios by `keel replay`. It guarantees one narrow thing, that no run
-> can publish a provably impossible row in silence. It does not catch the thirteen quiet
-> rows, and section 6 of that evidence document names the one test still outstanding.
-
-## 6. When the unsafe threshold was crossed
-
-> **EMPTY UNTIL SECTION 5 IS FILLED, AND ITS CONCLUSION IS NOT CLAUDE'S TO WRITE.**
-> The zone map gives the structure and the tables to Claude and every claim about
-> what a number MEANS to Al.
->
-> What goes here is one date, or the honest statement that there is not one:
->
-> - the first day on which the band reached `CRITICAL`, and how many days before
->   22 February that is;
-> - the first day each individual flag fired, because a band is a summary and the
->   flags are what a reader can check;
-> - whether the crossing was a step or a drift, since a book that was already
->   dangerous on 1 February is a different finding from one that deteriorated.
->
-> **If the band was already `CRITICAL` on the first day of the month, the honest
-> headline is not "Keel would have warned eight days early". It is that this asset
-> was never safe, and that a metric which is critical for the whole month tells a
-> reader less than a metric that changes.** Which of those it is, the series decides.
->
-> **The 8 September series points at the first of those two**, CRITICAL on every row from
-> 1 February, but it cannot be cited for it: the same run is provably wrong from
-> 23 February onward and the flags that produce CRITICAL are the ones the ghost ask moves.
-> A reading that happens to agree with the honest headline is still not evidence for it.
-
-## 7. Hindsight bias, named
-
-This report knows the date of the attack. Three specific ways that could corrupt it,
-and what is done about each.
-
-**Choosing the asset.** USTRY was chosen because it was attacked. A method that
-finds danger only in assets already known to have been attacked has demonstrated
-nothing. What limits the damage here is that the method is not tuned to this asset:
-the same engine ran over 64 active Stellar assets on 26 August 2026 with zero
-failures, recorded in `docs/evidences/2026-08-26-scan-64-assets-stored.md`, and the
-thresholds are the same for all of them.
-
-**Choosing the thresholds.** The thresholds in `09-flags-and-bands.md` are chosen
-rather than calibrated and that file says so. **They were written before this series
-was computed**, and section 9 explains how a reader can verify that from the git
-history rather than taking it on trust. Had any of them moved after seeing the
-result, PRD section 10 requires this report to say so. None has.
-
-**Finding a signal in the trade stream.** This one is a live example rather than a
-hypothetical, and it is why the analysis in section 5 uses the book and not the
-trades. A reading of the same month's trade stream on 26 August 2026 found exactly
-one pre-exploit "signal": a dust trade on 10 February that nobody would have noticed
-at the time and that only looks meaningful because the date of the attack is already
-known. That reading is `docs/evidences/2026-08-26-ustry-february-trades-implied.md`
-section 4.
-
-**What the trade stream could not see, and why that is the whole argument.** USTRY
-traded 13,547 times in February at a spread of a fraction of a per cent around 1.057.
-Every one of those trades was small and every one stayed inside a price range where
-liquidity existed. Nothing in what *traded* was unusual. What made USTRY dangerous
-was what was *posted*: a single ask a hundred times above the bid with nothing in
-between. A price feed sees the first. Keel is built to see the second.
-
-## 8. Limitations
-
-Each of these is in `docs/methodology/11-limitations.md` or in a decision record,
-and is repeated here because a reader of the report should not have to go and find
-them.
-
-1. **No AMM pool is reconstructed at any historical ledger.** Section 5 is order book
-   only. USTRY had a pool holding honest reserves at 1.0555 for twelve days spanning
-   the attack, and it prevented nothing, which is limitation 1 of the methodology.
-   Its absence from these figures does not change that conclusion and does bound
-   what they measure.
-2. **Resting liquidity is not executable liquidity.** An offer can be withdrawn
-   instantly. Every depth figure describes what was posted at one instant.
-3. **Path payments through intermediate assets are not counted**, so true effective
-   liquidity may exceed what is reported.
-4. **Centralised exchange liquidity is invisible.**
-5. **Thresholds are chosen, not calibrated.**
-6. **Order ownership cannot be known ahead of time**, so manipulation cost is always
-   an upper bound on what an attacker actually pays.
-7. **The collateral parameters in force at the time are not fully recoverable.** The
-   Blend `c_factor` for USTRY in February 2026 could not be read from public
-   unauthenticated sources; four routes were tried and each is recorded in
-   `docs/evidences/2026-08-31-ustry-reserve-config-history.md` section 5. What is
-   established is the sign and not the figure: it was above zero, because the
-   incident transaction borrowed against a USTRY position.
-8. **The reconstruction is a lower bound on the book.** Section 4 says why, and every
-   row of section 5 carries the diagnostics that let a reader see how much of the
-   book a given day's walk actually reached.
-
-## 9. How to reproduce every number in this report
-
-Nothing here requires a BigQuery account, an API key, or any registration. Public
-Horizon and this repository are enough, which is NFR-10.
-
-**The book at the control ledger, and the fixture it is checked against:**
-
-```bash
-go run ./cmd/keel bookseries \
-  -pairs scripts/record-pairs.example.json \
-  -also-ledger 61340262,61340263 \
-  -trades-from-ledger 61300000 -since-ledger 61300000 -lookahead 5000 \
-  -csv /tmp/control.csv
-```
-
-Compare against `testdata/fixtures/ustry_pre_exploit.md`. The reading of that
-comparison is `docs/evidences/2026-09-05-control-ledger-validation.md`.
-
-**The February series in section 5:**
-
-```bash
-go run ./cmd/keel bookseries \
-  -pairs scripts/record-pairs.example.json \
-  -from-trades docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-trades-2026-02-01_2026-03-01.csv \
-  -also-ledger 61340262,61340263 \
-  -trades-from-ledger 60987032 -since-ledger 60987032 -lookahead 5000 \
-  -max-pages-per-account 60 \
-  -csv <the CSV named in section 5>
-```
-
-It writes a provenance sidecar beside the CSV in the shape
-`docs/decisions/DEC-010-backtest-refuses-window.md` requires. Read
-`walks_truncated` and `walks_failed` in it before reading any row as a market that
-emptied.
-
-**The trade stream for the same month**, which is what section 7 contrasts against:
-`docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-trades-2026-02-01_2026-03-01.csv`,
-13,547 rows, every field as Horizon sent it.
-
-**That the thresholds predate the series.** Every threshold is a constant in
-`internal/domain.DefaultParams` and a row in `09-flags-and-bands.md`. Both are under
-version control, so:
-
-```bash
-git log --follow -p docs/methodology/09-flags-and-bands.md | grep -n 'Absolute\|Pct'
-git log -1 --format=%cI -- docs/methodology/09-flags-and-bands.md
-git log -1 --format=%cI -- docs/report/blend-february-2026.md
-```
-
-The threshold values are older than this report. A reader who finds otherwise has
-found a defect and should say so.
-
-## 10. What is outstanding on this draft
-
-| Item | Owner | Why it is not done |
+| Finding | Evidence class | Confidence and limit |
 |---|---|---|
-| Section 5, the day-by-day table | Claude | the series was still running when this structure was written |
-| Section 6, the conclusion | **Al** | the zone map gives every claim about what a number MEANS to Al. Claude fills the table under it |
-| The headline sentence of section 1 | **Al** | same reason |
-| Whether an AMM reserve series can be added | **Al**, then Claude | pool reserves at a past ledger are not reconstructed today, and whether that gap is closed or stated is a decision |
-| Publication | **Al** | D3's fifth criterion is "The backtest report published openly" |
+| Six USTRY/USDC offers were canceled at ledger 61340261, closed 22 February 00:10:09 UTC | Direct operation observations; reconstructed offer-membership check | Successful transaction results identify the cancellations. This does not establish remaining quantities or a complete market snapshot |
+| The control ledger 61340262 closed at 00:10:15 UTC; the incident ledger is 61340263 at 00:10:21 UTC | Ledger timing observations and existing incident fixture | Distinguish pre-operation state from end-of-ledger state; do not relabel an intra-ledger fixture as an atomic historical snapshot |
+| A subtraction-only replay retained a one-stroop residual of offer 1822775941 after its last recorded fill at ledger 61143619 | Reconstructed finding with protocol-source analysis | Protocol adjustment explains a route to removal; no decoded historical transaction-meta proof of the exact deletion point |
+| A named pool has a recorded reserve candidate of 15.4791416 USTRY and 16.3389179 USDC following ledger 61172481 | Transcript observation; later continuity is reconstructed | Limited confidence, conditional on retained transcript assertions. This is not a daily reserve series |
+| Daily depth, collateral, manipulation cost, risk band, and first-warning date | Unavailable as accepted historical findings | Incomplete replay, phantom-offer risk, and missing aligned pool coverage prevent acceptance |
 
-## 11. Version history
+The cancellation transaction is
+`8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e`.
+Its six pair-specific operations cancel offers `1824767559` through `1824767564`.
+Other cancellations in the same ledger concern different pairs and are excluded.
+The [engineering evidence](../evidences/track-b-2026-09-12/README.md) gives exact
+operation IDs, account identity, raw sources, and the limits of the folding test.
 
-| Date | Change |
-|---|---|
-| 5 September 2026 | Structure drafted. Sections 2, 3, 4, 7, 8 and 9 written from evidence already in the repository. Sections 5 and 6 deliberately empty |
-| 8 September 2026 | The February series ran and sections 5 and 6 stay empty, with the reason recorded in place of the blank. `docs/evidences/2026-09-08-february-book-series.md` is the reading: the fixture's ask amounts reproduce exactly at both control ledgers, and the book is crossed from 23 February onward |
-| 12 September 2026 | The phantom ask resolved to offer `1822775941` and the crossing bid to offer `1824767559`, so the defect is named rather than suspected. Three corrections to the 8 September reading: `best_ask` is wrong from 9 February and not from the 23rd, the deeper-walk fix priced there cannot work, and the fixture-versus-code question is settled in the fixture's favour by the single fill in ledger 61340263. Removal dated to six minutes on 8 February. A crossed-book detector landed in `internal/domain`. Sections 5 and 6 stay empty, and section 10 is unchanged on who owns them |
+The six cancellations are consistent with the observed level-count transition,
+but they do not validate every other level in the reconstructed book. A real
+withdrawal and a reconstruction defect can coexist. The report therefore makes
+no claim that a warning would have preceded the event by a particular duration.
+
+## Why daily outputs are withheld
+
+Every row in the available cap400 export reports an incomplete fold. All 28 daily
+rows show `LOW/partial` with no triggered flags; the two extra control rows show
+`CRITICAL/partial`. Those labels describe disputed program output, not accepted
+historical market findings. A prior shallower export gives different results and
+must not be blended into this series to manufacture a warning narrative.
+
+The [row-by-row appendix](../evidences/track-b-2026-09-12/daily-output-review.md)
+retains exact input provenance, ledger/time, confidence, reachability, and displayed
+rounding rules. Seven daily books are crossed; the earlier phantom investigation
+also implicates uncrossed samples from 9 February onward. Samples from 1 to 8
+February are outside that particular interval but still incomplete.
+
+These outputs are **not certified lower bounds**. An omitted genuine level might
+reduce depth, while a retained phantom can increase it or move the reference price.
+There is no established direction of error for the disputed daily calculations.
+
+## Calculations and result labels
+
+The [prepared calculation review](representative-calculations.md) compares an
+independent exact-rational implementation with the current backend. It covers a
+normal synthetic market, a broken synthetic book, and incomplete-input rejection.
+Those controlled calculations are not substituted for February market results.
+
+For this report:
+
+- **Calculated:** arithmetic on explicitly stated inputs, including controlled
+  scenarios. A matching calculation does not prove historical input completeness.
+- **Reconstructed:** historical state inferred from operations or effects; identify
+  the covered venue, time, and missing state before interpreting the result.
+- **Lower-bound:** use only where the source and methodology justify that direction
+  of uncertainty. No daily risk result in this report receives this designation.
+- **Unavailable:** evidence cannot support the requested result. No invented zero,
+  risk band, confidence upgrade, or warning date is supplied.
+
+These are report evidence labels, not additions to the backend's enums. Source
+semantics remain governed by [data sources](../methodology/01-data-sources.md),
+with price, depth, and cost definitions in [reference price](../methodology/03-reference-price.md),
+[depth](../methodology/04-depth.md), and [manipulation cost](../methodology/05-manipulation-cost.md).
+For example, the depth definition states: "A level that crosses the boundary is
+discarded entirely". The calculations preserve that inclusion rule.
+
+The checked backend identifies itself as **1.0.8-draft**, while the methodology
+documents identify **1.1.0-draft**. This report preserves both labels and does not
+claim version alignment. The owner is coordinating A7; after alignment, rerun the
+comparisons and retain each historical computation's actual version. Passing the
+small selected cases is not validation of all methodology definitions or thresholds.
+
+## Application behavior and provenance
+
+The current API already supports `503 HISTORICAL_UNAVAILABLE` when historical
+serving is disabled and `404 LEDGER_NOT_AVAILABLE` when an enabled historical
+lookup has no accepted row. Keep unsupported historical results on those paths.
+An incomplete snapshot must not be turned into the HTTP 200 no-executable-price
+finding: that finding requires an actual evaluated snapshot.
+
+Replay persistence now requires explicit ledger-aligned pool input and rejects
+known acquisition gaps, crossed books, and unknown pool coverage. An empty pool
+array asserts audited absence; it is not a missing-data substitute. The API has no
+per-pool coverage field that could make these disputed combined-market results
+truthful merely by attaching `partial`. No new API schema or frontend behavior is
+introduced by this report.
+
+Passing structural validation is not proof of complete discovery or corrected
+protocol settlement. Consequently no February row is loaded on the strength of
+these guards alone. Existing stored rows elsewhere were not audited by this work.
+
+The new [capture manifest](../evidences/track-b-2026-09-12/manifest.json) records raw
+response URLs, capture times, and SHA-256 hashes. Raw capture time is distinct from
+ledger close time. Older pool transcripts retain their weaker provenance; current
+pool balances are not carried backwards into February.
+
+## Reproduce and review
+
+From the backend root:
+
+```sh
+python docs/evidences/track-b-2026-09-12/analyze.py --check
+python docs/report/representative-calculations.py --check
+go test ./cmd/keel -run TestReportRepresentativeCalculations -count=1 -v
+go test ./internal/api -run 'TestAHistoricalRequestIs503WhileHubbleIsDeferred|TestAnUnreplayedLedgerIs404AndNot500' -count=1
+go test ./internal/horizon -count=1
+```
+
+These commands use local evidence and controlled test inputs, not a historical
+database load. See the [engineering notes](../evidences/track-b-2026-09-12/README.md)
+for the separately verified disposable-Postgres path and environment limitations.
+Race-enabled verification remains outstanding because this Windows environment
+has CGO disabled. Final human review covers the prepared arithmetic, this report,
+and the [unsent external message](client-message-draft.md), with A7 alignment
+explicitly tracked before representing the report as a version-aligned deliverable.
+
+This rewrite separates observable events from computed scenarios so every claim
+has an inspectable scope. Retaining the old apparent daily warning narrative was
+rejected because the deeper replay contradicts it and neither run is accepted.
+Withholding unsupported numbers lets the report finish without pretending the
+historical reconstruction is complete.

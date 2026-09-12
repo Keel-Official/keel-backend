@@ -1,0 +1,1931 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN/operations?cursor=263454032671014912\u0026join=transactions\u0026limit=20\u0026order=asc"
+    },
+    "next": {
+      "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN/operations?cursor=263454440693157889\u0026join=transactions\u0026limit=20\u0026order=asc"
+    },
+    "prev": {
+      "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN/operations?cursor=263454414923366401\u0026join=transactions\u0026limit=20\u0026order=desc"
+    }
+  },
+  "_embedded": {
+    "records": [
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923366401"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923366401/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923366401"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923366401"
+          }
+        },
+        "id": "263454414923366401",
+        "paging_token": "263454414923366401",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923366400"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923366400"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            }
+          },
+          "id": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "paging_token": "263454414923366400",
+          "successful": true,
+          "hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "source_account_sequence": "253679198206428494",
+          "fee_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAlgDhT/jAAAFTgAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAAAAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAfrLJc3fRT/UAAAAAbMO+RwAAAAAAAAADAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAABU4HcVUDHyPwAAAABsw75IAAAAAAAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAAH3sNeN3NZQAAAAAAGzDvkkAAAAAAAAAAwAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAfk0QfXc1lAAAAAAAbMO+SgAAAAAAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAABYLN4UU7aXxQAAAABsw75LAAAAAAAAAAMAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAFmMhx5UR+1XAAAAAGzDvkwAAAAAAAAAAZO2lQEAAABAqj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAAay71dA4U/4wAABU0AAAAeAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn77EAAAAAaZoLTwAAAAAAAAABA6f6ZQAAAAAAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAAGsu7BQOFP+MAAAVNAAAAHgAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp++xAAAAAGmaC08AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "qj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0574269",
+        "price_r": {
+          "n": 2125646195,
+          "d": 2010206197
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "USTRY",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824767559"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923366402"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923366402/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923366402"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923366402"
+          }
+        },
+        "id": "263454414923366402",
+        "paging_token": "263454414923366402",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923366400"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923366400"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            }
+          },
+          "id": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "paging_token": "263454414923366400",
+          "successful": true,
+          "hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "source_account_sequence": "253679198206428494",
+          "fee_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAlgDhT/jAAAFTgAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAAAAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAfrLJc3fRT/UAAAAAbMO+RwAAAAAAAAADAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAABU4HcVUDHyPwAAAABsw75IAAAAAAAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAAH3sNeN3NZQAAAAAAGzDvkkAAAAAAAAAAwAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAfk0QfXc1lAAAAAAAbMO+SgAAAAAAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAABYLN4UU7aXxQAAAABsw75LAAAAAAAAAAMAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAFmMhx5UR+1XAAAAAGzDvkwAAAAAAAAAAZO2lQEAAABAqj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAAay71dA4U/4wAABU0AAAAeAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn77EAAAAAaZoLTwAAAAAAAAABA6f6ZQAAAAAAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAAGsu7BQOFP+MAAAVNAAAAHgAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp++xAAAAAGmaC08AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "qj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0583791",
+        "price_r": {
+          "n": 1423996693,
+          "d": 1345450559
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "USTRY",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824767560"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923366403"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923366403/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923366403"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923366403"
+          }
+        },
+        "id": "263454414923366403",
+        "paging_token": "263454414923366403",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923366400"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923366400"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            }
+          },
+          "id": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "paging_token": "263454414923366400",
+          "successful": true,
+          "hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "source_account_sequence": "253679198206428494",
+          "fee_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAlgDhT/jAAAFTgAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAAAAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAfrLJc3fRT/UAAAAAbMO+RwAAAAAAAAADAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAABU4HcVUDHyPwAAAABsw75IAAAAAAAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAAH3sNeN3NZQAAAAAAGzDvkkAAAAAAAAAAwAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAfk0QfXc1lAAAAAAAbMO+SgAAAAAAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAABYLN4UU7aXxQAAAABsw75LAAAAAAAAAAMAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAFmMhx5UR+1XAAAAAGzDvkwAAAAAAAAAAZO2lQEAAABAqj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAAay71dA4U/4wAABU0AAAAeAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn77EAAAAAaZoLTwAAAAAAAAABA6f6ZQAAAAAAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAAGsu7BQOFP+MAAAVNAAAAHgAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp++xAAAAAGmaC08AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "qj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0563161",
+        "price_r": {
+          "n": 2112632291,
+          "d": 2000000000
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "USTRY",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824767561"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923366404"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923366404/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923366404"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923366404"
+          }
+        },
+        "id": "263454414923366404",
+        "paging_token": "263454414923366404",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923366400"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923366400"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            }
+          },
+          "id": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "paging_token": "263454414923366400",
+          "successful": true,
+          "hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "source_account_sequence": "253679198206428494",
+          "fee_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAlgDhT/jAAAFTgAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAAAAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAfrLJc3fRT/UAAAAAbMO+RwAAAAAAAAADAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAABU4HcVUDHyPwAAAABsw75IAAAAAAAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAAH3sNeN3NZQAAAAAAGzDvkkAAAAAAAAAAwAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAfk0QfXc1lAAAAAAAbMO+SgAAAAAAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAABYLN4UU7aXxQAAAABsw75LAAAAAAAAAAMAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAFmMhx5UR+1XAAAAAGzDvkwAAAAAAAAAAZO2lQEAAABAqj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAAay71dA4U/4wAABU0AAAAeAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn77EAAAAAaZoLTwAAAAAAAAABA6f6ZQAAAAAAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAAGsu7BQOFP+MAAAVNAAAAHgAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp++xAAAAAGmaC08AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "qj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0594899",
+        "price_r": {
+          "n": 2118979709,
+          "d": 2000000000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "USTRY",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824767562"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923366405"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923366405/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923366405"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923366405"
+          }
+        },
+        "id": "263454414923366405",
+        "paging_token": "263454414923366405",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923366400"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923366400"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            }
+          },
+          "id": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "paging_token": "263454414923366400",
+          "successful": true,
+          "hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "source_account_sequence": "253679198206428494",
+          "fee_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAlgDhT/jAAAFTgAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAAAAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAfrLJc3fRT/UAAAAAbMO+RwAAAAAAAAADAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAABU4HcVUDHyPwAAAABsw75IAAAAAAAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAAH3sNeN3NZQAAAAAAGzDvkkAAAAAAAAAAwAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAfk0QfXc1lAAAAAAAbMO+SgAAAAAAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAABYLN4UU7aXxQAAAABsw75LAAAAAAAAAAMAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAFmMhx5UR+1XAAAAAGzDvkwAAAAAAAAAAZO2lQEAAABAqj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAAay71dA4U/4wAABU0AAAAeAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn77EAAAAAaZoLTwAAAAAAAAABA6f6ZQAAAAAAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAAGsu7BQOFP+MAAAVNAAAAHgAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp++xAAAAAGmaC08AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "qj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0533011",
+        "price_r": {
+          "n": 1479335444,
+          "d": 1404475333
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "USTRY",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824767563"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923366406"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923366406/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923366406"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923366406"
+          }
+        },
+        "id": "263454414923366406",
+        "paging_token": "263454414923366406",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923366400"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923366400"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e"
+            }
+          },
+          "id": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "paging_token": "263454414923366400",
+          "successful": true,
+          "hash": "8f8ae8499e03f42343744a3278ac03360fa328790f1e3af990637e87fef0467e",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "source_account_sequence": "253679198206428494",
+          "fee_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAlgDhT/jAAAFTgAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAAAAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAfrLJc3fRT/UAAAAAbMO+RwAAAAAAAAADAAAAAlVTVFJZAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAABU4HcVUDHyPwAAAABsw75IAAAAAAAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAAH3sNeN3NZQAAAAAAGzDvkkAAAAAAAAAAwAAAAJVU1RSWQAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAfk0QfXc1lAAAAAAAbMO+SgAAAAAAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAABYLN4UU7aXxQAAAABsw75LAAAAAAAAAAMAAAACVVNUUlkAAAAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAFmMhx5UR+1XAAAAAGzDvkwAAAAAAAAAAZO2lQEAAABAqj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAAay71dA4U/4wAABU0AAAAeAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn77EAAAAAaZoLTwAAAAAAAAABA6f6ZQAAAAAAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAAGsu7BQOFP+MAAAVNAAAAHgAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp++xAAAAAGmaC08AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "qj4ZcRTpkigklnqZSjuhAXOPn1JPtyzeXSMTI/S4KK7tyVvw7vvvMiV+m1694+PFOmaEfRj7sJ0CEkKEKtqIDg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0625049",
+        "price_r": {
+          "n": 1502381854,
+          "d": 1413999959
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "USTRY",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824767564"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923583489"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923583489/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923583489"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923583489"
+          }
+        },
+        "id": "263454414923583489",
+        "paging_token": "263454414923583489",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923583488"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923583488"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            }
+          },
+          "id": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "paging_token": "263454414923583488",
+          "successful": true,
+          "hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "source_account_sequence": "203873825434133325",
+          "fee_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAlgC1E4qAABjTQAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAABnB2VRyGqEkAAAAAbMOOnQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAADAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAAASD5JPT+LSTgAAAABsw8M8AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAABQuyxpZhtylAAAAAGzCPTwAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAAqUC3wuwS24AAAAAbMI9PQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAAAY71QfbuOwIAAAAABswj0+AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAMAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAYKmpwaomq3AAAAAGzCPT8AAAAAAAAAApO2lQEAAABATxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwA6nPaOoAAABABqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cK7lAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAAAAAAEDp/plAAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cKyNAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAA==",
+          "memo_type": "none",
+          "signatures": [
+            "TxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwAw==",
+            "Bqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.2257346",
+        "price_r": {
+          "n": 108033621,
+          "d": 478586953
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "TESOURO",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824755357"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923583490"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923583490/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923583490"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923583490"
+          }
+        },
+        "id": "263454414923583490",
+        "paging_token": "263454414923583490",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923583488"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923583488"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            }
+          },
+          "id": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "paging_token": "263454414923583488",
+          "successful": true,
+          "hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "source_account_sequence": "203873825434133325",
+          "fee_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAlgC1E4qAABjTQAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAABnB2VRyGqEkAAAAAbMOOnQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAADAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAAASD5JPT+LSTgAAAABsw8M8AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAABQuyxpZhtylAAAAAGzCPTwAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAAqUC3wuwS24AAAAAbMI9PQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAAAY71QfbuOwIAAAAABswj0+AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAMAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAYKmpwaomq3AAAAAGzCPT8AAAAAAAAAApO2lQEAAABATxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwA6nPaOoAAABABqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cK7lAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAAAAAAEDp/plAAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cKyNAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAA==",
+          "memo_type": "none",
+          "signatures": [
+            "TxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwAw==",
+            "Bqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.2260824",
+        "price_r": {
+          "n": 303010383,
+          "d": 1340265038
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "TESOURO",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824768828"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923583491"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923583491/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923583491"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923583491"
+          }
+        },
+        "id": "263454414923583491",
+        "paging_token": "263454414923583491",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923583488"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923583488"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            }
+          },
+          "id": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "paging_token": "263454414923583488",
+          "successful": true,
+          "hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "source_account_sequence": "203873825434133325",
+          "fee_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAlgC1E4qAABjTQAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAABnB2VRyGqEkAAAAAbMOOnQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAADAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAAASD5JPT+LSTgAAAABsw8M8AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAABQuyxpZhtylAAAAAGzCPTwAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAAqUC3wuwS24AAAAAbMI9PQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAAAY71QfbuOwIAAAAABswj0+AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAMAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAYKmpwaomq3AAAAAGzCPT8AAAAAAAAAApO2lQEAAABATxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwA6nPaOoAAABABqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cK7lAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAAAAAAEDp/plAAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cKyNAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAA==",
+          "memo_type": "none",
+          "signatures": [
+            "TxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwAw==",
+            "Bqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.2254385",
+        "price_r": {
+          "n": 338610970,
+          "d": 1502010533
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "TESOURO",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824668988"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923583492"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923583492/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923583492"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923583492"
+          }
+        },
+        "id": "263454414923583492",
+        "paging_token": "263454414923583492",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923583488"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923583488"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            }
+          },
+          "id": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "paging_token": "263454414923583488",
+          "successful": true,
+          "hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "source_account_sequence": "203873825434133325",
+          "fee_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAlgC1E4qAABjTQAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAABnB2VRyGqEkAAAAAbMOOnQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAADAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAAASD5JPT+LSTgAAAABsw8M8AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAABQuyxpZhtylAAAAAGzCPTwAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAAqUC3wuwS24AAAAAbMI9PQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAAAY71QfbuOwIAAAAABswj0+AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAMAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAYKmpwaomq3AAAAAGzCPT8AAAAAAAAAApO2lQEAAABATxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwA6nPaOoAAABABqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cK7lAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAAAAAAEDp/plAAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cKyNAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAA==",
+          "memo_type": "none",
+          "signatures": [
+            "TxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwAw==",
+            "Bqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.2262515",
+        "price_r": {
+          "n": 44368607,
+          "d": 196103022
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "TESOURO",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824668989"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923583493"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923583493/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923583493"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923583493"
+          }
+        },
+        "id": "263454414923583493",
+        "paging_token": "263454414923583493",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923583488"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923583488"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            }
+          },
+          "id": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "paging_token": "263454414923583488",
+          "successful": true,
+          "hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "source_account_sequence": "203873825434133325",
+          "fee_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAlgC1E4qAABjTQAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAABnB2VRyGqEkAAAAAbMOOnQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAADAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAAASD5JPT+LSTgAAAABsw8M8AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAABQuyxpZhtylAAAAAGzCPTwAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAAqUC3wuwS24AAAAAbMI9PQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAAAY71QfbuOwIAAAAABswj0+AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAMAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAYKmpwaomq3AAAAAGzCPT8AAAAAAAAAApO2lQEAAABATxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwA6nPaOoAAABABqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cK7lAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAAAAAAEDp/plAAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cKyNAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAA==",
+          "memo_type": "none",
+          "signatures": [
+            "TxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwAw==",
+            "Bqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.2248626",
+        "price_r": {
+          "n": 418337823,
+          "d": 1860415520
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "TESOURO",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824668990"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923583494"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923583494/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923583494"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923583494"
+          }
+        },
+        "id": "263454414923583494",
+        "paging_token": "263454414923583494",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923583488"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923583488"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599"
+            }
+          },
+          "id": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "paging_token": "263454414923583488",
+          "successful": true,
+          "hash": "3b350d1a0b1a05c3e0f252f689fd5da450f8b9ac124290f0f2574047ecfae599",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "source_account_sequence": "203873825434133325",
+          "fee_account": "GBVDMUQXB4XDYR626AZEVSH3NZBXWE6TA3U2UETZZQ2L5OVJZ5UOVLGS",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAlgC1E4qAABjTQAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAABnB2VRyGqEkAAAAAbMOOnQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAADAAAAAlRFU09VUk8AAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAAAAASD5JPT+LSTgAAAABsw8M8AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAwAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAAAAAAAABQuyxpZhtylAAAAAGzCPTwAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJURVNPVVJPAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAAAqUC3wuwS24AAAAAbMI9PQAAAAEAAAAAAliV+GaDdnHM1kHMDDbHBMfUkjwYq8mc+y1kj5O2lQEAAAAMAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAAAAAAAY71QfbuOwIAAAAABswj0+AAAAAQAAAAACWJX4ZoN2cczWQcwMNscEx9SSPBiryZz7LWSPk7aVAQAAAAMAAAACVEVTT1VSTwAAAAAAAAAAAKOKGH1tQRNeffXJlHRIKKBJ4OB8ITO7TtohmZxn4sE2AAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAYKmpwaomq3AAAAAGzCPT8AAAAAAAAAApO2lQEAAABATxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwA6nPaOoAAABABqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/A5AAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cK7lAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAAAAAAEDp/plAAAAAAAAAABqNlIXDy48R9rwMkrI+25DexPTBumqEnnMNL66qc9o6gAAAAA6cKyNAtROKgAAY0wAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAEAAAAAZe0qtanh2jirXbV5iriCCQDsmj0xtId7c01bzOCpVdAAAAADAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAA6fwOQAAAABpmg5aAAAAAA==",
+          "memo_type": "none",
+          "signatures": [
+            "TxThNXzKBOEGU9+VGaYtJuFLCf9kL2bOqGGgaKySzPhp4zVT4L48L2VAKb+EtKv46/ENRYUulPWD8tlAWMgwAw==",
+            "Bqapz2VxbL6ThZ7PscLrT86Vwlm3l6awHzcGzOvN+uPZ8EkcOYMBvvbH4MyMe5ZKVUUrdIlqqPBu8CI1+0XyBw=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.2268274",
+        "price_r": {
+          "n": 101358236,
+          "d": 446851767
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "TESOURO",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824668991"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923735041"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923735041/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923735041"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923735041"
+          }
+        },
+        "id": "263454414923735041",
+        "paging_token": "263454414923735041",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923735040"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923735040"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            }
+          },
+          "id": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "paging_token": "263454414923735040",
+          "successful": true,
+          "hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "source_account_sequence": "142162352345916343",
+          "fee_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAlgB+Q/oAAMjtwAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAD50AAA+gAAAAAGzCPR4AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAD6MAAA+gAAAAAGzCPR8AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAB80AAAfQAAAAAGzCPSAAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAB9MAAAfQAAAAAGzCPSEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAA+UAAAPoAAAAAGzCPSIAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAA+sAAAPoAAAAAGzCPSMAAAAAAAAAApO2lQEAAABAGoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRD0rTVecAAABA2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp7+MAAAAAAAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAAATc50hAfkP6AADI7YAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOnv4wAAAAAaZj4NAAAAAAAAAABA6f6ZQAAAAAAAAAA+iB7iO9lmdVFhiS961JtKniFcRNf83Ji5YeJ1krTVecAAAAAE3OayQH5D+gAAyO2AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp7+MAAAAAGmY+DQAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "GoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRDw==",
+            "2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.9992500",
+        "price_r": {
+          "n": 3997,
+          "d": 4000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "ZUSD",
+        "buying_asset_issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824668958"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923735042"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923735042/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923735042"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923735042"
+          }
+        },
+        "id": "263454414923735042",
+        "paging_token": "263454414923735042",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923735040"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923735040"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            }
+          },
+          "id": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "paging_token": "263454414923735040",
+          "successful": true,
+          "hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "source_account_sequence": "142162352345916343",
+          "fee_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAlgB+Q/oAAMjtwAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAD50AAA+gAAAAAGzCPR4AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAD6MAAA+gAAAAAGzCPR8AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAB80AAAfQAAAAAGzCPSAAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAB9MAAAfQAAAAAGzCPSEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAA+UAAAPoAAAAAGzCPSIAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAA+sAAAPoAAAAAGzCPSMAAAAAAAAAApO2lQEAAABAGoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRD0rTVecAAABA2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp7+MAAAAAAAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAAATc50hAfkP6AADI7YAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOnv4wAAAAAaZj4NAAAAAAAAAABA6f6ZQAAAAAAAAAA+iB7iO9lmdVFhiS961JtKniFcRNf83Ji5YeJ1krTVecAAAAAE3OayQH5D+gAAyO2AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp7+MAAAAAGmY+DQAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "GoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRDw==",
+            "2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0007500",
+        "price_r": {
+          "n": 4003,
+          "d": 4000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "ZUSD",
+        "selling_asset_issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "offer_id": "1824668959"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923735043"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923735043/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923735043"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923735043"
+          }
+        },
+        "id": "263454414923735043",
+        "paging_token": "263454414923735043",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923735040"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923735040"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            }
+          },
+          "id": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "paging_token": "263454414923735040",
+          "successful": true,
+          "hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "source_account_sequence": "142162352345916343",
+          "fee_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAlgB+Q/oAAMjtwAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAD50AAA+gAAAAAGzCPR4AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAD6MAAA+gAAAAAGzCPR8AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAB80AAAfQAAAAAGzCPSAAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAB9MAAAfQAAAAAGzCPSEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAA+UAAAPoAAAAAGzCPSIAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAA+sAAAPoAAAAAGzCPSMAAAAAAAAAApO2lQEAAABAGoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRD0rTVecAAABA2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp7+MAAAAAAAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAAATc50hAfkP6AADI7YAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOnv4wAAAAAaZj4NAAAAAAAAAABA6f6ZQAAAAAAAAAA+iB7iO9lmdVFhiS961JtKniFcRNf83Ji5YeJ1krTVecAAAAAE3OayQH5D+gAAyO2AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp7+MAAAAAGmY+DQAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "GoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRDw==",
+            "2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.9985000",
+        "price_r": {
+          "n": 1997,
+          "d": 2000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "ZUSD",
+        "buying_asset_issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824668960"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923735044"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923735044/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923735044"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923735044"
+          }
+        },
+        "id": "263454414923735044",
+        "paging_token": "263454414923735044",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923735040"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923735040"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            }
+          },
+          "id": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "paging_token": "263454414923735040",
+          "successful": true,
+          "hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "source_account_sequence": "142162352345916343",
+          "fee_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAlgB+Q/oAAMjtwAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAD50AAA+gAAAAAGzCPR4AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAD6MAAA+gAAAAAGzCPR8AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAB80AAAfQAAAAAGzCPSAAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAB9MAAAfQAAAAAGzCPSEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAA+UAAAPoAAAAAGzCPSIAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAA+sAAAPoAAAAAGzCPSMAAAAAAAAAApO2lQEAAABAGoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRD0rTVecAAABA2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp7+MAAAAAAAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAAATc50hAfkP6AADI7YAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOnv4wAAAAAaZj4NAAAAAAAAAABA6f6ZQAAAAAAAAAA+iB7iO9lmdVFhiS961JtKniFcRNf83Ji5YeJ1krTVecAAAAAE3OayQH5D+gAAyO2AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp7+MAAAAAGmY+DQAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "GoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRDw==",
+            "2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0015000",
+        "price_r": {
+          "n": 2003,
+          "d": 2000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "ZUSD",
+        "selling_asset_issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "offer_id": "1824668961"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923735045"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923735045/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923735045"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923735045"
+          }
+        },
+        "id": "263454414923735045",
+        "paging_token": "263454414923735045",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923735040"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923735040"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            }
+          },
+          "id": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "paging_token": "263454414923735040",
+          "successful": true,
+          "hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "source_account_sequence": "142162352345916343",
+          "fee_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAlgB+Q/oAAMjtwAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAD50AAA+gAAAAAGzCPR4AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAD6MAAA+gAAAAAGzCPR8AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAB80AAAfQAAAAAGzCPSAAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAB9MAAAfQAAAAAGzCPSEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAA+UAAAPoAAAAAGzCPSIAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAA+sAAAPoAAAAAGzCPSMAAAAAAAAAApO2lQEAAABAGoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRD0rTVecAAABA2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp7+MAAAAAAAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAAATc50hAfkP6AADI7YAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOnv4wAAAAAaZj4NAAAAAAAAAABA6f6ZQAAAAAAAAAA+iB7iO9lmdVFhiS961JtKniFcRNf83Ji5YeJ1krTVecAAAAAE3OayQH5D+gAAyO2AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp7+MAAAAAGmY+DQAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "GoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRDw==",
+            "2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.9970000",
+        "price_r": {
+          "n": 997,
+          "d": 1000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "ZUSD",
+        "buying_asset_issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824668962"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454414923735046"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454414923735046/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454414923735046"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454414923735046"
+          }
+        },
+        "id": "263454414923735046",
+        "paging_token": "263454414923735046",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:09Z",
+        "transaction_hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340261"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454414923735040"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454414923735040"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644"
+            }
+          },
+          "id": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "paging_token": "263454414923735040",
+          "successful": true,
+          "hash": "3cb72e4c37abcf835ad7f816138da857190a9acc9567b9b73f648c4fe99c8644",
+          "ledger": 61340261,
+          "created_at": "2026-02-22T00:10:09Z",
+          "source_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "source_account_sequence": "142162352345916343",
+          "fee_account": "GD5CA64I55SZTVKFQYSL322SNUVHRBLRCNP7G4TC4WDYTVSK2NK6PERR",
+          "fee_charged": "600",
+          "max_fee": "600",
+          "operation_count": 6,
+          "envelope_xdr": "AAAAAgAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAlgB+Q/oAAMjtwAAAAEAAAAAAAAAAAAAAABpmkmGAAAAAAAAAAYAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAD50AAA+gAAAAAGzCPR4AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAD6MAAA+gAAAAAGzCPR8AAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAB80AAAfQAAAAAGzCPSAAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAB9MAAAfQAAAAAGzCPSEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAVpVU0QAAAAAy+q4ho2W7PuPhAyh6RiwNaiue/mSqWiJvk89VWA1li4AAAAAAAAAAAAAA+UAAAPoAAAAAGzCPSIAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAFaVVNEAAAAAMvquIaNluz7j4QMoekYsDWornv5kqloib5PPVVgNZYuAAAAAVVTREMAAAAAO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcUAAAAAAAAAAAAAA+sAAAPoAAAAAGzCPSMAAAAAAAAAApO2lQEAAABAGoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRD0rTVecAAABA2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA==",
+          "result_xdr": "AAAAAAAAAlgAAAAAAAAABgAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAADAAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAAAAAACAAAAAAAAAAwAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAgAAAAA=",
+          "fee_meta_xdr": "AAAAAgAAAAMDp7+MAAAAAAAAAAD6IHuI72WZ1UWGJL3rUm0qeIVxE1/zcmLlh4nWStNV5wAAAAATc50hAfkP6AADI7YAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOnv4wAAAAAaZj4NAAAAAAAAAABA6f6ZQAAAAAAAAAA+iB7iO9lmdVFhiS961JtKniFcRNf83Ji5YeJ1krTVecAAAAAE3OayQH5D+gAAyO2AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp7+MAAAAAGmY+DQAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "GoFibJYcVMhuQ9iLxhu6o+FKGlzC/BErr9nVPt3Oil+QYPMV3cDL6PjYomHFSjo1lPmWlN8/d1jZzvUcXqzRDw==",
+            "2uAXTCi+botvKxnG4U9C6rbV4fxS72Pt5kQFBx4CkUN4I8wJTlbOxKgdXMjcSP8iIMXACma+NAMlXLoi98cHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719046"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "1.0030000",
+        "price_r": {
+          "n": 1003,
+          "d": 1000
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "ZUSD",
+        "selling_asset_issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "offer_id": "1824668963"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454436398075905"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454436398075905/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454436398075905"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454436398075905"
+          }
+        },
+        "id": "263454436398075905",
+        "paging_token": "263454436398075905",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_sell_offer",
+        "type_i": 3,
+        "created_at": "2026-02-22T00:10:39Z",
+        "transaction_hash": "055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBQ4QOZVA6QTN6XKA67UVJ5PKBLAA3VB4B632JVPVHT7OBKEPL7PKVFJ"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340266"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454436398075904"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454436398075904"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c"
+            }
+          },
+          "id": "055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c",
+          "paging_token": "263454436398075904",
+          "successful": true,
+          "hash": "055955e2555cacb948cf66e3c4612435cf78f5718f89db34631c92d917cf5d2c",
+          "ledger": 61340266,
+          "created_at": "2026-02-22T00:10:39Z",
+          "source_account": "GBQ4QOZVA6QTN6XKA67UVJ5PKBLAA3VB4B632JVPVHT7OBKEPL7PKVFJ",
+          "source_account_sequence": "142162365232412840",
+          "fee_account": "GBQ4QOZVA6QTN6XKA67UVJ5PKBLAA3VB4B632JVPVHT7OBKEPL7PKVFJ",
+          "fee_charged": "100",
+          "max_fee": "100",
+          "operation_count": 1,
+          "envelope_xdr": "AAAAAgAAAABhyDs1B6E2+uoHv0qnr1BWAG6h4H29Jq+p5/cFRHr+9QAAAGQB+Q/rABt4qAAAAAEAAAAAAAAAAAAAAABpmkmmAAAAAAAAAAEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAAAwAAAAJDRVRFUwAAAAAAAAAAAAAAo4oYfW1BE1599cmUdEgooEng4HwhM7tO2iGZnGfiwTYAAAABVVNEQwAAAAA7mRE4Dv6Yi6CokA6xz+RPNm99vpRr7QdyQPf2JN8VxQAAAAAAAAAABeaRolf+uGcAAAAAbMI9LgAAAAAAAAACk7aVAQAAAEDLmi49ED4W/u59bWzel73DUBTbL6X8A1wRBT4tFYmSAWGxdzYn7KvMHAgwTSUTt46mIO8MvBQbSjj3dZQxV3EIRHr+9QAAAECDu5elItidnKotWiOxeHUvzc9s/kXqr9Q12G/6Y7vfZETuQ5eRyB/UVakxdbRRAxW9qJKo9BN3Bwalh9ln9UcA",
+          "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAAAAAACAAAAAA==",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/pmAAAAAAAAAABhyDs1B6E2+uoHv0qnr1BWAG6h4H29Jq+p5/cFRHr+9QAAAAAY2q0QAfkP6wAbeKcAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn+mYAAAAAaZpJZwAAAAAAAAABA6f6agAAAAAAAAAAYcg7NQehNvrqB79Kp69QVgBuoeB9vSavqef3BUR6/vUAAAAAGNqsrAH5D+sAG3inAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp/pmAAAAAGmaSWcAAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "y5ouPRA+Fv7ufW1s3pe9w1AU2y+l/ANcEQU+LRWJkgFhsXc2J+yrzBwIME0lE7eOpiDvDLwUG0o493WUMVdxCA==",
+            "g7uXpSLYnZyqLVojsXh1L83PbP5F6q/UNdhv+mO732RE7kOXkcgf1FWpMXW0UQMVvaiSqPQTdwcGpYfZZ/VHAA=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719078"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.0670568",
+        "price_r": {
+          "n": 98996642,
+          "d": 1476311143
+        },
+        "buying_asset_type": "credit_alphanum4",
+        "buying_asset_code": "USDC",
+        "buying_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "selling_asset_type": "credit_alphanum12",
+        "selling_asset_code": "CETES",
+        "selling_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "offer_id": "1824668974"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "https://horizon.stellar.org/operations/263454440693157889"
+          },
+          "transaction": {
+            "href": "https://horizon.stellar.org/transactions/2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3"
+          },
+          "effects": {
+            "href": "https://horizon.stellar.org/operations/263454440693157889/effects"
+          },
+          "succeeds": {
+            "href": "https://horizon.stellar.org/effects?order=desc\u0026cursor=263454440693157889"
+          },
+          "precedes": {
+            "href": "https://horizon.stellar.org/effects?order=asc\u0026cursor=263454440693157889"
+          }
+        },
+        "id": "263454440693157889",
+        "paging_token": "263454440693157889",
+        "transaction_successful": true,
+        "source_account": "GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN",
+        "type": "manage_buy_offer",
+        "type_i": 12,
+        "created_at": "2026-02-22T00:10:44Z",
+        "transaction_hash": "2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3",
+        "transaction": {
+          "_links": {
+            "self": {
+              "href": "https://horizon.stellar.org/transactions/2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3"
+            },
+            "account": {
+              "href": "https://horizon.stellar.org/accounts/GBQ4QOZVA6QTN6XKA67UVJ5PKBLAA3VB4B632JVPVHT7OBKEPL7PKVFJ"
+            },
+            "ledger": {
+              "href": "https://horizon.stellar.org/ledgers/61340267"
+            },
+            "operations": {
+              "href": "https://horizon.stellar.org/transactions/2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3/operations{?cursor,limit,order}",
+              "templated": true
+            },
+            "effects": {
+              "href": "https://horizon.stellar.org/transactions/2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3/effects{?cursor,limit,order}",
+              "templated": true
+            },
+            "precedes": {
+              "href": "https://horizon.stellar.org/transactions?order=asc\u0026cursor=263454440693157888"
+            },
+            "succeeds": {
+              "href": "https://horizon.stellar.org/transactions?order=desc\u0026cursor=263454440693157888"
+            },
+            "transaction": {
+              "href": "https://horizon.stellar.org/transactions/2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3"
+            }
+          },
+          "id": "2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3",
+          "paging_token": "263454440693157888",
+          "successful": true,
+          "hash": "2377b3486863adbefdc7ad0a7f19b1dded34e9d1ed47ec8214662529c5c86ef3",
+          "ledger": 61340267,
+          "created_at": "2026-02-22T00:10:44Z",
+          "source_account": "GBQ4QOZVA6QTN6XKA67UVJ5PKBLAA3VB4B632JVPVHT7OBKEPL7PKVFJ",
+          "source_account_sequence": "142162365232412841",
+          "fee_account": "GBQ4QOZVA6QTN6XKA67UVJ5PKBLAA3VB4B632JVPVHT7OBKEPL7PKVFJ",
+          "fee_charged": "100",
+          "max_fee": "100",
+          "operation_count": 1,
+          "envelope_xdr": "AAAAAgAAAABhyDs1B6E2+uoHv0qnr1BWAG6h4H29Jq+p5/cFRHr+9QAAAGQB+Q/rABt4qQAAAAEAAAAAAAAAAAAAAABpmkmuAAAAAAAAAAEAAAABAAAAAAJYlfhmg3ZxzNZBzAw2xwTH1JI8GKvJnPstZI+TtpUBAAAADAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAkNFVEVTAAAAAAAAAAAAAACjihh9bUETXn31yZR0SCigSeDgfCEzu07aIZmcZ+LBNgAAAAAAAAAAAK/hygpBHPMAAAAAbMI9LwAAAAAAAAACk7aVAQAAAEAHnujLi+gcX8Ki6YX29YmbYRTIeRmOrNZxZ7XhXH8JevttsSjsEeXnTVK9mnGLdSqM7JD8QIJStcXcK2KFPo0ORHr+9QAAAEDgn1ICekuj0Moo6P5CErItSrzOUVf+XlD4kW3cy6VTjWAGatQlOZA3khbi1u7HVf2maQtJVtKjtGYN4Wf6dCgK",
+          "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAMAAAAAAAAAAAAAAACAAAAAA==",
+          "fee_meta_xdr": "AAAAAgAAAAMDp/pqAAAAAAAAAABhyDs1B6E2+uoHv0qnr1BWAG6h4H29Jq+p5/cFRHr+9QAAAAAY2qysAfkP6wAbeKgAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAADAAAAAAOn+moAAAAAaZpJfwAAAAAAAAABA6f6awAAAAAAAAAAYcg7NQehNvrqB79Kp69QVgBuoeB9vSavqef3BUR6/vUAAAAAGNqsSAH5D+sAG3ioAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAwAAAAADp/pqAAAAAGmaSX8AAAAA",
+          "memo_type": "none",
+          "signatures": [
+            "B57oy4voHF/CoumF9vWJm2EUyHkZjqzWcWe14Vx/CXr7bbEo7BHl501SvZpxi3UqjOyQ/ECCUrXF3CtihT6NDg==",
+            "4J9SAnpLo9DKKOj+QhKyLUq8zlFX/l5Q+JFt3MulU41gBmrUJTmQN5IW4tbux1X9pmkLSVbSo7RmDeFn+nQoCg=="
+          ],
+          "preconditions": {
+            "timebounds": {
+              "min_time": "0",
+              "max_time": "1771719086"
+            }
+          }
+        },
+        "amount": "0.0000000",
+        "price": "0.0669998",
+        "price_r": {
+          "n": 11526602,
+          "d": 172039411
+        },
+        "buying_asset_type": "credit_alphanum12",
+        "buying_asset_code": "CETES",
+        "buying_asset_issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+        "selling_asset_type": "credit_alphanum4",
+        "selling_asset_code": "USDC",
+        "selling_asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "offer_id": "1824668975"
+      }
+    ]
+  }
+}

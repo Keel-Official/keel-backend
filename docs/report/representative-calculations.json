@@ -1,0 +1,170 @@
+{
+  "status": "assistant-prepared independent arithmetic; awaiting human review",
+  "scope": "synthetic book-only scenarios; no historical market claim",
+  "cases": [
+    {
+      "name": "normal",
+      "mid": {
+        "numerator": "1",
+        "denominator": "1"
+      },
+      "spreadPct": {
+        "numerator": "2",
+        "denominator": "1"
+      },
+      "depth": [
+        {
+          "delta": "0.02",
+          "buy": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "sell": {
+            "numerator": "990000",
+            "denominator": "1"
+          }
+        },
+        {
+          "delta": "0.05",
+          "buy": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "sell": {
+            "numerator": "990000",
+            "denominator": "1"
+          }
+        },
+        {
+          "delta": "0.10",
+          "buy": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "sell": {
+            "numerator": "990000",
+            "denominator": "1"
+          }
+        }
+      ],
+      "manipulation": [
+        {
+          "delta": "0.5",
+          "cost": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "reachable": false
+        },
+        {
+          "delta": "1",
+          "cost": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "reachable": false
+        },
+        {
+          "delta": "10",
+          "cost": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "reachable": false
+        },
+        {
+          "delta": "100",
+          "cost": {
+            "numerator": "1010000",
+            "denominator": "1"
+          },
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "name": "broken",
+      "mid": {
+        "numerator": "269485707",
+        "denominator": "5000000"
+      },
+      "spreadPct": {
+        "numerator": "52840141400",
+        "denominator": "269485707"
+      },
+      "depth": [
+        {
+          "delta": "0.02",
+          "buy": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "sell": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        {
+          "delta": "0.05",
+          "buy": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "sell": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        },
+        {
+          "delta": "0.10",
+          "buy": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "sell": {
+            "numerator": "0",
+            "denominator": "1"
+          }
+        }
+      ],
+      "manipulation": [
+        {
+          "delta": "0.5",
+          "cost": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "reachable": true
+        },
+        {
+          "delta": "1",
+          "cost": {
+            "numerator": "101611491636737",
+            "denominator": "781250000000"
+          },
+          "reachable": false
+        },
+        {
+          "delta": "10",
+          "cost": {
+            "numerator": "101611491636737",
+            "denominator": "781250000000"
+          },
+          "reachable": false
+        },
+        {
+          "delta": "100",
+          "cost": {
+            "numerator": "101611491636737",
+            "denominator": "781250000000"
+          },
+          "reachable": false
+        }
+      ]
+    }
+  ],
+  "incomplete": {
+    "result": null,
+    "reason": "missing offer history or unknown pool coverage; refuse persistence"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "description": "Public Horizon response bytes. Raw observations; no methodology computation.",
+  "captures": [
+    {
+      "file": "bid-owner-before-sample-operations.json",
+      "url": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN/operations?cursor=263454032671014912&order=desc&limit=200&join=transactions",
+      "sha256": "dded7d55f4a45c916fb66be51a5ca27d7300b32fda018c39a89239ba574681f3",
+      "capturedFileUTC": "2026-09-12T06:55:08.077875Z"
+    },
+    {
+      "file": "bid-owner-transition-operations.json",
+      "url": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN/operations?cursor=263454032670916608&order=asc&limit=200&join=transactions",
+      "sha256": "49f2178bfdac519b60e1892dd09042e0516be031de54d1352ed58c6a415636d8",
+      "capturedFileUTC": "2026-09-12T06:50:08.9756708Z"
+    },
+    {
+      "file": "control-ledger.json",
+      "url": "https://horizon.stellar.org/ledgers/61340262",
+      "sha256": "aa59ac9828c2dcc95d7be7ae63c1c5454adcbdd2b8127686dff09764b984357d",
+      "capturedFileUTC": "2026-09-12T06:50:09.7885889Z"
+    },
+    {
+      "file": "dust-last-fill-operation.json",
+      "url": "https://horizon.stellar.org/operations/262609843965321217?join=transactions",
+      "sha256": "1f5b0b79f92540f178519a97a5cb4c3e89c535eb66abfcdf1c8942f5c05762b4",
+      "capturedFileUTC": "2026-09-12T06:50:07.4494836Z"
+    },
+    {
+      "file": "dust-ledger.json",
+      "url": "https://horizon.stellar.org/ledgers/61143619",
+      "sha256": "7b2bbd152f887e8336be6695ab2ac7cd3f98038ba4032fb811762594c7101324",
+      "capturedFileUTC": "2026-09-12T10:37:05.1680812Z"
+    },
+    {
+      "file": "dust-owner-operations.json",
+      "url": "https://horizon.stellar.org/accounts/GBPFB6XNLDMXQKOFJAH6IRTOMTEUU4ZWFHNRMYWZNXCZEDNE6UU66WSG/operations?cursor=262609835374149632&order=asc&limit=20&join=transactions",
+      "sha256": "df6a02bc59d6daff194da75dfaf94eb4602b3f849d405b337fea639b8e135e4e",
+      "capturedFileUTC": "2026-09-12T06:59:57.7123557Z"
+    },
+    {
+      "file": "transition-20-operations.json",
+      "url": "https://horizon.stellar.org/accounts/GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN/operations?cursor=263454032671014912&order=asc&limit=20&join=transactions",
+      "sha256": "9759b5a29cf1d2d357144a383b7f7575a9fbf7871efa38ea222f47ad59fb3188",
+      "capturedFileUTC": "2026-09-12T06:55:06.5553986Z"
+    }
+  ]
+}
