@@ -201,16 +201,24 @@ func TestStalenessUnevaluatedWithoutReference(t *testing.T) {
 	}
 }
 
-// TestManipulationRatioLowStaysUnevaluated is a test of a DELIBERATE GAP and it is
-// here so the gap cannot close by accident.
+// THIS TEST GUARDED A DELIBERATE GAP THAT IS NOW CLOSED, and what it guards has
+// changed with it. It read: the rule's units are ambiguous, so the flag must stay
+// unevaluated until Al settles them, and anyone implementing it without settling
+// them fails here and is asked why. DEC-017 settled them and Al accepted it on
+// 10 September 2026, so that reason expired.
 //
-// 09-flags-and-bands.md section 4 states the rule as
-// "Cost(d) / circulating_supply_value < Thresholds.ManipulationRatioLowPct". The
-// left side is a bare ratio, the threshold is named Pct and set to 1.0, and those
-// two readings differ by a factor of a hundred. There is no hand computed oracle
-// for it either. So it stays unevaluated until Al settles the units, and if anyone
-// implements it without settling them this test fails and asks why.
-func TestManipulationRatioLowStaysUnevaluated(t *testing.T) {
+// The assertion is kept because it is still true for a different reason, and the
+// comment is rewritten rather than the test deleted: what it now guards is that a
+// caller holding holder CONCENTRATION but no circulating SUPPLY cannot evaluate
+// this rule. Those two arrive from the same cached reading, so the case looks
+// impossible from inside this package and is not: `internal/conformance` builds
+// a SupportingMetrics by hand, and so does anything replaying a snapshot.
+//
+// It is renamed for the reason this repository keeps writing down about itself. A
+// guard whose stated reason has expired still passes, still reads as authority,
+// and is the pattern that cost it the empty `internal/depth` directory and a
+// `compute.go` zone row that was wrong for a day.
+func TestManipulationRatioLowNeedsSupplyNotOnlyConcentration(t *testing.T) {
 	top1 := dec("91.5406")
 	_, un := statesOf(t, flagInput{
 		PriceSource: PriceSourceBook,
@@ -219,7 +227,7 @@ func TestManipulationRatioLowStaysUnevaluated(t *testing.T) {
 		Supporting:  &SupportingMetrics{HolderTop1Pct: &top1},
 	})
 	if !un[FlagManipulationRatioLow] {
-		t.Error("MANIPULATION_RATIO_LOW is evaluated; its units are ambiguous in the methodology and it must stay unevaluated until that is settled")
+		t.Error("MANIPULATION_RATIO_LOW is evaluated from concentration alone; DEC-017 needs the circulating supply and P0 as well, and neither was given here")
 	}
 }
 

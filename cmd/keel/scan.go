@@ -416,6 +416,12 @@ func supportingFromReading(
 		HolderTop10Pct:       reading.Top10Pct,
 		HolderHHI:            reading.HHI,
 		HolderSnapshotLedger: &ledger,
+		// The denominator the three figures above were divided by, carried
+		// through because MANIPULATION_RATIO_LOW needs it. It comes from the same
+		// cached reading as the rest, so a truncated pull that stored no
+		// concentration stored no supply either and the flag stays unevaluated
+		// alongside the other two. DEC-017 and DEC-018 point 2.
+		CirculatingSupply: reading.CirculatingSupply,
 	}, ""
 }
 

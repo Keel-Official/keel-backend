@@ -100,6 +100,16 @@ type flagInput struct {
 	HasActivePool      bool
 	PriceDivergencePct *decimal.Decimal
 
+	// P0 is the reference price, and MANIPULATION_RATIO_LOW is the only rule that
+	// reads it. DEC-017 defines circulating_supply_value as the circulating
+	// supply multiplied by P0, so the supply alone cannot answer the rule: the
+	// supply is in BASE units and the cost ladder is in QUOTE, and comparing them
+	// without P0 compares two different currencies.
+	//
+	// Nil when priceSource is none, which is the same case HasLadders is false
+	// for, so the rule is unevaluated twice over rather than once.
+	P0 *decimal.Decimal
+
 	// Supporting is nil when the caller supplied no trade history and no
 	// trustline pull, which is every caller that has only a Snapshot. The five
 	// flags that read it stay unevaluated in that case, which is the state this
@@ -158,20 +168,34 @@ func evaluateFlags(in flagInput, p Params) (triggered, unevaluated []Flag, band 
 	// The five that FR-8 and FR-10 answer. Each rule below is transcribed from
 	// 09-flags-and-bands.md section 4 and nothing here invents a threshold.
 	//
-	// MANIPULATION_RATIO_LOW IS DELIBERATELY LEFT UNEVALUATED even though its
-	// input, circulating supply, is now available. Section 4 states it as
-	// "Cost(d) / circulating_supply_value < Thresholds.ManipulationRatioLowPct",
-	// and that comparison has a units problem: the left side is a bare ratio and
-	// the threshold is named Pct and set to 1.0, so the rule is either "under one
-	// per cent" or "under a factor of one" and those differ by a hundredfold. It
-	// has no hand computed oracle either, because the golden fixture carries it
-	// unevaluated. Guessing would put a fabricated number into a HIGH tier flag,
-	// so it stays unevaluated and the ambiguity is reported instead. See the
-	// finding filed with this work.
+	// MANIPULATION_RATIO_LOW WAS UNEVALUATED HERE UNTIL 12 SEPTEMBER 2026, and
+	// the reason it no longer is, is a decision and not a reading. Section 4
+	// states the rule as "Cost(d) / circulating_supply_value <
+	// Thresholds.ManipulationRatioLowPct", which had a units problem: the left
+	// side is a bare ratio and the threshold is named Pct, so the rule was either
+	// "under one per cent" or "under a factor of one" and those differ by a
+	// hundredfold. DEC-017 settled it, Al accepted it on 10 September 2026, and
+	// it is implemented below exactly as section 1 of that record writes it:
+	// the ratio gains the * 100 it was missing and the threshold moves to 0.1.
+	//
+	// IT STILL HAS NO HAND COMPUTED ORACLE. The golden fixture carries this flag
+	// unevaluated and continues to, because that fixture has no trustline pull
+	// behind it and therefore no circulating supply; see the guard below. So the
+	// tests for this rule are transcription tests against DEC-017's arithmetic,
+	// not Layer 1 evidence, and 10-validation.md's layers do not cover it yet.
 	if sup := in.Supporting; sup != nil {
 		if sup.HolderTop1Pct != nil {
 			states[FlagHolderConcentrationExtreme] =
 				boolState(sup.HolderTop1Pct.GreaterThan(t.HolderTop1ExtremePct))
+		}
+		// DEC-017 section 1, transcribed. Every guard below is a reason the rule
+		// cannot be ANSWERED rather than a reason it is false, which is why each
+		// leaves the state unevaluated instead of setting it to no.
+		if in.HasLadders && in.P0 != nil && sup.CirculatingSupply != nil &&
+			sup.CirculatingSupply.GreaterThan(decimal.Zero) && in.P0.GreaterThan(decimal.Zero) {
+			supplyValue := sup.CirculatingSupply.Mul(*in.P0)
+			states[FlagManipulationRatioLow] = boolState(manipulationRatioIsLow(
+				in.OrderbookOnly, supplyValue, t.ManipulationRatioLowPct))
 		}
 		if sup.HolderTop10Pct != nil {
 			states[FlagHolderConcentrationHigh] =
@@ -306,4 +330,40 @@ func boolState(b bool) flagState {
 		return stateTriggered
 	}
 	return stateClear
+}
+
+// manipulationRatioIsLow answers DEC-017's rule over a manipulation cost ladder.
+//
+//	THERE EXISTS delta d in ManipulationCostOrderbookOnly such that:
+//	    Reachable(d) == true
+//	    AND (Cost(d) / circulating_supply_value) * 100 < ManipulationRatioLowPct
+//
+// THE `Reachable` CLAUSE IS THE HALF THAT IS EASY TO DROP AND MUST NOT BE. An
+// unreachable rung carries the cost of buying the whole book, which on an
+// exhausted book is a SMALL number: the fixture's own asset reaches 130.06 USDC
+// at delta 1 and cannot move past it at any price. Dropping the clause would
+// read that as an asset trivially cheap to manipulate, when what it actually
+// says is that the target cannot be reached at all. NO_EXECUTABLE_PRICE and
+// MANIPULATION_CHEAP are the flags that speak to that market.
+//
+// The comparison is strict, matching the record's `<`. A ratio exactly equal to
+// the threshold does not fire, which keeps the boundary owned by one rule rather
+// than shared with whatever reads the figure next.
+//
+// supplyValue is in QUOTE units and so is Cost, so the division is unitless and
+// the * 100 turns it into the per cent the threshold is named for.
+func manipulationRatioIsLow(ladder []ManipulationPoint, supplyValue, thresholdPct decimal.Decimal) bool {
+	if supplyValue.LessThanOrEqual(decimal.Zero) {
+		return false
+	}
+	for _, m := range ladder {
+		if !m.Reachable {
+			continue
+		}
+		ratioPct := m.Cost.DivRound(supplyValue, Precision).Mul(hundred)
+		if ratioPct.LessThan(thresholdPct) {
+			return true
+		}
+	}
+	return false
 }

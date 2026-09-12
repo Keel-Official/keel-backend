@@ -485,15 +485,20 @@ func DefaultParams() Params {
 		OracleWindow:              15 * time.Minute,
 		Thresholds: Thresholds{
 			ManipulationCheapAbsolute: dec("10000"),
-			ManipulationRatioLowPct:   dec("1.0"),
-			ThinDepth5PctAbsolute:     dec("50000"),
-			SpreadExtremePct:          dec("20.0"),
-			PriceDivergencePct:        dec("10.0"),
-			HolderTop1ExtremePct:      dec("50.0"),
-			HolderTop10HighPct:        dec("80.0"),
-			WashTradeSuspectedPct:     dec("50.0"),
-			GenuineTradeStaleDays:     30,
-			GenuineTradeWarnDays:      7,
+			// 0.1, set by DEC-017 section 1 item 3 and accepted 10 September
+			// 2026. It read 1.0 for as long as nothing applied it, and the
+			// record is explicit that the old value was never in force: the rule
+			// could not be implemented as written, so no result was ever judged
+			// against 1.0. Changing it is therefore not a recalibration.
+			ManipulationRatioLowPct: dec("0.1"),
+			ThinDepth5PctAbsolute:   dec("50000"),
+			SpreadExtremePct:        dec("20.0"),
+			PriceDivergencePct:      dec("10.0"),
+			HolderTop1ExtremePct:    dec("50.0"),
+			HolderTop10HighPct:      dec("80.0"),
+			WashTradeSuspectedPct:   dec("50.0"),
+			GenuineTradeStaleDays:   30,
+			GenuineTradeWarnDays:    7,
 		},
 	}
 }
@@ -535,6 +540,18 @@ type SupportingMetrics struct {
 	// Nil when the three figures are nil. The store refuses the two states where
 	// they disagree, and migrations/0007 refuses them again in SQL.
 	HolderSnapshotLedger *uint32
+
+	// CirculatingSupply is the summed balance of the population the holder pull
+	// kept, in BASE units. It rides here beside the three concentration figures
+	// because it is the denominator all three were divided by, and because
+	// MANIPULATION_RATIO_LOW needs it: DEC-017 defines that rule's
+	// circulating_supply_value as this figure multiplied by P0.
+	//
+	// It is nil exactly when the concentration figures are nil, and for the same
+	// reason. A truncated trustline pull answers the question not at all, so it
+	// stores no supply either, and a zero here would read as an asset nobody
+	// holds rather than as an asset nobody finished counting.
+	CirculatingSupply *decimal.Decimal
 
 	VolumeToSupplyD1      *decimal.Decimal
 	VolumeToSupplyD7      *decimal.Decimal

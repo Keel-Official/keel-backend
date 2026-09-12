@@ -632,7 +632,12 @@ func ComputeAssetRiskWith(s Snapshot, p Params, sup *SupportingMetrics) (AssetRi
 		OrderbookOnly:      orderbookOnly,
 		HasActivePool:      len(s.ActivePools()) > 0,
 		PriceDivergencePct: divergence,
-		Supporting:         sup,
+		// The same p0 the ladders above were computed against, passed rather than
+		// re-derived so that the flag and the figures it judges cannot disagree
+		// about what the reference price was. MANIPULATION_RATIO_LOW is its only
+		// reader; see DEC-017.
+		P0:         &p0,
+		Supporting: sup,
 		// The output ledger's close time, which is the anchor the two staleness
 		// flags age against. It comes off the Snapshot rather than a clock, so
 		// two runs over one snapshot age a trade identically. NFR-9.
