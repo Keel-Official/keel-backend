@@ -220,7 +220,12 @@ func (c *Client) GetHolders(ctx context.Context, a domain.Asset) (HolderObservat
 		}
 		raw.LastLedger = latest
 		raw.Pages++
-		raw.Accounts = append(raw.Accounts, json.RawMessage(body))
+		// Retained by default because the recorder writes these pages out as the
+		// evidence for a pull. See Config.DiscardRawHolderPages for why a caller
+		// that does not write evidence must be able to say so.
+		if !c.cfg.DiscardRawHolderPages {
+			raw.Accounts = append(raw.Accounts, json.RawMessage(body))
+		}
 
 		var res accountsResponse
 		if err := json.Unmarshal(body, &res); err != nil {

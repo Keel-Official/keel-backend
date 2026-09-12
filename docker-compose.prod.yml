@@ -303,6 +303,14 @@ services:
     networks:
       - data
     restart: unless-stopped
+    # A GUARD AND NOT A LOAD-BEARING NUMBER, since 12 September 2026. It was 512M
+    # and the container was OOM killed on the fourth asset of every pass, silently,
+    # because an OOM kill leaves no log line. The cause was GetHolders retaining
+    # every raw /accounts page; this command now sets DiscardRawHolderPages, which
+    # bounds what is held, so this limit no longer has to accommodate the largest
+    # asset anybody ever adds to the set. Raised anyway, because a guard sized just
+    # above the old failure is not a guard.
+    #
     # MORE THAN keel-scan GETS, and the reason is the endpoint rather than the
     # work. /accounts?asset= returns the FULL account object per holder, and one
     # page of 200 holders of a widely held asset measured 17.5 MB on 10 September
@@ -312,7 +320,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
 
 networks:
   data:

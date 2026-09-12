@@ -325,3 +325,47 @@ func TestGetHoldersRefusesTheNativeAsset(t *testing.T) {
 		t.Error("a request was made for an asset that has no trustlines to enumerate")
 	}
 }
+
+// A caller that never reads RawHolders.Accounts must be able to stop them being
+// held, because the retention is unbounded in the dimension that matters:
+// /accounts?asset= returns the full account object per holder, and at the page
+// cap one asset is hundreds of megabytes of raw JSON. On 12 September 2026 that
+// killed a 512 MB container on the fourth asset of every pass, with no log line,
+// because an OOM kill does not leave one.
+func TestGetHoldersCanDiscardTheRawPages(t *testing.T) {
+	for _, c := range []struct {
+		name    string
+		discard bool
+		wantAny bool
+	}{
+		{"retained by default, which is what the recorder needs", false, true},
+		{"discarded on request", true, false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			f := newFakeHorizon(t)
+			f.withHolders(assetSummary("1000.0000000", 3, true),
+				[]string{accountsPage(0, 3, "10.0000000")})
+			c2, cfg := f.client()
+			_ = cfg
+			c2.cfg.DiscardRawHolderPages = c.discard
+
+			obs, err := c2.GetHolders(context.Background(), testUSTRY)
+			if err != nil {
+				t.Fatalf("GetHolders: %v", err)
+			}
+			if got := len(obs.Raw.Accounts) > 0; got != c.wantAny {
+				t.Errorf("retained pages = %v, want %v", got, c.wantAny)
+			}
+			// THE DECODED HOLDERS SURVIVE EITHER WAY. Discarding the raw bodies
+			// must not cost the answer, only the copy of the bytes it came from.
+			if len(obs.Holders) != 3 {
+				t.Errorf("decoded %d holders, want 3; discarding the raw pages must not lose the reading",
+					len(obs.Holders))
+			}
+			// The page COUNT is evidence too and is not part of what is dropped.
+			if obs.Raw.Pages != 1 {
+				t.Errorf("Pages = %d, want 1", obs.Raw.Pages)
+			}
+		})
+	}
+}

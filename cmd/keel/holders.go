@@ -143,6 +143,11 @@ trustline set answers the question not at all.
 		BaseURL:        *baseURL,
 		Budget:         *budget,
 		MaxHolderPages: *maxPages,
+		// This command reads FirstLedger and LastLedger off RawHolders and
+		// nothing else, so holding every page body would cost hundreds of
+		// megabytes to produce a value nothing reads. It is what killed this
+		// pass's container on 12 September 2026.
+		DiscardRawHolderPages: true,
 		// No cache. A second reading that is identical because a body was reused
 		// says nothing about the trustline set, which is the recorder's argument
 		// and applies unchanged here.

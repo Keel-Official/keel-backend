@@ -214,6 +214,31 @@ type Config struct {
 	// what stops one large asset from spending an entire hourly budget.
 	MaxHolderPages int
 
+	// DiscardRawHolderPages stops GetHolders retaining each /accounts page body
+	// in RawHolders.Accounts. Default false, which retains them, because the
+	// cross-validation recorder marshals RawHolders to an evidence file and the
+	// pages ARE the evidence.
+	//
+	// Three sentences, as this package requires. It exists because that retention
+	// is unbounded in the one dimension that matters: /accounts?asset= returns the
+	// full account object per holder, a page of a widely held asset measured
+	// 17.5 MB on 10 September 2026, and at the 25 page cap one asset holds roughly
+	// 437 MB of raw JSON before anything decodes it. `keel holders` reads only
+	// FirstLedger and LastLedger off RawHolders and never touches Accounts, so for
+	// that caller the retention is pure cost, and on 12 September 2026 it killed a
+	// 512 MB container on the fourth asset of every pass, silently, because an OOM
+	// kill leaves no log line. The flag is opt-out rather than opt-in so that every
+	// existing caller, the recorder included, keeps the behavior it was written
+	// against.
+	//
+	// REJECTED ALTERNATIVE: raise the container's memory limit and leave the
+	// retention. That treats a symptom whose size is set by somebody else's
+	// endpoint: the limit would have to accommodate the largest asset anybody ever
+	// adds to the set, and the failure when a larger one arrives is the same silent
+	// kill. Bounding what is held is the fix; the limit is then a guard rather than
+	// a load-bearing number.
+	DiscardRawHolderPages bool
+
 	BidAmountUnit BidAmountUnit
 
 	// Now and Sleep are injected so the tests never wait on a real clock.
