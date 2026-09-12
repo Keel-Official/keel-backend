@@ -169,6 +169,49 @@ principle P-2 in the PRD. The third is a genuine gap and section 8 carries it.
 >
 > The two roads out are priced in section 6 of that document. Neither is Claude's to
 > choose.
+>
+> **12 SEPTEMBER 2026: THE GHOST HAS AN OFFER ID, AND THE DAMAGE STARTS TWO WEEKS
+> EARLIER THAN THE PARAGRAPH ABOVE SAYS.** The reading is
+> `docs/evidences/2026-09-12-crossed-book-ustry-february.md`. The ask is offer
+> `1822775941`, held by `GBPFB6XN`, priced `1981860307/1874295956`, and it is one
+> stroop left over by the fill at ledger 61143619 on 8 February. Horizon's own
+> per-offer index says only two trades ever touched it and its owner never named it
+> again through ledger 61344294, so neither route the fold can see removed it.
+>
+> **Two consequences for this section, and both narrow what can be published.**
+>
+> First, **`best_ask` is wrong on every row from 9 February onward, not from the 23rd**.
+> The thirteen rows from 9 to 21 February are not crossed and look untroubled, and they
+> are wrong in exactly the same way: a phantom ask priced below the real one. Every
+> figure derived from it goes with it, which is `p0`, `spread_pct`, both depth ladders
+> and the band. The crossed rows were never the extent of the damage, only the part
+> that announced itself.
+>
+> Second, **the fix priced in section 6 of the 8 September document would not have
+> worked.** It buys more pages, and the measurement above shows there is no page to
+> find. What removed the offer left no operation on this pair and no trade in it, and
+> the issuer never touched the trustline either: 59 operations in the window, none of
+> them an authorization change or a clawback.
+>
+> **AND THE QUESTION THAT DOCUMENT DECLINED TO PICK IS NOW PICKED, FROM A FILE ALREADY
+> IN THIS REPOSITORY.** The manipulation at ledger 61340263 was a buy, and a buy fills
+> from the cheapest ask upward. That ledger holds **exactly one fill**, `0.0501003` USTRY
+> at `106.7372828` against offer `1824788980`. Had a one stroop ask at `1.0573892` been
+> resting, the manipulation would have eaten it first. It did not, so the offer was not
+> there. **`testdata/fixtures/ustry_pre_exploit.md` is right and the reconstruction is
+> wrong**, which is the opposite of what the 8 September reading left open, and it means
+> the fixture's zero depth argument survives intact.
+>
+> The same logic dates the removal to **six minutes on 8 February**, between ledgers
+> 61143619 and 61143682, because the first trade priced above the phantom had to clear it
+> first. So the series carries a phantom for **twenty days** rather than for six rows.
+>
+> **What landed in the code rather than in this section**: `domain.OrderBook.Crossed()`,
+> carried by `SeriesPoint` and `ReplayResult`, refused by both `Complete()` methods,
+> written as a `crossed` column and a `crossed_points` sidecar line by `bookseries`, and
+> printed with both ratios by `keel replay`. It guarantees one narrow thing, that no run
+> can publish a provably impossible row in silence. It does not catch the thirteen quiet
+> rows, and section 6 of that evidence document names the one test still outstanding.
 
 ## 6. When the unsafe threshold was crossed
 
@@ -325,3 +368,4 @@ found a defect and should say so.
 |---|---|
 | 5 September 2026 | Structure drafted. Sections 2, 3, 4, 7, 8 and 9 written from evidence already in the repository. Sections 5 and 6 deliberately empty |
 | 8 September 2026 | The February series ran and sections 5 and 6 stay empty, with the reason recorded in place of the blank. `docs/evidences/2026-09-08-february-book-series.md` is the reading: the fixture's ask amounts reproduce exactly at both control ledgers, and the book is crossed from 23 February onward |
+| 12 September 2026 | The phantom ask resolved to offer `1822775941` and the crossing bid to offer `1824767559`, so the defect is named rather than suspected. Three corrections to the 8 September reading: `best_ask` is wrong from 9 February and not from the 23rd, the deeper-walk fix priced there cannot work, and the fixture-versus-code question is settled in the fixture's favour by the single fill in ledger 61340263. Removal dated to six minutes on 8 February. A crossed-book detector landed in `internal/domain`. Sections 5 and 6 stay empty, and section 10 is unchanged on who owns them |
