@@ -266,6 +266,54 @@ services:
 # nothing left to separate and the second bridge would be an empty gesture.
 #
 # It is NOT `internal`, because keel-scan has to reach Horizon.
+  # ---------------------------------------------------------------- the holder pull
+  #
+  # WHY IT IS A THIRD SERVICE AND NOT PART OF keel-scan. One holder reading costs
+  # up to 26 Horizon requests, so sixty assets is up to 1,560 in one pass. `scan`
+  # runs four times an hour; doing this inside it would be 6,240 requests an hour
+  # against a budget of 3,000 and would starve the depth reading that is the
+  # deliverable. migrations/0006_holder_readings.sql carries the full arithmetic.
+  #
+  # DAILY, AND THE CADENCE IS PAIRED WITH scan's -max-holder-age. That flag
+  # defaults to 48 hours, which is two of these passes plus room for one to fail.
+  # If this interval moves, that bound is reconsidered in the same change:
+  # DEC-018 point 5 says so, and the two numbers only mean anything together.
+  #
+  # WHY IN THE COMPOSE FILE RATHER THAN A HOST CRON. A cron is a manual step on
+  # every new box, and when somebody forgets it the failure is silent: the cache
+  # simply stops refreshing, every figure ages out past -max-holder-age two days
+  # later, and the API goes back to reporting the holder flags unevaluated. It
+  # reads as the feature never having worked. Shipping the schedule beside the
+  # binary means the same CI that deploys one deploys the other.
+  keel-holders:
+    image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA}
+    container_name: keel-prod-holders
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # THE SAME EXPRESSION AS keel-serve AND keel-scan, CHARACTER FOR CHARACTER.
+      KEEL_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      KEEL_DB_MAX_OPEN_CONNS: ${KEEL_DB_MAX_OPEN_CONNS:-}
+      KEEL_DB_MAX_IDLE_CONNS: ${KEEL_DB_MAX_IDLE_CONNS:-}
+      KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
+      KEEL_DB_CONN_MAX_IDLE_TIME: ${KEEL_DB_CONN_MAX_IDLE_TIME:-}
+      KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
+    command: ["holders", "-interval", "24h"]
+    networks:
+      - data
+    restart: unless-stopped
+    # MORE THAN keel-scan GETS, and the reason is the endpoint rather than the
+    # work. /accounts?asset= returns the FULL account object per holder, and one
+    # page of 200 holders of a widely held asset measured 17.5 MB on 10 September
+    # 2026. internal/horizon/client.go caps a body at 64 MB for that reason, so a
+    # limit below that cap would kill the process on a page the client is willing
+    # to read.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
 networks:
   data:
 

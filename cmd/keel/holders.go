@@ -56,7 +56,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"sort"
+	"syscall"
 	"time"
 
 	"github.com/Keel-Official/keel-backend/internal/domain"
@@ -73,6 +75,8 @@ func runHolders(args []string) error {
 	budget := fs.Int("budget", 3000, "requests permitted per hour. Public Horizon allows about 3600 per IP")
 	maxPages := fs.Int("max-pages", 0, "cap one reading at this many pages of 200 accounts; 0 uses the package default of 25")
 	only := fs.String("asset", "", "pull one asset only, as CODE:ISSUER. Empty means every asset in the set")
+	interval := fs.Duration("interval", 0,
+		"repeat the pass on this cadence instead of exiting. 0 runs once. 24h is what a deployment wants")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel holders - pull trustline holders and cache the concentration
@@ -95,8 +99,17 @@ trustline set answers the question not at all.
 		return err
 	}
 
-	ctx := context.Background()
 	logger := log.New(os.Stdout, "", log.LstdFlags|log.LUTC)
+
+	// SIGINT and SIGTERM cancel the context rather than killing the process, so a
+	// pass in flight finishes its current asset and closes its run row. Same
+	// reasoning as scan.go, and it matters more once -interval makes this a
+	// long-lived service: every redeploy sends SIGTERM, and a process killed
+	// outright leaves an open run row, which runs.go uses to mean a job that
+	// died. Without this, a healthy weekly redeploy would look like a weekly
+	// crash.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	s, err := openStore(ctx, *dsn)
 	if err != nil {
@@ -136,13 +149,54 @@ trustline set answers the question not at all.
 		CacheTTL: 0,
 	})
 
+	logger.Printf("%d asset(s), methodology %s, page cap %s",
+		len(targets), domain.MethodologyVersion, pageCapLabel(*maxPages))
+
+	if *interval <= 0 {
+		return holdersPass(ctx, s, client, targets, logger)
+	}
+
+	// THE SAME SHAPE AS `scan`, AND FOR THE SAME REASON. A deployment needs this
+	// on a cadence, and the two ways to arrange that are a scheduler outside the
+	// process or a loop inside it. The loop wins here because the image is
+	// distroless and has no shell to run a cron in, and because a schedule that
+	// ships with the compose file is deployed by the same CI that deploys the
+	// binary. A host cron is a manual step somebody has to remember on every new
+	// box, and the failure mode when they forget is silent: the cache simply
+	// stops being refreshed and every figure ages out past -max-holder-age two
+	// days later, which reads as the feature never having worked.
+	logger.Printf("interval %s, Ctrl-C to stop", *interval)
+	ticker := time.NewTicker(*interval)
+	defer ticker.Stop()
+	for {
+		if err := holdersPass(ctx, s, client, targets, logger); err != nil {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			logger.Print("stopped")
+			return nil
+		case <-ticker.C:
+		}
+	}
+}
+
+// holdersPass is one pull over every target, opening and closing its own run row.
+//
+// One run row PER PASS and not per process: a long-lived holders service that
+// opened a single row would report one run that never finishes, which is exactly
+// what runs.go uses an unfinished row to mean.
+func holdersPass(
+	ctx context.Context,
+	s *store.Store,
+	client *horizon.Client,
+	targets []domain.Asset,
+	logger *log.Logger,
+) error {
 	runID, err := s.StartRun(ctx, store.RunHolders, time.Now().UTC())
 	if err != nil {
 		return fmt.Errorf("holders: %w", err)
 	}
-
-	logger.Printf("%d asset(s), methodology %s, page cap %s",
-		len(targets), domain.MethodologyVersion, pageCapLabel(*maxPages))
 
 	var ok, failed, skipped, truncated, stored, alreadyThere, disagreed int
 

@@ -9,6 +9,8 @@
 package main
 
 import (
+	"flag"
+	"io"
 	"testing"
 	"time"
 
@@ -219,5 +221,46 @@ func TestReadingFromNeverClaimsAnUnmeasuredSnapshotLabel(t *testing.T) {
 	}
 	if r.MethodologyVersion != domain.MethodologyVersion {
 		t.Errorf("methodology version is %q, want %q", r.MethodologyVersion, domain.MethodologyVersion)
+	}
+}
+
+// ---------------------------------------------------------------- the cadence
+
+// `keel holders` gained -interval so a deployment can run it as a service rather
+// than as a host cron. These two tests pin the halves of that decision that a
+// later reader would otherwise have to infer from a compose file.
+
+// Zero keeps the original behavior: one pass, then exit. Every caller written
+// before the flag existed passes nothing, and a default that started looping
+// would turn `keel holders` in a terminal into a process that never returns.
+func TestHoldersIntervalDefaultsToRunningOnce(t *testing.T) {
+	fs := flag.NewFlagSet("holders", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	interval := fs.Duration("interval", 0, "")
+	if err := fs.Parse(nil); err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if *interval != 0 {
+		t.Errorf("-interval defaults to %s; zero is what makes a bare `keel holders` exit", *interval)
+	}
+}
+
+// THE PRODUCTION CADENCE AND scan's STALENESS BOUND ARE ONE SETTING IN TWO
+// PLACES. docker-compose.prod.yml runs `holders -interval 24h` and `scan`
+// ignores a reading older than -max-holder-age, 48h by default. Two passes plus
+// room for one to fail. This asserts the relationship rather than either number,
+// because it is the relationship that breaks silently: raise the interval past
+// the bound and every figure ages out before the next pull replaces it, which
+// reads as the holder half having stopped working.
+func TestTheHolderCadenceFitsInsideTheStalenessBound(t *testing.T) {
+	const composeInterval = 24 * time.Hour // docker-compose.prod.yml, keel-holders
+	const scanBound = 48 * time.Hour       // cmd/keel/scan.go, -max-holder-age default
+
+	if composeInterval >= scanBound {
+		t.Fatalf("the pull runs every %s and readings expire at %s, so every figure ages out before it is refreshed",
+			composeInterval, scanBound)
+	}
+	if passes := scanBound / composeInterval; passes < 2 {
+		t.Errorf("the bound allows %d pass(es) before a figure expires; it is sized at two plus room for one to fail", passes)
 	}
 }
