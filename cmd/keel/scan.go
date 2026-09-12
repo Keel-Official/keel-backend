@@ -268,8 +268,17 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	if err := s.FinishRun(ctx, runID, time.Now().UTC(), ok, failed, strings.Join(parts, "; ")); err != nil {
 		return fmt.Errorf("scan: %w", err)
 	}
-	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d requests this window",
-		ok, stored, alreadyThere, failed, withHolders, client.Requests())
+	// THROTTLED IS PRINTED BESIDE REQUESTS AND WAS NOT UNTIL 12 SEPTEMBER 2026.
+	// The client has counted 429 responses since it was written, retries
+	// included, and nothing ever surfaced the number. Its own comment says why
+	// that matters: a rate limit absorbed silently is indistinguishable from one
+	// that never happened, and the two have opposite consequences. On 12
+	// September a holder pull ran at one asset per twenty minutes and the
+	// question "is this throttling or is the endpoint simply slow" could not be
+	// answered from any log, because the only field that answers it was computed
+	// and discarded.
+	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d requests this window, %d throttled",
+		ok, stored, alreadyThere, failed, withHolders, client.Requests(), client.Throttled())
 	for _, why := range sortedKeys(holderGaps) {
 		logger.Printf("  no holder figures for %d asset(s): %s", holderGaps[why], why)
 	}
