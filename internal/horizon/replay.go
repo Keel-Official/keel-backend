@@ -307,6 +307,26 @@ func (r ReplayResult) MayBeInflated() bool {
 	return r.EarliestOfferOp != 0 && r.TradeWindowFrom != 0 && r.EarliestOfferOp < r.TradeWindowFrom
 }
 
+// ReplayLedgerCloseTime reads the historical ledger's timestamp for persistence.
+// It never estimates a time from a ledger sequence or uses the time of this read.
+func (c *Client) ReplayLedgerCloseTime(ctx context.Context, sequence uint32) (time.Time, error) {
+	if sequence == 0 {
+		return time.Time{}, fmt.Errorf("horizon: replay ledger must be positive")
+	}
+	body, _, err := c.get(ctx, "/ledgers/"+strconv.FormatUint(uint64(sequence), 10), nil, false)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("ledger %d: %w", sequence, err)
+	}
+	var ledger ledgerResponse
+	if err := json.Unmarshal(body, &ledger); err != nil {
+		return time.Time{}, fmt.Errorf("decode ledger %d: %w", sequence, err)
+	}
+	if ledger.Sequence != sequence || ledger.ClosedAt.IsZero() {
+		return time.Time{}, fmt.Errorf("ledger %d returned sequence %d or missing close time", sequence, ledger.Sequence)
+	}
+	return ledger.ClosedAt, nil
+}
+
 // ReconstructBook rebuilds the order book for one pair at one ledger.
 //
 // THE TWO WINDOWS MUST LINE UP AND THAT IS ENFORCED HERE. Offers come from the

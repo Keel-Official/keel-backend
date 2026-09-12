@@ -21,17 +21,22 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Keel-Official/keel-backend/internal/domain"
 	"github.com/Keel-Official/keel-backend/internal/horizon"
+	"github.com/Keel-Official/keel-backend/internal/store"
 	"github.com/shopspring/decimal"
 )
 
@@ -53,6 +58,9 @@ func runReplay(args []string) error {
 	quiet := fs.Bool("quiet", false, "do not print one progress line per account walked")
 	compute := fs.Bool("compute", false,
 		"run the methodology over the reconstructed book and print the result. ORDER BOOK ONLY, because no pool is reconstructed, so a combined depth figure from it would be wrong")
+	persist := fs.Bool("persist", false, "store computed offers-implied metrics; requires -pool-snapshots, a declared pair and no detected reconstruction gaps")
+	poolSnapshots := fs.String("pool-snapshots", "", "JSON snapshot array with audited pool coverage at this pair and ledger, required for -persist; null Pools means unknown and is refused")
+	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN for -persist only, or set KEEL_DSN")
 	out := fs.String("out", "", "write the reconstructed snapshot to this file as JSON. Optional")
 	baseURL := fs.String("horizon", horizon.DefaultBaseURL, "Horizon base URL")
 	budget := fs.Int("budget", 3000, "requests permitted per hour. Public Horizon allows about 3600 per IP")
@@ -73,6 +81,12 @@ produce by accident.
 Pools are not reconstructed. The snapshot carries none, and that is not a claim
 that no pool existed.
 
+Persistence requires independently established pool coverage in -pool-snapshots.
+Each entry uses domain.Snapshot JSON: Base, Quote, LedgerSeq, LedgerClosedAt,
+Source (offers-implied), and Pools. An explicit empty Pools array asserts that no
+pool existed; null or an omitted field asserts nothing and cannot be persisted.
+Keep the source evidence with that file. Supplying it does not certify the book.
+
 `)
 		fs.PrintDefaults()
 	}
@@ -82,17 +96,56 @@ that no pool existed.
 	if *pairsPath == "" {
 		return errors.New("replay: -pairs is required")
 	}
-	if *ledger == 0 {
-		return errors.New("replay: -ledger is required")
+	if *ledger == 0 || uint64(*ledger) > uint64(^uint32(0)) {
+		return errors.New("replay: -ledger must be a positive uint32")
 	}
 
 	pairs, err := horizon.LoadPairs(*pairsPath)
 	if err != nil {
 		return fmt.Errorf("replay: %w", err)
 	}
+	if *poolSnapshots != "" && !*persist {
+		return errors.New("replay: -pool-snapshots requires -persist")
+	}
+	var poolEvidence []domain.Snapshot
+	if *persist {
+		if *poolSnapshots == "" {
+			return errors.New("replay: -persist requires -pool-snapshots; unobserved pools must not be stored as absent")
+		}
+		poolEvidence, err = readReplayPoolSnapshots(*poolSnapshots)
+		if err != nil {
+			return err
+		}
+		for _, p := range pairs {
+			if _, err := replayPoolSnapshot(poolEvidence, p.Base, p.Quote, uint32(*ledger)); err != nil {
+				return err
+			}
+		}
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	var db *store.Store
+	if *persist {
+		db, err = openStore(ctx, *dsn)
+		if err != nil {
+			return err
+		}
+		defer func() { _ = db.Close() }()
+		applied, err := db.SchemaVersion(ctx)
+		if err != nil {
+			return fmt.Errorf("replay: reading schema_migrations: %w; run make migrate", err)
+		}
+		if len(applied) == 0 {
+			return errors.New("replay: no migrations are applied; run make migrate")
+		}
+		for _, p := range pairs {
+			if _, err := db.AssetID(ctx, p.Base, p.Quote); err != nil {
+				return fmt.Errorf("replay: declare %s with keel assets before persisting: %w", p, err)
+			}
+		}
+	}
 
 	client := horizon.NewClient(horizon.Config{BaseURL: *baseURL, Budget: *budget})
 
@@ -122,8 +175,36 @@ that no pool existed.
 			return fmt.Errorf("replay %s: %w", p, err)
 		}
 		reportReplay(os.Stdout, p, res)
+		if *persist {
+			// The ledger resource supplies the actual close time. A wall-clock time
+			// or a ledger-to-time estimate would corrupt historical downsampling.
+			res.Snapshot.LedgerClosedAt, err = client.ReplayLedgerCloseTime(ctx, res.Snapshot.LedgerSeq)
+			if err != nil {
+				return fmt.Errorf("replay: %w", err)
+			}
+			pool, err := replayPoolSnapshot(poolEvidence, p.Base, p.Quote, res.Snapshot.LedgerSeq)
+			if err != nil {
+				return err
+			}
+			if !pool.LedgerClosedAt.Equal(res.Snapshot.LedgerClosedAt) {
+				return fmt.Errorf("replay: pool evidence close time differs from Horizon at ledger %d", res.Snapshot.LedgerSeq)
+			}
+			res.Snapshot.Pools = pool.Pools
+			id, inserted, err := persistReplay(ctx, db, res)
+			if err != nil {
+				return fmt.Errorf("replay %s: %w", p, err)
+			}
+			fmt.Fprintf(os.Stdout, "  metrics row %d: inserted=%t, ledger=%d, methodology=%s, source=offers-implied, pool evidence=%s (%d pools)\n", id, inserted, res.Snapshot.LedgerSeq, domain.MethodologyVersion, *poolSnapshots, len(pool.Pools))
+			if !inserted {
+				fmt.Fprintln(os.Stdout, "  existing row retained unchanged; a different reconstruction requires investigation, not an overwrite")
+			}
+		}
 		if *compute {
-			reportRisk(os.Stdout, res.Snapshot)
+			if *persist {
+				reportRiskUnder(os.Stdout, res.Snapshot, "risk with supplied pool evidence")
+			} else {
+				reportRisk(os.Stdout, res.Snapshot)
+			}
 		}
 		snapshots = append(snapshots, res.Snapshot)
 	}
@@ -140,6 +221,125 @@ that no pool existed.
 			return fmt.Errorf("replay: writing %s: %w", *out, err)
 		}
 		fmt.Fprintf(os.Stdout, "  wrote %s\n", *out)
+	}
+	return nil
+}
+
+type replayMetricsStore interface {
+	AssetID(context.Context, domain.Asset, domain.Asset) (int, error)
+	SaveMetrics(context.Context, int, time.Time, domain.AssetRisk) (int64, bool, error)
+}
+
+// persistReplay only bridges validated replay output to the existing store. The
+// completeness checks detect known gaps; they do not certify the reconstruction.
+// Unknown pool coverage is refused: the API cannot label a stored result as
+// order-book-only, and interpreting an unobserved pool as absent changes flags.
+func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.ReplayResult) (int64, bool, error) {
+	_, _, crossed := res.Snapshot.Book.Crossed()
+	if !res.Complete() || res.StoppedAtFloor != 0 || crossed {
+		return 0, false, fmt.Errorf("refusing to persist incomplete reconstruction: missing=%d truncated=%d failed=%d unsizable=%d floor=%d crossed=%t inflated=%t", len(res.MissingOfferIDs), res.Truncated, res.Failed, res.Unsizable, res.StoppedAtFloor, crossed || res.Crossed, res.MayBeInflated())
+	}
+	if res.Snapshot.Source != domain.DataSourceOffersImplied || res.Snapshot.LedgerSeq == 0 || res.Snapshot.LedgerClosedAt.IsZero() || res.ReadAt.IsZero() {
+		return 0, false, errors.New("replay persistence requires offers-implied source, ledger sequence, ledger close time and read time")
+	}
+	if err := validateReplayPools(res.Snapshot.Pools); err != nil {
+		return 0, false, err
+	}
+	id, err := db.AssetID(ctx, res.Snapshot.Base, res.Snapshot.Quote)
+	if err != nil {
+		return 0, false, fmt.Errorf("declare the pair with keel assets before persisting: %w", err)
+	}
+	risk, err := domain.ComputeAssetRisk(res.Snapshot, domain.DefaultParams())
+	if err != nil {
+		return 0, false, fmt.Errorf("compute replay risk: %w", err)
+	}
+	return db.SaveMetrics(ctx, id, res.ReadAt, risk)
+}
+
+func readReplayPoolSnapshots(path string) ([]domain.Snapshot, error) {
+	body, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("replay: pool evidence: %w", err)
+	}
+	dec := json.NewDecoder(bytes.NewReader(body))
+	dec.DisallowUnknownFields()
+	// Pointers preserve omitted/null versus explicit zero at the input boundary.
+	// A missing reserve or fee must not become an empty pool or a zero-fee pool.
+	var input []struct {
+		domain.Snapshot
+		Pools []struct {
+			PoolID       string
+			ReserveBase  *decimal.Decimal
+			ReserveQuote *decimal.Decimal
+			FeeBP        *int32
+		}
+	}
+	if err := dec.Decode(&input); err != nil {
+		return nil, fmt.Errorf("replay: pool evidence: %w", err)
+	}
+	if err := dec.Decode(new(any)); err != io.EOF {
+		return nil, errors.New("replay: pool evidence must contain exactly one JSON array")
+	}
+	snapshots := make([]domain.Snapshot, 0, len(input))
+	for _, entry := range input {
+		if entry.Pools == nil {
+			return nil, errors.New("replay: pool evidence must explicitly supply Pools; null is unknown")
+		}
+		s := entry.Snapshot
+		s.Pools = make([]domain.PoolReserves, 0, len(entry.Pools))
+		for _, p := range entry.Pools {
+			if p.ReserveBase == nil || p.ReserveQuote == nil || p.FeeBP == nil {
+				return nil, fmt.Errorf("replay: pool %q must explicitly supply ReserveBase, ReserveQuote and FeeBP", p.PoolID)
+			}
+			s.Pools = append(s.Pools, domain.PoolReserves{PoolID: p.PoolID, ReserveBase: *p.ReserveBase, ReserveQuote: *p.ReserveQuote, FeeBP: *p.FeeBP})
+		}
+		if err := validateReplayPools(s.Pools); err != nil {
+			return nil, err
+		}
+		snapshots = append(snapshots, s)
+	}
+	return snapshots, nil
+}
+
+func replayPoolSnapshot(snapshots []domain.Snapshot, base, quote domain.Asset, ledger uint32) (domain.Snapshot, error) {
+	var found *domain.Snapshot
+	for i := range snapshots {
+		s := &snapshots[i]
+		if !s.Base.Equal(base) || !s.Quote.Equal(quote) || s.LedgerSeq != ledger {
+			continue
+		}
+		if found != nil {
+			return domain.Snapshot{}, errors.New("replay: duplicate pool evidence for pair and ledger")
+		}
+		found = s
+	}
+	if found == nil {
+		return domain.Snapshot{}, fmt.Errorf("replay: no pool evidence for %s/%s at ledger %d", base, quote, ledger)
+	}
+	if found.Source != domain.DataSourceOffersImplied || found.LedgerClosedAt.IsZero() {
+		return domain.Snapshot{}, errors.New("replay: pool evidence requires offers-implied source and ledger close time")
+	}
+	if err := validateReplayPools(found.Pools); err != nil {
+		return domain.Snapshot{}, err
+	}
+	return *found, nil
+}
+
+func validateReplayPools(pools []domain.PoolReserves) error {
+	if pools == nil {
+		return errors.New("replay: pool coverage is unknown; supply audited historical pool evidence before persisting")
+	}
+	seen := make(map[string]bool)
+	for _, p := range pools {
+		id, err := hex.DecodeString(p.PoolID)
+		if err != nil || len(id) != 32 || p.ReserveBase.IsNegative() || p.ReserveQuote.IsNegative() || p.FeeBP < 0 || p.FeeBP >= 10000 {
+			return fmt.Errorf("replay: invalid historical pool %q", p.PoolID)
+		}
+		key := hex.EncodeToString(id)
+		if seen[key] {
+			return fmt.Errorf("replay: duplicate historical pool %q", p.PoolID)
+		}
+		seen[key] = true
 	}
 	return nil
 }
