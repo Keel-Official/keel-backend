@@ -205,6 +205,15 @@ func holdersPass(
 			break
 		}
 
+		// TIMED PER ASSET, because the pass is long enough that its summary is
+		// not an observation, it is an epitaph. Measured on 12 September 2026 a
+		// pass ran at roughly one asset per twenty minutes, so sixty assets is
+		// most of a day and the closing line arrives far too late to act on.
+		// Whoever is watching needs to know, while it runs, whether the current
+		// asset is slow because the endpoint is slow or because requests are
+		// being throttled, and those two call for different fixes.
+		assetStarted := time.Now()
+
 		obs, err := client.GetHolders(ctx, a)
 		if err != nil {
 			// The native asset is the one case that cannot ever succeed. See
@@ -255,13 +264,15 @@ func holdersPass(
 			logger.Printf("skip  %s ledger %d, already stored", a, reading.SnapshotLedger)
 		case reading.Truncated:
 			stored++
-			logger.Printf("store %s ledger %d TRUNCATED at %d of %d holders, no figures -> id=%d",
-				a, reading.SnapshotLedger, reading.HoldersRead, reading.HolderCountReported, id)
+			logger.Printf("store %s ledger %d TRUNCATED at %d of %d holders, no figures -> id=%d  [%s, %d req, %d throttled]",
+				a, reading.SnapshotLedger, reading.HoldersRead, reading.HolderCountReported, id,
+				time.Since(assetStarted).Round(time.Second), client.Requests(), client.Throttled())
 		default:
 			stored++
-			logger.Printf("store %s ledger %d pop=%d top1=%s%% top10=%s%% hhi=%s -> id=%d",
+			logger.Printf("store %s ledger %d pop=%d top1=%s%% top10=%s%% hhi=%s -> id=%d  [%s, %d req, %d throttled]",
 				a, reading.SnapshotLedger, deref(reading.Population),
-				show(reading.Top1Pct), show(reading.Top10Pct), show(reading.HHI), id)
+				show(reading.Top1Pct), show(reading.Top10Pct), show(reading.HHI), id,
+				time.Since(assetStarted).Round(time.Second), client.Requests(), client.Throttled())
 		}
 	}
 
@@ -281,8 +292,10 @@ func holdersPass(
 		return fmt.Errorf("holders: %w", err)
 	}
 
-	logger.Printf("pass: %d ok (%d written, %d already stored), %d truncated pull(s), %d disagreement(s), %d failed, %d skipped, %d requests this window",
-		ok, stored, alreadyThere, truncated, disagreed, failed, skipped, client.Requests())
+	// See the note beside the same call in scan.go. This pass is the one that
+	// needed the number and could not get it.
+	logger.Printf("pass: %d ok (%d written, %d already stored), %d truncated pull(s), %d disagreement(s), %d failed, %d skipped, %d requests this window, %d throttled",
+		ok, stored, alreadyThere, truncated, disagreed, failed, skipped, client.Requests(), client.Throttled())
 	return nil
 }
 
