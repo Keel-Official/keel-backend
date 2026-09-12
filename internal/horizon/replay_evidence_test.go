@@ -46,8 +46,19 @@ func TestFebruary22SixOffersAreCancelledAtLedger61340261(t *testing.T) {
 			ops = append(ops, offerOperation{TOID: toid, Ledger: TOIDLedger(toid), SubmittedOfferID: submitted, Result: result})
 		}
 	}
-	before := replayOffers(ops, nil, 61340172)
-	after := replayOffers(ops, nil, 61340262)
+before := replayOffers(ops, nil, 61340172)
+after := replayOffers(ops, nil, 61340262)
+for _, id := range []int64{1824767559, 1824767560, 1824767561, 1824767562, 1824767563, 1824767564} {
+	deletedAt61340261 := false
+	for _, op := range ops {
+		if op.Ledger == 61340261 && op.SubmittedOfferID == id && op.Result.Effect == offerDeleted {
+			deletedAt61340261 = true
+			break
+		}
+	}
+	if !deletedAt61340261 {
+		t.Fatalf("offer %d has no deletion result at ledger 61340261", id)
+	}
 	for _, id := range []int64{1824767559, 1824767560, 1824767561, 1824767562, 1824767563, 1824767564} {
 		o, ok := before[id]
 		if !ok {
