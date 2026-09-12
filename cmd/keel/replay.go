@@ -189,6 +189,17 @@ func reportReplay(w *os.File, p horizon.Pair, r horizon.ReplayResult) {
 		}
 		fmt.Fprintf(w, "    missing offer ids (first %d): %v\n", len(show), show)
 	}
+	if r.Crossed {
+		// THE ONLY LINE HERE THAT IS A PROOF RATHER THAN A SUSPICION, so it says
+		// WRONG where the others say incomplete. Both prices are printed because
+		// finding the two offers afterwards is done by price_r against the trade
+		// stream, which is how the February pair was resolved. See
+		// docs/evidences/2026-09-12-crossed-book-ustry-february.md.
+		fmt.Fprintf(w, "  CROSSED: best bid %s is at or above best ask %s, which no ledger can hold.\n",
+			r.CrossedBid.Price.Decimal(), r.CrossedAsk.Price.Decimal())
+		fmt.Fprintf(w, "  This book is WRONG rather than thin. The ratios are %s and %s\n",
+			r.CrossedBid.Price, r.CrossedAsk.Price)
+	}
 	if r.Complete() {
 		fmt.Fprintf(w, "  no hole this method can detect. That is not the same claim as correct: an offer whose owner\n")
 		fmt.Fprintf(w, "  never traded and is not resting today is invisible to it, and pools are not reconstructed at all\n")

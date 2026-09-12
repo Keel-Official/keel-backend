@@ -273,6 +273,14 @@ type ReplayResult struct {
 	// has. It is sorted.
 	MissingOfferIDs []int64
 
+	// Crossed, CrossedBid and CrossedAsk mean what they mean on SeriesPoint: the
+	// reconstructed best bid is at or above the reconstructed best ask, which no
+	// ledger can hold. It is the one counter in this struct that PROVES the
+	// reconstruction is wrong rather than warning that it might be.
+	Crossed    bool
+	CrossedBid domain.Level
+	CrossedAsk domain.Level
+
 	Requests int
 	ReadAt   time.Time
 }
@@ -284,7 +292,7 @@ type ReplayResult struct {
 // detect. A caller printing this must print the counts beside it.
 func (r ReplayResult) Complete() bool {
 	return len(r.MissingOfferIDs) == 0 && r.Truncated == 0 && r.Unsizable == 0 &&
-		r.Failed == 0 && !r.MayBeInflated()
+		r.Failed == 0 && !r.MayBeInflated() && !r.Crossed
 }
 
 // MayBeInflated reports whether an offer could be resting on this book that was
@@ -349,6 +357,7 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 	}
 	out.TradeWindowFrom = q.TradesFromLedger
 	out.MissingOfferIDs = missingOffers(in.ops, in.trades)
+	out.CrossedBid, out.CrossedAsk, out.Crossed = out.Snapshot.Book.Crossed()
 	return out, nil
 }
 

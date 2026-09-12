@@ -129,12 +129,37 @@ type SeriesPoint struct {
 	// together. A point where this is zero and the trade stream is not is the
 	// shape of a walk that failed rather than of a market that emptied.
 	RestingOffers int
+
+	// Crossed is set when this point's book has its best bid at or above its best
+	// ask, which no ledger can hold: the matching engine would have executed the
+	// two against each other. It is therefore proof that this point is wrong,
+	// which is stronger than every other counter here, because all of those say
+	// only that something MIGHT have been missed.
+	//
+	// IT IS A PER-POINT VERDICT AND NOT A WALK-LEVEL ONE. The February run of
+	// 8 September 2026 had one walk produce thirty points of which six were
+	// crossed and twenty-four were not, so a single flag on SeriesResult would
+	// have condemned rows that are fine and, worse, invited the reader to average
+	// the two. See docs/evidences/2026-09-12-crossed-book-ustry-february.md.
+	Crossed bool
+
+	// CrossedBid and CrossedAsk are the two levels that cross, empty when Crossed
+	// is false. They are carried because naming the offer is what makes the row
+	// diagnosable: on the February run both sides resolved to one offer id each
+	// and the price ratio is what found them in the trade stream.
+	CrossedBid domain.Level
+	CrossedAsk domain.Level
 }
 
 // Complete reports whether the fold at this point found no hole in itself. It is
 // the per-point half of ReplayResult.Complete, and the walk-level half lives on
 // SeriesResult because one walk produced every point.
-func (p SeriesPoint) Complete() bool { return len(p.MissingOfferIDs) == 0 }
+//
+// A CROSSED BOOK COUNTS AS INCOMPLETE even when no offer id went unresolved, and
+// that combination is not hypothetical: the cap400 run of 8 September 2026
+// reported three missing ids and seven crossed rows, so the two measures caught
+// different rows. Reading either one alone passes rows the other condemns.
+func (p SeriesPoint) Complete() bool { return len(p.MissingOfferIDs) == 0 && !p.Crossed }
 
 // SeriesResult is every point plus the one walk they all came from.
 type SeriesResult struct {
@@ -236,6 +261,7 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 	for _, t := range targets {
 		state := replayOffers(in.ops, in.trades, t)
 		book := bookFromOffers(state, base, quote)
+		crossedBid, crossedAsk, crossed := book.Crossed()
 		out.Points = append(out.Points, SeriesPoint{
 			Target: t,
 			Snapshot: domain.Snapshot{
@@ -249,6 +275,9 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 			},
 			MissingOfferIDs: missingOffers(in.ops, in.trades),
 			RestingOffers:   len(book.Bids) + len(book.Asks),
+			Crossed:         crossed,
+			CrossedBid:      crossedBid,
+			CrossedAsk:      crossedAsk,
 		})
 	}
 	return out, nil

@@ -243,6 +243,11 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 	head := []string{
 		"day", "sample_source", "target_ledger", "sampled_at_utc", "sample_offset_seconds",
 		"bids", "asks", "resting_offers", "missing_offer_ids", "fold_complete",
+		// crossed sits beside fold_complete rather than at the end, because a
+		// reader who sorts this file on one column sorts on one of these two and
+		// they answer the same question with different strength. See
+		// docs/evidences/2026-09-12-crossed-book-ustry-february.md.
+		"crossed",
 		"price_source", "p0", "best_bid", "best_ask", "spread_pct",
 		"best_bid_amount", "best_ask_amount", "bid_amount_total", "ask_amount_total",
 	}
@@ -270,6 +275,7 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 			strconv.Itoa(r.Point.RestingOffers),
 			strconv.Itoa(len(r.Point.MissingOfferIDs)),
 			strconv.FormatBool(r.Point.Complete()),
+			strconv.FormatBool(r.Point.Crossed),
 			string(r.Risk.PriceSource),
 			optional(r.Risk.MidPrice),
 			bestLevel(r.Point.Snapshot.Book.Bids),
@@ -529,6 +535,10 @@ func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
 	add("walks_failed: %d\n", res.Failed)
 	add("unsizable_operations: %d\n", res.Unsizable)
 	add("walk_complete: %t\n", res.WalkComplete())
+	// crossed_points is a per-row proof summed into the sidecar, so it is the one
+	// count here a reader must not treat as a risk. A non-zero value means that
+	// many rows in the CSV beside this file describe a book no ledger held.
+	add("crossed_points: %d\n", crossedPoints(res))
 	add("requests: %d\n", res.Requests)
 	add("elapsed_seconds: %d\n", int(elapsed.Seconds()))
 	add("#\n")
@@ -541,7 +551,27 @@ func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
 	add("# Compare earliest_offer_operation_ledger against it.\n")
 	add("#\n")
 	add("# NO POOL IS RECONSTRUCTED. Every row is order book only.\n")
+	add("#\n")
+	add("# crossed_points is the STRONGEST line here. The counters above say a row\n")
+	add("# MIGHT be missing an offer. A crossed row is proof that one is, because\n")
+	add("# the matching engine would have executed the bid against the ask.\n")
 	return os.WriteFile(path, b, 0o644)
+}
+
+// crossedPoints counts the points whose reconstructed book crosses.
+//
+// It is a free function over the result rather than a method on SeriesResult,
+// because SeriesResult is in internal/horizon and the count is a presentation
+// concern of this sidecar: the per-point verdict is already on the point, and a
+// second place to ask "how many" invites the two to disagree.
+func crossedPoints(res horizon.SeriesResult) int {
+	n := 0
+	for _, p := range res.Points {
+		if p.Crossed {
+			n++
+		}
+	}
+	return n
 }
 
 func summarizeSeries(w *os.File, res horizon.SeriesResult, rows []seriesRow, elapsed time.Duration) {
@@ -562,9 +592,35 @@ func summarizeSeries(w *os.File, res horizon.SeriesResult, rows []seriesRow, ela
 	if empty > 0 {
 		fmt.Fprintf(w, "  %d point(s) rebuilt an EMPTY book. Check the floor before reading that as a market with no offers\n", empty)
 	}
+
+	// THE CROSSED ROWS ARE NAMED INDIVIDUALLY AND NOT COUNTED. Every other line
+	// above is a count because every other defect is a suspicion that applies to
+	// the whole run. A crossed row is a proof that applies to ONE row, so the row
+	// is printed with the two prices that cross, which is what it takes to find
+	// the offers in the trade stream afterwards.
+	var crossed []seriesRow
 	for _, r := range rows {
-		fmt.Fprintf(w, "  %s  ledger %d  %d bid(s) %d ask(s)  band %s  flags %v\n",
+		if r.Point.Crossed {
+			crossed = append(crossed, r)
+		}
+	}
+	if len(crossed) > 0 {
+		fmt.Fprintf(w, "  CROSSED BOOK on %d of %d point(s). No ledger can hold these, so they are WRONG and not thin:\n",
+			len(crossed), len(rows))
+		for _, r := range crossed {
+			fmt.Fprintf(w, "    ledger %d  %s  bid %s >= ask %s\n",
+				r.Point.Target, r.Sample.Day,
+				r.Point.CrossedBid.Price.Decimal(), r.Point.CrossedAsk.Price.Decimal())
+		}
+	}
+
+	for _, r := range rows {
+		mark := ""
+		if r.Point.Crossed {
+			mark = "  CROSSED"
+		}
+		fmt.Fprintf(w, "  %s  ledger %d  %d bid(s) %d ask(s)  band %s  flags %v%s\n",
 			r.Sample.Day, r.Point.Target, len(r.Point.Snapshot.Book.Bids), len(r.Point.Snapshot.Book.Asks),
-			r.Risk.Band, r.Risk.Flags)
+			r.Risk.Band, r.Risk.Flags, mark)
 	}
 }

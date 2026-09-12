@@ -749,3 +749,39 @@ type AssetRisk struct {
 
 	Warnings []string
 }
+
+// Crossed reports whether the best bid is at or above the best ask, and returns
+// the two levels that cross when it is.
+//
+// A CROSSED BOOK CANNOT EXIST ON A STELLAR LEDGER. The matching engine fills from
+// the best price, so the moment a bid reaches an ask the two execute and one of
+// them leaves the book. Every crossed book is therefore a defect in whatever
+// produced it, never a market state, and this predicate exists so that a producer
+// can say so rather than emit the rows in silence.
+//
+// The comparison is `>=` and not `>`, because equality crosses too: a bid at
+// exactly the ask price executes against it.
+//
+// WHY THIS LIVES IN domain RATHER THAN IN THE ADAPTER THAT FOUND THE DEFECT.
+// The question "is this book possible" is a property of a book and not of the
+// route that built it, and internal/horizon has two such routes, replay.go and
+// rewind.go, that would otherwise carry a copy each. A live Horizon read cannot
+// cross and asking costs two comparisons, so the check is cheap where it is
+// pointless and present where it is not.
+//
+// It reports and does not repair. Dropping the crossing level would make the book
+// possible and keep it wrong, and which of the two offers is the phantom is not
+// decidable from the book alone: it takes the operation and trade history of both.
+// See docs/evidences/2026-09-12-crossed-book-ustry-february.md, where deciding it
+// for one pair took a walk of each side.
+func (b OrderBook) Crossed() (bid, ask Level, crossed bool) {
+	bid, okBid := b.BestBid()
+	ask, okAsk := b.BestAsk()
+	if !okBid || !okAsk {
+		return Level{}, Level{}, false
+	}
+	if bid.Price.Decimal().GreaterThanOrEqual(ask.Price.Decimal()) {
+		return bid, ask, true
+	}
+	return Level{}, Level{}, false
+}
