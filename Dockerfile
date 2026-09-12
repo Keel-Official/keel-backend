@@ -34,6 +34,14 @@ RUN go mod download
 
 COPY . .
 
+# THE SAME ARG IS DECLARED IN BOTH STAGES ON PURPOSE. An ARG is scoped to the
+# stage that declares it, so the one below the runtime FROM does not reach up
+# here. The runtime copy feeds the OCI label; this one goes into the binary, and
+# both are fed the same value by the workflow. Declaring it once and expecting it
+# in both places is the quiet failure: the label would carry the revision and the
+# binary would report "unknown".
+ARG VCS_REF=unknown
+
 # CGO_ENABLED=0 IS NOT AN OPTIMISATION, IT IS WHAT MAKES THE RUNTIME STAGE
 # POSSIBLE. A cgo binary links against the builder's libc and will not start on a
 # distroless static base. pgx is pure Go, so nothing in this repository needs cgo.
@@ -41,9 +49,16 @@ COPY . .
 # -trimpath removes the builder's absolute paths from the binary, which is one
 # fewer thing that differs between two builds of the same commit. NFR-9 is about
 # the numbers rather than the binary, but the same instinct applies.
+#
+# -X main.buildRevision IS THE ONLY THING IN THIS BUILD THAT DIFFERS BETWEEN TWO
+# COMMITS OF IDENTICAL SOURCE, and that is deliberate rather than a break with
+# -trimpath above. GET /v1/health reports it so that a running deployment can be
+# asked which commit it is, instead of that being inferred from a tag list. The
+# header of cmd/keel/main.go carries why it is a linker stamp and not an
+# environment variable.
 RUN CGO_ENABLED=0 GOOS=linux go build \
       -trimpath \
-      -ldflags="-s -w" \
+      -ldflags="-s -w -X main.buildRevision=${VCS_REF}" \
       -o /out/keel ./cmd/keel
 
 # ---------------------------------------------------------------- runtime

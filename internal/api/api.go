@@ -77,7 +77,15 @@ type Config struct {
 	// docker-compose. An empty non-nil slice means "allow no origin", so a
 	// caller that wants CORS off has a way to say so that is not a nil.
 	AllowedOrigins []string
-	Logf           func(format string, args ...any)
+	// BuildRevision is the commit this binary was built from, reported verbatim
+	// by GET /health. It arrives as configuration rather than as a package
+	// variable in here so that the ldflags stamp lives in exactly one place,
+	// cmd/keel, and this package stays something a test can construct without
+	// build-time magic. Empty is rendered as "unknown" rather than as an empty
+	// string, because a caller that forgot to pass it and a build that was never
+	// stamped are the same fact and should read the same.
+	BuildRevision string
+	Logf          func(format string, args ...any)
 }
 
 // Server is the read-only HTTP surface described by docs/api/keel-openapi.yaml.
@@ -144,6 +152,23 @@ func (s *Server) Handler() http.Handler {
 
 // ---------------------------------------------------------------- meta
 
+// unstampedRevision is what GET /health reports when no build stamped this
+// binary. It is a word rather than an empty string or a null, so that a reader
+// comparing two deployments sees a value in both places and can tell "this one
+// was not stamped" apart from "this field is missing from this version".
+const unstampedRevision = "unknown"
+
+// buildRevisionOr renders a configured revision, or the word above when there is
+// none. It never invents one: guessing from the module path or the binary's
+// mtime would produce a stamp that looks authoritative and is not, which is
+// worse than admitting the build carried no revision.
+func buildRevisionOr(rev string) string {
+	if rev == "" {
+		return unstampedRevision
+	}
+	return rev
+}
+
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -158,6 +183,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		AssetsMonitored:     len(assets),
 		MethodologyVersion:  domain.MethodologyVersion,
 		HistoricalAvailable: s.cfg.HistoricalAvailable,
+		BuildRevision:       buildRevisionOr(s.cfg.BuildRevision),
 	}
 
 	// The status is derived from the last scan, and the three degraded cases are

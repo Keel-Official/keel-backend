@@ -26,6 +26,45 @@ import (
 	"github.com/Keel-Official/keel-backend/internal/domain"
 )
 
+// buildRevision is the commit this binary was built from, set at link time by
+// the Dockerfile:
+//
+//	go build -ldflags="-s -w -X main.buildRevision=$VCS_REF" ./cmd/keel
+//
+// A `go build` with no flags leaves it empty, and GET /v1/health renders that as
+// "unknown", which is the honest answer for a laptop.
+//
+// IT IS A LINKER STAMP AND NOT AN ENVIRONMENT VARIABLE, and the difference is
+// the whole reason the field exists. KEEL_IMAGE_TAG already sits in the host's
+// .env and already names an image, so reading the revision from there would have
+// been one line shorter. It would also be a value a human edits, in a file the
+// deploy job rewrites, describing a binary it is not part of. The failure it has
+// to catch is precisely a box whose .env and whose running binary disagree, and
+// a stamp that can disagree with its own binary cannot catch that.
+//
+// It is NOT the methodology version. `keel version` reports that one, and the
+// Dockerfile header says why conflating the two would put a build stamp where a
+// reader looks for the methodology. Both are on GET /v1/health, side by side and
+// separately named.
+//
+// THE ALTERNATIVE THAT WAS REJECTED, and it very nearly won: debug.ReadBuildInfo
+// already carries vcs.revision, so no ARG, no build-arg in the workflow and no
+// -X would have been needed at all. It works today, verified on 12 September
+// 2026, because there is no .dockerignore and `COPY . .` therefore carries .git
+// into the build stage. That is the whole of why it works, and it is not a
+// property anybody chose. Adding a .dockerignore is an ordinary thing to do for
+// build speed, and the moment one lands buildvcs finds no repository, omits the
+// setting without an error, and this field starts reading "unknown" on
+// production with nothing else changing. A stamp whose absence is caused by an
+// unrelated performance change, silently, is the failure mode this repository
+// keeps paying for. The ldflags route needs the plumbing and cannot be switched
+// off by accident.
+//
+// vcs.modified is the one thing the rejected route had and this one does not: it
+// says whether the tree was dirty. If that is ever wanted, it belongs as a
+// second explicit ARG rather than as a reason to move the whole field.
+var buildRevision = ""
+
 // belumSiap is the exit code for a subcommand that has a place but no body yet.
 // It is distinct from exit code 1 (misuse) so that a scheduler can tell "not
 // built yet" apart from "failed".

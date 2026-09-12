@@ -4,5 +4,6 @@
   "latestScanLedgerSeq": 61234567,
   "assetsMonitored": 53,
   "methodologyVersion": "1.0.8-draft",
-  "historicalAvailable": true
+  "historicalAvailable": true,
+  "buildRevision": "9f8c2a1d4b7e6053c1a2f8d9e0b3c7a6d5e4f312"
 }

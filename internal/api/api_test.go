@@ -1470,3 +1470,59 @@ func TestCORSWildcardIsRefusedAtStartup(t *testing.T) {
 		}
 	}
 }
+
+// GET /health has to say which BUILD is answering, not only which methodology.
+// The two are separate questions and the second one is why this field exists:
+// on 12 September 2026 this API served a binary seventeen commits behind main
+// while status, assetsMonitored and methodologyVersion all read correctly.
+func TestHealthReportsTheBuildRevision(t *testing.T) {
+	const rev = "9f8c2a1d4b7e6053c1a2f8d9e0b3c7a6d5e4f312"
+
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+	s, err := New(Config{
+		Reader:         f,
+		Params:         domain.DefaultParams(),
+		AllowedOrigins: []string{testOrigin},
+		BuildRevision:  rev,
+		Logf:           func(string, ...any) {},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	var body healthJSON
+	decodeBody(t, get(t, s.Handler(), BasePath+"/health"), &body)
+
+	if body.BuildRevision != rev {
+		t.Errorf("buildRevision = %q, want %q", body.BuildRevision, rev)
+	}
+	// The point of the field is that it answers a DIFFERENT question from the
+	// one beside it. A build that happened to stamp the methodology version
+	// would pass the check above and tell an operator nothing.
+	if body.BuildRevision == body.MethodologyVersion {
+		t.Error("buildRevision equals methodologyVersion; they are separate questions and must not be wired to one source")
+	}
+}
+
+// An unstamped build says so rather than serving an empty string, a null, or no
+// field at all. A reader comparing two deployments has to see a value in both
+// places, or the absence on one reads as a version difference in the contract.
+func TestHealthSaysUnknownWhenNoBuildStampWasGiven(t *testing.T) {
+	f := &fakeReader{assets: []store.Asset{ustryPair(7)}}
+
+	rec := get(t, newTestServer(t, f), BasePath+"/health")
+
+	var body healthJSON
+	decodeBody(t, rec, &body)
+	if body.BuildRevision != unstampedRevision {
+		t.Errorf("buildRevision = %q, want %q", body.BuildRevision, unstampedRevision)
+	}
+
+	// Present in the JSON itself and not merely non-zero after decoding into a
+	// struct, which would pass even if the server had omitted the key.
+	var raw map[string]any
+	decodeBody(t, rec, &raw)
+	if _, ok := raw["buildRevision"]; !ok {
+		t.Error("the buildRevision key is absent from the health body; it is never omitted")
+	}
+}

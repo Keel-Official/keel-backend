@@ -412,6 +412,20 @@ type healthJSON struct {
 	AssetsMonitored     int        `json:"assetsMonitored"`
 	MethodologyVersion  string     `json:"methodologyVersion"`
 	HistoricalAvailable bool       `json:"historicalAvailable"`
+
+	// BuildRevision names the COMMIT this binary was built from, and it is a
+	// different question from MethodologyVersion beside it. The methodology
+	// version says which definitions the numbers follow; this says which build
+	// produced them. Two deployments can agree on the first and disagree on the
+	// second, and on 12 September 2026 one did: the box served a binary
+	// seventeen commits behind main while every field above read correctly, and
+	// finding that out took `git ls-remote --tags` rather than a request.
+	//
+	// NEVER OMITTED, "unknown" WHEN UNSTAMPED. A field that disappears on a
+	// local build teaches a reader to treat its absence as normal, and then a
+	// production binary that failed to take its stamp reads the same as a
+	// laptop. See replay.go on printing a diagnostic whether or not it fired.
+	BuildRevision string `json:"buildRevision"`
 }
 
 type methodologyJSON struct {

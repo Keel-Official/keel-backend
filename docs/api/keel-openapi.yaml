@@ -128,7 +128,14 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.8-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.5.1
+  # 1.6.0, 12 September 2026: GET /health gains buildRevision. A MINOR bump and
+  # not a patch, because a consumer gains a field it did not have; additive, so
+  # nothing that reads 1.5.1 breaks. It exists because on that day this API
+  # served a binary seventeen commits behind main while every other field on
+  # /health read correctly, and establishing that took a tag listing rather than
+  # a request. An endpoint that reports its own liveness and cannot say which
+  # build is answering leaves the one question an operator actually has.
+  version: 1.6.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -223,6 +230,7 @@ paths:
                 assetsMonitored: 53
                 methodologyVersion: 1.0.8-draft
                 historicalAvailable: true
+                buildRevision: 9f8c2a1d4b7e6053c1a2f8d9e0b3c7a6d5e4f312
         '429':
           $ref: '#/components/responses/RateLimited'
 
@@ -1283,6 +1291,16 @@ components:
         historicalAvailable:
           type: boolean
           description: False when the Hubble path is currently unavailable
+        buildRevision:
+          type: string
+          description: >-
+            The commit this binary was built from, stamped at link time. It is a
+            different question from methodologyVersion beside it: that one names
+            the definitions the numbers follow, this one names the build that
+            produced them, and two deployments can agree on the first while
+            disagreeing on the second. Always present. Reads "unknown" on a build
+            that carried no stamp, which is the honest answer for a local `go
+            build` and a signal worth investigating on a deployed one.
 
     Methodology:
       type: object

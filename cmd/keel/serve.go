@@ -88,6 +88,7 @@ Stellar network.
 		// used.
 		Params:              domain.DefaultParams(),
 		HistoricalAvailable: *historical,
+		BuildRevision:       buildRevision,
 		Logf:                logger.Printf,
 	})
 	if err != nil {
