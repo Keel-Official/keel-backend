@@ -1,0 +1,63 @@
+# Provenance for usdy-trades-24h.csv
+# Written beside the CSV rather than inside it, for the reason DEC-010 gives:
+# a leading '#' line is read as a header by csv.DictReader.
+#
+# THIS FILE WAS NOT WRITTEN BY cmd/keel/backtest.go AND ITS SIDECAR FIELDS ARE
+# NOT THAT TOOL'S. The CSV's own header is the proof: it reads
+# `counter,id,ledger_close_time,base_amount,counter_amount,base_is_seller,
+# price_n,price_d,trade_type`, where backtest writes `trade_id,operation_id,
+# fill_index,ledger_seq,...`. It came from 43 direct Horizon `/trades` reads,
+# every URL and status logged in requests.tsv beside it. A sidecar in the
+# backtest shape would claim a walk that never ran, so the fields below are the
+# ones that are true of THIS file and the coverage line is separate.
+base_asset: USDY:GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6
+window_from_utc: 2026-09-07T06:00:05Z
+window_to_utc: 2026-09-08T06:00:05Z
+rows: 795
+min_closed_at_utc: 2026-09-07T06:02:55Z
+max_closed_at_utc: 2026-09-08T04:49:15Z
+counterparties_walked: 42
+counterparties_with_trades: 33
+requests: 43
+requests_non_200: 0
+stopped_past_window: false
+#
+# stopped_past_window IS false AND THAT IS NOT A DEFECT HERE, it is a different
+# method. backtest walks backwards until it sees a trade older than the window
+# and records that overshoot as its proof. These reads were bounded by time
+# instead, so no walk overshot and none could report that it had.
+#
+# THE COVERAGE CLAIM IS THEREFORE MADE A DIFFERENT WAY, and it was verified on
+# 12 September 2026 rather than asserted. Each of the 42 counterparties was read
+# with `order=desc&limit=200`, so a pair with more than 200 trades in the window
+# would silently hold a partial day. Exactly one pair reached that limit:
+#
+#   USDC  208 rows, and requests.tsv shows the two reads that produced them,
+#         the second carrying a cursor. It is the ONLY paged pair in the file.
+#   XLM   198 rows, one page, under the limit
+#   every other pair, 91 rows or fewer, one page, far under the limit
+#
+# USDC is also the pair the README's headline figures come from, so the one pair
+# that needed paging is the one that mattered. It was checked directly:
+#
+#   curl "https://horizon.stellar.org/trades?<the USDY/USDC pair>\
+#     &order=desc&limit=200&cursor=276221072066985985-1"
+#
+# That cursor is the file's OLDEST USDC row, 2026-09-07T07:07:54Z. The read
+# returns 200 records older than it and ZERO of them fall inside the window.
+# So the gap between the window start at 06:00:05Z and the file's oldest USDC
+# trade at 07:07:54Z contains no trade, and the 208 rows are the complete set.
+#
+# The pair has traded since 2025-09-16T16:39:15Z, so this is a bounded read of a
+# long history and not a short one exhausted.
+#
+# coverage_verified_on: 2026-09-12
+# coverage_verdict: complete for the window, on every counterparty
+#
+# P2-24 IN scripts/audit-verification.sh WILL STILL COUNT THIS FILE, and it is
+# right to. That check looks for `stopped_past_window: true`, which only a
+# backtest walk can honestly write. This window closed on 8 September and moves
+# with the clock, so the file cannot be re-produced by the tool and the residual
+# is real rather than clerical. Accepting it is Al's call; what this sidecar
+# removes is the worse state, a CSV in the repository making no coverage claim
+# at all.
