@@ -185,10 +185,28 @@ with an active pool:
 > reserve tends to zero, so every target is reachable and a highest price has no
 > meaning
 
-Six flags come back under `unevaluatedFlags` rather than as clear. The holder
-concentration, volume-to-supply and last-genuine-trade metrics they depend on are
-declared, stored and served, and none of them is computed yet. `unevaluated` is
-not the same claim as clear, and the response says which it is.
+Flags come back under `unevaluatedFlags` rather than as clear, and `unevaluated`
+is not the same claim as clear: the response says which it is.
+
+**Four of the six are still unevaluated, and they are not unevaluated for one
+reason.** Holder concentration is computed as of 12 September 2026, so
+`HOLDER_CONCENTRATION_EXTREME` and `HOLDER_CONCENTRATION_HIGH` now evaluate for
+every asset that has a holder reading behind it. The other four are each blocked
+by something specific rather than by nobody having written the code:
+
+| Flag | Why it is still unevaluated |
+|---|---|
+| `MANIPULATION_RATIO_LOW` | DEC-017 settled the units and the threshold; the implementation and its hand computed oracle have not landed |
+| `NO_GENUINE_TRADE_30D` | needs a genuine trade to measure from, and for a pool-dominant pair there is none: `docs/methodology/07-supporting-metrics.md` condition 4 judges a pool fill against a contemporaneous ORDER-BOOK price, and a pair whose trades are all pool fills offers no such price at any window size |
+| `NO_GENUINE_TRADE_7D` | the same reference, the same absence |
+| `WASH_TRADE_SUSPECTED` | needs every trade in a thirty day window classified, measured at about 35,000 Horizon requests for the demonstration set against a budget of 3,000 an hour. DEC-019 |
+
+**An asset whose holder reading was TRUNCATED still reports the two holder flags
+unevaluated**, and that is the design rather than a gap. `/accounts?asset=` is
+paged and the reading is capped; a percentage taken over the five thousand largest
+holders of an asset that has forty thousand is not an approximate answer to the
+concentration question, it is a precise answer to a different one. Zero and absent
+are different values and only absent is available.
 
 **`assetId` is `CODE:ISSUER`, or `XLM` for the native asset.** A value that does
 not match the contract's pattern is rejected with 400 `INVALID_ASSET_ID` before it

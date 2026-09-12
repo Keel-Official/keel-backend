@@ -542,6 +542,55 @@ Sixty pairs. `configs/recorder-pairs.json` is a different, provisional list and
 is not the one to use here: `docs/methodology/02-pair-selection.md` section 5
 supersedes it.
 
+### 3.6a The holder pull, which runs itself and needs one first push
+
+**THIS SECTION EXISTS BECAUSE ITS ABSENCE COST AN AFTERNOON ON 12 SEPTEMBER 2026.**
+The holder concentration figures come from a cache that `scan` reads and does not
+fill. `keel holders` fills it. Nothing in this document said so, nothing in the
+compose file arranged it, and the symptom was an API that had shipped the feature
+and reported `holderTop1Pct: null` on every asset. It looks exactly like a deploy
+that did not land.
+
+**The schedule now ships with the stack.** `docker-compose.prod.yml` carries a
+`keel-holders` service running `holders -interval 24h`, so once the stack is up
+the cache refreshes itself daily. It is a compose service and NOT a host cron on
+purpose: a cron is a manual step on every new box, and the failure when somebody
+forgets it is silent rather than loud.
+
+**What the schedule does not do is fill the cache the first time quickly, and the
+first pass is far slower than it looks.** Measured on 12 September 2026: the first
+asset, with 1,833 holders and about ten pages, finished in ten seconds. That is
+the CHEAP end. `/accounts?asset=` returns the full account object per holder, and
+one page of a widely held asset measured 17.5 MB and 20.5 seconds, so an asset at
+the 25 page cap is about eight minutes on its own. A first pass over sixty assets
+is therefore hours rather than minutes, and it is front-loaded with whichever
+assets sort early.
+
+`scan` only reads the cache on its next round, so figures appear asset by asset
+over several rounds rather than all at once. **A count that is not climbing after
+ten minutes is not evidence of a stall.** To start a pass by hand:
+
+```bash
+cd "$KEEL_DIR"
+docker compose -f docker-compose.prod.yml run --rm keel-serve holders
+```
+
+Expect one line per asset, and expect some of them to read `TRUNCATED at 5000 of
+N holders, no figures`. **That is the correct answer and not a failure.** The
+reading is stored with its flag and without figures, and that asset goes on
+reporting the two holder flags unevaluated.
+
+**THE CADENCE AND `scan -max-holder-age` ARE ONE SETTING IN TWO PLACES.** The
+service pulls every 24 hours and `scan` ignores a reading older than 48, which is
+two passes plus room for one to fail. Move either and reconsider the other in the
+same change; DEC-018 point 5 says so and the two numbers mean nothing apart.
+
+Verify from outside once a scan round has passed:
+
+```bash
+curl -s https://api.keels.app/v1/asset/<CODE>:<ISSUER>/depth | grep -i holder
+```
+
 ### 3.7 First boot
 
 ```bash
