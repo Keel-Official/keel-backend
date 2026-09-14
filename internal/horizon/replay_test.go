@@ -67,7 +67,7 @@ func TestTheTwoCreatesRebuildTheFixtureBookExactly(t *testing.T) {
 	// The target is the ledger BEFORE the manipulation, which is the state the
 	// fixture describes: "the book immediately before the manipulation trade
 	// executed inside ledger 61340263".
-	state := replayOffers(theTwoCreates(t), nil, 61340262)
+	state := replayOffers(theTwoCreates(t), nil, 61340262, nil)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 1 || len(book.Bids) != 1 {
@@ -105,7 +105,7 @@ func TestTheManipulationLeavesTheAskAtItsKnownRemainder(t *testing.T) {
 	// One ledger later, with the trade applied. 1.2185312 minus 0.0501003 is
 	// 1.1684309, which is the figure scripts/audit-verification.sh reports the
 	// offer still holding on chain.
-	state := replayOffers(theTwoCreates(t), []domain.Trade{theManipulation()}, 61340263)
+	state := replayOffers(theTwoCreates(t), []domain.Trade{theManipulation()}, 61340263, nil)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 1 {
@@ -124,7 +124,7 @@ func TestATradeAfterTheTargetLedgerIsNotApplied(t *testing.T) {
 	// The same trade, against a target one ledger before it. A replay that
 	// applied it would report a book that had already been eaten, which is the
 	// error that makes a market look thinner than it was.
-	state := replayOffers(theTwoCreates(t), []domain.Trade{theManipulation()}, 61340262)
+	state := replayOffers(theTwoCreates(t), []domain.Trade{theManipulation()}, 61340262, nil)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 1 {
@@ -137,7 +137,7 @@ func TestATradeAfterTheTargetLedgerIsNotApplied(t *testing.T) {
 
 func TestAnOperationAfterTheTargetLedgerIsNotApplied(t *testing.T) {
 	ops := theTwoCreates(t)
-	state := replayOffers(ops, nil, 61339940) // only the ask exists yet
+	state := replayOffers(ops, nil, 61339940, nil) // only the ask exists yet
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 1 || len(book.Bids) != 0 {
@@ -157,7 +157,7 @@ func TestACancelRemovesTheOfferItNames(t *testing.T) {
 		SubmittedOfferID: 1824788980,
 		Result:           ResultingOffer{Effect: offerDeleted},
 	})
-	state := replayOffers(ops, nil, 61340262)
+	state := replayOffers(ops, nil, 61340262, nil)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 0 {
@@ -178,7 +178,7 @@ func TestACreateThatCrossedEverythingLeavesNothingResting(t *testing.T) {
 		t.Fatalf("effect = %s, want deleted", op.Result.Effect)
 	}
 	ops := append(theTwoCreates(t), op)
-	state := replayOffers(ops, []domain.Trade{theManipulation()}, 61340263)
+	state := replayOffers(ops, []domain.Trade{theManipulation()}, 61340263, nil)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Bids) != 1 {
@@ -194,7 +194,7 @@ func TestAnOfferConsumedToZeroLeavesTheBook(t *testing.T) {
 	full.BaseAmount = decimal.RequireFromString("1.2185312") // the whole ask
 	full.CounterAmount = decimal.RequireFromString("130.0627093")
 
-	state := replayOffers(theTwoCreates(t), []domain.Trade{full}, 61340263)
+	state := replayOffers(theTwoCreates(t), []domain.Trade{full}, 61340263, nil)
 	book := bookFromOffers(state, testUSTRY, testUSDC)
 
 	if len(book.Asks) != 0 {
@@ -243,7 +243,7 @@ func TestAnOfferNamedByATradeAndNeverSeenIsReportedAsMissing(t *testing.T) {
 
 func TestAnOfferOnAnotherPairIsNotOnThisBook(t *testing.T) {
 	other := domain.Asset{Code: "XLM", Type: domain.AssetTypeNative}
-	state := replayOffers(theTwoCreates(t), nil, 61340262)
+	state := replayOffers(theTwoCreates(t), nil, 61340262, nil)
 
 	book := bookFromOffers(state, testUSTRY, other)
 	if len(book.Asks) != 0 || len(book.Bids) != 0 {
@@ -256,8 +256,8 @@ func TestTheReplayDoesNotDependOnTheOrderEventsArriveIn(t *testing.T) {
 	ops := theTwoCreates(t)
 	reversed := []offerOperation{ops[1], ops[0]}
 
-	a := bookFromOffers(replayOffers(ops, nil, 61340262), testUSTRY, testUSDC)
-	b := bookFromOffers(replayOffers(reversed, nil, 61340262), testUSTRY, testUSDC)
+	a := bookFromOffers(replayOffers(ops, nil, 61340262, nil), testUSTRY, testUSDC)
+	b := bookFromOffers(replayOffers(reversed, nil, 61340262, nil), testUSTRY, testUSDC)
 
 	if len(a.Asks) != len(b.Asks) || len(a.Bids) != len(b.Bids) {
 		t.Fatalf("level counts differ between input orderings")

@@ -111,6 +111,12 @@ type SeriesQuery struct {
 	// the late ones and the difference would look like a trend.
 	SinceLedger uint32
 
+	// KnownRemovals means what it means in ReplayQuery. It is ONE list for the
+	// whole series and each entry bites only at the targets at or above its
+	// gone_by_ledger, so an early point and a late point can honestly differ in
+	// whether the repair touched them. The per-point answer is on SeriesPoint.
+	KnownRemovals []KnownRemoval
+
 	Progress func(AccountWalk)
 }
 
@@ -149,6 +155,14 @@ type SeriesPoint struct {
 	// and the price ratio is what found them in the trade stream.
 	CrossedBid domain.Level
 	CrossedAsk domain.Level
+
+	// KnownRemovalsApplied are the offer ids that actually came OFF this point's
+	// book, sorted. It is per-point rather than per-run because a removal proven
+	// at ledger L leaves every earlier point untouched, and a reader comparing two
+	// rows is entitled to know which of them the repair reached. It reports what
+	// was removed and not what was eligible: see replayOffersReporting for the
+	// misreading that distinction exists to prevent.
+	KnownRemovalsApplied []int64
 }
 
 // Complete reports whether the fold at this point found no hole in itself. It is
@@ -231,8 +245,9 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 
 		MaxPagesPerOfferingAccount: q.MaxPagesPerOfferingAccount,
 
-		SinceLedger: q.SinceLedger,
-		Progress:    q.Progress,
+		SinceLedger:   q.SinceLedger,
+		KnownRemovals: q.KnownRemovals,
+		Progress:      q.Progress,
 	}
 	caps := rq.pageCaps()
 
@@ -259,7 +274,7 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 
 	out.Points = make([]SeriesPoint, 0, len(targets))
 	for _, t := range targets {
-		state := replayOffers(in.ops, in.trades, t)
+		state, removed := replayOffersReporting(in.ops, in.trades, t, q.KnownRemovals)
 		book := bookFromOffers(state, base, quote)
 		crossedBid, crossedAsk, crossed := book.Crossed()
 		out.Points = append(out.Points, SeriesPoint{
@@ -273,11 +288,12 @@ func (c *Client) ReconstructSeries(ctx context.Context, base, quote domain.Asset
 				// reason. The absence is not a claim that no pool existed.
 				Source: domain.DataSourceOffersImplied,
 			},
-			MissingOfferIDs: missingOffers(in.ops, in.trades),
-			RestingOffers:   len(book.Bids) + len(book.Asks),
-			Crossed:         crossed,
-			CrossedBid:      crossedBid,
-			CrossedAsk:      crossedAsk,
+			MissingOfferIDs:      missingOffers(in.ops, in.trades),
+			RestingOffers:        len(book.Bids) + len(book.Asks),
+			Crossed:              crossed,
+			CrossedBid:           crossedBid,
+			CrossedAsk:           crossedAsk,
+			KnownRemovalsApplied: removed,
 		})
 	}
 	return out, nil

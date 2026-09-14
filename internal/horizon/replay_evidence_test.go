@@ -46,8 +46,10 @@ func TestFebruary22SixOffersAreCancelledAtLedger61340261(t *testing.T) {
 			ops = append(ops, offerOperation{TOID: toid, Ledger: TOIDLedger(toid), SubmittedOfferID: submitted, Result: result})
 		}
 	}
-	before := replayOffers(ops, nil, 61340172)
-	after := replayOffers(ops, nil, 61340262)
+	// No known removals: this test proves the fold drops an offer on its own
+	// deletion result, so a removal list helping it would defeat the assertion.
+	before := replayOffers(ops, nil, 61340172, nil)
+	after := replayOffers(ops, nil, 61340262, nil)
 	for _, id := range []int64{1824767559, 1824767560, 1824767561, 1824767562, 1824767563, 1824767564} {
 		deletedAt61340261 := false
 		for _, op := range ops {

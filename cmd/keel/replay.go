@@ -58,6 +58,9 @@ func runReplay(args []string) error {
 	quiet := fs.Bool("quiet", false, "do not print one progress line per account walked")
 	compute := fs.Bool("compute", false,
 		"run the methodology over the reconstructed book and print the result. ORDER BOOK ONLY, because no pool is reconstructed, so a combined depth figure from it would be wrong")
+	removalsPath := fs.String("known-removals", "",
+		"path to a known-removals list, e.g. configs/known-removals.json. OFF by default. Each entry takes one "+
+			"offer off the book at targets at or above its gone_by_ledger, and the applied ids are printed with the result")
 	persist := fs.Bool("persist", false, "store computed offers-implied metrics; requires -pool-snapshots, a declared pair and no detected reconstruction gaps")
 	poolSnapshots := fs.String("pool-snapshots", "", "JSON snapshot array with audited pool coverage at this pair and ledger, required for -persist; null Pools means unknown and is refused")
 	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN for -persist only, or set KEEL_DSN")
@@ -126,6 +129,16 @@ Keep the source evidence with that file. Supplying it does not certify the book.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	var removals []horizon.KnownRemoval
+	if *removalsPath != "" {
+		var err error
+		removals, err = horizon.LoadKnownRemovals(*removalsPath)
+		if err != nil {
+			return fmt.Errorf("replay: %w", err)
+		}
+		fmt.Fprintf(os.Stdout, "  %d known removal(s) from %s\n", len(removals), *removalsPath)
+	}
+
 	var db *store.Store
 	if *persist {
 		db, err = openStore(ctx, *dsn)
@@ -157,6 +170,7 @@ Keep the source evidence with that file. Supplying it does not certify the book.
 			TradesFromLedger:   uint32(*tradesFrom),
 			TradeLookahead:     uint32(*lookahead),
 			SinceLedger:        uint32(*since),
+			KnownRemovals:      removals,
 			MaxPagesPerAccount: *maxPages,
 
 			MaxPagesPerOfferingAccount: *maxPagesOffering,
@@ -399,6 +413,13 @@ func reportReplay(w *os.File, p horizon.Pair, r horizon.ReplayResult) {
 			r.CrossedBid.Price.Decimal(), r.CrossedAsk.Price.Decimal())
 		fmt.Fprintf(w, "  This book is WRONG rather than thin. The ratios are %s and %s\n",
 			r.CrossedBid.Price, r.CrossedAsk.Price)
+	}
+	if len(r.KnownRemovalsApplied) > 0 {
+		// PRINTED WHETHER OR NOT THE BOOK LOOKS BETTER FOR IT. A repaired book
+		// and an unrepaired one are two readings of the same ledger, and a reader
+		// who is not told which one is in front of them cannot check either.
+		fmt.Fprintf(w, "  KNOWN REMOVALS APPLIED: %v. This book was repaired by hand-proven readings, not by the fold alone\n",
+			r.KnownRemovalsApplied)
 	}
 	if r.Complete() {
 		fmt.Fprintf(w, "  no hole this method can detect. That is not the same claim as correct: an offer whose owner\n")

@@ -197,6 +197,13 @@ type ReplayQuery struct {
 	// output rather than a setting somebody has to remember.
 	SinceLedger uint32
 
+	// KnownRemovals are offers proven to have left the book without emitting an
+	// operation or a trade, each with the ledger by which it is proven gone. They
+	// are applied as synthetic deletes and never inferred here. Empty is the
+	// default and the default is the honest one: a reconstruction that repairs
+	// itself by a rule nobody wrote down is not evidence. See removals.go.
+	KnownRemovals []KnownRemoval
+
 	// Progress, when set, is called once per account as the walk finishes it. A
 	// reconstruction over a few hundred accounts is minutes of requests, and a
 	// command that prints nothing until it is done cannot be told apart from one
@@ -280,6 +287,15 @@ type ReplayResult struct {
 	Crossed    bool
 	CrossedBid domain.Level
 	CrossedAsk domain.Level
+
+	// KnownRemovalsApplied are the offer ids from ReplayQuery.KnownRemovals that
+	// actually took an offer OFF this book, sorted. It is not the list that was
+	// eligible at this target: an offer whose create sits below the operation
+	// floor was never in the state, so removing it changes nothing and saying so
+	// would credit the repair with a book it did not touch. An empty list on a run
+	// that was GIVEN a list is therefore the useful case rather than a puzzle: the
+	// row is what an unrepaired fold would have produced.
+	KnownRemovalsApplied []int64
 
 	Requests int
 	ReadAt   time.Time
@@ -365,7 +381,8 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 	in.walk.into(&out)
 
 	// 4. Replay, then read the book off the final state.
-	state := replayOffers(in.ops, in.trades, q.TargetLedger)
+	state, removed := replayOffersReporting(in.ops, in.trades, q.TargetLedger, q.KnownRemovals)
+	out.KnownRemovalsApplied = removed
 	out.Snapshot = domain.Snapshot{
 		Base:      base,
 		Quote:     quote,
@@ -726,14 +743,58 @@ type restingOffer struct {
 //
 // Events at the same TOID are ordered trades first, operation last. The header
 // explains why that ordering is what makes trade-driven consumption sound.
-func replayOffers(ops []offerOperation, trades []domain.Trade, target uint32) map[int64]*restingOffer {
+//
+// A KNOWN REMOVAL ENTERS AS A THIRD KIND OF EVENT rather than as a filter over
+// the result, and the difference is not cosmetic: an offer proven gone by ledger
+// L may have been re-created above L by an operation this fold can see, and a
+// filter would delete that re-creation too. As an event at the start of L it
+// deletes what was resting and nothing that arrives afterwards. Its TOID is
+// L<<32, which is one operation earlier than the proof strictly supports, because
+// what the evidence establishes is absence AT ledger L rather than absence at the
+// start of it; the difference can only show at a target exactly equal to L and no
+// target in this repository is one.
+func replayOffers(ops []offerOperation, trades []domain.Trade, target uint32, removals []KnownRemoval) map[int64]*restingOffer {
+	state, _ := replayOffersReporting(ops, trades, target, removals)
+	return state
+}
+
+// replayOffersReporting is replayOffers plus which removals actually took an
+// offer off the book.
+//
+// THE DISTINCTION IS NOT PEDANTRY AND IT CAUGHT A MISREADING ON THE DAY IT WAS
+// WRITTEN. A removal whose target is at or above its gone_by_ledger is APPLIED;
+// whether it REMOVED anything depends on whether the offer was in the state at
+// all, and with a shallow operation floor it usually is not, because the offer's
+// create is below the floor and invisible. Reporting "applied" as though it meant
+// "removed" tells a reader that a book was repaired when nothing was touched, and
+// on 14 September 2026 a control run at floor 61300000 reported exactly that and
+// was briefly read as proof the repair worked. It was not: the phantom was below
+// that floor and absent either way.
+func replayOffersReporting(ops []offerOperation, trades []domain.Trade, target uint32, removals []KnownRemoval) (map[int64]*restingOffer, []int64) {
 	type event struct {
 		toid  int64
-		order int // 0 = trade, 1 = the operation's own result
+		order int // -1 = a known removal, 0 = trade, 1 = the operation's own result
 		trade *domain.Trade
 		op    *offerOperation
+
+		// removeOffer is set on a synthetic removal event and is the offer to
+		// delete. It is deliberately not an *offerOperation: nothing on the chain
+		// produced it, and dressing it as an operation would put a record in the
+		// state that no ledger can be asked for.
+		removeOffer int64
 	}
 	var events []event
+
+	for _, r := range removals {
+		if !r.appliesAt(target) {
+			continue
+		}
+		events = append(events, event{
+			toid:        int64(r.GoneByLedger) << 32,
+			order:       -1,
+			removeOffer: r.OfferID,
+		})
+	}
 
 	for i := range ops {
 		if ops[i].Ledger > target {
@@ -768,15 +829,22 @@ func replayOffers(ops []offerOperation, trades []domain.Trade, target uint32) ma
 	})
 
 	state := map[int64]*restingOffer{}
+	var removed []int64
 	for _, e := range events {
 		switch {
+		case e.removeOffer != 0:
+			if _, resting := state[e.removeOffer]; resting {
+				removed = append(removed, e.removeOffer)
+				delete(state, e.removeOffer)
+			}
 		case e.trade != nil:
 			consume(state, *e.trade)
 		case e.op != nil:
 			apply(state, *e.op)
 		}
 	}
-	return state
+	sort.Slice(removed, func(i, j int) bool { return removed[i] < removed[j] })
+	return state, removed
 }
 
 // apply writes what an operation's result says about the offer it submitted.

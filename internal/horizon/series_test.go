@@ -25,8 +25,8 @@ func TestOneEventListServesTwoTargets(t *testing.T) {
 	ops := theTwoCreates(t)
 	trades := []domain.Trade{theManipulation()}
 
-	before := bookFromOffers(replayOffers(ops, trades, 61340262), testUSTRY, testUSDC)
-	after := bookFromOffers(replayOffers(ops, trades, 61340263), testUSTRY, testUSDC)
+	before := bookFromOffers(replayOffers(ops, trades, 61340262, nil), testUSTRY, testUSDC)
+	after := bookFromOffers(replayOffers(ops, trades, 61340263, nil), testUSTRY, testUSDC)
 
 	if len(before.Asks) != 1 || len(after.Asks) != 1 {
 		t.Fatalf("asks before = %d, after = %d, want 1 and 1", len(before.Asks), len(after.Asks))
@@ -43,7 +43,7 @@ func TestOneEventListServesTwoTargets(t *testing.T) {
 	// them when it builds its event list. A fold that mutated an operation or a
 	// trade in place would leave the second call reading something the ledger
 	// never contained, and the failure would look like a market that moved.
-	again := bookFromOffers(replayOffers(ops, trades, 61340262), testUSTRY, testUSDC)
+	again := bookFromOffers(replayOffers(ops, trades, 61340262, nil), testUSTRY, testUSDC)
 	if !again.Asks[0].Amount.Equal(before.Asks[0].Amount) {
 		t.Errorf("re-folding at the first target gave %s, want the unchanged %s",
 			again.Asks[0].Amount, before.Asks[0].Amount)
@@ -56,7 +56,7 @@ func TestOneEventListServesTwoTargets(t *testing.T) {
 // between a configuration mistake and this repository's loudest finding.
 func TestAPointBelowEveryOperationIsAnEmptyBookAndNotAnError(t *testing.T) {
 	ops := theTwoCreates(t)
-	book := bookFromOffers(replayOffers(ops, nil, 61000000), testUSTRY, testUSDC)
+	book := bookFromOffers(replayOffers(ops, nil, 61000000, nil), testUSTRY, testUSDC)
 	if len(book.Asks) != 0 || len(book.Bids) != 0 {
 		t.Fatalf("book has %d ask(s) and %d bid(s), want an empty book", len(book.Asks), len(book.Bids))
 	}

@@ -1,0 +1,11 @@
+{
+  "note": "OFFERS PROVEN TO HAVE LEFT THE BOOK WITHOUT EMITTING AN OPERATION OR A TRADE. This file is DATA and every entry is a reading somebody took by hand, named by the document that proves it. It is NEVER applied by default: `keel bookseries` and `keel replay` both need -known-removals on the command line, because a reconstruction that repairs itself without being asked stops being evidence. An entry removes ONE offer from folds at or above gone_by_ledger and changes nothing below it. Adding an entry without a document behind it turns this file into an opinion the fold obeys, which is the one thing it must never become. See internal/horizon/removals.go for the mechanism and DEC-021 for whether the historical path may carry this file at all.",
+  "removals": [
+    {
+      "offer_id": 1822775941,
+      "gone_by_ledger": 61143682,
+      "evidence": "docs/evidences/2026-09-12-crossed-book-ustry-february.md",
+      "why": "One stroop of USTRY at price 1.0573892029461328, owned by GBPFB6XN. Horizon's per-offer trade index returns exactly two trades for it, both at ledger 61143618 and 61143619 on 8 February 2026. A forward walk of its owner's operations from 61143617 to 61143682 names the offer in five operations, all at ledger 61143618, and never again. The issuer performed no allow_trust, set_trust_line_flags or clawback in the range. At ledger 61143682 a trade priced ABOVE it executed, which a buy could not have done while a cheaper ask rested, so it was gone by then. Carried by the unrepaired fold as a phantom best ask on every sampled row from 9 to 28 February 2026."
+    }
+  ]
+}

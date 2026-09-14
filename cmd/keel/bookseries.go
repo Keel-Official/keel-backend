@@ -81,6 +81,10 @@ func runBookSeries(args []string) error {
 	maxPagesOffering := fs.Int("max-pages-per-offering-account", 0,
 		"the deeper cap that applies from an account's first offer operation on this pair. 0 uses the built-in default. "+
 			"Depth is what a month costs and 213 of the 222 accounts walked on 8 September 2026 held no offer at all")
+	removalsPath := fs.String("known-removals", "",
+		"path to a known-removals list, e.g. configs/known-removals.json. OFF by default: a reconstruction "+
+			"that repairs itself without being asked is not evidence. Each entry removes one offer from the "+
+			"points at or above its gone_by_ledger and is reported per row and in the sidecar")
 	out := fs.String("csv", "", "write the series to this CSV. A .meta.txt sidecar is written beside it")
 	quiet := fs.Bool("quiet", false, "do not print one progress line per account walked")
 	baseURL := fs.String("horizon", horizon.DefaultBaseURL, "Horizon base URL")
@@ -119,6 +123,14 @@ figure taken from one would be wrong.
 	}
 	pair := pairs[0]
 
+	var removals []horizon.KnownRemoval
+	if *removalsPath != "" {
+		removals, err = horizon.LoadKnownRemovals(*removalsPath)
+		if err != nil {
+			return fmt.Errorf("bookseries: %w", err)
+		}
+	}
+
 	samples, err := gatherSamples(*fromTrades, *alsoLedger)
 	if err != nil {
 		return fmt.Errorf("bookseries: %w", err)
@@ -140,6 +152,11 @@ figure taken from one would be wrong.
 	fmt.Fprintf(os.Stdout, "bookseries %s\n", pair)
 	fmt.Fprintf(os.Stdout, "  %d target(s), ledger %d to %d\n", len(targets), targets[0], targets[len(targets)-1])
 	fmt.Fprintf(os.Stdout, "  one walk at the latest target, floor %d, lookahead %d\n", *since, *lookahead)
+	if len(removals) == 0 {
+		fmt.Fprintf(os.Stdout, "  no known removals: the fold is unrepaired\n")
+	} else {
+		fmt.Fprintf(os.Stdout, "  %d known removal(s) from %s\n", len(removals), *removalsPath)
+	}
 
 	started := time.Now()
 	walked := 0
@@ -148,6 +165,7 @@ figure taken from one would be wrong.
 		TradesFromLedger:   uint32(*tradesFrom),
 		TradeLookahead:     uint32(*lookahead),
 		SinceLedger:        uint32(*since),
+		KnownRemovals:      removals,
 		MaxPagesPerAccount: *maxPages,
 
 		MaxPagesPerOfferingAccount: *maxPagesOffering,
@@ -180,7 +198,8 @@ figure taken from one would be wrong.
 		return fmt.Errorf("bookseries: %w", err)
 	}
 	meta := strings.TrimSuffix(*out, filepath.Ext(*out)) + ".meta.txt"
-	if err := writeSeriesMeta(meta, pair, res, *fromTrades, uint32(*since), uint32(*tradesFrom), uint32(*lookahead), elapsed); err != nil {
+	if err := writeSeriesMeta(meta, pair, res, *fromTrades, uint32(*since), uint32(*tradesFrom), uint32(*lookahead),
+		*removalsPath, removals, elapsed); err != nil {
 		return fmt.Errorf("bookseries: %w", err)
 	}
 
@@ -248,6 +267,11 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 		// they answer the same question with different strength. See
 		// docs/evidences/2026-09-12-crossed-book-ustry-february.md.
 		"crossed",
+		// known_removals is the row's own answer to "was this book repaired",
+		// and it sits with the two diagnostics rather than at the end because a
+		// reader comparing a repaired row against an unrepaired one is asking the
+		// same question those two answer.
+		"known_removals",
 		"price_source", "p0", "best_bid", "best_ask", "spread_pct",
 		"best_bid_amount", "best_ask_amount", "bid_amount_total", "ask_amount_total",
 	}
@@ -276,6 +300,7 @@ func writeSeriesCSV(path string, rows []seriesRow, p domain.Params) error {
 			strconv.Itoa(len(r.Point.MissingOfferIDs)),
 			strconv.FormatBool(r.Point.Complete()),
 			strconv.FormatBool(r.Point.Crossed),
+			joinOfferIDs(r.Point.KnownRemovalsApplied),
 			string(r.Risk.PriceSource),
 			optional(r.Risk.MidPrice),
 			bestLevel(r.Point.Snapshot.Book.Bids),
@@ -492,7 +517,8 @@ func dailySamplesFromTrades(path string) ([]seriesSample, error) {
 }
 
 func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
-	tradesCSV string, floor, tradesFrom, lookahead uint32, elapsed time.Duration) error {
+	tradesCSV string, floor, tradesFrom, lookahead uint32,
+	removalsPath string, removals []horizon.KnownRemoval, elapsed time.Duration) error {
 	var b []byte
 	add := func(format string, args ...any) { b = append(b, fmt.Sprintf(format, args...)...) }
 
@@ -539,6 +565,15 @@ func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
 	// count here a reader must not treat as a risk. A non-zero value means that
 	// many rows in the CSV beside this file describe a book no ledger held.
 	add("crossed_points: %d\n", crossedPoints(res))
+	// THE REPAIR IS PART OF THE PROVENANCE AND NOT A FOOTNOTE. A row produced
+	// with a removal applied and a row produced without one are different
+	// readings of the same ledger, and a sidecar that does not say which was run
+	// leaves the two indistinguishable in the file a client is asked to check.
+	add("known_removals_file: %s\n", orNone(removalsPath))
+	add("known_removals_declared: %d\n", len(removals))
+	for _, r := range removals {
+		add("known_removal: offer %d gone by ledger %d, evidence %s\n", r.OfferID, r.GoneByLedger, r.Evidence)
+	}
 	add("requests: %d\n", res.Requests)
 	add("elapsed_seconds: %d\n", int(elapsed.Seconds()))
 	add("#\n")
@@ -552,10 +587,39 @@ func writeSeriesMeta(path string, pair horizon.Pair, res horizon.SeriesResult,
 	add("#\n")
 	add("# NO POOL IS RECONSTRUCTED. Every row is order book only.\n")
 	add("#\n")
+	add("#\n")
+	add("# known_removals_declared counts what was OFFERED to the fold. Which of\n")
+	add("# them actually bit at a given row is that row's own known_removals\n")
+	add("# column, because a removal proven at one ledger leaves every earlier\n")
+	add("# point untouched.\n")
+	add("#\n")
 	add("# crossed_points is the STRONGEST line here. The counters above say a row\n")
 	add("# MIGHT be missing an offer. A crossed row is proof that one is, because\n")
 	add("# the matching engine would have executed the bid against the ask.\n")
 	return os.WriteFile(path, b, 0o644)
+}
+
+// orNone renders an unset path as a word rather than as an empty value, because
+// a sidecar line reading "known_removals_file: " is ambiguous between a file that
+// was not given and one whose name failed to print.
+// joinOfferIDs renders the offer ids a row had removed, space separated to match
+// how the flag columns already render a list in this CSV.
+func joinOfferIDs(ids []int64) string {
+	if len(ids) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(ids))
+	for _, id := range ids {
+		parts = append(parts, strconv.FormatInt(id, 10))
+	}
+	return strings.Join(parts, " ")
+}
+
+func orNone(s string) string {
+	if s == "" {
+		return "(none)"
+	}
+	return s
 }
 
 // crossedPoints counts the points whose reconstructed book crosses.
