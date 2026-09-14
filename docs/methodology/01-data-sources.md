@@ -1,6 +1,6 @@
 # Keel: Data Sources
 
-**Methodology version:** 1.1.0-draft
+**Methodology version:** 1.2.0
 **Status:** complete. Every claim here was verified against Horizon mainnet during this
 project; none is quoted from documentation alone.
 
@@ -61,6 +61,25 @@ if precise historical order book state is later required.
 When historical order book state is unavailable, depth is bounded from executed trades.
 See `00-core.md` section 12. Results derived this way carry
 `dataSource: "trades-implied"` and must never be presented as measurements.
+
+### 1.4 Offers-implied reconstruction, with hand-proven removals
+
+The order book at a past ledger is not read from Horizon — no state endpoint accepts a
+ledger (1.1) — but reconstructed by folding two event streams, offer operations and
+trades, forward to the target. This is the "event reconstruction" that serves the Blend
+backtest (1.2). Figures derived this way carry `dataSource: "offers-implied"`, and are
+distinct from the `trades-implied` bound of 1.3.
+
+The fold sees an offer leave the book only when an operation or a trade says so. An offer
+can leave without either; `docs/decisions/DEC-021` proves one such case. Where this
+repository has proven a specific offer absent and recorded that proof in
+`configs/known-removals.json`, the fold may be told of the removal by hand. A removal is
+never applied unless a run asks for it, and a run without the flag reconstructs exactly
+what it reconstructed before this correction existed. Any run that used one is identified
+in its own provenance: the sidecar names the removals file and lists every declared
+removal, and the CSV carries a per-row `known_removals` column. The correction can only
+remove depth, never add it, so it stays on the conservative side of principle 1 in
+`11-limitations.md`.
 
 ---
 
@@ -225,3 +244,4 @@ responses.
 | 1.0.3-draft | Initial document. Consolidates source facts previously scattered across DEC-001, DEC-002 and DEC-003 |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
 | 1.1.0-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** Al resolved Q7 in `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so every absolute threshold is a USDC figure. Under the one-version rule of DEC-014 the whole set moves with the one file whose content changed. README section 4 and DEC-015 carry the reasoning |
+| 1.2.0-draft | 2026-09-14 | Added §1.4 (offers-implied reconstruction with hand-proven removals) per DEC-021. |
