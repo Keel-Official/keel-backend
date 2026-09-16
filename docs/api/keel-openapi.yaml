@@ -2,6 +2,69 @@ openapi: 3.1.0
 
 info:
   title: Keel Liquidity Risk API
+  # 1.6.1, 16 September 2026. FIVE CORRECTIONS AND NO SCHEMA CHANGE, which is why it
+  # is a patch, on the same reasoning 1.5.1 used. Every one is a place where the
+  # server moved and this file did not. The pass that found them compared this file
+  # against the RESPONSE rather than against the handler: GET /v1/methodology was
+  # called on a test server and its JSON diffed against the example below. Reading
+  # the handler would have found the first and missed the other four.
+  #
+  #  1. manipulationRatioLowPct read '1.0' and the server sends '0.1'. DEC-017
+  #     section 1 item 3 set that value on 10 September 2026 and internal/domain
+  #     applied it on the 12th. The old number was never in force: the rule could
+  #     not be implemented as written until that record fixed its units, so no
+  #     result was ever judged against 1.0 and this is a correction rather than a
+  #     recalibration. It is the only one of the five a consumer could have ACTED
+  #     on, because it is the only one that is a wrong value rather than a wrong
+  #     rendering or a missing key.
+  #  2. Eight threshold values were shown with trailing zeros the server does not
+  #     send. handleMethodology renders them with decimal.String(), so what arrives
+  #     is '10000' and not '10000.0000000', '20' and not '20.0'. The Decimal
+  #     pattern accepts both spellings, so nothing here was ever INVALID; it was
+  #     simply not what a consumer receives, and the mock repeated it.
+  #  3. ammFeeBp: 30 is removed. It appears in no Go file in this repository, so
+  #     the example and the generated mock were advertising a threshold this API
+  #     has never sent. That is exactly the failure DEC-014 section 5 records, and
+  #     this time it was sitting in the mock a frontend builds against.
+  #  4. Four keys the server does send were missing entirely: liquidationDelta,
+  #     liquidationHaircut, manipulationCriticalDelta and manipulationMargin. The
+  #     maxSafeCollateral descriptions have named "the liquidation delta", "the
+  #     haircut", "the critical delta" and "the safety margin" in prose since 1.2.0
+  #     without ever saying they are readable, so a consumer could see the terms
+  #     and not the numbers behind them. Two of the four arrive as JSON NUMBERS
+  #     rather than strings; point 1 of the description below allows that only for
+  #     deltas, and both are deltas, which is now stated in the schema instead of
+  #     left for a consumer to discover from a response.
+  #  5. The DataSource description of offers-implied said the book is rebuilt by
+  #     replaying manage_sell_offer and manage_buy_offer. It also folds the trades
+  #     that consumed those offers, and since DEC-021 a run may additionally be
+  #     told of an offer that left the book without emitting either kind of event.
+  #     docs/methodology/01-data-sources.md section 1.4 carries the rule. No enum
+  #     value and no field moved: what changed is what offers-implied CLAIMS ABOUT
+  #     ITSELF, which is the wording DEC-021 section header uses for its own scope.
+  #
+  # WHAT THIS PASS DID NOT TOUCH, and it is the larger of the two version problems.
+  # The example's `version: 1.0.8-draft` is CORRECT, because domain.MethodologyVersion
+  # is still 1.0.8-draft. The methodology is not: 00-overview.md and the methodology
+  # README say 1.1.0-draft, while 01-data-sources.md and 11-limitations.md say 1.2.0
+  # after DEC-021. So DEC-014's one-version rule is not holding right now, and the
+  # constant is behind whichever version wins. Which version is in force is Al's to
+  # settle and docs/methodology/ is RED, so this file follows the server and says so
+  # here rather than guessing a string and making the contract lie in a new way.
+  #
+  # The 1.6.0 entry below was filed underneath 1.4.1 rather than at the head of this
+  # block. It is moved, not rewritten, because this block is read as a changelog and
+  # a changelog whose newest entry is buried in the middle is one a reader stops
+  # trusting. Not one word of it changed.
+  #
+  # 1.6.0, 12 September 2026: GET /health gains buildRevision. A MINOR bump and
+  # not a patch, because a consumer gains a field it did not have; additive, so
+  # nothing that reads 1.5.1 breaks. It exists because on that day this API
+  # served a binary seventeen commits behind main while every other field on
+  # /health read correctly, and establishing that took a tag listing rather than
+  # a request. An endpoint that reports its own liveness and cannot say which
+  # build is answering leaves the one question an operator actually has.
+  #
   # 1.5.1, 11 September 2026. TWO CORRECTIONS AND NO SCHEMA CHANGE, which is why it
   # is a patch. Both are places where this file described a rule that DEC-015 had
   # already replaced on 5 September, so the contract was six days out of date with
@@ -128,14 +191,7 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.8-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  # 1.6.0, 12 September 2026: GET /health gains buildRevision. A MINOR bump and
-  # not a patch, because a consumer gains a field it did not have; additive, so
-  # nothing that reads 1.5.1 breaks. It exists because on that day this API
-  # served a binary seventeen commits behind main while every other field on
-  # /health read correctly, and establishing that took a tag listing rather than
-  # a request. An endpoint that reports its own liveness and cannot say which
-  # build is answering leaves the one question an operator actually has.
-  version: 1.6.0
+  version: 1.6.1
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -261,20 +317,23 @@ paths:
                   calibrated against a set of incidents. Every flag is reported
                   separately so that consumers can apply their own thresholds.
                 thresholds:
-                  manipulationCheapAbsolute: '10000.0000000'
+                  manipulationCheapAbsolute: '10000'
                   manipulationCheapUnit: USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
-                  manipulationRatioLowPct: '1.0'
-                  thinDepth5PctAbsolute: '50000.0000000'
+                  manipulationRatioLowPct: '0.1'
+                  thinDepth5PctAbsolute: '50000'
                   thinDepth5PctUnit: USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
-                  holderTop1ExtremePct: '50.0'
-                  holderTop10HighPct: '80.0'
+                  holderTop1ExtremePct: '50'
+                  holderTop10HighPct: '80'
                   genuineTradeStaleDays: 30
                   genuineTradeWarnDays: 7
-                  washTradeSuspectedPct: '50.0'
-                  spreadExtremePct: '20.0'
-                  priceDivergencePct: '10.0'
+                  washTradeSuspectedPct: '50'
+                  spreadExtremePct: '20'
+                  priceDivergencePct: '10'
                   oracleWindowSeconds: 900
-                  ammFeeBp: 30
+                  liquidationDelta: 0.1
+                  liquidationHaircut: '0.5'
+                  manipulationCriticalDelta: 0.5
+                  manipulationMargin: '0.25'
         '429':
           $ref: '#/components/responses/RateLimited'
 
@@ -407,11 +466,12 @@ paths:
           description: |
             Which data source the series is drawn from. One source per response,
             never a mixture. `horizon` and `hubble` are direct readings;
-            `offers-implied` is reconstructed from posted offers and
-            `trades-implied` from executed trades, which makes the last one a
-            lower bound rather than a measurement. A value outside this set is
-            400 INVALID_RANGE and not an empty series, because "no data" and
-            "no such source" are different answers.
+            `offers-implied` is reconstructed from posted offers and the trades
+            that consumed them, and `trades-implied` from executed trades alone,
+            which makes the last one a lower bound rather than a measurement. The
+            DataSource schema carries what the `offers-implied` fold cannot see by
+            itself. A value outside this set is 400 INVALID_RANGE and not an empty
+            series, because "no data" and "no such source" are different answers.
           schema:
             type: string
             enum: [horizon, hubble, offers-implied, trades-implied]
@@ -589,10 +649,22 @@ components:
         `horizon` a live scan of the current orderbook and pools.
         `hubble` a replay of historical state from a snapshot.
         `offers-implied` the orderbook state at that ledger was unavailable, so the
-        book was reconstructed by replaying `manage_sell_offer` and
-        `manage_buy_offer` operations. This is a reconstruction and it carries
-        `warnings`, but it is a STRONGER source than `trades-implied`, because an
-        offer proves liquidity that was POSTED.
+        book was reconstructed by folding two event streams forward to it: the offer
+        operations (`manage_sell_offer`, `manage_buy_offer` and
+        `create_passive_sell_offer`) and the trades that consumed them. This is a
+        reconstruction and it carries `warnings`, but it is a STRONGER source than
+        `trades-implied`, because an offer proves liquidity that was POSTED.
+
+        An offer can also leave the book WITHOUT emitting either kind of event, and
+        the fold cannot see that on its own. Where this repository has proven a
+        specific offer absent, the removal is declared in
+        `configs/known-removals.json` and a run may be told of it by hand; DEC-021
+        records the case that established this, and
+        `docs/methodology/01-data-sources.md` section 1.4 carries the rule. The
+        correction is opt in per run and can only remove depth, never add it. This
+        field does not say whether a given result used one, and it is not being
+        widened to: the provenance sidecar beside the artefact names the removals
+        file and lists every declared removal.
 
         `trades-implied` the orderbook state was unavailable and no offer history
         was usable either, so price and liquidity were reconstructed from trades
@@ -1348,6 +1420,59 @@ components:
                 in seconds. Used as the comparison baseline for genuine volume in
                 `oracleResistance`. This threshold is chosen, not read from any
                 oracle, because every oracle has its own window.
+            manipulationRatioLowPct:
+              allOf: [$ref: '#/components/schemas/Decimal']
+              description: |
+                The threshold that triggers MANIPULATION_RATIO_LOW, in percent,
+                following the convention above.
+
+                The rule multiplies the manipulation cost over the circulating
+                supply VALUE by 100 before the comparison, so the factor of 100
+                belongs to the rule and not to this number: '0.1' means a tenth of
+                one percent. Stated explicitly because that is the ambiguity
+                DEC-017 was written to settle, and the two readings of it differ
+                by a hundredfold. The value moved from 1.0 to 0.1 on 10 September
+                2026 by that record.
+            liquidationDelta:
+              type: number
+              description: |
+                The downward price move the collateral calculation assumes, as a
+                relative shift; 0.1 means 10 percent. This is "the liquidation
+                delta" named in `maxSafeCollateralLiquidation`, and it selects
+                which rung of the `depth` ladder that term reads.
+
+                Sent as a NUMBER and not a string. That is the same exception
+                point 1 of this API's description makes for `delta`, and for the
+                same reason: it is a ladder position, not a monetary value.
+            liquidationHaircut:
+              allOf: [$ref: '#/components/schemas/Decimal']
+              description: |
+                The share of `depth.sellSide` at `liquidationDelta` that the
+                liquidation term is allowed to claim. This is "the haircut" named
+                in `maxSafeCollateralLiquidation`.
+
+                A FRACTION and not a percent: '0.5' means half. The name carries
+                no `Pct` suffix for exactly that reason, which is the only signal
+                distinguishing it from the keys above it.
+            manipulationCriticalDelta:
+              type: number
+              description: |
+                The rung of the `manipulationCostOrderbookOnly` ladder that the
+                manipulation term of `maxSafeCollateral` reads; 0.5 means 50
+                percent. This is "the critical delta" named in
+                `maxSafeCollateralManipulation`, and it is where that term's
+                `reachable` check is made.
+
+                It does NOT scope the MANIPULATION_CHEAP flag, which scans every
+                reachable rung rather than this one. A number, for the reason given
+                on `liquidationDelta`.
+            manipulationMargin:
+              allOf: [$ref: '#/components/schemas/Decimal']
+              description: |
+                The share of the manipulation cost at `manipulationCriticalDelta`
+                that the manipulation term is allowed to claim. This is "the safety
+                margin" named in `maxSafeCollateralManipulation`. A fraction and not
+                a percent, as with `liquidationHaircut`.
 
     Error:
       type: object
@@ -2008,12 +2133,12 @@ components:
             maxReachablePrice is determined entirely by the orderbook.
           - >-
             dataSource is offers-implied. The orderbook snapshot at this ledger was
-            unavailable, so both sides of the book were reconstructed by replaying
-            manage_sell_offer and manage_buy_offer operations. That is a
-            reconstruction, so the depth figures are not a direct measurement, but
-            it is a stronger source than trades-implied would be: an offer proves
-            liquidity that was posted, while a trade proves only liquidity that was
-            consumed.
+            unavailable, so both sides of the book were reconstructed by folding the
+            offer operations and the trades that consumed them forward to it. That
+            is a reconstruction, so the depth figures are not a direct measurement,
+            but it is a stronger source than trades-implied would be: an offer
+            proves liquidity that was posted, while a trade proves only liquidity
+            that was consumed.
           - >-
             A cost of 0.0000000 at delta 0.5 with reachable true is the most
             dangerous condition Keel can report: the price 80.8457121 is attainable
