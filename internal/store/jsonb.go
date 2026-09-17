@@ -259,6 +259,67 @@ func decodeLastGenuineTrade(body []byte) (*domain.TradeRef, error) {
 	return &domain.TradeRef{LedgerSeq: in.LedgerSeq, At: in.At}, nil
 }
 
+// ---------------------------------------------------------------- reconstruction
+
+// reconstructionJSON is the walk diagnostics of a reconstructed row, DEC-022.
+//
+// EVERY FIELD IS A JSON NUMBER AND THAT IS NOT THE EXCEPTION THIS FILE'S HEADER
+// WARNS ABOUT. The header requires a decimal to be a string because a JSON number
+// is an IEEE 754 double and a 28 digit decimal does not survive one. These are
+// counts of account walks and a ledger sequence: small integers, exact in a
+// double by a wide margin, and nothing downstream does arithmetic on them beyond
+// comparing to zero. Writing them as strings would make a consumer parse a number
+// out of text for no gain.
+//
+// No omitempty anywhere. A zero counter is a measurement, "this walk lost nothing
+// this way", and it must not vanish into an absent key that reads as unknown. The
+// whole object is absent when there was no walk, which is the only absence this
+// column has a meaning for.
+type reconstructionJSON struct {
+	Truncated      int    `json:"truncated"`
+	StoppedAtFloor int    `json:"stoppedAtFloor"`
+	Failed         int    `json:"failed"`
+	Unsizable      int    `json:"unsizable"`
+	MissingOffers  int    `json:"missingOffers"`
+	FloorLedger    uint32 `json:"floorLedger"`
+	AccountsWalked int    `json:"accountsWalked"`
+}
+
+func encodeReconstruction(r *domain.Reconstruction) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+	body, err := json.Marshal(reconstructionJSON{
+		Truncated:      r.Truncated,
+		StoppedAtFloor: r.StoppedAtFloor,
+		Failed:         r.Failed,
+		Unsizable:      r.Unsizable,
+		MissingOffers:  r.MissingOffers,
+		FloorLedger:    r.FloorLedger,
+		AccountsWalked: r.AccountsWalked,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return string(body), nil
+}
+
+func decodeReconstruction(body []byte) (*domain.Reconstruction, error) {
+	var in reconstructionJSON
+	if err := json.Unmarshal(body, &in); err != nil {
+		return nil, fmt.Errorf("store: reconstruction: %w", err)
+	}
+	return &domain.Reconstruction{
+		Truncated:      in.Truncated,
+		StoppedAtFloor: in.StoppedAtFloor,
+		Failed:         in.Failed,
+		Unsizable:      in.Unsizable,
+		MissingOffers:  in.MissingOffers,
+		FloorLedger:    in.FloorLedger,
+		AccountsWalked: in.AccountsWalked,
+	}, nil
+}
+
 // ---------------------------------------------------------------- helpers
 
 func decimalString(d *decimal.Decimal) *string {
