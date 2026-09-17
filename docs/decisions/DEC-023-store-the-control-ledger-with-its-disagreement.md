@@ -171,6 +171,62 @@ which is which.
 two, about ninety minutes and 1,200 Horizon requests, are held until this is answered,
 because all three would carry the same divergence.
 
+### 4.2 IT WAS RUN ANYWAY, and this records that rather than arguing with it
+
+**Al executed sections 5 and the RUNBOOK's 3.9 on 17 September 2026, without answering
+4.1 first.** That is Al's call to make and this subsection is a record, not a dispute.
+Measured against the live service the same day:
+
+| Ledger | Closed | `midPrice` | `priceSource` | `spreadPct` | Band |
+| --- | --- | --- | --- | --- | --- |
+| 61340172 | 00:01:24Z | 1.05790300000000005 | `book` | 0.09 | `LOW`, no flags |
+| 61340262 | 00:10:15Z | 1.0555441846982006 | `pool` | 10011.92 | `CRITICAL`, four flags |
+| 61340263 | 00:10:21Z | 1.0555441846982006 | `pool` | 10011.92 | `CRITICAL`, four flags |
+
+`historicalAvailable` is `true`, an unreplayed ledger answers 404
+`LEDGER_NOT_AVAILABLE`, and `/v1/assets`, `/depth` and `/history` all still answer 200,
+so the migration preceded the deploy as section 3.5 of the RUNBOOK requires.
+
+**The walk reproduced exactly.** The production run reported truncated 4, stoppedAtFloor
+55, failed 0, unsizable 0, missingOffers 28 over 65 accounts, which is the rehearsal's
+result to the digit, on a different machine on a different day. That is NFR-9 holding
+where it is hardest to arrange.
+
+**61340172 is the row 4.1 could not predict and it strengthens the case.** It takes the
+BOOK branch, because there the book mid and the pool spot diverge by 0.22 percent,
+under the threshold. So the same rule that reads `CRITICAL` at 00:10:15 reads `LOW` nine
+minutes earlier, and the contrast is produced by the market rather than by a change of
+method.
+
+**WHAT 4.1 ASKED FOR IS NOW UNFIXABLE IN PLACE, AND THAT IS THE ONE THING TO CARRY
+FORWARD.** The three rows carry five warnings each: four about the walk's own gaps and
+one about `maxReachablePrice`. **None of them mentions the fixture, the report, or
+53.8971414.** A reader of `?ledger=61340262` sees 1.06 and a reader of
+`docs/report/blend-february-2026.md` sees 53.90 for the same ledger, with nothing
+joining them.
+
+It cannot be repaired by re-running. `SaveMetrics` writes `ON CONFLICT ... DO NOTHING`
+and decision 2 in `internal/store/store.go` forbids rewriting a stored result, which is
+why the replay prints "existing row retained unchanged; a different reconstruction
+requires investigation, not an overwrite". Adding a warning to these rows means deleting
+them from production first, and that is a deliberate exception to a rule the store
+exists to enforce.
+
+Three ways to close it, and the choice is Al's:
+
+1. **Put the bridge where the reader is.** One paragraph in `docs/report/` and one line
+   on the dashboard's case study page, saying 53.8971414 is the no-pool answer the
+   fixture carries and 1.0555441847 is the answer with DEC-013's pool. Cheapest, touches
+   no stored row, and breaks no rule.
+2. **Delete the three rows and re-run with the warning added.** Honest in the response
+   itself and pays for it with an explicit exception to the never-overwrite rule.
+3. **Settle DEC-006 first and then decide.** The fixture is RED and the recomputation is
+   Al's under DEC-006 section 8 item 2.
+
+Claude recommends 1. The disagreement is between a fixture and a methodology version,
+which is a thing to explain in prose, and the API row is already honest about
+everything the API itself can know.
+
 ## 5. Order of operations, and none of it is optional
 
 1. DEC-022's code lands and its section 7 tests pass.
