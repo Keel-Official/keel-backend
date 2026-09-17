@@ -184,7 +184,7 @@ services:
     # HISTORICAL_UNAVAILABLE, which is true of a deployment holding no replayed
     # rows. On, the same request would 404, which says the wrong thing. Adding
     # "-historical" here plus `up -d keel-serve` is the whole flip.
-    command: ["serve", "-addr", ":3000"]
+    command: ["serve", "-addr", ":3000", "-historical"]
     # PUBLISHED ON LOOPBACK, WHICH IT WAS NOT BEFORE. This block read "NO PUBLISHED
     # PORT. Caddy is the only route in, so there is no second address that skips TLS
     # and `curl localhost:3000` on the host will not answer." Caddy is gone and nginx
