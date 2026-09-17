@@ -95,6 +95,68 @@ or trustline distribution that a book snapshot cannot carry, and they are report
 `unevaluated` rather than as clear. A metric that could not be assessed is never
 counted as a passing metric; `09-flags-and-bands.md` section 2 is the rule.
 
+### 3.1 The live API answers a different price for this ledger, and both are right
+
+Since 17 September 2026 Keel serves this ledger directly, at
+`GET /v1/asset/USTRY:GCRYUGD5.../depth?ledger=61340262`. **It answers a reference
+price of 1.0555441846982006, not the 53.8971414 in the table above.** A reader
+holding this report beside that response is entitled to an explanation, and it is not
+that one of them is a mistake.
+
+**The two rows are the same methodology over different inputs, and the difference is
+one pool.** The table above is computed from the ORDER BOOK alone, because the golden
+fixture it comes from records `Pools: []`. The API row carries the USTRY/USDC constant
+product pool that genuinely held reserves at that ledger, 16.3389179 USDC against
+15.4791416 USTRY at 30 bps, verified in `docs/decisions/DEC-013-USTRY-USDC-pool-ledger-61340263.md`
+section 1 and supplied to the run from
+`docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-pool-evidence-2026-02-22.json`.
+
+With a pool present and a two-sided book, `03-reference-price.md` section 1 compares
+the book mid against the pool spot and takes the pool when they diverge past
+`Thresholds.PriceDivergencePct`. Here they diverge by a factor of fifty, so the ladder
+takes the pool branch. That rule is methodology 1.0.3, and
+`docs/decisions/DEC-006-amm-pool-in-the-fixture.md` section 8 item 3 named this fixture
+as the reason it was written, listed every figure the branch would move, and left them
+uncomputed. They are computed now.
+
+| Quantity at ledger 61340262 | This report, book only | The API, with the pool |
+|---|---|---|
+| `P0` | 53.8971414 | 1.0555441846982006 |
+| `priceSource` | `book` | `pool` |
+| `spreadPct` | 196.0777141 | 10011.9241176 |
+| depth at ±2 per cent | 0 on both sides | 0.1630695 buy, 0.1638274 sell |
+| manipulation cost to 50 per cent | 0 | 3.6831374 combined, 0 through the book alone |
+| `maxReachablePrice` | 106.7372828 | `null`, because an active pool has no highest price |
+| flags | `ZERO_DEPTH_2PCT` among four | `PRICE_SOURCE_CONFLICT` in its place |
+| **band** | **`CRITICAL`** | **`CRITICAL`** |
+
+**Three things do not move, and they are the three this report is about.** The book is
+the same book: best bid 1.057 for 0.0001, best ask 106.7372828 for 1.2185312. The band
+is `CRITICAL` either way. And the manipulation cost through the order book alone is
+still zero, because no ask sat below any target, which is the sentence section 3 calls
+the line that matters most.
+
+**Reproduce the difference in one command each.** The API row:
+`curl "https://api.keels.app/v1/asset/USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/depth?ledger=61340262"`.
+The run that produced it, with its full diagnostics, is
+`docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-replay-61340262-with-pool-2026-09-17.log`
+and its sidecar. `docs/decisions/DEC-023-store-the-control-ledger-with-its-disagreement.md`
+section 4.2 records what was stored and when.
+
+> **[FOR AL. This paragraph states what the difference MEANS and is the one part of
+> this section that is not Claude's under the zone map. Drafted for ratification,
+> amendment or deletion.]**
+>
+> The figure this report quotes for `P0` is the one worked by hand before any of this
+> code existed, and it describes the order book that the oracle read. The figure the
+> API returns describes the whole market at that ledger, order book and pool together,
+> which is what Keel exists to measure. Neither is wrong; the report's is narrower on
+> purpose, because the incident is a story about what the order book alone could
+> support. **A reader who wants the price the oracle acted on should take
+> 53.8971414. A reader who wants the price the market as a whole would have supported
+> should take 1.0555441847, and should notice that the honest venue was quoting it the
+> whole time.**
+
 ## 4. Where the historical data comes from, and why it is not a measurement
 
 Horizon serves no order book at a past ledger. It serves every operation and the
