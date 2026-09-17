@@ -456,6 +456,36 @@ cd "$KEEL_DIR"
 COMPOSE_FILE=docker-compose.prod.yml bash scripts/migrate.sh
 ```
 
+**"ONCE" MEANS ONCE PER MIGRATION AND NOT ONCE PER BOX, AND THE DEPLOY JOB WILL
+NOT DO IT FOR YOU.** `.github/workflows/deploy.yml` says so in its own summary:
+"This job never migrates". It builds the image, ships it and restarts the stack.
+Whenever a commit adds a file under `migrations/`, this command runs again, **before
+that commit is deployed.**
+
+**THE ORDER IS MIGRATE, THEN DEPLOY, AND GETTING IT BACKWARDS TAKES THE WHOLE API
+DOWN RATHER THAN DEGRADING IT.** A binary that reads a column its database does not
+have fails on every query naming that column. `internal/store`'s `metricColumns` is
+one list shared by every read path, so a missing column is not one broken endpoint:
+`/v1/assets`, `/depth`, `/history` and `/health` all answer 500, and `keel-scan`
+stores nothing while it happens.
+
+The reverse order is safe and that asymmetry is the reason the rule is one-directional.
+Every migration in this repository so far only ADDS nullable columns and constraints,
+and `internal/store` names its columns explicitly in every SELECT and INSERT rather
+than using `*`, so a database that is one migration ahead of its binary is invisible
+to that binary. Ahead is safe. Behind is an outage.
+
+Check where the box stands before deploying anything:
+
+```bash
+cd "$KEEL_DIR"
+docker compose -f docker-compose.prod.yml exec postgres \
+  psql -U keel -d keel -c "SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 3;"
+ls migrations/
+```
+
+If the newest file in `migrations/` is not in that table, migrate first.
+
 **`scripts/migrate.sh` and nothing else.** Its own header states the rule: a
 migration applied from two places is a migration nobody can say ran. It holds
 the ordering, the exactly-once bookkeeping in `schema_migrations`, and the
@@ -732,6 +762,115 @@ reads `connect() failed (111: Connection refused)` and names the port nginx trie
 
 ---
 
+### 3.9 Turning the historical path on, and it is two steps in a fixed order
+
+**Not part of first boot. Skip this section until the three prerequisites below
+are all true**, and read section 4's note on `historicalAvailable` first, because
+this is the section that changes that line from `false` to `true`.
+
+Until this runs, `GET /v1/asset/{id}/depth?ledger=` answers `503
+HISTORICAL_UNAVAILABLE` for every ledger, which is the honest answer for a
+deployment holding no reconstructed row.
+
+**Prerequisites, all three:**
+
+1. The running image is built from a commit carrying DEC-022, that is, `keel
+   replay` accepts `-accept-incomplete`. Check with `docker compose -f
+   docker-compose.prod.yml run --rm keel-serve replay -h 2>&1 | grep accept`.
+2. `docs/decisions/DEC-023-store-the-control-ledger-with-its-disagreement.md` is
+   the authority on WHICH ledgers may be stored. Today that is exactly three:
+   61340172, 61340262 and 61340263, all USTRY/USDC. **No other ledger is
+   authorised, and adding one is a decision, not a step in a runbook.**
+3. `docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-pool-evidence-2026-02-22.json` is
+   in the checkout on this box. `keel replay` reconstructs no pool at all, so
+   without it the run is refused rather than storing a book with no pool.
+
+#### Step A, the rows. Three runs, one per ledger, and each takes about 45 minutes
+
+Each run walks every account that ever traded this pair backwards through its
+operation history. The 5 September 2026 run over this shape took 374 Horizon
+requests and 2841 seconds, against the 3000 per hour NFR-6 budget, so **run them
+one at a time and not in parallel.** Use `tmux` or `screen`: an SSH drop kills a
+`docker compose run` and wastes the walk.
+
+```bash
+cd "$KEEL_DIR"
+for LEDGER in 61340172 61340262 61340263; do
+  docker compose -f docker-compose.prod.yml run --rm \
+    -v "$PWD/configs:/configs:ro" \
+    -v "$PWD/docs/evidences:/evidences:ro" \
+    -v "$PWD/scripts:/scripts:ro" \
+    keel-serve replay \
+      -pairs /scripts/record-pairs.example.json \
+      -ledger "$LEDGER" \
+      -trades-from-ledger 61300000 -since-ledger 61300000 -lookahead 5000 \
+      -max-pages-per-account 60 -max-pages-per-offering-account 400 \
+      -known-removals /configs/known-removals.json \
+      -compute -persist -accept-incomplete \
+      -pool-snapshots /evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-pool-evidence-2026-02-22.json \
+    2>&1 | tee "/tmp/replay-$LEDGER.log"
+done
+```
+
+No `-dsn`. The service already carries `KEEL_DSN`, composed in
+`docker-compose.prod.yml` from the three `.env` variables, which is the same
+reason section 3.6 passes none.
+
+**READ THE DIAGNOSTICS BLOCK EACH RUN PRINTS, and do not skip it because the
+command exited 0.** A reconstruction that lost offers reports a THINNER book, and
+a thin book is this product's most interesting finding, so a defective run does
+not look like an error. The counters are expected to be nonzero here: the
+5 September run reported 7 walks truncated, 42 stopped at the floor and 10
+failed, out of 65. That is what `-accept-incomplete` exists for and every one of
+them is written into the stored row. What must NOT appear is a refusal naming
+`crossed` or `inflated`: neither has an override, and either one means stop and
+report rather than retry with different flags.
+
+If a run refuses, **do not remove a flag to make it pass.** Bring the output back
+to the repository and treat it as a finding.
+
+#### Step B, the flag. One word, after the rows and never before
+
+```bash
+cd "$KEEL_DIR"
+# In docker-compose.prod.yml, the keel-serve command becomes:
+#   command: ["serve", "-addr", ":3000", "-historical"]
+docker compose -f docker-compose.prod.yml up -d keel-serve
+```
+
+**THE ORDER IS THE WHOLE OF THIS SECTION.** With the flag on and no rows, the same
+request stops saying "this deployment does not serve history" and starts saying
+"that ledger is missing", which blames the caller for the operator's omission.
+Rows first. Flag second.
+
+#### Step C, verification
+
+```bash
+# 200, and dataSource names a reconstruction rather than a live read
+curl -s https://api.keels.app/v1/asset/USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/depth?ledger=61340262 \
+  | jq '{ledgerSeq, dataSource, band, reconstruction, warnings}'
+
+# 404 LEDGER_NOT_AVAILABLE, which is CORRECT for an unreplayed ledger
+curl -s -o /dev/null -w '%{http_code}\n' \
+  'https://api.keels.app/v1/asset/USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/depth?ledger=61340000'
+
+# historicalAvailable flips to true
+curl -s https://api.keels.app/v1/health | jq .historicalAvailable
+```
+
+Three ledgers answer 200. **Every other ledger on the network answers 404, and
+that is the expected end state rather than a defect.** This endpoint serves
+ledgers somebody paid about 45 minutes to reconstruct, one at a time; it is not
+and will not become "pick any ledger".
+
+#### Rolling it back
+
+Remove `-historical` and `up -d keel-serve`. The rows stay, and the endpoint
+returns to 503. Nothing is deleted: a stored result is never overwritten or
+removed, which is decision 2 in `internal/store/store.go`.
+
+---
+
 ## 4. Verification, and what a correct FIRST response looks like
 
 Run this from a laptop, not over SSH: from the box, `localhost` can answer in
@@ -779,10 +918,16 @@ fields one at a time, because each reports a true thing:
 - **`historicalAvailable: false`** is FR-19 and is deliberate. `keel serve` ships
   without `-historical`, so a request for a past ledger returns
   `503 HISTORICAL_UNAVAILABLE`, which is the contract's honest answer until
-  Track B's replayed rows exist. Turning it on with an empty table would make
+  replayed rows exist. Turning it on with an empty table would make
   the same request a 404, saying "that ledger is missing" instead of "this
   deployment does not serve history". Flipping it later is one word in
   `docker-compose.prod.yml` and a restart of `keel-serve`.
+
+  **SECTION 3.9 IS NOW THE PROCEDURE FOR THAT, and it is two steps in a fixed
+  order rather than one word.** The word is step B; the rows are step A and take
+  about 45 minutes per ledger. The reason it was written down on 17 September
+  2026 is that "one word and a restart" is true and is the half of the job that
+  breaks the endpoint if it is done alone.
 
 Four more checks, each failing in its own distinct way:
 
@@ -1502,7 +1647,7 @@ would not have found either.
 | `assetsMonitored` | 60 |
 | `GET /v1/assets` | `total: 60`, with `midPrice`, `depth5PctBuySide`, `maxSafeCollateral`, `band` and `flags` populated |
 | `methodologyVersion` | `1.0.8-draft`, equal to the constant in `internal/domain/types.go` |
-| `historicalAvailable` | `false`, which is correct until Track B writes the rows |
+| `historicalAvailable` | `false`, which is correct until the replayed rows exist. Section 3.9 is what changes it |
 
 **So these are now measurements rather than instructions**, and the entries they
 replace are struck from the queue below:
