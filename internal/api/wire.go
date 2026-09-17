@@ -168,6 +168,29 @@ type assetRiskJSON struct {
 	Band             string        `json:"band"`
 	BandConfidence   string        `json:"bandConfidence"`
 	Warnings         []string      `json:"warnings"`
+
+	// OMITTED and not null when the row is not a reconstruction, which is the one
+	// place this struct departs from the null-for-absent convention above. Every
+	// other nullable field here is a quantity that COULD have been measured for
+	// this row and was not, so null answers "unknown" for a question that applies.
+	// This one does not apply at all to a live Horizon read: there was no walk, so
+	// there is no walk to report gaps for. A null would invite a consumer to render
+	// "gaps: unknown" beside a directly measured book. See DEC-022.
+	Reconstruction *reconstructionJSON `json:"reconstruction,omitempty"`
+}
+
+// reconstructionJSON is the walk diagnostics of a reconstructed row, DEC-022
+// Option B. Counts are JSON numbers rather than strings: they are small integers
+// and not decimals, so the reason every monetary field here is a string does not
+// apply to them.
+type reconstructionJSON struct {
+	Truncated      int    `json:"truncated"`
+	StoppedAtFloor int    `json:"stoppedAtFloor"`
+	Failed         int    `json:"failed"`
+	Unsizable      int    `json:"unsizable"`
+	MissingOffers  int    `json:"missingOffers"`
+	FloorLedger    uint32 `json:"floorLedger"`
+	AccountsWalked int    `json:"accountsWalked"`
 }
 
 func riskResponse(m store.Metric) assetRiskJSON {
@@ -224,6 +247,18 @@ func riskResponse(m store.Metric) assetRiskJSON {
 	out.Warnings = r.Warnings
 	if out.Warnings == nil {
 		out.Warnings = []string{}
+	}
+
+	if rec := r.Reconstruction; rec != nil {
+		out.Reconstruction = &reconstructionJSON{
+			Truncated:      rec.Truncated,
+			StoppedAtFloor: rec.StoppedAtFloor,
+			Failed:         rec.Failed,
+			Unsizable:      rec.Unsizable,
+			MissingOffers:  rec.MissingOffers,
+			FloorLedger:    rec.FloorLedger,
+			AccountsWalked: rec.AccountsWalked,
+		}
 	}
 
 	if o := r.OracleResistance; o != nil {

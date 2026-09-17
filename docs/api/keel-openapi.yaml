@@ -191,7 +191,25 @@ info:
   # methodology example carried 1.0.2-draft while the server returns 1.0.8-draft,
   # so the generated mock was handing the frontend a version string this API has
   # never sent.
-  version: 1.6.1
+  #
+  # 1.7.0, 17 September 2026. ONE ADDITIVE FIELD, WHICH IS WHY IT IS A MINOR AND
+  # NOT A PATCH. `AssetRisk.reconstruction` appears on a response whose
+  # `dataSource` is a reconstruction and is OMITTED on every other, so no existing
+  # consumer reads a changed value and nothing that validated against 1.6.1 stops
+  # validating. It is a minor rather than a patch because a new key is a new
+  # capability: DEC-022 chose a machine-readable field over prose alone so that a
+  # consumer can BRANCH on the gaps in a reconstructed book instead of reading
+  # them out of `warnings`.
+  #
+  # THE BEHAVIOUR A CONSUMER HAS TO BE TOLD, and it is not "a field was added".
+  # Until now every stored row was a direct reading of a live book. A row may now
+  # be a RECONSTRUCTION whose walk is known to have missed offers, and such a row
+  # is too THIN rather than too deep, so its depth is a lower bound and its risk an
+  # upper bound. A page that renders it identically to a live reading is wrong in
+  # the way DEC-003 section 1 describes: nothing fails, the number still draws,
+  # only its meaning is different. This joins freeze condition 4's message for the
+  # frontend builder for exactly that reason.
+  version: 1.7.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -1234,6 +1252,77 @@ components:
           description: |
             Notes about the limitations of the computation behind this response.
             These should be shown to the user, not hidden.
+        reconstruction:
+          $ref: '#/components/schemas/Reconstruction'
+
+    Reconstruction:
+      type: object
+      description: |
+        What the acquisition of a RECONSTRUCTED book detected about its own
+        completeness. Added in 1.7.0 by DEC-022.
+
+        **ABSENT MEANS THIS ROW IS NOT A RECONSTRUCTION. It never means a walk ran
+        and found nothing.** A `horizon` response reads the live book directly and
+        walks nothing, so it has no gaps to report and this key is omitted rather
+        than sent as null. A consumer that renders "gaps: unknown" beside a direct
+        reading has read the absence backwards.
+
+        **EVERY COUNTER IN HERE REMOVES OFFERS, so a row carrying them describes a
+        book that is too THIN and never too deep.** Read its depth as a lower bound
+        and its risk as an upper bound. The two gaps that would run the other way,
+        a book inflated by offers that were already eaten and a crossed book, can
+        never appear on a stored row: a reconstruction carrying either is refused
+        before it is computed, with no override.
+
+        **It is not a quality score and not a proof.** Zero everywhere means this
+        walk detected nothing, not that it saw every offer. An offer whose owner
+        never traded and is not resting today is invisible to this method, which is
+        the limitation `01-data-sources.md` states and this object cannot see.
+
+        `warnings` carries the same facts as sentences. Both are sent on purpose:
+        this object is for a consumer that branches, the prose is for the reader of
+        a response who never will.
+      required:
+        - truncated
+        - stoppedAtFloor
+        - failed
+        - unsizable
+        - missingOffers
+        - floorLedger
+        - accountsWalked
+      properties:
+        truncated:
+          type: integer
+          description: Account walks that reached their page cap before the account ran out of operations
+        stoppedAtFloor:
+          type: integer
+          description: |
+            Account walks that ended at the operation floor rather than at the
+            account's own first operation. Read it with `floorLedger`: an offer
+            created before that ledger is invisible to this row.
+        failed:
+          type: integer
+          description: Account walks that failed at the data source and contributed no offers
+        unsizable:
+          type: integer
+          description: Operation results whose remaining amount could not be read
+        missingOffers:
+          type: integer
+          description: |
+            Offers that a later trade named as resting and that this walk never saw
+            created. Each one is a hole the reconstruction found in itself.
+        floorLedger:
+          type: integer
+          format: int64
+          description: |
+            The operation floor the walk was given, or 0 when it was given none.
+            Present so that `stoppedAtFloor` can be read as a statement about which
+            offers are missing rather than as a bare count.
+        accountsWalked:
+          type: integer
+          description: |
+            The denominator for the three walk counters above. 42 of 65 is a
+            different statement from 42 of 400.
 
     AssetSummary:
       type: object
@@ -1867,7 +1956,20 @@ components:
             any method. This is a finding, not a computation failure.
 
     AssetHistorical:
-      summary: A historical replay result; note that dataSource is hubble
+      # THE SOURCE HERE READ `hubble` UNTIL 1.7.0 AND THE SERVER COULD NEVER SEND
+      # IT. The handler behind `?ledger=` asks the store for `offers-implied` rows
+      # and has done since 5 September 2026; `hubble` is deferred by DEC-002 and no
+      # row carrying it can exist, so this example described a response this API has
+      # never produced and the generated mock shipped it to the frontend. That is
+      # the failure DEC-014 section 5 records, found again in the example rather
+      # than in a threshold. Corrected with the addition of `reconstruction`, since
+      # both belong to the same response.
+      #
+      # ONE EXAMPLE ELSEWHERE STILL CARRIES `hubble` ON PURPOSE: HistoryUstry, for
+      # `GET /history?source=hubble`. That parameter genuinely accepts the value and
+      # answers with an empty series, so the example describes a reachable request.
+      # This one did not.
+      summary: A historical replay result, reconstructed from operations, with the gaps it found in itself
       value:
         asset:
           code: USTRY
@@ -1881,7 +1983,7 @@ components:
         ledgerClosedAt: '2026-05-19T11:02:44Z'
         computedAt: '2026-08-19T02:40:11Z'
         methodologyVersion: 1.0.8-draft
-        dataSource: hubble
+        dataSource: offers-implied
         midPrice: '0.0104200'
         priceSource: book
         poolSpotPrice: null
@@ -1982,6 +2084,24 @@ components:
           - >-
             There was no genuine trade within the 900 second oracle window, so the
             oracle resistance ratio cannot be computed.
+          - >-
+            reconstructed book: 42 of 65 account walk(s) stopped at the operation
+            floor at ledger 61300000, so an offer created before that ledger is
+            invisible to this row
+          - >-
+            reconstructed book: 3 of 65 account walk(s) reached their page cap
+            before the account ran out of operations
+          - >-
+            every gap above REMOVES offers, so this book is too THIN and never too
+            deep: read its depth as a lower bound and its risk as an upper bound
+        reconstruction:
+          truncated: 3
+          stoppedAtFloor: 42
+          failed: 0
+          unsizable: 0
+          missingOffers: 0
+          floorLedger: 61300000
+          accountsWalked: 65
 
     AssetBrokenBook:
       summary: >-

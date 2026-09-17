@@ -13,7 +13,7 @@
   "ledgerClosedAt": "2026-05-19T11:02:44Z",
   "computedAt": "2026-08-19T02:40:11Z",
   "methodologyVersion": "1.0.8-draft",
-  "dataSource": "hubble",
+  "dataSource": "offers-implied",
   "midPrice": "0.0104200",
   "priceSource": "book",
   "poolSpotPrice": null,
@@ -136,6 +136,18 @@
   "warnings": [
     "There was no AMM liquidity for this pair at that ledger.",
     "The delta 10 and 100 rungs were not reached. Every ask is exhausted at a price of 0.0891000. The cost of 2210.4400000 on both of those rungs is the cost of exhausting the book, not the cost of reaching the target price.",
-    "There was no genuine trade within the 900 second oracle window, so the oracle resistance ratio cannot be computed."
-  ]
+    "There was no genuine trade within the 900 second oracle window, so the oracle resistance ratio cannot be computed.",
+    "reconstructed book: 42 of 65 account walk(s) stopped at the operation floor at ledger 61300000, so an offer created before that ledger is invisible to this row",
+    "reconstructed book: 3 of 65 account walk(s) reached their page cap before the account ran out of operations",
+    "every gap above REMOVES offers, so this book is too THIN and never too deep: read its depth as a lower bound and its risk as an upper bound"
+  ],
+  "reconstruction": {
+    "truncated": 3,
+    "stoppedAtFloor": 42,
+    "failed": 0,
+    "unsizable": 0,
+    "missingOffers": 0,
+    "floorLedger": 61300000,
+    "accountsWalked": 65
+  }
 }
