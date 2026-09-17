@@ -645,6 +645,133 @@ type PairSummary struct {
 // Defined by docs/methodology/02-pair-selection.md section 2 item 4.
 const WarningSecondaryPairWorse = "SECONDARY_PAIR_WORSE"
 
+// Reconstruction is what the acquisition of a historical book could detect about
+// its own completeness, carried into the result so a consumer can branch on it
+// rather than read prose. DEC-022 section 5.2, Option B.
+//
+// IT IS NOT A QUALITY SCORE AND IT IS NOT A PROOF OF CORRECTNESS. Every counter
+// here is something the walk NOTICED. The gaps it cannot notice are the ones
+// internal/horizon's own header lists, and a run reporting zeroes everywhere has
+// not proven it saw every offer. That is the same sentence ReplayResult.Complete
+// carries and it does not weaken by being copied here.
+//
+// EVERY COUNTER IN HERE LOSES OFFERS, WHICH MEANS THE BOOK IS TOO THIN. That is
+// the whole reason the row may be stored at all: DEC-022 section 5.1 admits the
+// gaps that fail pessimistically and keeps refusing the two that do not, an
+// inflated book and a crossed one. Neither of those can ever reach this struct,
+// because a result carrying them is refused before it is computed, so there is
+// deliberately no field for them. A reader who finds one here is reading a bug.
+//
+// FloorLedger is not a counter and is here to make StoppedAtFloor readable. Forty
+// walks stopping at a floor of 61300000 says offers older than that ledger are
+// invisible; forty walks stopping at an unnamed floor says nothing a consumer can
+// act on.
+//
+// Nil means THIS IS NOT A RECONSTRUCTION, never "no gaps were found". A live
+// Horizon scan reads the book as it stands and walks nothing, so it has no
+// counters to report, and a zero-valued struct on such a row would assert a clean
+// walk that never happened. The migration enforces the same thing at the column.
+type Reconstruction struct {
+	// Truncated, StoppedAtFloor and Failed are counts of ACCOUNT WALKS, not of
+	// offers, because how many offers were lost is exactly what a walk that
+	// stopped early cannot know.
+	Truncated      int
+	StoppedAtFloor int
+	Failed         int
+
+	// Unsizable counts operation results whose remaining amount could not be
+	// read, and MissingOffers counts offers that a later trade named as resting
+	// and this walk never saw created.
+	Unsizable     int
+	MissingOffers int
+
+	// FloorLedger is the operation floor the walk was given, or zero when it was
+	// given none. Zero with a nonzero StoppedAtFloor is a contradiction and the
+	// caller that builds this struct is where it must be caught.
+	FloorLedger uint32
+
+	// AccountsWalked is the denominator. Forty-two of sixty-five is a different
+	// statement from forty-two of four hundred, and without it the counters above
+	// cannot be read as a proportion of anything.
+	AccountsWalked int
+}
+
+// HasGaps reports whether this walk detected any hole in itself.
+func (r *Reconstruction) HasGaps() bool {
+	if r == nil {
+		return false
+	}
+	return r.Truncated != 0 || r.StoppedAtFloor != 0 || r.Failed != 0 ||
+		r.Unsizable != 0 || r.MissingOffers != 0
+}
+
+// WarningLines renders this struct as the prose half of the same facts.
+//
+// BOTH HALVES AND NOT ONE, which is the point worth defending because it looks
+// like duplication. The struct is for a consumer that branches; these lines are
+// for the reader of a response, a log or a CSV who will never write that branch.
+// DEC-022 section 5.2 chose the machine-readable field over prose alone, and
+// "instead of" was never on the table: the contract has told consumers since 1.4
+// that an offers-implied row carries warnings, and dropping them to avoid saying
+// a thing twice would break that promise to save nothing.
+//
+// IT LIVES IN THE DOMAIN SO THAT A RECOMPUTE REPRODUCES THE STORED ROW EXACTLY.
+// Composed at the edge instead, the same snapshot and the same provenance would
+// yield a row whose warnings depended on which command wrote it, and NFR-9 is the
+// reason Option B was chosen over Option A in the first place. The text is
+// derived from the counters by a pure function, so it is as reproducible as they
+// are. The alternative rejected was a warning code per counter, like
+// WarningSecondaryPairWorse: codes are for a consumer that must branch, and this
+// one already has the field to branch on.
+//
+// The order is fixed and does not depend on which counters fired, because two
+// runs over one ledger must produce identical rows.
+func (r *Reconstruction) WarningLines() []string {
+	if r == nil {
+		return nil
+	}
+	var out []string
+	if r.StoppedAtFloor != 0 {
+		out = append(out, fmt.Sprintf(
+			"reconstructed book: %d of %d account walk(s) stopped at the operation floor at ledger %d, so an offer created before that ledger is invisible to this row",
+			r.StoppedAtFloor, r.AccountsWalked, r.FloorLedger))
+	}
+	if r.Truncated != 0 {
+		out = append(out, fmt.Sprintf(
+			"reconstructed book: %d of %d account walk(s) reached their page cap before the account ran out of operations",
+			r.Truncated, r.AccountsWalked))
+	}
+	if r.Failed != 0 {
+		out = append(out, fmt.Sprintf(
+			"reconstructed book: %d of %d account walk(s) failed at the data source and contributed no offers",
+			r.Failed, r.AccountsWalked))
+	}
+	if r.Unsizable != 0 {
+		out = append(out, fmt.Sprintf(
+			"reconstructed book: %d operation result(s) could not be sized, so the offers they created or changed are not on this book",
+			r.Unsizable))
+	}
+	if r.MissingOffers != 0 {
+		out = append(out, fmt.Sprintf(
+			"reconstructed book: %d offer(s) that a later trade named as resting were never seen created by this walk",
+			r.MissingOffers))
+	}
+
+	// THE DIRECTION LINE IS THE ONE A READER ACTUALLY NEEDS. Each counter above
+	// is a number whose consequence is not obvious; this says what all of them do
+	// to the figures, and it is the whole basis on which the row may be stored at
+	// all. An inflated book, the one gap that runs the other way, can never reach
+	// this struct: it is refused before the row is computed.
+	if len(out) != 0 {
+		out = append(out,
+			"every gap above REMOVES offers, so this book is too THIN and never too deep: read its depth as a lower bound and its risk as an upper bound")
+		return out
+	}
+	return []string{
+		"reconstructed book: this walk detected no gap in itself, which is not proof that it saw every offer; an offer whose owner never traded and is not resting today is invisible to this method",
+	}
+}
+
 // AssetRisk is the complete output for one asset at one ledger.
 type AssetRisk struct {
 	Base               Asset
@@ -765,6 +892,12 @@ type AssetRisk struct {
 	BandDrivenBy Asset
 
 	Warnings []string
+
+	// Reconstruction is present only when DataSource names a reconstruction and
+	// the caller supplied it. Nil on every live scan, and nil is "not a
+	// reconstruction" rather than "no gaps". See the type's own header, and
+	// DEC-022 for why it is a field here rather than only a sentence in Warnings.
+	Reconstruction *Reconstruction
 }
 
 // Crossed reports whether the best bid is at or above the best ask, and returns

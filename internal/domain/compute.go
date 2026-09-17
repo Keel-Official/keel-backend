@@ -551,6 +551,34 @@ func ComputeAssetRisk(s Snapshot, p Params) (AssetRisk, error) {
 // SupportingMetrics field nil, and bandConfidence partial for the reason it was
 // already partial. Nothing about a caller that does not pass it changes.
 func ComputeAssetRiskWith(s Snapshot, p Params, sup *SupportingMetrics) (AssetRisk, error) {
+	return ComputeAssetRiskFrom(s, p, sup, nil)
+}
+
+// ComputeAssetRiskFrom is ComputeAssetRiskWith plus the provenance of the book it
+// was given: what the acquisition of a HISTORICAL book could detect about its own
+// completeness. DEC-022 section 10.1.
+//
+// A THIRD ENTRY POINT AND NOT A FOURTH FIELD ON Snapshot, which is the design
+// decision and it is the one the header above already made for Trades and Holders.
+// A Snapshot is the book and the pools at one ledger. A walk diagnostic is a fact
+// about how that book was OBTAINED and has no meaning at the ledger itself, so
+// carrying it in Snapshot would make Snapshot mean two things, exactly as putting
+// a trade range in there would have. The alternative rejected was letting the
+// caller set AssetRisk.Reconstruction after this function returned: cheaper, no
+// signature anywhere, and it would have made the stored row unreproducible from
+// its inputs, which is the NFR-9 property Option B was chosen for in the first
+// place. Al decided this in DEC-022 section 10.1.
+//
+// THE ORDERING RULE, ANSWERED OUT LOUD AS internal/domain/CLAUDE.md OBLIGATION 1
+// REQUIRES. No fixture value judges this parameter. It carries no methodology
+// number: every field of Reconstruction is a count produced by an acquisition
+// walk, and the ordering rule's subject is a computed quantity whose expected
+// value can be worked by hand before the code exists. There is nothing here to
+// work by hand. The golden fixture is untouched and is not asked to move.
+//
+// rec nil is the pre-existing behaviour exactly, and it is what both older entry
+// points pass. Nothing about a caller that does not supply it changes.
+func ComputeAssetRiskFrom(s Snapshot, p Params, sup *SupportingMetrics, rec *Reconstruction) (AssetRisk, error) {
 	risk := AssetRisk{
 		Base:               s.Base,
 		Quote:              s.Quote,
@@ -558,7 +586,13 @@ func ComputeAssetRiskWith(s Snapshot, p Params, sup *SupportingMetrics) (AssetRi
 		LedgerClosedAt:     s.LedgerClosedAt,
 		MethodologyVersion: MethodologyVersion,
 		DataSource:         s.Source,
+		Reconstruction:     rec,
 	}
+
+	// FIRST, so that a row with no executable price still says how its book was
+	// obtained. That early return below is exactly the case where a reader is most
+	// likely to blame the market for what a truncated walk did.
+	risk.Warnings = append(risk.Warnings, rec.WarningLines()...)
 
 	p0, src, poolSpot, divergence := MidPrice(s, p)
 	risk.PriceSource = src
