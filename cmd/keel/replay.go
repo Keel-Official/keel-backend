@@ -62,6 +62,8 @@ func runReplay(args []string) error {
 		"path to a known-removals list, e.g. configs/known-removals.json. OFF by default. Each entry takes one "+
 			"offer off the book at targets at or above its gone_by_ledger, and the applied ids are printed with the result")
 	persist := fs.Bool("persist", false, "store computed offers-implied metrics; requires -pool-snapshots, a declared pair and no detected reconstruction gaps")
+	acceptIncomplete := fs.Bool("accept-incomplete", false,
+		"store a reconstruction whose walk detected gaps, with every gap recorded in the row. DEC-022. A crossed or inflated book is still refused")
 	poolSnapshots := fs.String("pool-snapshots", "", "JSON snapshot array with audited pool coverage at this pair and ledger, required for -persist; null Pools means unknown and is refused")
 	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN for -persist only, or set KEEL_DSN")
 	out := fs.String("out", "", "write the reconstructed snapshot to this file as JSON. Optional")
@@ -204,7 +206,7 @@ Keep the source evidence with that file. Supplying it does not certify the book.
 				return fmt.Errorf("replay: pool evidence close time differs from Horizon at ledger %d", res.Snapshot.LedgerSeq)
 			}
 			res.Snapshot.Pools = pool.Pools
-			id, inserted, err := persistReplay(ctx, db, res)
+			id, inserted, err := persistReplay(ctx, db, res, *acceptIncomplete, uint32(*since))
 			if err != nil {
 				return fmt.Errorf("replay %s: %w", p, err)
 			}
@@ -248,10 +250,32 @@ type replayMetricsStore interface {
 // completeness checks detect known gaps; they do not certify the reconstruction.
 // Unknown pool coverage is refused: the API cannot label a stored result as
 // order-book-only, and interpreting an unobserved pool as absent changes flags.
-func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.ReplayResult) (int64, bool, error) {
+func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.ReplayResult, acceptIncomplete bool, floorLedger uint32) (int64, bool, error) {
+	// THE GATE IS ASYMMETRIC SINCE DEC-022 AND THE HALVES ARE NOT NEGOTIABLE
+	// AGAINST EACH OTHER. A crossed book PROVES an offer is missing, and an
+	// inflated one is the single gap that makes the book look DEEPER than it was.
+	// Neither has an override at any flag combination, which is why they are
+	// tested before acceptIncomplete is read at all. Everything below them removes
+	// offers, so it fails in the direction a warning product may fail in, and
+	// -accept-incomplete admits exactly that set and records it in the row.
 	_, _, crossed := res.Snapshot.Book.Crossed()
-	if !res.Complete() || res.StoppedAtFloor != 0 || crossed {
-		return 0, false, fmt.Errorf("refusing to persist incomplete reconstruction: missing=%d truncated=%d failed=%d unsizable=%d floor=%d crossed=%t inflated=%t", len(res.MissingOfferIDs), res.Truncated, res.Failed, res.Unsizable, res.StoppedAtFloor, crossed || res.Crossed, res.MayBeInflated())
+	crossed = crossed || res.Crossed
+	if crossed {
+		return 0, false, errors.New("refusing to persist a crossed book: a bid at or above an ask cannot exist on a ledger, so this reconstruction is provably missing an offer. There is no override")
+	}
+	if res.MayBeInflated() {
+		return 0, false, fmt.Errorf("refusing to persist an inflated book: offers were applied from ledger %d, below the trade window at %d, so anything eaten in between is still resting here. This is the one gap that makes a book look DEEPER than it was, and it has no override", res.EarliestOfferOp, res.TradeWindowFrom)
+	}
+
+	gaps := len(res.MissingOfferIDs) + res.Truncated + res.Unsizable + res.Failed + res.StoppedAtFloor
+	if gaps != 0 && !acceptIncomplete {
+		return 0, false, fmt.Errorf("refusing to persist incomplete reconstruction: missing=%d truncated=%d failed=%d unsizable=%d floor=%d. Pass -accept-incomplete to store it with every one of these recorded in the row (DEC-022)", len(res.MissingOfferIDs), res.Truncated, res.Failed, res.Unsizable, res.StoppedAtFloor)
+	}
+	if res.StoppedAtFloor != 0 && floorLedger == 0 {
+		// A walk cannot stop at a floor it was never given. If this fires, the
+		// floor reaching this function is not the floor the walk ran under, and
+		// storing it would put an unreadable "stopped at ledger 0" in the row.
+		return 0, false, fmt.Errorf("refusing to persist: %d walk(s) stopped at a floor but no floor ledger was supplied to the writer", res.StoppedAtFloor)
 	}
 	if res.Snapshot.Source != domain.DataSourceOffersImplied || res.Snapshot.LedgerSeq == 0 || res.Snapshot.LedgerClosedAt.IsZero() || res.ReadAt.IsZero() {
 		return 0, false, errors.New("replay persistence requires offers-implied source, ledger sequence, ledger close time and read time")
@@ -263,7 +287,22 @@ func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.Repla
 	if err != nil {
 		return 0, false, fmt.Errorf("declare the pair with keel assets before persisting: %w", err)
 	}
-	risk, err := domain.ComputeAssetRisk(res.Snapshot, domain.DefaultParams())
+	// ALWAYS SUPPLIED ON THIS PATH, INCLUDING WHEN EVERY COUNTER IS ZERO. Nil means
+	// "this row is not a reconstruction", so a clean walk stored without it would
+	// be indistinguishable from a live Horizon read, and that is the one confusion
+	// the field exists to prevent. A zero-valued struct here says something true:
+	// a walk ran and detected nothing, which its own warning line is careful not to
+	// call proof.
+	rec := &domain.Reconstruction{
+		Truncated:      res.Truncated,
+		StoppedAtFloor: res.StoppedAtFloor,
+		Failed:         res.Failed,
+		Unsizable:      res.Unsizable,
+		MissingOffers:  len(res.MissingOfferIDs),
+		FloorLedger:    floorLedger,
+		AccountsWalked: len(res.Accounts),
+	}
+	risk, err := domain.ComputeAssetRiskFrom(res.Snapshot, domain.DefaultParams(), nil, rec)
 	if err != nil {
 		return 0, false, fmt.Errorf("compute replay risk: %w", err)
 	}

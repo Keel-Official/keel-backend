@@ -49,7 +49,7 @@ func replayForPersistence() horizon.ReplayResult {
 
 func TestPersistReplayPreservesProvenanceAndComputesTheExistingFixture(t *testing.T) {
 	s := &replayStoreProbe{inserted: true}
-	id, inserted, err := persistReplay(context.Background(), s, replayForPersistence())
+	id, inserted, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestPersistReplayRefusesDetectedGapsBeforeWriting(t *testing.T) {
 			r := replayForPersistence()
 			tc.change(&r)
 			s := &replayStoreProbe{}
-			if _, _, err := persistReplay(context.Background(), s, r); err == nil {
+			if _, _, err := persistReplay(context.Background(), s, r, false, 0); err == nil {
 				t.Fatal("accepted a result with a known provenance or reconstruction gap")
 			}
 			if s.writes != 0 {
@@ -102,7 +102,7 @@ func TestPersistReplayRefusesDetectedGapsBeforeWriting(t *testing.T) {
 
 func TestPersistReplayRequiresAnAlreadyDeclaredPair(t *testing.T) {
 	s := &replayStoreProbe{err: store.ErrNotFound}
-	if _, _, err := persistReplay(context.Background(), s, replayForPersistence()); !errors.Is(err, store.ErrNotFound) {
+	if _, _, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0); !errors.Is(err, store.ErrNotFound) {
 		t.Fatalf("error = %v", err)
 	}
 	if s.writes != 0 {
@@ -112,7 +112,7 @@ func TestPersistReplayRequiresAnAlreadyDeclaredPair(t *testing.T) {
 
 func TestPersistReplayReportsAnExistingRowWithoutClaimingAnInsert(t *testing.T) {
 	s := &replayStoreProbe{inserted: false}
-	_, inserted, err := persistReplay(context.Background(), s, replayForPersistence())
+	_, inserted, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0)
 	if err != nil || inserted {
 		t.Fatalf("duplicate = %v, %v", inserted, err)
 	}
@@ -194,5 +194,105 @@ func TestReplayPoolEvidencePreservesExplicitValues(t *testing.T) {
 	}
 	if _, err := readReplayPoolSnapshots(path); err != nil {
 		t.Fatalf("explicit zeros are different from missing values: %v", err)
+	}
+}
+
+// ---------------------------------------------------------------- DEC-022
+
+// The two refusals that survive -accept-incomplete. Registered in DEC-022
+// section 7 items 2 and 3, before any of this code was written, so that passing
+// could not be defined afterwards.
+//
+// They are separated from the table above rather than folded into it because the
+// table proves a DEFAULT and this proves a RULE: no flag combination reaches the
+// store with either of these, which is the whole asymmetry the decision rests on.
+func TestPersistReplayStillRefusesCrossedAndInflatedUnderAcceptIncomplete(t *testing.T) {
+	cases := []struct {
+		name   string
+		change func(*horizon.ReplayResult)
+		want   string
+	}{
+		{"crossed diagnostic", func(r *horizon.ReplayResult) { r.Crossed = true }, "crossed"},
+		{"inflated", func(r *horizon.ReplayResult) { r.EarliestOfferOp = 1; r.TradeWindowFrom = 2 }, "inflated"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := replayForPersistence()
+			tc.change(&r)
+			s := &replayStoreProbe{}
+			_, _, err := persistReplay(context.Background(), s, r, true, 0)
+			if err == nil {
+				t.Fatal("-accept-incomplete must not override this refusal")
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("error does not name the reason: %v", err)
+			}
+			if s.writes != 0 {
+				t.Fatal("refused result reached storage")
+			}
+		})
+	}
+}
+
+// DEC-022 section 7 item 4: every nonzero counter reaches the stored row, in the
+// field and in the prose, and the stored numbers are the ones the walk reported.
+func TestPersistReplayRecordsEveryGapItWasAskedToAccept(t *testing.T) {
+	r := replayForPersistence()
+	r.Truncated = 3
+	r.Failed = 1
+	r.StoppedAtFloor = 42
+	r.Unsizable = 2
+	r.MissingOfferIDs = []int64{1822775941}
+	r.Accounts = make([]horizon.AccountWalk, 65)
+
+	s := &replayStoreProbe{inserted: true}
+	if _, _, err := persistReplay(context.Background(), s, r, true, 61300000); err != nil {
+		t.Fatal(err)
+	}
+	rec := s.risk.Reconstruction
+	if rec == nil {
+		t.Fatal("a stored reconstruction must carry its walk diagnostics")
+	}
+	if rec.Truncated != 3 || rec.Failed != 1 || rec.StoppedAtFloor != 42 ||
+		rec.Unsizable != 2 || rec.MissingOffers != 1 ||
+		rec.FloorLedger != 61300000 || rec.AccountsWalked != 65 {
+		t.Fatalf("counters lost on the way to the row: %+v", rec)
+	}
+
+	joined := strings.Join(s.risk.Warnings, "\n")
+	for _, want := range []string{"42 of 65", "3 of 65", "1 of 65", "2 operation result(s)", "1 offer(s)", "61300000", "too THIN"} {
+		if !strings.Contains(joined, want) {
+			t.Errorf("warnings do not account for %q:\n%s", want, joined)
+		}
+	}
+}
+
+// A clean walk still carries the field, because nil means "not a reconstruction"
+// and a row that lost the distinction is indistinguishable from a live read.
+func TestPersistReplayMarksACleanWalkAsAWalkRatherThanAsALiveRead(t *testing.T) {
+	s := &replayStoreProbe{inserted: true}
+	if _, _, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0); err != nil {
+		t.Fatal(err)
+	}
+	if s.risk.Reconstruction == nil {
+		t.Fatal("an offers-implied row must say that it is one, even with no gaps")
+	}
+	if s.risk.Reconstruction.HasGaps() {
+		t.Fatalf("invented a gap: %+v", s.risk.Reconstruction)
+	}
+	joined := strings.Join(s.risk.Warnings, "\n")
+	if !strings.Contains(joined, "not proof") {
+		t.Fatalf("a clean walk must not be reported as proof that it saw every offer:\n%s", joined)
+	}
+}
+
+// A floor that the writer was never told about would be stored as "stopped at
+// ledger 0", which reads as a fact and is not one.
+func TestPersistReplayRefusesAFloorCountWithoutItsFloorLedger(t *testing.T) {
+	r := replayForPersistence()
+	r.StoppedAtFloor = 4
+	s := &replayStoreProbe{}
+	if _, _, err := persistReplay(context.Background(), s, r, true, 0); err == nil || s.writes != 0 {
+		t.Fatalf("stored an unreadable floor: err=%v writes=%d", err, s.writes)
 	}
 }

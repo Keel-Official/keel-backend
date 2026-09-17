@@ -13,6 +13,7 @@ import (
 
 	"github.com/Keel-Official/keel-backend/internal/api"
 	"github.com/Keel-Official/keel-backend/internal/domain"
+	"github.com/Keel-Official/keel-backend/internal/horizon"
 	"github.com/Keel-Official/keel-backend/internal/store"
 )
 
@@ -63,12 +64,12 @@ func TestReplayPersistenceThroughPostgresAndHistoricalAPI(t *testing.T) {
 	if _, err := db.UpsertAsset(ctx, r.Snapshot.Base, r.Snapshot.Quote, "Track B integration fixture, not historical evidence"); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := persistReplay(ctx, db, r); err != nil {
+	if _, _, err := persistReplay(ctx, db, r, false, 0); err != nil {
 		t.Fatal(err)
 	}
 	// A duplicate may never replace an already stored value.
 	r.Snapshot.Book.Asks[0].Price = domain.Price{N: 108, D: 1}
-	if _, inserted, err := persistReplay(ctx, db, r); err != nil || inserted {
+	if _, inserted, err := persistReplay(ctx, db, r, false, 0); err != nil || inserted {
 		t.Fatalf("duplicate: inserted=%t error=%v", inserted, err)
 	}
 	server, err := api.New(api.Config{Reader: db, Params: domain.DefaultParams(), HistoricalAvailable: true})
@@ -112,5 +113,69 @@ func TestReplayPersistenceThroughPostgresAndHistoricalAPI(t *testing.T) {
 	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/v1/asset/"+r.Snapshot.Base.String()+"/depth?ledger=61340260", nil))
 	if w.Code != http.StatusOK {
 		t.Fatalf("CLI row unavailable: %d %s", w.Code, w.Body.String())
+	}
+
+	// DEC-022 section 7 item 5. A row stored with declared gaps must arrive at a
+	// consumer with those gaps readable, in the field and in the prose, through
+	// the real store and the real handler rather than through a fake reader.
+	gapped := replayForPersistence()
+	gapped.Snapshot.LedgerSeq = 61340261
+	gapped.Snapshot.LedgerClosedAt = gapped.Snapshot.LedgerClosedAt.Add(-6 * time.Second)
+	gapped.Truncated = 3
+	gapped.StoppedAtFloor = 42
+	gapped.Accounts = make([]horizon.AccountWalk, 65)
+	if _, _, err := persistReplay(ctx, db, gapped, true, 61300000); err != nil {
+		t.Fatal(err)
+	}
+	w = httptest.NewRecorder()
+	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/v1/asset/"+gapped.Snapshot.Base.String()+"/depth?ledger=61340261", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("gapped row unavailable: %d %s", w.Code, w.Body.String())
+	}
+	var gappedBody struct {
+		DataSource     string `json:"dataSource"`
+		Reconstruction *struct {
+			Truncated      int    `json:"truncated"`
+			StoppedAtFloor int    `json:"stoppedAtFloor"`
+			FloorLedger    uint32 `json:"floorLedger"`
+			AccountsWalked int    `json:"accountsWalked"`
+		} `json:"reconstruction"`
+		Warnings []string `json:"warnings"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &gappedBody); err != nil {
+		t.Fatal(err)
+	}
+	if gappedBody.DataSource != "offers-implied" || gappedBody.Reconstruction == nil {
+		t.Fatalf("the API lost the reconstruction: %s", w.Body.String())
+	}
+	got := gappedBody.Reconstruction
+	if got.Truncated != 3 || got.StoppedAtFloor != 42 || got.FloorLedger != 61300000 || got.AccountsWalked != 65 {
+		t.Fatalf("counters changed between the walk and the consumer: %+v", got)
+	}
+	if len(gappedBody.Warnings) == 0 {
+		t.Fatal("a reconstruction must reach a consumer with its prose as well as its counters")
+	}
+
+	// And the live row from the same deployment must NOT claim to be one.
+	live := replayForPersistence().Snapshot
+	live.Source = domain.DataSourceHorizon
+	live.LedgerSeq = 61340259
+	liveRisk, err := domain.ComputeAssetRisk(live, domain.DefaultParams())
+	if err != nil {
+		t.Fatal(err)
+	}
+	assetID, err := db.AssetID(ctx, live.Base, live.Quote)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := db.SaveMetrics(ctx, assetID, r.ReadAt, liveRisk); err != nil {
+		t.Fatal(err)
+	}
+	stored, err := db.MetricsAtLedger(ctx, assetID, 61340259, domain.MethodologyVersion, domain.DataSourceHorizon)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stored.Risk.Reconstruction != nil {
+		t.Fatalf("a live read claimed a walk it never made: %+v", stored.Risk.Reconstruction)
 	}
 }
