@@ -1,0 +1,68 @@
+# Provenance for USTRY.GCRYUGD5-USDC.GA5ZSEJY-pool-evidence-2026-02-22.json
+#
+# Written beside the JSON and not inside it. `keel replay` decodes that file with
+# DisallowUnknownFields, so a "note" key would not be an untidy comment, it would
+# be a parse error. DEC-010's rule about sidecars applies for the same practical
+# reason it applies to the CSVs.
+#
+# WHAT THIS FILE IS. The -pool-snapshots input for the three ledgers DEC-023
+# authorises. `keel replay` reconstructs the ORDER BOOK from operations and
+# reconstructs no pool at all, so pool coverage has to be supplied from outside or
+# the run is refused. Supplying it does not certify the book.
+#
+# IT CONTAINS NO NEW MEASUREMENT. Every reserve here is copied from DEC-013
+# section 1, which is a VERIFIED record. Nothing in this file was measured by the
+# process that will consume it, which is the point: a reconstruction that supplies
+# its own pool evidence is checking its work against itself.
+
+pair: USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+pool_id: 27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb
+fee_bp: 30
+reserve_base_ustry: 15.4791416
+reserve_quote_usdc: 16.3389179
+reserves_source: docs/decisions/DEC-013-USTRY-USDC-pool-ledger-61340263.md section 1
+reserves_method: /liquidity_pools/{id}/effects, walked back past the target ledger, filtered by liquidity_pool.id
+ledgers: 61340172, 61340262, 61340263
+authorised_by: docs/decisions/DEC-023-store-the-control-ledger-with-its-disagreement.md section 1 and section 7
+
+# WHY ONE SET OF RESERVES COVERS THREE LEDGERS, AND IT IS NOT AN APPROXIMATION.
+# DEC-013 section 2 records the pool's quiet window: the last effect touching this
+# pool before the attack is 2026-02-10T16:59:35Z and the next is
+# 2026-02-22T22:08:33Z. A constant product pool's reserves change only when an
+# effect touches it. All three ledgers close inside that window, so the same
+# reserves hold at each of them exactly, and no arithmetic reconstruction is
+# involved. If a fourth ledger is ever added to this file, check it against that
+# window first; outside it these numbers are simply wrong.
+quiet_window_from: 2026-02-10T16:59:35Z
+quiet_window_to: 2026-02-22T22:08:33Z
+
+# LEDGER CLOSE TIMES READ FROM HORIZON ON 17 SEPTEMBER 2026, not copied from the
+# bookseries CSV and not estimated from a ledger sequence. `keel replay` reads the
+# close time from /ledgers/{seq} itself and refuses to persist when the two differ,
+# so a wrong value here costs a walk rather than corrupting a row. They are
+# recorded anyway, because that refusal only fires at the END of a run.
+#
+#   61340172  2026-02-22T00:01:24Z  hash 2febabb2ec4935f9...
+#   61340262  2026-02-22T00:10:15Z  hash 2f5089ba54be9ddc...
+#   61340263  2026-02-22T00:10:21Z  hash 6c574dbbd06684cc...
+#
+# 61340262's hash matches the saved response bytes in
+# docs/evidences/track-b-2026-09-12/control-ledger.json, captured 12 September
+# 2026, so the two readings agree across five days and two methods.
+
+# TWO CHECKS RUN ON 17 SEPTEMBER 2026 AGAINST LIVE HORIZON, both reproducing
+# DEC-013's own cross-validation rather than replacing it.
+#
+# 1. The pool still reports type constant_product and fee_bp 30 against these two
+#    assets, so the id in this file is the pair it claims to be.
+# 2. The constant product k moved the way DEC-013 said it did and by the amount it
+#    said. February reserves give k = 252.9124238; the reserves Horizon reports
+#    today, 16.6037376 USDC and 15.4326347 USTRY, give k = 256.2394170. DEC-013
+#    recorded 252.912 rising to 256.237 and attributed the rise to 30 bps fee
+#    accumulation. Reproduced to seven and six digits respectively.
+#    Spot from the February reserves is 1.0555441847, and DEC-013 records
+#    1.0555442.
+#
+# NEITHER CHECK PROVES THE FEBRUARY RESERVES. They prove the pool is the right
+# pool and that the record's own arithmetic holds. The reserves rest on DEC-013's
+# effects walk and on nothing in this file.

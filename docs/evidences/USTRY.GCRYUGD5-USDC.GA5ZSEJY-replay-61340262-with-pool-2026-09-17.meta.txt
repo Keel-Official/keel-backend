@@ -1,0 +1,114 @@
+# Provenance for USTRY.GCRYUGD5-USDC.GA5ZSEJY-replay-61340262-with-pool-2026-09-17.log
+#
+# THE FIRST TIME THIS LEDGER HAS BEEN COMPUTED WITH ITS POOL. That is what makes
+# the log worth keeping. DEC-006 section 8 item 3, written 27 August 2026, lists
+# what changes if the reference price takes the pool branch at this fixture and
+# closes with "Nothing is recomputed here and no replacement value is offered,
+# deliberately". This run is that computation, produced as a rehearsal for
+# DEC-023 rather than as an answer to DEC-006, and it confirms every item on that
+# list.
+#
+# IT IS A REHEARSAL AND NOT A PRODUCTION WRITE. The row went into a disposable
+# local database, which was created for this run. Nothing reached the deployed
+# service, and `historicalAvailable` there is still false.
+#
+# THESE NUMBERS ARE CLAUDE'S AND MUST NOT BECOME FIXTURE NUMBERS. DEC-006 section
+# 8 item 2 is explicit: numbers Claude produced cannot be the numbers the
+# conformance test proves the code against. This file reports a disagreement
+# between the code and the fixture, which is the job; resolving it is Al's.
+
+command: keel replay -pairs scripts/record-pairs.example.json -ledger 61340262
+         -trades-from-ledger 61300000 -since-ledger 61300000 -lookahead 5000
+         -max-pages-per-account 60 -max-pages-per-offering-account 400
+         -known-removals configs/known-removals.json
+         -compute -persist -accept-incomplete
+         -pool-snapshots docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-pool-evidence-2026-02-22.json
+run_on: 2026-09-17, public Horizon mainnet, no account
+code: DEC-022 working tree, uncommitted at the time of the run
+pair: USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+target_ledger: 61340262
+ledger_closed_at: 2026-02-22T00:10:15Z
+data_source: offers-implied
+methodology_version: 1.0.8-draft
+pool_evidence: docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-pool-evidence-2026-02-22.json, 1 pool
+
+# THE WALK
+operation_floor_ledger: 61300000
+trade_window_from_ledger: 61300000
+trade_lookahead_ledgers: 5000
+max_pages_per_account: 60
+max_pages_per_offering_account: 400
+earliest_offer_operation_ledger: 61303621
+accounts_walked: 65
+accounts_from_trades: 58
+accounts_from_live_offers: 7
+trades_read: 740
+offer_operations: 228
+walks_truncated: 4
+walks_stopped_at_floor: 55
+walks_failed: 0
+unsizable_operations: 0
+missing_offer_ids: 28
+crossed: false
+inflated: false
+known_removals_file: configs/known-removals.json
+requests: 624
+
+# THE GATE, WHICH IS WHAT THE REHEARSAL WAS FOR
+# Stored under DEC-022's -accept-incomplete. The two conditions that keep their
+# refusal with no override both read clean: the book is not crossed and not
+# inflated. The three that DEC-022 admits are all nonzero, and all three are in
+# the stored row's `reconstruction` field and in its warnings.
+#
+# 28 MISSING OFFERS IS THE LARGEST OF THEM AND THE LEAST VISIBLE. Each one is an
+# offer a later trade named as resting that this walk never saw created, so the
+# book is thinner than the real one by an unknown amount. It is recorded, not
+# repaired.
+
+# THE RESULT, AND THE PART THAT IS A FINDING RATHER THAN A REHEARSAL
+p0: 1.0555441846982006
+price_source: pool
+spread_pct: 10011.9241176
+depth_buy_0.02: 0.1630695103854114496895076595
+band: CRITICAL
+band_confidence: partial
+flags: MANIPULATION_CHEAP, PRICE_SOURCE_CONFLICT, SPREAD_EXTREME, THIN_DEPTH_5PCT
+best_bid: 1.057 amount 0.0001
+best_ask: 106.7372828 amount 1.2185312
+
+# AGAINST THE GOLDEN FIXTURE AND docs/report/blend-february-2026.md, WHICH BOTH
+# CARRY THE NO-POOL ANSWER:
+#
+#   quantity      fixture / report        this run
+#   P0            53.8971414              1.0555441846982006
+#   priceSource   book                    pool
+#   spreadPct     196.08                  10011.9241176
+#   depth 2%      zero                    0.16306951...
+#   flags         ZERO_DEPTH_2PCT,        MANIPULATION_CHEAP,
+#                 THIN_DEPTH_5PCT,        PRICE_SOURCE_CONFLICT,
+#                 SPREAD_EXTREME,         SPREAD_EXTREME,
+#                 MANIPULATION_CHEAP      THIN_DEPTH_5PCT
+#   band          CRITICAL                CRITICAL
+#
+# THE CAUSE IS KNOWN AND IS NOT THIS RUN. 53.8971414 is the mid of a book whose
+# bid is 1.057 and whose ask is 106.7372828, which is the answer when no pool is
+# present. The fixture records Pools: [] although a pool held reserves at that
+# ledger, which is the whole of DEC-006. Under methodology 1.0.3 the reference
+# price compares the book mid against the pool spot and takes the pool when they
+# diverge past the threshold, so supplying the pool moves P0 to the pool spot,
+# sets priceSource to pool and raises PRICE_SOURCE_CONFLICT. DEC-006 section 8
+# item 3 predicted each of those, plus the target price column, every depth
+# figure, spreadPct, and the ZERO_DEPTH_2PCT argument. All six moved.
+#
+# The pool spot recorded in DEC-006 section 1 is 1.0555441847. This run computed
+# 1.0555441846982006 from DEC-013's reserves. Ten digits agree.
+#
+# ONE OBSERVATION THAT IS NOT EXPLAINED HERE AND IS NOT CLAIMED AS A DEFECT.
+# Every manipulation cost rung reads cost 0 with reachable true. Reachable true
+# follows from DEC-007 and DEC-013 section 4.3: an active constant product pool
+# makes every target reachable. Cost 0 does not obviously follow from anything,
+# since moving a pool's price along its curve is not free. P2-19 in
+# scripts/audit-verification.sh already records that 05-manipulation-cost.md
+# section 1 defines the cost over asks alone while section 3 and compute.go carry
+# two venue forms, and the only ask on this book sits at 106.74, above every
+# target. Whether that is the explanation or a defect was not investigated.

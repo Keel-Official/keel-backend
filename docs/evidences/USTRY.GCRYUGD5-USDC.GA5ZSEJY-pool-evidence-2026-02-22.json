@@ -1,0 +1,71 @@
+[
+  {
+    "Base": {
+      "Code": "USTRY",
+      "Issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "Type": "credit_alphanum12"
+    },
+    "Quote": {
+      "Code": "USDC",
+      "Issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "Type": "credit_alphanum4"
+    },
+    "LedgerSeq": 61340172,
+    "LedgerClosedAt": "2026-02-22T00:01:24Z",
+    "Source": "offers-implied",
+    "Pools": [
+      {
+        "PoolID": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+        "ReserveBase": "15.4791416",
+        "ReserveQuote": "16.3389179",
+        "FeeBP": 30
+      }
+    ]
+  },
+  {
+    "Base": {
+      "Code": "USTRY",
+      "Issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "Type": "credit_alphanum12"
+    },
+    "Quote": {
+      "Code": "USDC",
+      "Issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "Type": "credit_alphanum4"
+    },
+    "LedgerSeq": 61340262,
+    "LedgerClosedAt": "2026-02-22T00:10:15Z",
+    "Source": "offers-implied",
+    "Pools": [
+      {
+        "PoolID": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+        "ReserveBase": "15.4791416",
+        "ReserveQuote": "16.3389179",
+        "FeeBP": 30
+      }
+    ]
+  },
+  {
+    "Base": {
+      "Code": "USTRY",
+      "Issuer": "GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC",
+      "Type": "credit_alphanum12"
+    },
+    "Quote": {
+      "Code": "USDC",
+      "Issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "Type": "credit_alphanum4"
+    },
+    "LedgerSeq": 61340263,
+    "LedgerClosedAt": "2026-02-22T00:10:21Z",
+    "Source": "offers-implied",
+    "Pools": [
+      {
+        "PoolID": "27480d0483c8320ba4a707797526ffd67118e841491e0cbeb66db697bb66cccb",
+        "ReserveBase": "15.4791416",
+        "ReserveQuote": "16.3389179",
+        "FeeBP": 30
+      }
+    ]
+  }
+]
