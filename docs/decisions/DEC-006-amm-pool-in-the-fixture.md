@@ -359,7 +359,78 @@ needed. If it is not, the third ladder needs its own formula in `compute.go`.
 
 ---
 
-## 9. Amendment history
+## 9. The branch in section 8 item 3 was taken, and it was measured rather than chosen
+
+**AMENDED 17 September 2026. Nothing here is decided and no number in this record is
+changed.** Item 3 of section 8 said the reference price ladder "may" take the pool
+branch at this fixture, listed what that would move, and closed with "Nothing is
+recomputed here and no replacement value is offered, deliberately". The branch has now
+been taken by the code, over this exact ledger, with this pool, and the result is
+served in production.
+
+**How it happened is worth a line, because nobody set out to answer this.** DEC-023
+authorises storing ledger 61340262 through the historical API, and DEC-022 supplies
+the mechanism. That path requires audited pool coverage, which for this ledger can only
+be DEC-013's reserves. Supplying them is what took the branch. The answer to this
+record arrived as a side effect of a deployment task.
+
+| Figure | Section 2 of this record, book only | Measured, with the pool |
+|---|---|---|
+| `P0` | 53.8971414 | **1.0555441846982006** |
+| `priceSource` | `book` | **`pool`** |
+| `spreadPct` | 196.0777141 | **10011.9241176** |
+| depth at ±2 per cent | 0 on both sides | **0.1630695 buy, 0.1638274 sell** |
+| `ZERO_DEPTH_2PCT` | fires | **does not fire**; `PRICE_SOURCE_CONFLICT` takes its place |
+| `maxReachablePrice` | 106.7372828 | **`null`** |
+| manipulation cost to 50 per cent, combined | not computed there | **3.6831374** |
+| band | `CRITICAL` | `CRITICAL` |
+
+Every item item 3 listed moved, in the direction it named. The pool spot this record
+gives in section 1 is 1.0555441847; the code computed 1.0555441846982006 from DEC-013's
+reserves, agreeing to ten digits, which is a free confirmation of section 1 rather than
+of anything new.
+
+Evidence, both committed:
+`docs/evidences/USTRY.GCRYUGD5-USDC.GA5ZSEJY-replay-61340262-with-pool-2026-09-17.log`
+and its sidecar. The row is reproducible in one curl, named in
+`docs/report/blend-february-2026.md` section 3.1.
+
+### 9.1 What this does NOT do, stated first because it is the part that binds
+
+**These numbers are Claude's and must never become fixture numbers.** Section 8 item 2
+of this record is the rule and it is unchanged: numbers Claude produced cannot be the
+numbers the conformance test proves the code against. This section reports where the
+code and the hand document disagree, which `internal/domain/CLAUDE.md` names as the
+job, and it is not a recomputation of the fixture.
+
+**So "what is left of A" is not closed by this.** Item 1 of that list,
+`testdata/fixtures/ustry_pre_exploit.md` still recording `Pools: []` while
+`GoldenSnapshot()` carries the pool, is exactly as open as it was. Item 2, the
+with-pool tables computed BY HAND, is exactly as open as it was, and this section makes
+it easier to do badly rather than easier to do: a hand computation performed next to
+these figures is a hand computation that can be checked against them, which is copying
+wearing a recomputation's clothes.
+
+### 9.2 What settling it now requires, and who owns each part
+
+1. **Al recomputes the with-pool figures by hand**, without reading the table above
+   first. That is item 2 of "what is left of A" and its ordering matters more now, not
+   less. Then compare: agreement is a free confirmation, disagreement is a second
+   finding.
+2. **Al corrects `Pools: []` in the fixture**, or records why it stays. `testdata/fixtures/`
+   is RED and locked in both the deny list and the hook.
+3. **Claude then re-anchors what cites the old figures.** `internal/conformance/expected.go`
+   already points its assertions at `BookOnlySnapshot()` rather than at the pool case,
+   which section 8 records as the right way round, so this is likely to be smaller than
+   it sounds. It is not started, because it is downstream of both steps above.
+
+**One thing is now urgent that was not before.** Until 17 September the disagreement
+between this record and the fixture was internal. It is now public: the API returns
+1.06 for a ledger the client-facing report shows at 53.90. `docs/report/` section 3.1
+carries the bridge in prose as the interim answer, and the paragraph in it that says
+what the difference MEANS is marked for Al rather than written as settled.
+
+## 10. Amendment history
 
 This record is append-only. An amendment adds a row here and text below the section it
 concerns; no earlier sentence is edited or deleted. That is the treatment DEC-003 gives
@@ -369,4 +440,5 @@ hides the fact that it was wrong, and the fact that it was wrong is the finding.
 | Date | Amendment |
 |---|---|
 | 25 August 2026 | Section 8 added. A and C decided by Al, and most of both turned out to already exist |
+| 17 September 2026 | Section 9. The section 8 item 3 branch was TAKEN, measured over this ledger with DEC-013's pool, as a side effect of DEC-023's deployment. P0 reads 1.0555441846982006 where section 2 reads 53.8971414, and every figure item 3 listed moved in the direction it named. No number in this record was changed and the fixture is untouched: section 9.1 restates that these are Claude's numbers and cannot become fixture numbers, and 9.2 names who owns each remaining step |
 | 27 August 2026 | Section 8 item 3: section 2 was computed under the pre-1.0.3 `P0` ladder, so its target prices, its depth figures, `spreadPct` and the `ZERO_DEPTH_2PCT` reasoning all rest on a reference price the current ladder may not choose. Section 8 items 4 and 5: the `maxReachablePrice` null-condition conflict between `05-manipulation-cost.md` and the contract, and the oracle window conflict between the contract example and the methodology. No number in this record was changed, no branch was chosen, and no replacement value was computed |
