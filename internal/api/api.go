@@ -392,9 +392,19 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 	// If the Hubble path is ever undeferred, a second source here is a decision
 	// and not a patch: two sources answering one ledger have to be ordered, and
 	// DEC-002 is where that ordering belongs.
+	// THE MESSAGE NAMED THE WRONG REASON UNTIL 17 SEPTEMBER 2026, and it named it
+	// for twelve days after the line above stopped being true. The read moved from
+	// hubble to offers-implied on 5 September and the sentence under it still sent
+	// consumers to DEC-002, so a dashboard author reading this 503 learned that the
+	// blocker was a deferred BigQuery adapter. It is not. The blocker is that this
+	// deployment holds no reconstructed row and `keel serve` therefore runs without
+	// -historical, which is a backfill and a flag rather than a missing source. A
+	// wrong reason in an error message is worse than a vague one, because it sends
+	// the reader to fix something that is not broken.
 	if !s.cfg.HistoricalAvailable {
 		s.writeError(w, http.StatusServiceUnavailable, codeHistoricalUnavailable,
-			"Historical replay is not available. The Hubble path is deferred; see DEC-002.", nil)
+			"Historical replay is not available on this deployment: no reconstructed ledger "+
+				"has been stored. Current metrics remain available without the ledger parameter.", nil)
 		return
 	}
 

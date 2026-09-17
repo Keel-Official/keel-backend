@@ -35,11 +35,18 @@ func runServe(args []string) error {
 
 	addr := fs.String("addr", ":3000", "address to listen on")
 	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN, or set KEEL_DSN")
-	// Off by default and named after what it actually gates. DEC-002 defers the
-	// Hubble path, so with no historical source the honest answer to a ledger
-	// query is 503 HISTORICAL_UNAVAILABLE rather than a live figure wearing a
-	// historical label.
-	historical := fs.Bool("historical", false, "declare the historical replay path available")
+	// Off by default and named after what it actually gates: whether this
+	// DEPLOYMENT holds reconstructed rows, not whether a source exists. With none,
+	// the honest answer to a ledger query is 503 HISTORICAL_UNAVAILABLE rather
+	// than a live figure wearing a historical label.
+	//
+	// THE REASON IS NOT DEC-002 AND THIS COMMENT SAID IT WAS UNTIL 17 SEPTEMBER
+	// 2026. The path behind the flag reads `offers-implied` rows, which `keel
+	// replay -persist` writes and which need no deferred source at all. Turning it
+	// on over an empty table turns a truthful 503 into a 404 that blames the ledger
+	// the caller asked for, so the order is rows first and flag second. DEC-022 and
+	// scripts/deploy/RUNBOOK.md section 4.
+	historical := fs.Bool("historical", false, "declare the historical replay path available; turn it on only once reconstructed rows exist")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel serve - the read-only API
