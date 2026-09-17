@@ -112,3 +112,30 @@ best_ask: 106.7372828 amount 1.2185312
 # section 1 defines the cost over asks alone while section 3 and compute.go carry
 # two venue forms, and the only ask on this book sits at 106.74, above every
 # target. Whether that is the explanation or a defect was not investigated.
+#
+# ^ THE PARAGRAPH ABOVE IS WRONG AND IS KEPT RATHER THAN DELETED. Corrected
+# 17 September 2026, from the stored row itself once it was served.
+#
+# There was nothing to explain. The log this file describes prints ONE of the two
+# manipulation ladders under the bare label "cost", and it is the ORDERBOOK-ONLY
+# one. Those rungs are genuinely 0 and correctly so: the single ask on this book
+# sits at 106.74, above every target, so there is no third-party ask cheaper than
+# the target to buy on the way, which is what 05-manipulation-cost.md section 1
+# defines the cost as. The suspicion about P2-19 was aimed at a figure that was
+# never the combined one.
+#
+# THE COMBINED LADDER, WHICH IS WHAT THE API SERVES AND WHAT THE BAND IS JUDGED
+# ON, IS NOT ZERO. Read from the deployed service at ledger 61340262:
+#
+#   delta 0.5   target 1.5833162770  cost 3.6831374143563011271432108824
+#   delta 1     target 2.1110883694  cost 6.7881658863395478147114197053
+#   delta 10    target 11.611        cost 37.9650373668220561247354800888
+#   delta 100   target 106.610       cost 148.3101050939876951855781187642
+#
+# That is the pool being walked along its curve, and it is why MANIPULATION_CHEAP
+# fires: 3.68 USDC against the ManipulationCheapAbsolute threshold of 10,000.
+#
+# THE CAUSE OF THE MISREADING WAS THE OUTPUT AND IT IS FIXED AT THE SOURCE.
+# reportRisk in cmd/keel/replay.go printed one ladder without naming which. It now
+# prints both, each labelled, combined first. An unlabelled figure invites exactly
+# this, and the fix belongs in the printer rather than in a warning to readers.

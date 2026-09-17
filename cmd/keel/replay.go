@@ -514,8 +514,21 @@ func reportRiskUnder(w *os.File, s domain.Snapshot, heading string) {
 	for _, d := range r.Depth {
 		fmt.Fprintf(w, "    depth  delta %-5s buy %s  sell %s\n", d.Delta, d.BuySide, d.SellSide)
 	}
+	// BOTH LADDERS, EACH NAMED, AND THE HEADLINE ONE FIRST. This printed only the
+	// orderbook-only ladder under the bare label "cost" until 17 September 2026,
+	// and on a pair with an active pool the two differ completely: at ledger
+	// 61340262 the orderbook-only rungs all read 0, because the single ask sits
+	// above every target and there is nothing cheaper to buy, while the combined
+	// rungs read 3.68 to 148.31 for the pool that has to be walked along its curve.
+	// A reader of this output took the zeroes for the answer, which is exactly what
+	// an unlabelled figure invites. The combined ladder is what the API serves as
+	// `manipulationCostCombined` and what the band is judged on, so it leads.
+	for _, m := range r.ManipulationCostCombined {
+		fmt.Fprintf(w, "    cost   combined   delta %-5s target %s  cost %s  reachable %t\n",
+			m.Delta, m.TargetPrice, m.Cost, m.Reachable)
+	}
 	for _, m := range r.ManipulationCostOrderbookOnly {
-		fmt.Fprintf(w, "    cost   delta %-5s target %s  cost %s  reachable %t\n",
+		fmt.Fprintf(w, "    cost   book only  delta %-5s target %s  cost %s  reachable %t\n",
 			m.Delta, m.TargetPrice, m.Cost, m.Reachable)
 	}
 	fmt.Fprintf(w, "    maxReachablePrice %s  costToMaxReachablePrice %s\n",
