@@ -52,6 +52,12 @@ section 4 smaller than it first looks:
 | FR-9 and `WASH_TRADE_SUSPECTED` | the WHOLE window, 24h, 7d and 30d | every trade classified, which is section 2's arithmetic |
 
 The first row does not need section 2's budget at all and should not wait on this record.
+
+> **AMENDED 17 September 2026. The first row is still cheap and "about one page per
+> pair" is wrong, because the unit is a DAY and not a page.** See section 8. The
+> conclusion that it need not wait on this record survives; the arithmetic under it does
+> not.
+
 The second row is what this record is actually about. Sections 2 through 6 below concern
 the second row only.
 
@@ -205,3 +211,102 @@ go run ./cmd/keel backtest -pairs scripts/record-pairs.example.json \
 |---|---|
 | 12 September 2026 | Drafted. Nothing in force. The 8.6 hour figure and the threshold table are measured from `configs/demonstration-set.json` and from the February `backtest` re-run of the same day |
 | 12 September 2026, later | Section 1 corrected before this record was ever committed. The first draft claimed the five measures stand or fall together; they do not. FR-10 and the two `NO_GENUINE_TRADE` flags stop walking at the last genuine trade and cost about one page per pair, so they are outside this record's budget problem entirely. Section 5's argument was rebuilt on `WASH_TRADE_SUSPECTED` and the volume-to-supply ratio, which are the two that really do need the whole window |
+
+---
+
+## 8. AMENDMENT, 17 September 2026: the cheap half cannot stop mid-day
+
+**This section AMENDS and decides nothing.** It corrects an arithmetic claim this
+record makes about its own cheap half, found while starting to build that half. The
+recommendation in section 5 and the options in section 4 are untouched: they concern
+the expensive row, and nothing here reaches them.
+
+### 8.1 What the record claims and why it is wrong
+
+Section 1 splits the family and prices the cheap row at "about one page per pair,
+because the answer is found at the recent end and the walk stops there". The walk can
+indeed stop at the recent end. **It cannot stop at an arbitrary page, and a page is
+therefore the wrong unit.**
+
+`domain.ClassifyTrades` computes `dailyOrderBookMedians(trades)` and
+`orderBookPricesByTime(trades)` over the WHOLE slice it is given, and two of the five
+conditions read them:
+
+| Condition | Depends on | Safe to judge from one page? |
+|---|---|---|
+| 1, self trade | the trade alone | yes |
+| 2, dust | the trade alone | yes |
+| 3, issuer leg | the trade alone | yes |
+| 4, off-book pool fill | the order book prices around it, ±15 minutes | no |
+| 5, price outlier | the median of that UTC DAY | **no** |
+
+So a backwards walk that stops part way through a day computes condition 5 against the
+median of a partial day, which is a different statistic from the one the rule names.
+`dailyOrderBookMedians` carries that warning in its own header, about a sliding subset,
+and this is that case arriving from the other direction.
+
+### 8.2 The error runs in the optimistic direction, which is what makes it disqualifying
+
+A trade that passes conditions 1 to 3 can look genuine against a partial day's median
+and be excluded once the whole day is known. The verdict can only move one way as more
+of the day arrives: from genuine to excluded, never back. **So a partial walk reports a
+last genuine trade that is NEWER than the true one, and the asset reads as fresher than
+it is.**
+
+`NO_GENUINE_TRADE_7D` and `NO_GENUINE_TRADE_30D` are the flags that fire on staleness.
+An implementation that can only err towards "traded more recently than it did" is an
+implementation that can only fail to raise those flags. That is the direction DEC-022
+section 5.1 refuses without an override for the reconstruction gate, and the same
+reasoning applies here: a warning product may fail towards more dangerous and not
+towards safer.
+
+### 8.3 The corrected unit and the corrected cost
+
+**The smallest honest unit is one whole UTC day.** Priced from the same
+`configs/demonstration-set.json` counts section 2 uses, at 200 records a page:
+
+| | Pages | Minutes at the NFR-6 cap |
+|---|---|---|
+| One whole UTC day, every pair | **890** | **17.8** |
+
+and the shape works in this half's favour, unlike the expensive half's:
+
+| Pair | Trades per day | Pages for one day |
+|---|---|---|
+| XLM | 64,484 | 323 |
+| HU | 22,210 | 112 |
+| TGM | 14,240 | 72 |
+| yXLM | 13,879 | 70 |
+
+| Pair | Trades in 30 days | Pages for the WHOLE month |
+|---|---|---|
+| RCW | 2,203 | 12 |
+| GROG | 1,706 | 9 |
+| TRNPC | 1,649 | 9 |
+| EMN, FUNT | 0 | 0 |
+
+**A busy pair resolves on the first day walked, and a pair that needs many days walked
+is quiet by definition and costs almost nothing per day.** The two ends of the set pay
+for opposite reasons and both are small. A realistic figure for the whole set is 20 to
+30 minutes rather than section 1's implied 61 pages, and still nothing like section 2's
+8.6 hours.
+
+**The worst case is worth stating rather than hiding**: a pair with no genuine trade in
+30 days walks all 30 days before answering, and for the noisiest such pair that is the
+expensive half's bill. It is bounded by whatever horizon the walk is allowed, and that
+bound is a number this record does not choose, exactly as it does not choose the
+threshold in section 6 item 1.
+
+### 8.4 What this changes for whoever builds it
+
+1. The walk fetches and classifies in whole UTC days, and a day is either complete or
+   not used.
+2. It walks back day by day until a day contains a genuine trade, or until a bound is
+   reached. Reaching the bound reports `unevaluated`, never "no genuine trade", because
+   those are different answers and only one of them is a finding.
+3. `internal/horizon`'s existing `Trades` walks `order=asc` from a cursor, which suits
+   the backtest's forward window. A backwards day walk is a second shape over the same
+   endpoint and should say so rather than overload `TradeQuery`.
+4. Conditions 1 to 3 remain per-trade and could in principle answer a cheaper question,
+   but not this one. FR-10 asks for the last GENUINE trade, and genuine is the verdict
+   of all five conditions together.
