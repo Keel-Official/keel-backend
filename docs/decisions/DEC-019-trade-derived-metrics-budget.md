@@ -1,15 +1,21 @@
 # DEC-019: The trade-derived metrics cost 8.6 hours of Horizon per refresh, and that decides their shape
 
-**Status:** **DRAFT. Nothing in this record is in force.** Every section is a proposal
-and section 4 is a choice nobody has made. It is filed now rather than after an
-implementation because the arithmetic in section 2 rules out the obvious shape, and
-building the obvious shape first and measuring afterwards is how the six days in the
-`compute.go` zone row happened.
+**Status:** Accepted by Al, 18 September 2026. **OPTION B at a threshold of 20,000
+trades in 30 days**, which section 5 recommends: pairs at or below the threshold have
+the whole 30 day window classified, and pairs above it report the volume half
+unevaluated WITH the reason string section 5 asks for. Section 9 records what was
+built against it and what the record still does not decide.
 **Date drafted:** 2026-09-12
 **Kind:** Request budget and metric cadence. It changes no formula and no threshold. It
 decides which assets can carry the trade-derived half of `SupportingMetrics` at all.
 **Drafted by:** Claude
-**Decided by:** pending
+**Decided by:** Al, 18 September 2026, Option B at 20,000. Between 12 and 18 September
+this line read "pending" and the whole record was marked DRAFT, with the sentence
+"Nothing in this record is in force. Every section is a proposal and section 4 is a
+choice nobody has made." That is kept here rather than deleted, because the reason the
+record was filed before an implementation is the part worth carrying: the arithmetic in
+section 2 rules out the obvious shape, and building the obvious shape first and
+measuring afterwards is how the six days in the `compute.go` zone row happened.
 **Extends:** DEC-018, whose point 2 is accepted and whose provenance pattern this record
 reuses rather than reinvents. DEC-018 solved the same problem for holder concentration;
 this is the same problem for the trade stream, and it is worse by two orders of magnitude.
@@ -291,6 +297,14 @@ for opposite reasons and both are small. A realistic figure for the whole set is
 30 minutes rather than section 1's implied 61 pages, and still nothing like section 2's
 8.6 hours.
 
+> **AMENDED 18 September 2026, AND THE SENTENCE IN BOLD ABOVE IS FALSE.** The two
+> properties are independent and one pair class has both. HU/USDC trades 22,210 times a
+> day AND had no genuine day for at least nineteen of them, so it spent about 2,100
+> requests on its own in the first pass run under this decision and starved the forty
+> pairs behind it. See section 9.8 for the measurement, why the threshold selects for
+> exactly this pair class, and the page bound added in response. The worst case stated
+> two paragraphs below is therefore not the worst case.
+
 **The worst case is worth stating rather than hiding**: a pair with no genuine trade in
 30 days walks all 30 days before answering, and for the noisiest such pair that is the
 expensive half's bill. It is bounded by whatever horizon the walk is allowed, and that
@@ -310,3 +324,333 @@ threshold in section 6 item 1.
 4. Conditions 1 to 3 remain per-trade and could in principle answer a cheaper question,
    but not this one. FR-10 asks for the last GENUINE trade, and genuine is the verdict
    of all five conditions together.
+
+---
+
+## 9. ACCEPTED, 18 September 2026, and what was built the same day
+
+**Al chose option B at 20,000.** Section 5 argued for it on an asymmetry rather than a
+preference, and nothing in the implementation changed that argument: the pairs that make
+`WASH_TRADE_SUSPECTED` and the volume-to-supply ratio informative are nearly free, and the
+pairs that consume the budget are the ones whose answer is least in doubt.
+
+### 9.1 What exists now
+
+| Piece | Where | Zone |
+|---|---|---|
+| The backward walk in whole UTC days | `internal/horizon/tradedays.go`, `WalkTradeDays` | YELLOW |
+| The cache table and its constraints | `migrations/0009_trade_readings.sql` | GREEN |
+| Storing and reading a row | `internal/store/trades.go` | GREEN |
+| The pass, the threshold gate and the bound | `cmd/keel/trades.go` | GREEN |
+| Reading the cache into a scan round | `cmd/keel/scan.go`, `attachTradeHalf` | GREEN |
+
+Section 8.4 listed four things it said whoever built this would have to do. All four are
+done: the walk fetches and classifies in whole UTC days, it walks back day by day until a
+day holds a genuine trade or the bound is reached, reaching the bound reports unevaluated
+rather than "no genuine trade", and the backward shape is a second walk beside
+`TradeQuery` rather than an overload of it.
+
+### 9.2 Three numbers this record left open, and where each one now lives
+
+1. **The threshold**, section 6 item 1. `keel trades -threshold`, default 20,000. It is a
+   flag and not a constant for the reason that section gives: nothing in section 2 derives
+   20,000, it is a row in a table a reader can move.
+2. **The walk bound**, section 8.3's "a number this record does not choose".
+   `keel trades -max-days`, default 30. Thirty is not an arbitrary budget: it is the window
+   `NO_GENUINE_TRADE_30D` and `WASH_TRADE_SUSPECTED` are defined over, so a walk that
+   completes thirty whole days and finds nothing has MEASURED both rather than run out of
+   road. Any smaller default would make the commonest outcome an unevaluated one.
+3. **The staleness bound on the cache**, which is DEC-018 point 3's question asked of this
+   table. `keel scan -max-trade-age`, default 36 hours, measured from the ANCHOR and not
+   from the pull. It is tighter than the holder bound's 48 hours because a trade reading is
+   already up to 24 hours behind by construction, so 48 would admit a window that ended
+   nearly three days ago.
+
+### 9.3 Two things the implementation does that this record should be read as having decided
+
+**The gate reads the 30 day count out of the selection note**, which is the field section 7
+reproduces its own arithmetic from, with the same regular expression. That count was
+measured on Horizon on 26 August 2026 and is not refreshed by the pass, so the gate is
+applied on a figure that may be three weeks stale, and the row's reason string says so in
+as many words. The alternative was counting during the walk, which is self-updating and
+would cost up to 100 pages per over-threshold pair before aborting, roughly forty minutes
+the accepted option does not include. **A pair whose note carries no count is treated as
+ABOVE the threshold**, because a missing count read as zero would buy the most expensive
+walk for the pair nobody has measured.
+
+**Coverage is checked separately from the threshold.** A pair under the threshold whose walk
+was cut short by the bound has no complete window either, and its row is stored as
+`last-genuine-only` with a reason naming the days it did cover. Storing partial sums as a
+measured volume is the error this whole record is about, and the threshold alone does not
+prevent it.
+
+### 9.4 One understatement that is open, named rather than left to be discovered
+
+A walk that reached the end of a pair's history without meeting a genuine trade has
+MEASURED that the pair never genuinely traded, and the row records it with `exhausted`.
+The flag rules in `internal/domain/flags.go` evaluate `NO_GENUINE_TRADE_7D` and
+`NO_GENUINE_TRADE_30D` only when `sup.LastGenuineTrade` is non-nil, so that measurement
+currently surfaces as unevaluated rather than as the flag firing.
+
+The direction is safe and it is the same direction section 8.2 permits, so this is a
+missed finding and never a false reassurance. Closing it means teaching the flag rules to
+read "measured absence" apart from "not measured", which is a change in a YELLOW package
+and a shape question of its own: it needs a second field beside the reference, because a
+nil pointer cannot carry the difference. It is not done here and it is not forgotten.
+
+### 9.5 What is still not decided
+
+Section 6 items 2, 3 and 4 are untouched. The methodology does not move, so option C
+remains unchosen and `07-supporting-metrics.md` keeps defining the ratio over genuine
+volume. The cadence is assumed daily and is a flag rather than a schedule until DEC-018
+point 1 is accepted. And whether the API exposes the trade half's own anchor and age is
+DEC-018 point 4, still a draft, so this family carries its provenance in the database and
+not yet in the contract.
+
+### 9.6 A data-source fact this record's implementation had to discover
+
+**Public Horizon sends no `Latest-Ledger` header on `/trades`**, measured 18 September
+2026. `internal/horizon/CLAUDE.md` trap 6 said the collection endpoints send it and is
+corrected in the same change.
+
+It reaches this record because it changed the schema built under it.
+`trade_readings.ledger_seq` is nullable rather than `NOT NULL`, and the sequence is taken
+from the paging token of a trade in the walk, whose high 32 bits are the ledger. That is
+decoding an identifier rather than deriving one from a time, which is the distinction
+`00-overview.md` section 2 rule 4 turns on. A pair with no trade at all in the walked
+window has no token to take it from and therefore no ledger to cite, so the column admits
+NULL and a second constraint stops the absence spreading: a row that names a last genuine
+trade must name a ledger, because a walk that met a genuine trade met a trade.
+
+**`docs/methodology/01-data-sources.md` says nothing about this header and is RED.** It
+is marked complete and every claim in it was verified against Horizon mainnet, so whether
+it gains a line about which endpoints carry the stamp is Al's call, not this record's.
+Flagged here rather than left in a commit message.
+
+### 9.7 What the threshold buys and what the genuine-trade rule then declines to judge
+
+**This is the one consequence of option B that section 5 did not price, and it is not a
+defect in anything.** The threshold decides which pairs are WALKED in full. It has no
+bearing on how many of the walked trades resolve to `genuine`, and
+`07-supporting-metrics.md` section 1 gives that rule three outcomes rather than two: a
+liquidity-pool fill with no order-book trade inside the ±15 minute comparison window is
+**Unevaluated**, never Genuine, because scoring it against an hour-stale book is the
+failure the rule was written to avoid.
+
+So a pair filled entirely from a pool reports **no last genuine trade at all**, however
+far back it is walked, and FR-10 stays unevaluated for it. The first reading stored under
+this decision is the example: GROG/USDC on 18 September 2026, 30 whole days walked, 14
+pages, `trades_excluded_pct` 2.69 per cent, and not one genuine trade. 97 per cent of its
+volume is Unevaluated rather than excluded.
+
+**Why it belongs in THIS record.** Section 5's argument for the threshold is that the
+pairs which make these measures informative are nearly free, and the quiet long tail is
+exactly where pool fills dominate. The threshold buys the walk for those pairs; the rule
+may then decline to judge them. Both statements are correct and they were not read
+together until the pass ran.
+
+**What it is NOT.** It is not an argument to relax condition 4, which exists because
+`07` measured what a wider window does: the 8-minute-to-±15-minute change moved 133
+comparable August fills into Unevaluated. It is not a bug in the walk. And it is not a
+reason to move the threshold, because the threshold is not what causes it.
+
+**What is owed, and neither half is this record's to write.** The set-wide incidence is a
+measurement and is being recorded in `docs/evidences/`. Whether `07-supporting-metrics.md`
+should state the consequence for pool-dominated pairs, beside the USTRY figures it already
+carries, is a change to a RED document and is Al's.
+
+### 9.8 AMENDMENT: section 8.3's cost model for the cheap half is wrong, measured
+
+**THIS IS THE SECOND TIME THIS RECORD HAS MISPRICED ITS OWN CHEAP HALF, and the
+second correction is a bigger one than the first.** Section 8 corrected section 1's
+"about one page per pair" to "one whole UTC day". Section 8.3 then priced the day, and
+the sentence that carries the whole argument is this one:
+
+> A busy pair resolves on the first day walked, and a pair that needs many days walked
+> is quiet by definition and costs almost nothing per day.
+
+**It is false, and the counterexample is in the demonstration set.** The two properties
+are independent, and one pair class has both:
+
+| | Trades per day | Days walked before an answer | Pages |
+|---|---|---|---|
+| section 8.3's busy pair | many | 1 | ~1 day's worth |
+| section 8.3's quiet pair | few | up to 30 | almost nothing |
+| **HU/USDC, measured 18 September 2026** | **22,210** | **~19 and still none** | **~2,100** |
+
+**How it was measured.** The first pass under this decision ran at 16:30 UTC on
+18 September 2026 over 64 pairs. It stored 24 readings and failed 40. HU/USDC ran from
+16:43:47 to 16:57:00, consumed the remaining request budget on its own, then failed, and
+every pair behind it failed instantly on `request budget for this window is spent`. One
+pair spent more than section 2 prices for the ENTIRE under-threshold set, which is 1,164
+pages.
+
+**Why the two properties combine rather than exclude each other, which is the part
+section 8.3 missed.** A pair is over the threshold because it is BUSY. A pair filled from
+a liquidity pool has no genuine day at all, because condition 4 of the genuine-trade rules
+marks a pool fill with no contemporaneous order book `Unevaluated` and never Genuine, which
+is section 9.7. A busy pool-filled pair therefore pays the busy page rate for the whole
+span the day bound allows. The threshold selects for exactly the first property and
+section 9.7's rule supplies the second.
+
+**The mechanism added in response, and the number that is not this record's to fix.**
+`keel trades -max-pages`, default 400, bounds ONE pair's walk in Horizon pages.
+Reaching it is not a finding, for the reason section 8.4 item 2 gives about the day
+bound: the row is stored with no last genuine trade, with `page_cap` named in its reason
+string, and with the days and pages it did cover. 400 is chosen so the busiest pair in the
+set, XLM at 64,484 trades a day or 323 pages, can still complete its newest day; a cap
+below that would guarantee every busy pair could never answer FR-10, which is refusing the
+question rather than bounding it. The number is a flag and Al's to move, exactly as the
+threshold in section 6 item 1 and the day bound in section 9.2 are.
+
+**A second mechanism, because the first pass proved the pass was not resumable.**
+`SaveTradeReading` already refused a duplicate row for one (pair, anchor, methodology),
+so a re-run was safe; it was not cheap, because the walk ran in full before the store
+declined it. A pass that dies at pair 24 of 64 then has to buy those 24 walks again to
+reach pair 25, out of a budget that is already spent, which is the same starvation
+arriving a second time. The pass now checks for today's row before walking and skips it,
+and `-refresh` is how a reading is deliberately retaken.
+
+**WHAT THIS DOES NOT CHANGE.** Option B stands, the threshold stands at 20,000, and
+section 5's argument is untouched: it is an argument about which pairs are worth the
+expensive walk and it says nothing about what the cheap walk costs. Sections 2 and 4 price
+the expensive half and are unaffected. What is corrected is section 8.3 alone, and the
+lesson it carries is the one section 8 already stated about itself: an arithmetic claim in
+this record has now been falsified twice by the first implementation that tried to use it,
+and both times the error was in the direction of cheapness.
+
+### 9.9 The understatement in 9.4 is measured, and it is nearly half the set
+
+**Section 9.4 named an understatement and treated it as an edge.** The first pass measures
+it and it is not an edge. Of 55 pairs read on 18 September 2026, **26 report no last
+genuine trade**, and not one of them is the measurement "this pair has never genuinely
+traded": 23 stopped on the 30 day bound and 3 on the page bound. FR-10 is unevaluated for
+47 per cent of the set, and `NO_GENUINE_TRADE_7D` and `NO_GENUINE_TRADE_30D` with it.
+`docs/evidences/2026-09-18-trade-derived-metrics-first-pass/` carries the table and the
+raw CSV.
+
+**THIS RECORD CONTRADICTS ITSELF ON THOSE 23 AND THE CONTRADICTION IS NAMED HERE RATHER
+THAN RESOLVED QUIETLY.** Section 9.2 argues that 30 days is the right bound precisely
+because "a walk that completes thirty whole days and finds nothing has MEASURED both of
+them rather than run out of road". Section 8.4 item 2 says the opposite about the same
+walk: reaching the bound reports unevaluated, never "no genuine trade". Both sentences are
+in force and the implementation follows 8.4, so 23 pairs that were walked across the exact
+window the two flags are defined over report nothing.
+
+**Which one is right is not Claude's to settle**, because it decides whether a flag fires
+on a real asset in a product whose whole claim is that it warns. What can be said without
+deciding it: the two sentences differ only when the bound EQUALS the flag's window, which
+is the default and only the default, so a reader who moves `-max-days` to 14 makes 8.4
+unambiguously correct and one who leaves it at 30 does not.
+
+**What it costs while it stands.** Every one of those 26 pairs carries `bandConfidence:
+partial` for a reason that is a bound rather than a property of the asset, and a reader
+cannot tell the two apart from the API response, only from the `trade_readings` row behind
+it. That is the same gap DEC-018 point 4 describes for the holder half's provenance, and
+it lands under whatever that point settles rather than inventing a second answer.
+
+### 9.10 The decision delivered what it was for, and one row is the proof
+
+**`bandConfidence` read `full` on 18 September 2026 for the first time since the engine
+started storing rows on 25 August.** 17,662 of 17,663 stored metrics rows read `partial`;
+ACT/USDC is the other one, after `keel trades`, a holder pull for that asset, and one scan
+round.
+
+That is the outcome section 1 of this record set out to reach. Three of the five
+requirements it lists were unevaluated on every asset the engine had ever scored, and
+`09-flags-and-bands.md` section 2 requires a dashboard to surface that word, so every row
+of the demonstration set displayed `partial` to a reader. One row no longer does.
+
+**It is one row and not sixty, and the reason is the holder half rather than this
+decision.** The scan round that produced it reported `55 with trade figures, 0 with holder
+figures` across 64 pairs: the development database's holder cache was never filled, and
+the volume-to-supply ratio needs a denominator only that cache carries. The production
+stack refreshes it daily under DEC-018, so the figure that matters for a deployment is the
+55.
+
+`docs/evidences/2026-09-18-trade-derived-metrics-first-pass/` carries the run, the raw
+CSV, and the four findings above with their measurements.
+
+### 9.11 REVERSAL: section 8.4 item 2 is overruled for a search of known length
+
+**Al settled the contradiction named in section 9.9 on 18 September 2026, in favor of
+section 9.2.** A search that covered a flag's own window and found no genuine trade has
+MEASURED that flag, and `NO_GENUINE_TRADE_30D` now fires on it.
+
+**THIS IS RECORDED AS A REVERSAL AND NOT AS A REINTERPRETATION.** Section 8.4 item 2 reads,
+and still reads:
+
+> It walks back day by day until a day contains a genuine trade, or until a bound is
+> reached. Reaching the bound reports `unevaluated`, never "no genuine trade", because
+> those are different answers and only one of them is a finding.
+
+That sentence is **overruled in one case and left standing in every other**. The case is a
+bound that reaches at least as far as the threshold being answered. Its reasoning survives
+everywhere else and is why the reversal is narrow: a walk that stopped after four days
+still says nothing about thirty, and still reports unevaluated.
+
+### 9.11.1 What was built
+
+`domain.SupportingMetrics` gained `GenuineSearchWindow *time.Duration`, "how far back from
+the search anchor the trade set is known to be complete". A nil `LastGenuineTrade` used to
+be two answers wearing one face, "nobody looked" and "the search covered thirty whole days
+and found none", and a pointer cannot carry the difference. `internal/domain/flags.go`
+reads the pair: a reference is used when there is one, its absence over a search of known
+length answers each threshold the search reached, and anything shorter stays unevaluated.
+
+The value travels from `trade_readings.days_walked`, which is exact rather than inferred:
+the walk emits whole UTC days contiguously backwards and discards any partial one, so the
+days it reports are complete and adjacent.
+
+**One known over-warning, stated rather than found later.** The window is measured from the
+trade search's anchor, which is the last complete UTC day and is older than the ledger being
+scored. A genuine trade inside that gap is not examined, so a staleness flag can fire when
+it should not. That is the direction section 8.2 permits and the opposite of the one it
+refuses, and it is the same 24 hour staleness the whole walk carries by construction.
+
+### 9.11.2 What it changed, measured on the same data
+
+One scan round over 64 pairs, before and after, on the local database holding the 55
+readings this record's section 9.9 describes:
+
+| | Before | After |
+|---|---|---|
+| `NO_GENUINE_TRADE_30D` triggered | 0 | **24** |
+| `NO_GENUINE_TRADE_7D` triggered | 7 | **30** |
+| `NO_GENUINE_TRADE_30D` unevaluated | 35 | **12** |
+
+The 12 that remain are the 9 pairs with no reading at all and the 3 that stopped on the
+page bound, which are exactly the cases the un-reversed half of item 2 still covers. 23
+assets moved from "not checked" to an answer, which is the figure section 9.9 predicted.
+
+`internal/conformance` and `testdata/fixtures/` are untouched and were not asked to move:
+USTRY carries a genuine trade reference, so it takes the same branch it always did. The
+ordering rule is named out loud in the code, as `internal/domain/CLAUDE.md` requires: no
+fixture value judges this change, because it computes no quantity and decides only which
+of three states a flag is in.
+
+### 9.11.3 The reversal moves the code TOWARDS the methodology, not away from it
+
+**This was checked before the change was written and it settles whether a RED document has
+to move: it does not.** `docs/methodology/09-flags-and-bands.md` states the rule as
+
+```
+no genuine trade within Thresholds.GenuineTradeStaleDays days
+```
+
+and says nothing anywhere about a reference to the last genuine trade. The phrase
+"reference" appears once in that file and it is about the reference PRICE.
+
+So the old code was not implementing that sentence. It could only answer the narrower
+question "the last genuine trade was more than N days ago", which needs a trade to measure
+from and is silent when there is none. "No genuine trade within N days" is answered by a
+search of N days that found none, and that is the sentence the paid deliverable carries.
+
+`flags.go`'s own header sets the rule for this case: "Where this file and that document
+disagree, the document is right. It owns the three states, the tiers, and every threshold;
+this file owns none of them." The file disagreed with the document from the day it was
+written on 26 August 2026 and nobody noticed, because the disagreement was invisible while
+no trade history existed to feed it. **Section 3 of the same document is untouched and
+still governs the other direction**: the six flags that need trade history become
+`unevaluated` when that input is ABSENT, which is what a pair with no reading, or a search
+shorter than the threshold, still gets.
