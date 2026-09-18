@@ -196,6 +196,36 @@ here rather than left in a log, and the third pass waited for the hour to clear.
 
 ---
 
+## 6b. The four page-capped pairs were retried, and three of them are unaffordable
+
+Al asked for the four to be worked after the set was complete. HU/USDC was retried twice,
+at 1,500 and 2,600 pages. **Neither reached thirty days**, and the measurement that came
+out of it is worth more than the answer would have been:
+
+| Bound | Days reached | Marginal cost of the days added |
+|---|---|---|
+| 400 | 11 | 36 pages a day |
+| 1,500 | 20 | 122 pages a day |
+| 2,600 | 24 | **275 pages a day** |
+
+The walk restarts from the anchor every time, so these are three independent measurements
+and 4,500 pages were spent on one pair without answering it. Cost per day rises with depth
+because this pair's older days are busier than its recent ones.
+
+Priced from what each pair actually reached, the four together need about **17,000 pages,
+close to six hours of continuous requests**, which is two thirds of the figure DEC-019
+uses to rule out running the expensive half over the whole set. Section 9.13 of that
+record carries the table and what it suggests about the bound's shape.
+
+**The retry also found a defect and a fix.** `-refresh` re-walked the pair and then threw
+the result away, because the store refused a second row for one day. Migration 0010
+corrects the reasoning 0009 was written on: a second walk of the same day can be DEEPER
+rather than a repeat. The row is now appended, nothing is overwritten, and the reader takes
+the deepest reading for the newest day rather than the newest row, because depth is monotone
+for this walk while insertion order is not.
+
+---
+
 ## 7. How to reproduce
 
 ```bash

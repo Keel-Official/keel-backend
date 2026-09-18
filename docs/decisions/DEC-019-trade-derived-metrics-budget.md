@@ -693,3 +693,48 @@ spent the budget and starved the rest, and it is also the honest price of the wo
 
 **FR-10 after the reversal: 60 of 64 pairs carry an answer.** The four that do not were
 stopped by pages and not by days, so a larger day bound would not reach them.
+
+### 9.13 The cheap half's cost per day RISES with depth, and one pair is unreachable
+
+**Measured on HU/USDC on 18 September 2026, three walks at three bounds.** The walk always
+restarts from the anchor, so these are three independent measurements of the same history
+and not an incremental one:
+
+| Bound | Days reached | Pages | Marginal cost of the days it added |
+|---|---|---|---|
+| 400 | 11 | 400 | 36 pages a day |
+| 1,500 | 20 | 1,500 | **122 pages a day** |
+| 2,600 | 24 | 2,600 | **275 pages a day** |
+
+**The cost per day nearly octuples between the first bound and the third**, because this
+pair's older days are busier than its recent ones and because the anchor's own day, which
+is pure loss under section 9.7's rule, is amortised over more days as the walk goes deeper.
+Extrapolating at the marginal rate, thirty days needs roughly 4,250 pages in ONE walk.
+
+**HU consumed 4,500 pages today across three attempts and is still unanswered.** That is
+more than section 2's entire 1,164 page estimate for the under-threshold set, spent on one
+pair that the threshold explicitly excludes from the expensive half because it is too busy.
+
+**This does not change option B and it does bear on the page bound's shape.** Section 9.8
+added `-max-pages` to stop one pair starving a pass, and that worked: no pass since has
+failed. What these three walks show is the other half of the picture, that for a pair with
+this profile the bound is not a budget the answer fits into at any setting a daily service
+could afford. The four pairs still unanswered are priced here for whoever revisits it:
+
+| Pair | Measured | Pages to reach 30 days |
+|---|---|---|
+| HU | 2,600 pages reached 24 days | ~4,250 |
+| THE1 | 400 pages reached 5 days | ~2,400 at its observed rate, more if it rises like HU's |
+| TGM | 400 pages reached 0 days | unknown; it did not clear the anchor's own day |
+| XLM | 400 pages reached 0 days | ~9,700, which is section 2's own 193 minutes |
+
+About 17,000 pages, near six hours of continuous requests, to answer four pairs. That is
+two thirds of the 8.6 hour figure this record uses to rule out doing the EXPENSIVE half
+for the whole set.
+
+**What that suggests, without deciding it.** The cheap half is cheap for most of the set
+and unaffordable for a handful, and the handful is identifiable in advance by the same
+trade count the threshold already reads. A bound that refused to start a walk it cannot
+finish would spend nothing on these four instead of 4,500 pages, and would report the same
+`unevaluated` it reports now. That is a change to the shape of section 8.4's bound and
+therefore Al's, and it is written here rather than built.

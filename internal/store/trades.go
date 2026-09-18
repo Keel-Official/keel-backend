@@ -115,14 +115,20 @@ func (r TradeReading) Age(now time.Time) time.Duration { return now.Sub(r.Anchor
 // measured zero from an absence of data.
 func (r TradeReading) Covered() bool { return r.Scope == ScopeFullWindow }
 
-// SaveTradeReading writes one pull. inserted is false when a row for this
-// (pair, anchor, methodology version) already existed, in which case NOTHING was
-// written.
+// SaveTradeReading writes one pull. It always appends, and inserted is always
+// true.
 //
-// Same contract as SaveMetrics and SaveHolderReading, and for the same reason: a
-// second pull on the same day is a repeat of one measurement and must not be an
-// error, while a result that DIFFERS from the stored one is a finding a silent
-// overwrite would destroy.
+// THIS DIVERGES FROM SaveMetrics AND SaveHolderReading, WHICH BOTH REFUSE A
+// SECOND ROW FOR ONE KEY, and migration 0010 is where the reason is argued. A
+// second metrics row for one ledger is the same measurement taken twice; a
+// second trade reading for one day can be DEEPER, because this walk is bounded
+// in pages as well as in days and a larger bound reaches further back. HU/USDC
+// reached 11 days under a 400 page bound and 20 under 1,500 on 18 September
+// 2026, and the refusal threw the better one away.
+//
+// The no-overwrite rule is untouched: nothing here replaces a row. Both
+// readings survive with the bounds they ran under, and LatestTradeReading
+// decides which one answers.
 func (s *Store) SaveTradeReading(ctx context.Context, r TradeReading) (id int64, inserted bool, err error) {
 	if err := validTradeReading(r); err != nil {
 		return 0, false, err
@@ -153,7 +159,6 @@ func (s *Store) SaveTradeReading(ctx context.Context, r TradeReading) (id int64,
 			trades_excluded_pct)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
 		        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
-		ON CONFLICT (asset_id, methodology_version, anchor) DO NOTHING
 		RETURNING id`,
 		r.AssetID, r.RunID, r.FetchedAt.UTC(), r.MethodologyVersion,
 		r.Anchor.UTC(), ledger, r.DaysWalked, r.Pages, r.Exhausted, r.BoundReached,
@@ -164,26 +169,25 @@ func (s *Store) SaveTradeReading(ctx context.Context, r TradeReading) (id int64,
 		numeric(r.TradesExcludedPct),
 	).Scan(&id)
 
-	if errors.Is(err, sql.ErrNoRows) {
-		// DO NOTHING fired. The row is already there and was not touched.
-		existing, findErr := s.TradeReadingAt(ctx, r.AssetID, r.Anchor, r.MethodologyVersion)
-		if findErr != nil {
-			return 0, false, findErr
-		}
-		return existing.ID, false, nil
-	}
 	if err != nil {
 		return 0, false, fmt.Errorf("store: save trade reading for asset %d: %w", r.AssetID, err)
 	}
 	return id, true, nil
 }
 
-// LatestTradeReading returns the newest reading for one pair.
+// LatestTradeReading returns the DEEPEST reading for the newest day a pair has
+// one, which is not always the newest row.
+//
+// Depth breaks the tie rather than insertion order, and migration 0010 argues
+// why: a day can hold several readings once a walk may be re-run with a larger
+// page bound, and depth is monotone for this walk, so a deeper reading is never
+// a worse answer. Taking the newest row instead would let a shallower re-walk,
+// a pass run with a smaller bound by mistake, quietly undo a deeper one.
 //
 // A reading whose volume half is unevaluated is NOT skipped, for the reason
-// LatestHolderReading gives about truncated pulls: the newest row is the answer
-// to "what do we know now", and when the answer is "this pair is too busy to
-// classify inside the budget", that is the answer.
+// LatestHolderReading gives about truncated pulls: it is the answer to "what do
+// we know now", and when the answer is "this pair is too busy to classify
+// inside the budget", that is the answer.
 func (s *Store) LatestTradeReading(ctx context.Context, assetID int, methodologyVersion string) (TradeReading, error) {
 	if methodologyVersion == "" {
 		return TradeReading{}, errors.New("store: latest trade reading: methodology version is empty")
@@ -192,7 +196,7 @@ func (s *Store) LatestTradeReading(ctx context.Context, assetID int, methodology
 		SELECT `+tradeColumns+`
 		  FROM trade_readings
 		 WHERE asset_id = $1 AND methodology_version = $2
-		 ORDER BY anchor DESC, id DESC
+		 ORDER BY anchor DESC, days_walked DESC, id DESC
 		 LIMIT 1`, assetID, methodologyVersion)
 
 	r, err := scanTradeReading(row)
@@ -205,17 +209,19 @@ func (s *Store) LatestTradeReading(ctx context.Context, assetID int, methodology
 	return r, nil
 }
 
-// TradeReadingAt reads the row stored for one pair on one day.
+// TradeReadingAt reads the deepest row stored for one pair on one day.
 //
-// Exported for the reason HolderReadingAt is: a caller whose write was refused by
-// ON CONFLICT DO NOTHING needs to see what it collided with, and a finding
-// nobody can read is not one.
+// Exported so a caller can ask whether a day has been read at all, which is what
+// makes `keel trades` resumable after a spent request budget. Since 0010 a day
+// may hold several readings, so this answers with the one LatestTradeReading
+// would choose rather than with an arbitrary member of the set.
 func (s *Store) TradeReadingAt(ctx context.Context, assetID int, anchor time.Time, methodologyVersion string) (TradeReading, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT `+tradeColumns+`
 		  FROM trade_readings
-		 WHERE asset_id = $1 AND anchor = $2 AND methodology_version = $3`,
-		assetID, anchor.UTC(), methodologyVersion)
+		 WHERE asset_id = $1 AND anchor = $2 AND methodology_version = $3
+		 ORDER BY days_walked DESC, id DESC
+		 LIMIT 1`, assetID, anchor.UTC(), methodologyVersion)
 
 	r, err := scanTradeReading(row)
 	if errors.Is(err, sql.ErrNoRows) {
