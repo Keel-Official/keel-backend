@@ -58,6 +58,26 @@ rejected, and why.
    no ledger sequence at all, so that header is the only honest stamp for a
    snapshot and a guess is not an acceptable substitute.
 
+   **CORRECTED 18 September 2026: `/trades` does not send it either, and it is a
+   collection endpoint.** Measured against public Horizon while building the
+   backward day walk. The sentence above said the collection endpoints send it,
+   which is where the assumption came from, and `TradeReading.LedgerSeq` has been
+   coming back zero from live Horizon for as long as that field has existed.
+   Nothing broke, because the only caller that stored it was added on the same
+   day. Where a trade walk gets its ledger instead: the paging token of a trade in
+   the walk, whose high 32 bits are the sequence, which is DECODING an identifier
+   and not deriving one from a time. `internal/horizon/tradedays.go` carries it on
+   `TradeDayWalk.LedgerSeq`.
+
+   **THE PART WORTH CARRYING IS HOW LONG IT HID.** `newFakeHorizon` sets
+   `Latest-Ledger` on every response it serves, so every unit test in this package
+   passes against a server more generous than the real one. Eight tests written
+   that morning were green while the field came back zero from Horizon. What found
+   it was `tradedays_live_test.go`, which runs only under `KEEL_HORIZON_LIVE=1`
+   and asserts SHAPE rather than any figure. A fake that is kinder than the
+   endpoint it stands in for is a fake that certifies the wrong thing, and this
+   package now has one live probe that can say so.
+
 ## A seventh trap, found while building the schema 2 recorder
 
 7. **`/liquidity_pools` takes no asset type at all, and `/order_book` does.** The
