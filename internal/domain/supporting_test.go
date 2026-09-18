@@ -170,13 +170,91 @@ func TestStalenessFlags(t *testing.T) {
 	}
 }
 
+// TestStalenessFiresOnAMeasuredAbsence is the 18 September 2026 reversal.
+//
+// A search that covered a flag's own window and found no genuine trade has
+// MEASURED that flag. DEC-019 section 9.9 priced the old behavior: 23 of 55
+// pairs walked the full thirty days, found nothing, and reported "not checked",
+// so the engine paid Horizon for an answer and discarded it. Al settled it in
+// favor of section 9.2 of that record.
+//
+// EACH FLAG IS ANSWERED ONLY BY A SEARCH THAT REACHED IT, which is the half of
+// the reversal that keeps it honest. Four days of searching says nothing about
+// thirty.
+func TestStalenessFiresOnAMeasuredAbsence(t *testing.T) {
+	anchor := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
+	day := 24 * time.Hour
+
+	for _, tc := range []struct {
+		name              string
+		searched          time.Duration
+		want30, want7     bool
+		uneval30, uneval7 bool
+	}{
+		{"thirty whole days, nothing found", 30 * day, true, true, false, false},
+		{"more than thirty days", 45 * day, true, true, false, false},
+		{"seven days answers only the near flag", 7 * day, false, true, true, false},
+		{"ten days, still short of thirty", 10 * day, false, true, true, false},
+		{"four days answers neither", 4 * day, false, false, true, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			searched := tc.searched
+			tr, un := statesOf(t, flagInput{
+				PriceSource: PriceSourceBook,
+				HasLadders:  true,
+				Anchor:      anchor,
+				Supporting:  &SupportingMetrics{GenuineSearchWindow: &searched},
+			})
+			if tr[FlagNoGenuineTrade30D] != tc.want30 {
+				t.Errorf("NO_GENUINE_TRADE_30D triggered = %v, want %v", tr[FlagNoGenuineTrade30D], tc.want30)
+			}
+			if tr[FlagNoGenuineTrade7D] != tc.want7 {
+				t.Errorf("NO_GENUINE_TRADE_7D triggered = %v, want %v", tr[FlagNoGenuineTrade7D], tc.want7)
+			}
+			if un[FlagNoGenuineTrade30D] != tc.uneval30 {
+				t.Errorf("NO_GENUINE_TRADE_30D unevaluated = %v, want %v", un[FlagNoGenuineTrade30D], tc.uneval30)
+			}
+			if un[FlagNoGenuineTrade7D] != tc.uneval7 {
+				t.Errorf("NO_GENUINE_TRADE_7D unevaluated = %v, want %v", un[FlagNoGenuineTrade7D], tc.uneval7)
+			}
+		})
+	}
+}
+
+// A REFERENCE STILL WINS OVER A SEARCH WINDOW, because it is the more specific
+// fact. An asset that traded genuinely yesterday is not stale however long the
+// search that found it ran.
+func TestAReferenceOutranksTheSearchWindow(t *testing.T) {
+	anchor := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
+	searched := 30 * 24 * time.Hour
+	ref := TradeRef{LedgerSeq: 1, At: anchor.Add(-24 * time.Hour)}
+
+	tr, un := statesOf(t, flagInput{
+		PriceSource: PriceSourceBook,
+		HasLadders:  true,
+		Anchor:      anchor,
+		Supporting: &SupportingMetrics{
+			LastGenuineTrade:    &ref,
+			GenuineSearchWindow: &searched,
+		},
+	})
+	if tr[FlagNoGenuineTrade30D] || tr[FlagNoGenuineTrade7D] {
+		t.Error("an asset that traded yesterday fired a staleness flag")
+	}
+	if un[FlagNoGenuineTrade30D] || un[FlagNoGenuineTrade7D] {
+		t.Error("a staleness flag is unevaluated although a reference was supplied")
+	}
+}
+
 // TestStalenessUnevaluatedWithoutReference covers the two ways the pair stays
 // unevaluated, and they are different situations that produce the same output.
 func TestStalenessUnevaluatedWithoutReference(t *testing.T) {
 	anchor := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
 
-	// No genuine trade in the fetched history: there is no timestamp to measure
-	// from. This is NOT "traded a long time ago", which is a measured value.
+	// No reference AND nobody said how far back anyone looked. Until
+	// 18 September 2026 the first half alone was enough to leave these
+	// unevaluated; it is now the pair of them, because an absence over a search
+	// of known length is a measurement. See TestStalenessFiresOnAMeasuredAbsence.
 	_, un := statesOf(t, flagInput{
 		PriceSource: PriceSourceBook, HasLadders: true, Anchor: anchor,
 		Supporting: &SupportingMetrics{},

@@ -559,6 +559,43 @@ type SupportingMetrics struct {
 	LastGenuineTrade      *TradeRef
 	TradesExcludedPct     *decimal.Decimal
 	GenuineVolumeInWindow *decimal.Decimal
+
+	// GenuineSearchWindow is how far back from the search anchor the trade set is
+	// known to be COMPLETE. Nil when nobody looked, which is not the same as zero.
+	//
+	// WHY IT EXISTS: A NIL LastGenuineTrade WAS TWO ANSWERS WEARING ONE FACE. It
+	// meant "nobody searched" and it meant "the search covered thirty whole days
+	// and found none", and the second of those is the measurement
+	// NO_GENUINE_TRADE_30D is defined over. Measured on 18 September 2026: 23 of
+	// 55 pairs walked the full window, found nothing, and reported unevaluated,
+	// so the engine paid Horizon for an answer and then discarded it. A pointer
+	// cannot carry the difference, which is why this is a field beside the
+	// reference rather than a convention about it.
+	//
+	// Three sentences, as this file requires. The decision: carry the DURATION
+	// searched rather than a boolean "the window was complete", so one field
+	// serves both staleness thresholds and any later one without being re-cut
+	// each time a threshold moves. The alternative rejected: a
+	// `NoGenuineTradeInWindow *bool` set by the caller, which was written first
+	// and thrown away because it makes the caller do the comparison against
+	// GenuineTradeStaleDays, putting a threshold from 09-flags-and-bands.md into
+	// cmd/keel where no reviewer would look for one. Why: the thresholds belong
+	// to Params and the flag rules, and a duration is a measurement that needs no
+	// threshold to state.
+	//
+	// IT IS MEASURED FROM THE TRADE SEARCH'S OWN ANCHOR, WHICH IS OLDER THAN THE
+	// RESULT'S. The walk covers whole UTC days only, so the partial day between
+	// the last complete one and the ledger being scored is not examined. A
+	// genuine trade inside that gap is therefore missed and the staleness flags
+	// can fire when they should not. That is over-warning, which is the direction
+	// DEC-019 section 8.2 permits and the opposite of the one it refuses.
+	//
+	// It changes no contract. internal/api/wire.go maps the response field by
+	// field and internal/store/jsonb.go declares its own storage shapes, so
+	// neither picks a new field up by accident. Same argument as
+	// HolderSnapshotLedger above, and DEC-018 point 4 is where exposing this
+	// class of provenance is decided.
+	GenuineSearchWindow *time.Duration
 }
 
 // OracleResistance answers one question: is moving the price to a critical level

@@ -576,7 +576,7 @@ func ComputeAssetRiskWith(s Snapshot, p Params, sup *SupportingMetrics) (AssetRi
 // value can be worked by hand before the code exists. There is nothing here to
 // work by hand. The golden fixture is untouched and is not asked to move.
 //
-// rec nil is the pre-existing behaviour exactly, and it is what both older entry
+// rec nil is the pre-existing behavior exactly, and it is what both older entry
 // points pass. Nothing about a caller that does not supply it changes.
 func ComputeAssetRiskFrom(s Snapshot, p Params, sup *SupportingMetrics, rec *Reconstruction) (AssetRisk, error) {
 	risk := AssetRisk{

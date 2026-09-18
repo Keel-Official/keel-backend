@@ -209,17 +209,55 @@ func evaluateFlags(in flagInput, p Params) (triggered, unevaluated []Flag, band 
 			states[FlagWashTradeSuspected] =
 				boolState(sup.TradesExcludedPct.GreaterThan(t.WashTradeSuspectedPct))
 		}
-		// The two staleness flags read one reference and are unevaluated together
-		// when it is absent. Nil means no genuine trade exists in the fetched
-		// history, so there is no timestamp to measure from; it does NOT mean the
-		// asset last traded a long time ago, which is a measured value and the
-		// signal these flags exist to surface.
-		if sup.LastGenuineTrade != nil && !in.Anchor.IsZero() {
+		// The two staleness flags have THREE inputs and not one, and until
+		// 18 September 2026 they read only the first.
+		//
+		// A reference answers them directly: the asset traded genuinely at a known
+		// time, so the age is arithmetic. Its ABSENCE answers them too, but only
+		// when somebody says how far back the search went, which is what
+		// GenuineSearchWindow carries. A search that covered the flag's own window
+		// and found nothing has measured that flag; a search that covered less, or
+		// that never ran, has not.
+		//
+		// WHY THE ABSENCE NOW FIRES. A nil reference used to leave both flags
+		// unevaluated whatever had been looked at, and DEC-019 section 9.9
+		// measured the cost: 23 of 55 pairs walked the full thirty days, found no
+		// genuine trade, and reported "not checked". Al settled it on
+		// 18 September 2026 in favor of section 9.2 of that record, which is why
+		// the code reads this way and why section 8.4 item 2 is reversed rather
+		// than quietly reinterpreted; the reversal is recorded as one.
+		//
+		// WHAT IS STILL UNEVALUATED, so the reversal is not read as wider than it
+		// is: a search shorter than the threshold it would answer. Running out of
+		// budget after four days says nothing about thirty, and that case keeps
+		// the old answer.
+		//
+		// THE ORDERING RULE, NAMED OUT LOUD AS internal/domain/CLAUDE.md REQUIRES:
+		// no fixture value judges this. It computes no quantity and moves no
+		// number; it decides which of three states a flag is in, and it is judged
+		// by the cases in supporting_test.go against the two thresholds in Params.
+		// `testdata/fixtures/ustry_pre_exploit.md` is untouched and is not asked
+		// to move, because USTRY carries a genuine trade reference and takes the
+		// first branch below exactly as it did before.
+		staleAt := time.Duration(t.GenuineTradeStaleDays) * 24 * time.Hour
+		warnAt := time.Duration(t.GenuineTradeWarnDays) * 24 * time.Hour
+		switch {
+		case sup.LastGenuineTrade != nil && !in.Anchor.IsZero():
 			age := in.Anchor.Sub(sup.LastGenuineTrade.At)
-			states[FlagNoGenuineTrade30D] =
-				boolState(age > time.Duration(t.GenuineTradeStaleDays)*24*time.Hour)
-			states[FlagNoGenuineTrade7D] =
-				boolState(age > time.Duration(t.GenuineTradeWarnDays)*24*time.Hour)
+			states[FlagNoGenuineTrade30D] = boolState(age > staleAt)
+			states[FlagNoGenuineTrade7D] = boolState(age > warnAt)
+
+		case sup.LastGenuineTrade == nil && sup.GenuineSearchWindow != nil:
+			// No genuine trade inside a window of known length. Each flag is
+			// answered only if the search reached at least as far as it asks.
+			// `>=` rather than `>`: a search covering exactly thirty days has
+			// covered the thirty days the flag names.
+			if *sup.GenuineSearchWindow >= staleAt {
+				states[FlagNoGenuineTrade30D] = boolState(true)
+			}
+			if *sup.GenuineSearchWindow >= warnAt {
+				states[FlagNoGenuineTrade7D] = boolState(true)
+			}
 		}
 	}
 
