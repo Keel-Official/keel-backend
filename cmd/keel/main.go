@@ -142,6 +142,17 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "trades":
+		// The trade-stream walk, on its own cadence for the same reason and with
+		// worse arithmetic: DEC-019 measures the whole set at 8.6 hours per
+		// refresh, against a scan round that runs every fifteen minutes. The walk
+		// is backward and its unit is a whole UTC day; the header of trades.go
+		// says why a page is the wrong one. `scan` reads what this writes.
+		if err := runTrades(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "keel trades: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "serve":
 		// The read-only API. It answers every endpoint in the contract today;
 		// what it has no rows to return is metrics, because producing one needs
@@ -241,6 +252,7 @@ Subcommands:
   universe  build a candidate asset universe ("keel universe -h")
   scan      compute metrics for every active asset, store them in Postgres
   holders   pull trustline holders and cache the concentration ("keel holders -h")
+  trades    walk the trade stream and cache the genuine-trade figures ("keel trades -h")
   serve     run the read API ("keel serve -h")
   backtest  the trade-implied history of a pair, as CSV ("keel backtest -h")
   replay    rebuild a pair's order book at a past ledger ("keel replay -h")
