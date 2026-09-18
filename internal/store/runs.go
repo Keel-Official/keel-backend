@@ -30,10 +30,15 @@ type RunKind string
 // own cadence because it does not fit inside a scan round's request budget.
 // Counting one as a scan would put a figure of that shape inside a count of
 // rounds that each measure one ledger.
+// RunTrades was added on 18 September 2026 with migrations/0009, under DEC-019.
+// It is the same argument a second time: the trade half of the supporting
+// metrics is a walk too expensive for a scan round, taken on its own cadence, and
+// its pass succeeds or fails independently of any depth measurement.
 const (
 	RunScan    RunKind = "scan"
 	RunReplay  RunKind = "replay"
 	RunHolders RunKind = "holders"
+	RunTrades  RunKind = "trades"
 )
 
 // Run is one execution of the engine, recorded so that every stored figure can
@@ -53,9 +58,9 @@ type Run struct {
 // the one recorded, and so this package needs no clock of its own.
 func (s *Store) StartRun(ctx context.Context, kind RunKind, startedAt time.Time) (int64, error) {
 	switch kind {
-	case RunScan, RunReplay, RunHolders:
+	case RunScan, RunReplay, RunHolders, RunTrades:
 	default:
-		return 0, fmt.Errorf("store: run kind %q is not one of scan, replay or holders", kind)
+		return 0, fmt.Errorf("store: run kind %q is not one of scan, replay, holders or trades", kind)
 	}
 	var id int64
 	if err := s.db.QueryRowContext(ctx,
