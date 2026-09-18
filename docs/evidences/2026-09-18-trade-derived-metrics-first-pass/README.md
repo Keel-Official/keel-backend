@@ -11,12 +11,12 @@ measurement that disagrees with a decision record is the finding, not an inconve
 
 | | |
 |---|---|
-| **Run** | `go run ./cmd/keel trades`, two passes, 16:30 and 17:01 UTC on 18 September 2026 |
-| **Anchor** | `2026-09-18T00:00:00Z`, the start of the day both passes ran in |
+| **Run** | `go run ./cmd/keel trades`, three passes, 16:30, 17:01 and 18:47 UTC on 18 September 2026 |
+| **Anchor** | `2026-09-18T00:00:00Z`, the start of the day all three passes ran in |
 | **Methodology** | `1.0.8-draft`, the version the engine stamps |
 | **Horizon** | `https://horizon.stellar.org`, public, budget 3,000 requests an hour (NFR-6) |
 | **Set** | 64 active pairs in the local `assets` table |
-| **Stored** | **55 of 64.** The other 9 are outstanding, see section 6 |
+| **Stored** | **64 of 64.** The first two passes stored 55 and the third finished the rest |
 | **Raw** | `trade-readings-2026-09-18.csv`, one row per pair, exported from `trade_readings` |
 
 Every figure below is reproducible from the CSV beside this file. The CSV is the table as
@@ -26,28 +26,43 @@ stored, not a summary of it.
 
 ## 1. What the pass answered
 
-| Outcome | Pairs | Pages | Mean days walked |
+Over all 64 pairs:
+
+| Outcome | Pairs | Pages | What it is |
 |---|---|---|---|
-| Has a last genuine trade | **29** | 1,551 | 17.9 |
-| None, stopped on the 30 day bound | **23** | 731 | 30.0 |
-| None, stopped on the 400 page bound | **3** | 1,200 | 5.3 |
+| Has a last genuine trade | **35** | 1,816 | a measurement |
+| None, over a completed 30 day search | **25** | 798 | a measurement, and it fires the flag |
+| None, stopped on the 400 page bound | **4** | 1,600 | genuinely unevaluated |
 | None, and the whole history was seen | 0 | 0 | |
 
-| Scope | Pairs | With a genuine trade | Pages |
+| Scope | Pairs | Pages | Pages per pair |
 |---|---|---|---|
-| `full-window` | 36 | 15 | 1,616 |
-| `last-genuine-only` | 19 | 14 | 1,866 |
+| `full-window` | 39 | 1,697 | 44 |
+| `last-genuine-only` | 25 | 2,517 | **101** |
 
-**26 of 55 pairs, 47 per cent, report no last genuine trade.** Not one of them is the
-measurement "this pair has never genuinely traded": every one stopped on a bound. FR-10 is
-therefore unevaluated for nearly half the set, and so are `NO_GENUINE_TRADE_7D` and
-`NO_GENUINE_TRADE_30D`.
+**60 of 64 pairs carry an answer to FR-10 and 4 do not.** That sentence changed on the same
+day: before the reversal recorded in DEC-019 section 9.11, the 25 pairs in the second row
+reported "not checked" rather than a fired flag, and the answered figure was 35 of 64.
+
+**The 39 full-window pairs are exactly the count DEC-019's own table predicts for a
+threshold of 20,000**, which is the one prediction in that record the run confirmed. Its
+page figure did not survive: the record prices those pairs at 1,164 pages and they cost
+1,697, 46 per cent more. Part of that is the set being 64 here and 60 there, and part is
+that the counts the gate reads were measured on 26 August and trade volumes have moved
+since. The gate is applied on a figure three weeks stale, which section 9.3 of the record
+already states.
+
+**The four page-capped pairs cost 1,600 pages, 38 per cent of the whole pass, and returned
+no answer at all.** That is the bound working rather than failing: without it one of them
+would have spent the budget and starved the rest, which is what happened to HU/USDC in the
+first pass. It is also the honest price of the cheap half's worst case.
 
 ---
 
 ## 2. The cheap half cost MORE than the expensive half, which inverts DEC-019 section 8.3
 
-**1,866 pages for 19 pairs against 1,616 pages for 36.** Per pair that is 98 against 45.
+**2,517 pages for 25 pairs against 1,697 pages for 39.** Per pair that is 101 against 44,
+so the half the record calls cheap costs more than twice the half it calls expensive.
 
 The record's section 8.3 argues the opposite in one sentence: "A busy pair resolves on the
 first day walked, and a pair that needs many days walked is quiet by definition and costs
@@ -69,7 +84,7 @@ and the methodology supplies the second.
 
 ---
 
-## 3. Condition 4 is why 26 pairs have no genuine trade, and it is the methodology working
+## 3. Condition 4 is why 29 pairs have no genuine trade, and it is the methodology working
 
 `docs/methodology/07-supporting-metrics.md` section 1 gives the genuine-trade rule three
 outcomes and not two. A liquidity-pool fill with no order-book trade inside the ±15 minute
@@ -161,15 +176,23 @@ regression.** A flag that can finally be evaluated can finally fire.
 
 ## 6. What is outstanding
 
-**Nine pairs have no reading**, all of them late in the alphabet, because both passes spent
-the 3,000 request budget before reaching them. They are not failures of the walk; they were
-never walked. The pass is resumable as of the second run, so finishing them costs only
-their own pages.
+**Nothing in the dataset.** The first two passes stored 55 of 64 and spent the 3,000
+request budget before reaching the rest; the third pass, at 18:47 UTC once the hour had
+cleared, finished the remaining 9 in 732 requests and stored no failure. The pass is
+resumable as of the second run, which is why the third cost only the nine pairs it had
+left rather than all sixty-four.
 
-The two passes together sent about 6,000 requests inside one hour against a stated budget
-of 3,000, which is over NFR-6. That was not deliberate: each `go run` starts a fresh
-in-process budget counter, and the second pass was started to recover from the first. It is
-recorded here rather than left in a log, and the third pass waits for the hour to clear.
+**Four pairs carry no FR-10 answer and will not get one from a larger day bound**, because
+what stopped them was pages and not days. TGM/USDC is the extreme case in section 4: it
+never completed a single day. Raising `-max-pages` for them is a deliberate operator
+action rather than a default, and section 4 explains why the number cannot be chosen in
+advance for a bursty pair.
+
+**The three passes together sent about 6,700 requests inside two and a half hours** against
+a stated budget of 3,000 an hour, and the first two of them sent about 6,000 inside one
+hour, which is over NFR-6. That was not deliberate: each `go run` starts a fresh in-process
+budget counter, and the second pass was started to recover from the first. It is recorded
+here rather than left in a log, and the third pass waited for the hour to clear.
 
 ---
 

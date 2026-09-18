@@ -654,3 +654,42 @@ no trade history existed to feed it. **Section 3 of the same document is untouch
 still governs the other direction**: the six flags that need trade history become
 `unevaluated` when that input is ABSENT, which is what a pair with no reading, or a search
 shorter than the threshold, still gets.
+
+### 9.12 The dataset completed the same evening, and two of section 9's figures move with it
+
+The third pass ran at 18:47 UTC once the request budget had cleared and finished the nine
+pairs the first two could not reach, in 732 requests and with no failure. **64 of 64.**
+The figures in sections 9.8 and 9.9 were taken over 55 pairs and are left as written,
+because they are what the passes that produced them measured; these are the same
+quantities over the whole set.
+
+| | 55 pairs | **64 pairs** |
+|---|---|---|
+| Has a last genuine trade | 29 | **35** |
+| No reference, over a completed 30 day search | 23 | **25** |
+| No reference, stopped on the page bound | 3 | **4** |
+| `full-window` pairs / pages | 36 / 1,616 | **39 / 1,697** |
+| `last-genuine-only` pairs / pages | 19 / 1,866 | **25 / 2,517** |
+
+**Three things the complete set says that the partial one could not.**
+
+The threshold's own prediction is confirmed: section 4's table promises 39 pairs under
+20,000 and the run produced exactly 39. It is the one number in this record the
+implementation did not falsify.
+
+**Its page figure is under-priced by 46 per cent.** Section 4 prices those 39 at 1,164
+pages and they cost 1,697. Part of that is the set being 64 rather than 60, and part is
+section 9.3's staleness: the gate reads counts measured on 26 August and volumes have
+moved. Neither changes the decision, because 1,697 pages is still about 34 minutes rather
+than 8.6 hours, but a reader comparing the table to a run should not have to discover the
+gap themselves.
+
+**The inversion in 9.8 is starker over the whole set, not milder.** 101 pages per pair for
+the cheap half against 44 for the expensive one: the half this record calls cheap costs
+more than twice the half it calls expensive. Four page-capped pairs account for 1,600 of
+those pages and return no answer at all, which is 38 per cent of the pass buying nothing.
+That is the bound working rather than failing, since without it one of them would have
+spent the budget and starved the rest, and it is also the honest price of the worst case.
+
+**FR-10 after the reversal: 60 of 64 pairs carry an answer.** The four that do not were
+stopped by pages and not by days, so a larger day bound would not reach them.
