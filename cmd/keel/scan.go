@@ -62,6 +62,7 @@ import (
 	"github.com/Keel-Official/keel-backend/internal/domain"
 	"github.com/Keel-Official/keel-backend/internal/horizon"
 	"github.com/Keel-Official/keel-backend/internal/store"
+	"github.com/shopspring/decimal"
 )
 
 // errComputeNotBuilt is returned when every asset in a round panicked. That was
@@ -90,6 +91,14 @@ func runScan(args []string) error {
 	verify := fs.Bool("verify", true, "verify every asset's code, issuer and type on Horizon before the first round")
 	maxHolderAge := fs.Duration("max-holder-age", 48*time.Hour,
 		"ignore a cached holder reading older than this, so its figures are unevaluated rather than stale. 0 disables the bound")
+	// THE TRADE BOUND IS TIGHTER THAN THE HOLDER ONE AND THE REASON IS THE UNIT.
+	// A trade reading's age is measured from its anchor, which is already up to
+	// 24 hours behind by construction because the walk covers whole UTC days
+	// only, so 48 hours here would admit a reading describing a window that ended
+	// nearly three days ago. 36 hours admits yesterday's pass and refuses the day
+	// before it, which is what a daily cadence needs and no more.
+	maxTradeAge := fs.Duration("max-trade-age", 36*time.Hour,
+		"ignore a cached trade reading whose anchor is older than this. 0 disables the bound")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel scan - compute metrics for every active asset and store them
@@ -163,15 +172,17 @@ after a crash is safe and a differing result is a finding rather than an overwri
 	logger.Printf("schema at %s, %d active pair(s), methodology %s, bid amount read as %s",
 		applied[0], len(rows), domain.MethodologyVersion, unit)
 
+	bounds := cacheBounds{Holder: *maxHolderAge, Trade: *maxTradeAge}
+
 	if *once {
-		return scanOnce(ctx, s, client, rows, *maxHolderAge, logger)
+		return scanOnce(ctx, s, client, rows, bounds, logger)
 	}
 
 	logger.Printf("interval %s, Ctrl-C to stop", *interval)
 	ticker := time.NewTicker(*interval)
 	defer ticker.Stop()
 	for {
-		if err := scanOnce(ctx, s, client, rows, *maxHolderAge, logger); err != nil {
+		if err := scanOnce(ctx, s, client, rows, bounds, logger); err != nil {
 			return err
 		}
 		select {
@@ -183,9 +194,21 @@ after a crash is safe and a differing result is a finding rather than an overwri
 	}
 }
 
+// cacheBounds is how old a cached reading may be before its figures are treated
+// as unevaluated rather than current.
+//
+// A struct rather than two durations in the parameter list, which is the reason
+// flagInput and SupportingInput give for the same choice: two adjacent arguments
+// of one type can be swapped at a call site and nothing, not the compiler and not
+// a test that passes the same value for both, would say so.
+type cacheBounds struct {
+	Holder time.Duration
+	Trade  time.Duration
+}
+
 // scanOnce computes and stores one round, and opens a run row around it so that a
 // partial failure survives the process that produced it.
-func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows []store.Asset, maxHolderAge time.Duration, logger *log.Logger) error {
+func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows []store.Asset, bounds cacheBounds, logger *log.Logger) error {
 	startedAt := time.Now().UTC()
 	runID, err := s.StartRun(ctx, store.RunScan, startedAt)
 	if err != nil {
@@ -193,8 +216,9 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	}
 
 	var ok, failed, panicked, stored, alreadyThere int
-	var withHolders int
+	var withHolders, withTrades int
 	holderGaps := map[string]int{}
+	tradeGaps := map[string]int{}
 	params := domain.DefaultParams()
 
 	for _, a := range rows {
@@ -212,11 +236,26 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 		// FR-8 comes from the cache that `keel holders` fills, not from a pull of
 		// this round's own. See the header of holders.go for the request budget
 		// that forces the split.
-		sup, why := supportingFor(ctx, s, a.Base, time.Now().UTC(), maxHolderAge)
+		now := time.Now().UTC()
+		sup, why := supportingFor(ctx, s, a.Base, now, bounds.Holder)
 		if sup != nil {
 			withHolders++
 		} else {
 			holderGaps[why]++
+		}
+
+		// FR-9 and FR-10 come from the SECOND cache, the one `keel trades` fills,
+		// and it is a separate reading rather than a second field on the first
+		// because the two pulls have different cadences, different costs and
+		// different keys: a trustline set belongs to an asset and a trade stream
+		// to a pair. DEC-019 is the record. The holder half is read first because
+		// the volume-to-supply ratio divides by a denominator only that half
+		// carries.
+		sup, tradeWhy := attachTradeHalf(ctx, s, a, sup, now, bounds.Trade)
+		if tradeWhy == "" {
+			withTrades++
+		} else {
+			tradeGaps[tradeWhy]++
 		}
 
 		risk, didPanic, err := computeRisk(obs.Snapshot, params, sup)
@@ -264,6 +303,10 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	for _, why := range sortedKeys(holderGaps) {
 		parts = append(parts, fmt.Sprintf("%d without: %s", holderGaps[why], why))
 	}
+	parts = append(parts, fmt.Sprintf("trade figures attached to %d of %d pair(s)", withTrades, ok))
+	for _, why := range sortedKeys(tradeGaps) {
+		parts = append(parts, fmt.Sprintf("%d without: %s", tradeGaps[why], why))
+	}
 
 	if err := s.FinishRun(ctx, runID, time.Now().UTC(), ok, failed, strings.Join(parts, "; ")); err != nil {
 		return fmt.Errorf("scan: %w", err)
@@ -277,10 +320,13 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	// question "is this throttling or is the endpoint simply slow" could not be
 	// answered from any log, because the only field that answers it was computed
 	// and discarded.
-	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d requests this window, %d throttled",
-		ok, stored, alreadyThere, failed, withHolders, client.Requests(), client.Throttled())
+	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d with trade figures, %d requests this window, %d throttled",
+		ok, stored, alreadyThere, failed, withHolders, withTrades, client.Requests(), client.Throttled())
 	for _, why := range sortedKeys(holderGaps) {
 		logger.Printf("  no holder figures for %d asset(s): %s", holderGaps[why], why)
+	}
+	for _, why := range sortedKeys(tradeGaps) {
+		logger.Printf("  no trade figures for %d pair(s): %s", tradeGaps[why], why)
 	}
 
 	// Every asset panicking is not a scan that failed, it is a scan with nothing to
@@ -432,6 +478,102 @@ func supportingFromReading(
 		// alongside the other two. DEC-017 and DEC-018 point 2.
 		CirculatingSupply: reading.CirculatingSupply,
 	}, ""
+}
+
+// attachTradeHalf fills FR-9 and FR-10 from the cache `keel trades` writes, and
+// reports in one phrase why it did not when it did not.
+//
+// IT TAKES sup AND MAY CREATE IT. The two halves are independent: a pair can have
+// a trade reading and no holder reading, in which case the last genuine trade is
+// still an answer and the volume-to-supply ratio is not, because its denominator
+// is the holder half's. Returning early when sup is nil would throw away FR-10
+// over a missing FR-8.
+//
+// WHAT IT DELIBERATELY DOES NOT DO IS DECIDE. The ratio is computed by
+// domain.VolumeToSupply, which is where the definition lives and which returns
+// its own named cause when it declines, and the window sums were computed at pull
+// time by domain.GenuineVolumeInWindow. Nothing here compares a number to a
+// threshold.
+//
+// ONE KNOWN UNDERSTATEMENT, recorded rather than hidden. A walk that reached the
+// end of a pair's history without meeting a genuine trade has MEASURED that the
+// pair never genuinely traded, and the row says so with `exhausted`. The flag
+// rules in internal/domain read a nil LastGenuineTrade as unevaluated, so that
+// measurement currently surfaces as "not checked" rather than as
+// NO_GENUINE_TRADE_30D firing. The direction is safe, it is the same direction
+// DEC-019 section 8.2 permits, and closing it means a flag rule change in a
+// yellow package rather than a call site change here.
+func attachTradeHalf(
+	ctx context.Context,
+	s *store.Store,
+	a store.Asset,
+	sup *domain.SupportingMetrics,
+	now time.Time,
+	maxAge time.Duration,
+) (*domain.SupportingMetrics, string) {
+	reading, err := s.LatestTradeReading(ctx, a.ID, domain.MethodologyVersion)
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		return sup, "no trade reading yet, run `keel trades`"
+	case err != nil:
+		// Reported, not fatal, for the reason supportingFor gives: a database
+		// hiccup reading a cache must not cost the depth half of the round.
+		return sup, "trade reading unreadable: " + err.Error()
+	}
+
+	// The age is measured from the ANCHOR and not from when the pull ran, which
+	// is what store.TradeReading.Age does and why it takes the clock as an
+	// argument. Two pulls twenty minutes apart either side of midnight describe
+	// windows a day apart.
+	if age := reading.Age(now); maxAge > 0 && age > maxAge {
+		return sup, fmt.Sprintf("trade reading anchored more than %s ago", maxAge)
+	}
+
+	if sup == nil {
+		sup = &domain.SupportingMetrics{}
+	}
+	sup.LastGenuineTrade = reading.LastGenuine
+	sup.TradesExcludedPct = reading.TradesExcludedPct
+	sup.GenuineVolumeInWindow = reading.GenuineQuoteOracleWindow
+
+	// HOW FAR BACK THE SEARCH REACHED, which is what turns an absent reference
+	// from "nobody looked" into a measurement. The walk emits whole UTC days
+	// contiguously backwards from its anchor and discards any partial one, so the
+	// days it reports are complete and adjacent and their span is the window.
+	//
+	// It is set whether or not a genuine trade was found, because it describes
+	// the SEARCH and not the result. internal/domain reads it only when the
+	// reference is absent, and that is the domain's business rather than this
+	// call site's.
+	if reading.DaysWalked > 0 {
+		covered := time.Duration(reading.DaysWalked) * 24 * time.Hour
+		sup.GenuineSearchWindow = &covered
+	}
+
+	// THE DIVISION HAPPENS HERE BECAUSE THIS IS WHERE THE TWO CADENCES MEET. The
+	// numerator was measured by the trade pull and the denominator by the holder
+	// pull, and storing the quotient in either cache would freeze one half of a
+	// fraction against a value from another day.
+	var supply decimal.Decimal
+	supplyKnown := sup.CirculatingSupply != nil
+	if supplyKnown {
+		supply = *sup.CirculatingSupply
+	}
+	for _, w := range []struct {
+		src *decimal.Decimal
+		dst **decimal.Decimal
+	}{
+		{reading.GenuineBaseD1, &sup.VolumeToSupplyD1},
+		{reading.GenuineBaseD7, &sup.VolumeToSupplyD7},
+		{reading.GenuineBaseD30, &sup.VolumeToSupplyD30},
+	} {
+		if w.src == nil {
+			continue
+		}
+		ratio, _ := domain.VolumeToSupply(*w.src, supply, supplyKnown, reading.Covered())
+		*w.dst = ratio
+	}
+	return sup, ""
 }
 
 // sortedKeys is non-negotiable rule 2 applied to a counter. Go randomizes map
