@@ -621,6 +621,72 @@ Verify from outside once a scan round has passed:
 curl -s https://api.keels.app/v1/asset/<CODE>:<ISSUER>/depth | grep -i holder
 ```
 
+### 3.6b The trade walk, which is 3.6a's lesson applied before it costs an afternoon
+
+**THIS SECTION IS WRITTEN AT THE SAME TIME AS THE FEATURE, which is the only
+difference between it and the one above.** The trade-derived figures, FR-9's
+volume-to-supply ratio and FR-10's time since the last genuine trade, come from a
+SECOND cache that `scan` reads and does not fill. `keel trades` fills it. Without
+it the API reports `volumeToSupply: null` and `lastGenuineTrade: null` on every
+asset, and `bandConfidence` stays `partial` across the whole set because three of
+the unevaluated flags are trade-derived. It looks exactly like a deploy that did
+not land, which is what 3.6a says about the holder half.
+
+**Migration 0009 has to be applied first.** It creates `trade_readings` and widens
+`runs.kind` to admit `trades`. Section 3.5 is the procedure and it is Al's to run;
+this is one more file in the same directory and needs no separate step beyond
+re-running it.
+
+**The schedule ships with the stack.** `docker-compose.prod.yml` carries a
+`keel-trades` service running `trades -interval 24h`, for the reason the holder
+service gives: a cron is a manual step on every new box and forgetting it fails
+silently.
+
+**What one pass costs, and it is priced rather than estimated.** DEC-019 was
+accepted on 18 September 2026 as option B at a threshold of 20,000 trades in 30
+days. 39 of the 60 counted pairs are under it and get the whole 30 day window
+classified, which is 1,164 pages or about 23 minutes at the NFR-6 cap. The other 21
+get the cheap half, which stops at the first complete UTC day that holds a genuine
+trade, usually one or two days. **A first pass is therefore tens of minutes rather
+than the hours 3.6a warns about for holders**, because a trade page carries 200
+trade records and not 200 full account objects.
+
+To start a pass by hand:
+
+```bash
+cd "$KEEL_DIR"
+docker compose -f docker-compose.prod.yml run --rm keel-serve trades
+```
+
+Expect one line per pair naming which road it took. **Two outcomes that read like
+failures and are not:**
+
+- `last-genuine-only ... above the DEC-019 threshold of 20000 trades in 30 days`.
+  That pair is one of the 21 the accepted option deliberately does not walk in
+  full. Its volume figures stay unevaluated WITH that sentence attached, which is
+  what section 5 of the record asks for.
+- `0 with a genuine trade` on a pair that clearly trades. The genuine-trade rules
+  have three outcomes and not two. A pool fill with no order-book trade inside the
+  comparison window is `unevaluated` under condition 4, never `genuine`, and a pair
+  filled entirely from a pool therefore reports no last genuine trade at all. GROG
+  did exactly this on 18 September 2026. That is the methodology declining to judge
+  rather than the walk failing, and `docs/methodology/07-supporting-metrics.md`
+  section 1 is where it is defined.
+
+**THE CADENCE AND `scan -max-trade-age` ARE ONE SETTING IN TWO PLACES**, the same
+pairing 3.6a describes and with a tighter number. The service walks every 24 hours
+and `scan` ignores a reading whose ANCHOR is more than 36 hours old. The anchor is
+the last complete UTC day, so a reading is already up to 24 hours behind when it is
+written; 48 hours here would admit a window that ended nearly three days ago. Move
+either and reconsider the other in the same change.
+
+Verify from outside once a scan round has passed:
+
+```bash
+curl -s https://api.keels.app/v1/asset/<CODE>:<ISSUER>/depth \
+  | grep -iE 'lastGenuineTrade|volumeToSupply|bandConfidence'
+```
+
 ### 3.7 First boot
 
 ```bash

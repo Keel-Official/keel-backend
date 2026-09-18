@@ -334,6 +334,68 @@ services:
         limits:
           memory: 256M
 
+  # ---------------------------------------------------------------- the trade walk
+  #
+  # WHY IT IS A FOURTH SERVICE, which is the holder argument with worse numbers.
+  # DEC-019 section 2 measures the demonstration set at 5,149,904 trades in 30
+  # days, 25,782 pages, 8.6 hours at the NFR-6 cap. `scan` runs four times an
+  # hour. Even one pair, XLM at 1,934,524 trades, does not fit inside a round.
+  #
+  # WHAT IT ACTUALLY COSTS, which is far less than that, because Al accepted
+  # DEC-019 option B at a threshold of 20,000 trades in 30 days on 18 September
+  # 2026: 39 of the 60 counted pairs get the whole window for 1,164 pages, about
+  # 23 minutes, and the other 21 get the cheap half, which stops at the first
+  # complete UTC day holding a genuine trade.
+  #
+  # DAILY, AND THE CADENCE IS PAIRED WITH scan's -max-trade-age. That flag
+  # defaults to 36 hours rather than the holder half's 48, because a trade
+  # reading is anchored to the last COMPLETE UTC day and is therefore up to 24
+  # hours behind before it is even written. If this interval moves, that bound is
+  # reconsidered in the same change, exactly as DEC-018 point 5 requires of the
+  # holder pair; the two numbers only mean anything together.
+  #
+  # WHY IN THE COMPOSE FILE RATHER THAN A HOST CRON: the paragraph above
+  # keel-holders, unchanged. A schedule that ships beside the binary is deployed
+  # by the CI that deploys the binary, and the failure mode when somebody forgets
+  # a cron is silent.
+  keel-trades:
+    image: ${KEEL_IMAGE:-ghcr.io/keel-official/keel-backend}:${KEEL_IMAGE_TAG:?set KEEL_IMAGE_TAG in .env to a commit SHA}
+    container_name: keel-prod-trades
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # THE SAME EXPRESSION AS THE OTHER THREE, CHARACTER FOR CHARACTER.
+      KEEL_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      KEEL_DB_MAX_OPEN_CONNS: ${KEEL_DB_MAX_OPEN_CONNS:-}
+      KEEL_DB_MAX_IDLE_CONNS: ${KEEL_DB_MAX_IDLE_CONNS:-}
+      KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
+      KEEL_DB_CONN_MAX_IDLE_TIME: ${KEEL_DB_CONN_MAX_IDLE_TIME:-}
+      KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
+    command: ["trades", "-interval", "24h"]
+    networks:
+      - data
+    restart: unless-stopped
+    # 256M, AND THE SHAPE OF THE PEAK IS NOT THE HOLDER PULL'S. A full-window pair
+    # is capped by the threshold at 20,000 trades held at once, and the cheap half
+    # holds ONE day, which for the busiest pair in the set is XLM's 64,484 trades.
+    # Neither is close to the holder pull's 17.5 MB per page of 200 accounts.
+    #
+    # THE CHEAP HALF HOLDING ONE DAY IS LOAD-BEARING FOR THIS NUMBER. It retained
+    # every day of its walk until 18 September 2026, which is unbounded in exactly
+    # its own case: a busy pair with no genuine day for weeks. Thirty days of XLM
+    # is about 1.9 million trades and this limit would kill it, which is the
+    # failure keel-holders above already paid for once.
+    #
+    # THE SUM IS A PROPERTY OF THE HOST. postgres 512M + keel-serve 192M +
+    # keel-scan 256M + keel-holders 256M + this 256M is about 1.5 GB. That is
+    # 256M more than the figure keel-holders' comment reasons about, so check
+    # `free -m` on the box before this stack is brought up with all five.
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
 networks:
   data:
 

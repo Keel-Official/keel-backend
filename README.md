@@ -315,6 +315,28 @@ make serve                       # :3000
 `-historical` is the flag that flips `?ledger=` from 503 to a real lookup, and it
 should stay off until there are replayed rows to serve.
 
+**TWO CACHES THAT `scan` READS AND DOES NOT FILL**, and a round that has neither
+still succeeds while reporting half its metrics unevaluated. Both cost too many
+Horizon requests to run inside a fifteen minute round, which is why each is a
+command of its own:
+
+```bash
+go run ./cmd/keel holders        # trustline concentration, FR-8
+go run ./cmd/keel trades         # the genuine-trade figures, FR-9 and FR-10
+```
+
+Without `holders`, every asset reports `holderTop1Pct: null`. Without `trades`,
+every asset reports `lastGenuineTrade: null` and `volumeToSupply: null`, and
+`bandConfidence` stays `partial` across the whole set because three of the
+unevaluated flags are trade-derived. Neither absence looks like a missing step from
+outside, which is why they are named here rather than left to the runbook.
+
+`trades` walks BACKWARDS in whole UTC days, so its figures describe the last
+complete day and are up to 24 hours old by construction. Pairs at or below 20,000
+trades in 30 days get the whole window; the rest get the last genuine trade only
+and say so in the row. That threshold is DEC-019, it is `-threshold`, and section 9
+of the record is what it means.
+
 ## 1.7 Stopping
 
 ```bash
