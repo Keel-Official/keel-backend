@@ -114,3 +114,68 @@ below the section it concerns, and no earlier sentence is edited or deleted.
 | Date | Amendment |
 | --- | --- |
 | 5 September 2026 | Record created. Al's decision in section 1, taken as item 3 of that day's ratification sheet. Section 7 opens the golden fixture question, which is RED and not resolved here |
+
+| 19 September 2026 | Section 9 added. The set has drifted off the decision in section 1 and now carries THREE versions, two of them without the `-draft` suffix. Drafted by Claude; it measures and proposes and decides nothing |
+
+---
+
+## 9. The decision in section 1 is no longer true of the repository, 19 September 2026
+
+**Section 1 decided one number for the whole set. There are three.** Measured at
+`ddab9ac` by `scripts/verify-sow.sh`, which fails on this and names it:
+
+| What | Header says | `-draft`? |
+| --- | --- | --- |
+| `01-data-sources.md` | **1.2.0** | **no** |
+| `11-limitations.md` | **1.2.0** | **no** |
+| `00`, `02` to `10`, and `README.md` | **1.1.0-draft** | yes |
+| `internal/domain.MethodologyVersion`, `types.go:29` | **1.0.8-draft** | yes |
+| the contract's examples, `docs/api/keel-openapi.yaml` | **1.0.8-draft** | yes |
+
+**This is the state section 2 describes, one increment worse.** Section 2 records
+two answers and calls ten files claiming two versions a guarantee that a reader
+cites the wrong one. Three answers across thirteen files is the same defect with
+more places to land on.
+
+**THE SERVED VERSION IS NOT WRONG, and confusing the two would send the repair in
+the wrong direction.** `GET /v1/health` answers `methodologyVersion: 1.0.8-draft`
+and that string is correct: it is what the code that computed the row was stamped
+with, and non-negotiable rule 1 requires every output to carry the version it was
+computed under, not the newest version anybody has written down. Bumping the
+constant to make the numbers match would make every stored row claim a methodology
+it was not computed under. The contract's own comment at line 47 already says this
+in as many words.
+
+**What the `-draft` suffix drop asserts, which is the part nobody has decided.**
+`1.2.0` without `-draft` is a stronger claim than any other header in the set makes:
+it says the definitions in those two files are settled. Whether that is intended is
+not readable from the files, and neither file's version history says a decision was
+taken. This record cannot settle it because `docs/methodology/` is RED.
+
+### 9.1 The two roads, and neither is taken here
+
+**Road A, one number again, the way section 1 meant it.** Pick the version in force,
+stamp all thirteen headers and the code constant with it, regenerate the mocks, and
+add a version-history row to each file saying nothing in it changed. This is what the
+5 September pass did and it is about an hour of bookkeeping. Its cost is that it
+flattens whatever the `1.2.0` headers were trying to say.
+
+**Road B, say that the documents and the code version SEPARATELY, and write the rule
+down.** The methodology set moves as documents are written; the code constant moves
+when the behaviour it stamps changes. They are then allowed to differ and the README
+states which is which. Its cost is that section 1 of this record is reversed, and a
+reversal is recorded as a reversal rather than applied by editing section 1 away.
+
+**Road B is the one this drafting would pick if picking were Claude's**, because the
+served-version paragraph above is an argument that the two things are genuinely
+different clocks, and Road A has now been run once and drifted within a fortnight. A
+rule that has to be re-applied every two weeks is usually the wrong rule rather than
+an under-enforced one. **It is recorded as a preference and not as a decision**, and
+the drift is reported either way.
+
+### 9.2 What is Claude's once Al picks
+
+All of the bookkeeping and none of the choosing: the header edits under Al's
+direction, the version-history rows, `make api-mocks-check`, and the line in
+`docs/methodology/README.md` section 4. What stays Al's is which number, whether
+`1.2.0` keeps its dropped suffix, and, on Road B, the reversal of section 1.
