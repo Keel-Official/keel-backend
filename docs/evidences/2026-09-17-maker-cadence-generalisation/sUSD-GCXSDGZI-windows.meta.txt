@@ -1,0 +1,40 @@
+# Provenance for sUSD-GCXSDGZI-windows.csv
+# Written beside the CSV rather than inside it, for the reason DEC-010 gives:
+# a leading '#' line is read as a header by csv.DictReader.
+#
+# ONE WALK PRODUCED EVERY ROW. Counts below are that walk's, not any one row's.
+account: GCXSDGZIDUNDEBEPZXRIQEOUPS7SQU2L5KBMF5UE6LDJKTNNH4EVVNSS
+why_this_account: 26 of 64 offers on the sUSD/USDC book on 2026-09-17 (41 per cent by offer count, not by depth), and posting offers on 2026-02-01
+pair: USDC:GA5ZSEJY/sUSD:GCHW7CWI
+data_source: horizon-operations
+methodology_version: none. No figure here passed through internal/domain.
+ledger_lo: 61027032
+ledger_hi: 61429800
+calendar_span: 2026-02-01 to 2026-02-28 inclusive
+pages: 27
+operation_records_read: 5276
+offer_operations_on_account: 3458
+offer_operations_on_pair: 3450
+first_record_at: 2026-02-01T00:12:50Z
+last_record_at: 2026-02-28T00:12:45Z
+delete_all_transactions: 651
+post_transactions: 2799
+mixed_transactions: 0
+windows: 623
+shortest_seconds: 18.0
+median_seconds: 29.0
+longest_seconds: 7233.0
+total_absent_seconds: 127618.0
+pct_of_february: 5.2752
+modal_band_utc: 00:12
+windows_in_modal_band: 27
+distinct_days_in_modal_band: 27
+unclosed_delete_at_walk_end: 2026-02-28T00:12:45Z
+unclosed_delete_ledger: 61429768
+#
+# An unclosed delete-all is a window whose closing post falls beyond ledger_hi. It is
+# EXCLUDED from every count above, so the absence reported here is a LOWER bound.
+#
+# A second delete-all arriving while a window is open does not open a second window.
+# A transaction mixing zero and non-zero amounts is classified mixed and opens nothing.
+# Both choices shorten the measured absence rather than lengthen it.

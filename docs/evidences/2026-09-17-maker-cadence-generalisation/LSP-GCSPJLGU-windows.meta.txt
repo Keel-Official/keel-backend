@@ -1,0 +1,40 @@
+# Provenance for LSP-GCSPJLGU-windows.csv
+# Written beside the CSV rather than inside it, for the reason DEC-010 gives:
+# a leading '#' line is read as a header by csv.DictReader.
+#
+# ONE WALK PRODUCED EVERY ROW. Counts below are that walk's, not any one row's.
+account: GCSPJLGUAMWACHKIGMZEH2N62JVONEUV3INOA6A5BWCDP53YX6H5YYP5
+why_this_account: 11 of 232 offers on the LSP/USDC book on 2026-09-17 (5 per cent by offer count), and posting offers on 2026-02-01. NOT dominant on its book
+pair: LSP:GAB7STHV/USDC:GA5ZSEJY
+data_source: horizon-operations
+methodology_version: none. No figure here passed through internal/domain.
+ledger_lo: 61027032
+ledger_hi: 61429800
+calendar_span: 2026-02-01 to 2026-02-28 inclusive
+pages: 12
+operation_records_read: 2358
+offer_operations_on_account: 2241
+offer_operations_on_pair: 2241
+first_record_at: 2026-02-01T01:04:24Z
+last_record_at: 2026-02-28T00:09:37Z
+delete_all_transactions: 1
+post_transactions: 2240
+mixed_transactions: 0
+windows: 1
+shortest_seconds: 7885.0
+median_seconds: 7885.0
+longest_seconds: 7885.0
+total_absent_seconds: 7885.0
+pct_of_february: 0.3259
+modal_band_utc: 23:37
+windows_in_modal_band: 1
+distinct_days_in_modal_band: 1
+unclosed_delete_at_walk_end: none
+unclosed_delete_ledger: n/a
+#
+# An unclosed delete-all is a window whose closing post falls beyond ledger_hi. It is
+# EXCLUDED from every count above, so the absence reported here is a LOWER bound.
+#
+# A second delete-all arriving while a window is open does not open a second window.
+# A transaction mixing zero and non-zero amounts is classified mixed and opens nothing.
+# Both choices shorten the measured absence rather than lengthen it.
