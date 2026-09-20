@@ -1,0 +1,43 @@
+# Provenance for USTRY-GABFRFPY-windows.csv
+# Written beside the CSV rather than inside it, for the reason DEC-010 gives:
+# a leading '#' line is read as a header by csv.DictReader.
+#
+# THIS IS THE CONTROL. The account is the one measured in
+# docs/evidences/2026-09-14-maker-withdrawal-cadence-february.md. It is walked again
+# here to check that cadence.py reproduces a result already published, before any
+# number it produces for a NEW account is believed.
+account: GABFRFPYM2BXM4OM2ZA4YDBWY4CMPVESHQMKXSM47MWWJD4TW2KQDWWN
+why_this_account: control. Already measured and published on 2026-09-14
+pair: USDC:GA5ZSEJY/USTRY:GCRYUGD5
+data_source: horizon-operations
+methodology_version: none. No figure here passed through internal/domain.
+ledger_lo: 61027032
+ledger_hi: 61429800
+calendar_span: 2026-02-01 to 2026-02-28 inclusive
+pages: 231
+operation_records_read: 46033
+offer_operations_on_account: 45996
+offer_operations_on_pair: 1282
+first_record_at: 2026-02-01T00:10:04Z
+last_record_at: 2026-02-28T00:11:53Z
+delete_all_transactions: 116
+post_transactions: 114
+mixed_transactions: 0
+windows: 106
+shortest_seconds: 5
+median_seconds: 74
+longest_seconds: 946
+total_absent_seconds: 6847
+pct_of_february: 0.2830
+modal_band_utc: 00:10
+windows_in_modal_band: 28
+distinct_days_in_modal_band: 28
+unclosed_delete_at_walk_end: none
+#
+# THE WINDOW COUNT HERE IS 106 AND THE PUBLISHED DOCUMENT REPORTS 116, AND THE TWO ARE
+# THE SAME MEASUREMENT UNDER TWO PAIRING RULES. The walk is identical: 231 pages, 46,033
+# records, 1,282 offer operations on the pair, 116 delete-all and 114 post transactions,
+# all four matching. The published rule opens a window at EVERY delete-all, so consecutive
+# deletes before one post each count the same absence again; its own section 4 says so of
+# 20 February. This file's rule opens one window per absence, so the seconds below are the
+# UNION of the absent intervals and not their sum. See README.md section 3.
