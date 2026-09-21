@@ -50,6 +50,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"time"
 
@@ -200,6 +201,81 @@ func ClassifyTrades(trades []Trade, base Asset, r GenuineRules) []TradeClassific
 		out = append(out, c)
 	}
 	return out
+}
+
+// ClassifyTradesAgainstMedian is ClassifyTrades with condition 5 judged against
+// one supplied reference median instead of the median of each trade's own day.
+//
+// WHY A SECOND ENTRY POINT EXISTS. The oracle window at a LIVE ledger ends inside
+// a UTC day that has not finished, and DEC-019 section 8.2 refuses the median of a
+// partial day: the verdict can only move from genuine to excluded as more of the
+// day arrives, so a partial median reports genuine volume that a complete one
+// would not. ClassifyTrades cannot be used there without computing exactly that
+// statistic. The caller passes the order-book median of the most recent COMPLETE
+// UTC day instead, from OrderBookMedian over that whole day.
+//
+// THIS IS A READING OF 07-supporting-metrics.md SECTION 1 AND NOT A QUOTATION FROM
+// IT, and it is Al's to ratify. Section 1 says "the day's median"; for a trade on
+// a day that has not ended, no such median exists yet, and this uses the last one
+// that does. The direction it errs in is the permitted one: a genuine price that
+// moved more than PriceOutlierFactor since yesterday is excluded, which LOWERS
+// genuine volume, which makes an attack look cheaper relative to the market and
+// never dearer.
+//
+// median nil means the reference day had no order-book trade, and condition 5 then
+// passes every trade, which is ClassifyTrades' own rule for a day with no median.
+// Conditions 1 to 4 are unchanged and read the slice exactly as ClassifyTrades
+// does.
+func ClassifyTradesAgainstMedian(trades []Trade, base Asset, r GenuineRules, median *decimal.Decimal) []TradeClassification {
+	medians := map[string]decimal.Decimal{}
+	if median != nil {
+		for _, t := range trades {
+			medians[utcDay(t.ClosedAt)] = *median
+		}
+	}
+	bookPrices := orderBookPricesByTime(trades)
+
+	out := make([]TradeClassification, 0, len(trades))
+	for _, t := range trades {
+		c := TradeClassification{
+			ID:            t.ID,
+			LedgerSeq:     t.LedgerSeq,
+			ClosedAt:      t.ClosedAt,
+			BaseAmount:    t.BaseAmount,
+			CounterAmount: t.CounterAmount,
+		}
+		c.State, c.Condition = classifyOne(t, base, r, medians, bookPrices)
+		out = append(out, c)
+	}
+	return out
+}
+
+// OrderBookMedian is the median price of the ORDER-BOOK trades in one complete
+// UTC day, the statistic condition 5 compares against. The second return is false
+// when the day holds no order-book trade.
+//
+// It refuses a slice spanning more than one UTC day rather than choosing one,
+// because a median over two days is not the statistic section 1 names and a
+// caller that passed one has made a mistake worth hearing about.
+func OrderBookMedian(day []Trade) (decimal.Decimal, bool, error) {
+	var prices []decimal.Decimal
+	var key string
+	for _, t := range day {
+		d := utcDay(t.ClosedAt)
+		if key == "" {
+			key = d
+		} else if d != key {
+			return decimal.Zero, false, fmt.Errorf("order-book median: trades span %s and %s, want one UTC day", key, d)
+		}
+		if t.LiquidityPoolID != "" {
+			continue
+		}
+		prices = append(prices, t.Price.Decimal())
+	}
+	if len(prices) == 0 {
+		return decimal.Zero, false, nil
+	}
+	return median(prices), true, nil
 }
 
 // classifyOne walks the five conditions in order and stops at the first met.
@@ -986,7 +1062,9 @@ func ComputeSupporting(in SupportingInput) (SupportingMetrics, SupportingDetail)
 	// against a manipulation cost denominated the same way.
 	if in.TradesCover {
 		_, quote, recorded := GenuineVolumeInWindow(cs, in.Anchor, in.OracleWindow)
+		anchor := in.Anchor
 		out.GenuineVolumeInWindow = &quote
+		out.OracleWindowAnchor = &anchor
 		det.OracleWindowRecorded = recorded
 	}
 

@@ -25,6 +25,8 @@
 //	ComputeDepth              SDEX walk YES (as a correct zero). AMM term NO
 //	ComputeManipulationCost   orderbookOnly YES, four rows. includeAMM NO
 //	ComputeMaxSafeCollateral  NO. 08-collateral.md is complete, the fixture is silent
+//	ComputeOracleResistance   PARTIAL. MC = 0 at 61340262 is the fixture's; V_genuine
+//	                          = 0.3268461 is 07 section 4's Result, Al's, not a fixture
 //
 // The AMM half is implemented from docs/methodology/04-depth.md section 2 and 3
 // and is checked only by the invariants in internal/conformance, never by a
@@ -514,6 +516,68 @@ func ComputeMaxSafeCollateral(depth []DepthPoint, mc []ManipulationPoint, p Para
 	return &result, liquidationLimit, manipulationLimit, nil
 }
 
+// ComputeOracleResistance applies docs/methodology/06-oracle-resilience.md
+// section 1 at one ledger:
+//
+//	MR(P_target, W) = MC_orderbookOnly(critical) + V_genuine(W)
+//	ratio           = MC_orderbookOnly(critical) / V_genuine(W)
+//
+// The orderbookOnly ladder, for the reason 06 gives and ComputeMaxSafeCollateral
+// repeats: an attacker takes the cheapest path, and the combined ladder is dearer
+// wherever a pool exists. The critical delta is Params.ManipulationCriticalDelta,
+// the same rung the collateral ceiling reads, so the two figures cannot disagree
+// about which move counts as critical.
+//
+// It returns nil and a sentence rather than an error when it declines, because
+// every decline is an unevaluated result the contract has a shape for:
+//
+//   - the ladder carries no rung at the critical delta, the same case
+//     ComputeMaxSafeCollateral names;
+//   - genuineVolume is nil, meaning nobody measured V at this ledger.
+//
+// Ratio is nil when V is zero or the rung is unreachable, and TotalAttackCost is
+// nil when the rung is unreachable, both as types.go states: the cost of reaching
+// an unreachable target is not the cost of anything, and a division by a measured
+// zero is undefined rather than infinite. A zero V is NOT a decline. An asset with
+// no genuine trading inside the window is 06's most important finding, so the
+// object is returned with Ratio nil and TotalAttackCost equal to MC.
+//
+// THE ORDERING RULE, ANSWERED OUT LOUD. The fixture holds the MC half: the
+// orderbookOnly cost at delta 0.5 on the pre-exploit book is 0 and reachable. The V
+// half is 0.3268461 USDC, which is 07-supporting-metrics.md section 4's Result and
+// was computed by Al before this function existed, but it lives in a methodology
+// document rather than in testdata/fixtures, so the header lists this function as
+// PARTIAL rather than YES. Neither number was produced by this code.
+func ComputeOracleResistance(orderbookOnly []ManipulationPoint, genuineVolume *decimal.Decimal, p Params) (*OracleResistance, string) {
+	m, ok := findManipulation(orderbookOnly, p.ManipulationCriticalDelta)
+	if !ok {
+		return nil, fmt.Sprintf(
+			"oracleResistance was not computed: the orderbookOnly ladder carries no rung at the critical delta %s", p.ManipulationCriticalDelta)
+	}
+	if genuineVolume == nil {
+		return nil, fmt.Sprintf(
+			"oracleResistance was not computed: genuine volume in the %d second oracle window was not measured at this ledger", int(p.OracleWindow.Seconds()))
+	}
+	v := *genuineVolume
+
+	out := &OracleResistance{
+		CriticalDelta:    p.ManipulationCriticalDelta,
+		ManipulationCost: m.Cost,
+		Reachable:        m.Reachable,
+		GenuineVolume:    v,
+		WindowSeconds:    int(p.OracleWindow.Seconds()),
+	}
+	if m.Reachable {
+		total := m.Cost.Add(v)
+		out.TotalAttackCost = &total
+		if v.GreaterThan(decimal.Zero) {
+			ratio := m.Cost.DivRound(v, Precision)
+			out.Ratio = &ratio
+		}
+	}
+	return out, ""
+}
+
 // ---------------------------------------------------------------- Entry point
 
 // ComputeAssetRisk is the only entry point into this package.
@@ -654,6 +718,20 @@ func ComputeAssetRiskFrom(s Snapshot, p Params, sup *SupportingMetrics, rec *Rec
 	risk.MaxSafeCollateralLiquidation = liq
 	risk.MaxSafeCollateralManipulation = man
 	risk.Warnings = append(risk.Warnings, warnings...)
+
+	// V_genuine is admitted only when it was summed back from THIS ledger's close
+	// time. The daily trade cache sums it back from midnight, and pairing that
+	// with a manipulation cost measured now would put two instants up to a day
+	// apart into one reading. See SupportingMetrics.OracleWindowAnchor.
+	var oracleVolume *decimal.Decimal
+	if sup != nil && sup.OracleWindowAnchor != nil && sup.OracleWindowAnchor.Equal(s.LedgerClosedAt) {
+		oracleVolume = sup.GenuineVolumeInWindow
+	}
+	oracle, why := ComputeOracleResistance(orderbookOnly, oracleVolume, p)
+	risk.OracleResistance = oracle
+	if why != "" {
+		risk.Warnings = append(risk.Warnings, why)
+	}
 
 	if sup != nil {
 		risk.Supporting = *sup

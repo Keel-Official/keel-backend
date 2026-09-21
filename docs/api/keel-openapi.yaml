@@ -209,7 +209,19 @@ info:
   # the way DEC-003 section 1 describes: nothing fails, the number still draws,
   # only its meaning is different. This joins freeze condition 4's message for the
   # frontend builder for exactly that reason.
-  version: 1.7.0
+  #
+  # 1.7.1, 22 September 2026. ONE DESCRIPTION CORRECTED AND NO SCHEMA CHANGE, which
+  # is why it is a patch. `AssetRisk.oracleResistance` said it was null only when
+  # there is no executable price. Until this release it was null on EVERY row,
+  # priced or not, because nothing in the engine assembled the object; the frontend
+  # found that the description was false for sixty-one live assets. The engine now
+  # assembles it, and it is still null in one more case that the old sentence did
+  # not admit: when the genuine volume inside the oracle window was not measured at
+  # the row's own ledger. The daily trade cache sums that window back from
+  # midnight, and pairing it with a manipulation cost measured at another instant
+  # would put two moments up to a day apart into one reading, so the engine refuses
+  # the pairing and says so in `warnings`. No field, type or enum moved.
+  version: 1.7.1
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -1176,8 +1188,13 @@ components:
         oracleResistance:
           oneOf: [$ref: '#/components/schemas/OracleResistance', type: 'null']
           description: |
-            Null when there is no executable price, because then there is no price
-            to move.
+            Null in two cases, and `warnings` names which. When there is no
+            executable price, because then there is no price to move. And when the
+            genuine volume inside the oracle window was not measured at THIS row's
+            ledger: the object pairs a manipulation cost at this ledger with the
+            volume in the `windowSeconds` before it, and a volume from another
+            instant would make that pairing meaningless. A reconstructed historical
+            row carries no trade history and is null for the second reason.
         maxSafeCollateral:
           oneOf:
             - $ref: '#/components/schemas/Decimal'

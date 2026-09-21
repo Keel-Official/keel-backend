@@ -560,6 +560,29 @@ type SupportingMetrics struct {
 	TradesExcludedPct     *decimal.Decimal
 	GenuineVolumeInWindow *decimal.Decimal
 
+	// OracleWindowAnchor is the instant GenuineVolumeInWindow was summed back
+	// from. Nil when nobody said, which ComputeAssetRiskFrom treats as "not
+	// measured at this ledger".
+	//
+	// WHY IT EXISTS: THE SAME NUMBER HAD TWO MEANINGS DEPENDING ON WHO FILLED IT.
+	// `keel trades` sums the oracle window back from 00:00Z of the day it ran,
+	// so a scan reading that cache at 17:00 holds the fifteen minutes before
+	// midnight, not the fifteen minutes before its own ledger. 06-oracle-
+	// resilience.md section 1 defines V_genuine(W) at the output ledger, and
+	// OracleResistance pairs it with a manipulation cost measured at that ledger,
+	// so a volume from another instant would put two moments up to a day apart
+	// into one reading.
+	//
+	// Three sentences, as this file requires. The decision: carry the anchor
+	// beside the volume and let OracleResistance be assembled only when it equals
+	// the snapshot's close time. The alternative rejected: dropping the cached
+	// figure at the call site, which would have worked today and left the next
+	// caller free to repeat the mistake, because nothing in the type says which
+	// instant a volume belongs to. Why: the anchor is a fact about the number and
+	// belongs next to it, the way HolderSnapshotLedger belongs next to the holder
+	// figures.
+	OracleWindowAnchor *time.Time
+
 	// GenuineSearchWindow is how far back from the search anchor the trade set is
 	// known to be COMPLETE. Nil when nobody looked, which is not the same as zero.
 	//
