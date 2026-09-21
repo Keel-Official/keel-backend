@@ -99,6 +99,13 @@ func runScan(args []string) error {
 	// before it, which is what a daily cadence needs and no more.
 	maxTradeAge := fs.Duration("max-trade-age", 36*time.Hour,
 		"ignore a cached trade reading whose anchor is older than this. 0 disables the bound")
+	// THE ORACLE WINDOW IS MEASURED HERE AND NOT READ FROM THE TRADE CACHE, because
+	// the cache sums it back from midnight and oracleResistance needs it summed
+	// back from this round's own ledger. oraclewindow.go is the account.
+	oracleWindowPages := fs.Int("oracle-window-pages", 3,
+		"requests allowed per pair per round to read the oracle window at the scanned ledger. 0 disables oracleResistance")
+	oracleReferencePages := fs.Int("oracle-reference-pages", 20,
+		"requests allowed per pair per UTC day to read the previous complete day for its order-book median")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel scan - compute metrics for every active asset and store them
@@ -173,16 +180,17 @@ after a crash is safe and a differing result is a finding rather than an overwri
 		applied[0], len(rows), domain.MethodologyVersion, unit)
 
 	bounds := cacheBounds{Holder: *maxHolderAge, Trade: *maxTradeAge}
+	oracle := newOracleWindowReader(client, *oracleWindowPages, *oracleReferencePages)
 
 	if *once {
-		return scanOnce(ctx, s, client, rows, bounds, logger)
+		return scanOnce(ctx, s, client, rows, bounds, oracle, logger)
 	}
 
 	logger.Printf("interval %s, Ctrl-C to stop", *interval)
 	ticker := time.NewTicker(*interval)
 	defer ticker.Stop()
 	for {
-		if err := scanOnce(ctx, s, client, rows, bounds, logger); err != nil {
+		if err := scanOnce(ctx, s, client, rows, bounds, oracle, logger); err != nil {
 			return err
 		}
 		select {
@@ -208,7 +216,7 @@ type cacheBounds struct {
 
 // scanOnce computes and stores one round, and opens a run row around it so that a
 // partial failure survives the process that produced it.
-func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows []store.Asset, bounds cacheBounds, logger *log.Logger) error {
+func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows []store.Asset, bounds cacheBounds, oracle *oracleWindowReader, logger *log.Logger) error {
 	startedAt := time.Now().UTC()
 	runID, err := s.StartRun(ctx, store.RunScan, startedAt)
 	if err != nil {
@@ -216,9 +224,10 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	}
 
 	var ok, failed, panicked, stored, alreadyThere int
-	var withHolders, withTrades int
+	var withHolders, withTrades, withOracle int
 	holderGaps := map[string]int{}
 	tradeGaps := map[string]int{}
+	oracleGaps := map[string]int{}
 	params := domain.DefaultParams()
 
 	for _, a := range rows {
@@ -256,6 +265,15 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 			withTrades++
 		} else {
 			tradeGaps[tradeWhy]++
+		}
+
+		// V_genuine(W) at THIS ledger, the only volume the engine will pair with
+		// this ledger's manipulation cost. See oraclewindow.go.
+		sup, oracleWhy := oracle.attach(ctx, a, obs.Snapshot.LedgerClosedAt, params.OracleWindow, sup)
+		if oracleWhy == "" {
+			withOracle++
+		} else {
+			oracleGaps[oracleWhy]++
 		}
 
 		risk, didPanic, err := computeRisk(obs.Snapshot, params, sup)
@@ -307,6 +325,10 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	for _, why := range sortedKeys(tradeGaps) {
 		parts = append(parts, fmt.Sprintf("%d without: %s", tradeGaps[why], why))
 	}
+	parts = append(parts, fmt.Sprintf("oracle window measured for %d of %d pair(s)", withOracle, ok))
+	for _, why := range sortedKeys(oracleGaps) {
+		parts = append(parts, fmt.Sprintf("%d without: %s", oracleGaps[why], why))
+	}
 
 	if err := s.FinishRun(ctx, runID, time.Now().UTC(), ok, failed, strings.Join(parts, "; ")); err != nil {
 		return fmt.Errorf("scan: %w", err)
@@ -320,13 +342,16 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 	// question "is this throttling or is the endpoint simply slow" could not be
 	// answered from any log, because the only field that answers it was computed
 	// and discarded.
-	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d with trade figures, %d requests this window, %d throttled",
-		ok, stored, alreadyThere, failed, withHolders, withTrades, client.Requests(), client.Throttled())
+	logger.Printf("round: %d ok (%d written, %d already stored), %d failed, %d with holder figures, %d with trade figures, %d with an oracle window, %d requests this window, %d throttled",
+		ok, stored, alreadyThere, failed, withHolders, withTrades, withOracle, client.Requests(), client.Throttled())
 	for _, why := range sortedKeys(holderGaps) {
 		logger.Printf("  no holder figures for %d asset(s): %s", holderGaps[why], why)
 	}
 	for _, why := range sortedKeys(tradeGaps) {
 		logger.Printf("  no trade figures for %d pair(s): %s", tradeGaps[why], why)
+	}
+	for _, why := range sortedKeys(oracleGaps) {
+		logger.Printf("  no oracle window for %d pair(s): %s", oracleGaps[why], why)
 	}
 
 	// Every asset panicking is not a scan that failed, it is a scan with nothing to
