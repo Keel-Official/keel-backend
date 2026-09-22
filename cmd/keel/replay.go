@@ -67,6 +67,8 @@ func runReplay(args []string) error {
 	poolSnapshots := fs.String("pool-snapshots", "", "JSON snapshot array with audited pool coverage at this pair and ledger, required for -persist; null Pools means unknown and is refused")
 	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN for -persist only, or set KEEL_DSN")
 	out := fs.String("out", "", "write the reconstructed snapshot to this file as JSON. Optional")
+	dumpOffers := fs.Bool("dump-offers", false,
+		"print every offer resting at the target, one row per offer, with its ID, seller and the operation that last wrote it")
 	baseURL := fs.String("horizon", horizon.DefaultBaseURL, "Horizon base URL")
 	budget := fs.Int("budget", 3000, "requests permitted per hour. Public Horizon allows about 3600 per IP")
 
@@ -191,6 +193,9 @@ Keep the source evidence with that file. Supplying it does not certify the book.
 			return fmt.Errorf("replay %s: %w", p, err)
 		}
 		reportReplay(os.Stdout, p, res)
+		if *dumpOffers {
+			reportResting(os.Stdout, res.Resting)
+		}
 		if *persist {
 			// The ledger resource supplies the actual close time. A wall-clock time
 			// or a ledger-to-time estimate would corrupt historical downsampling.
@@ -547,4 +552,32 @@ func show(d *decimal.Decimal) string {
 		return "null"
 	}
 	return d.String()
+}
+
+// reportResting prints the reconstructed book one OFFER per row, which the level
+// view cannot: a level aggregates offers at one price and loses which offer is
+// which. It exists so a disagreement with a hand computation can be taken to
+// Horizon one offer at a time, by ID, as report section 5.4 needs.
+//
+// The price is printed as the n/d the operation result carried and never as a
+// decimal, non-negotiable rule 5, and in the offer's own orientation: an ask sells
+// the base, a bid sells the quote.
+func reportResting(w io.Writer, offers []horizon.RestingOffer) {
+	fmt.Fprintf(w, "  resting offers at the target: %d\n", len(offers))
+	fmt.Fprintf(w, "  %-4s %-12s %-10s %-24s %-16s %-10s %s\n",
+		"side", "offer_id", "seller", "price_r n/d", "amount", "last_ledger", "last_operation")
+	for _, o := range offers {
+		fmt.Fprintf(w, "  %-4s %-12d %-10s %-24s %-16s %-10d %d\n",
+			o.Side, o.ID, shortAccount(o.Seller), fmt.Sprintf("%d/%d", o.PriceN, o.PriceD),
+			o.Amount.StringFixed(7), o.LastLedger, o.LastOperation)
+	}
+}
+
+// shortAccount is the first eight characters, the form every other line of this
+// command's output names an account by.
+func shortAccount(a string) string {
+	if len(a) > 8 {
+		return a[:8]
+	}
+	return a
 }

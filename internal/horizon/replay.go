@@ -280,6 +280,17 @@ type ReplayResult struct {
 	// has. It is sorted.
 	MissingOfferIDs []int64
 
+	// Resting is every offer on this pair still resting at the target, one row
+	// per offer rather than one per price level, sorted by offer ID.
+	//
+	// WHY IT EXISTS. Snapshot.Book aggregates offers into levels because that is
+	// what /order_book returns, and the aggregation throws away the one thing a
+	// disagreement with a hand computation needs: which offer it is. Report
+	// section 5.4 names a dust ask at price 2147483647 that the fixture does not
+	// hold, and settling it means asking Horizon about ONE offer, which needs its
+	// ID and its seller. Nothing in the book can supply either.
+	Resting []RestingOffer
+
 	// Crossed, CrossedBid and CrossedAsk mean what they mean on SeriesPoint: the
 	// reconstructed best bid is at or above the reconstructed best ask, which no
 	// ledger can hold. It is the one counter in this struct that PROVES the
@@ -394,6 +405,7 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 	}
 	out.TradeWindowFrom = q.TradesFromLedger
 	out.MissingOfferIDs = missingOffers(in.ops, in.trades)
+	out.Resting = restingOffers(state, base, quote)
 	out.CrossedBid, out.CrossedAsk, out.Crossed = out.Snapshot.Book.Crossed()
 	return out, nil
 }
@@ -736,6 +748,57 @@ type restingOffer struct {
 	Amount  decimal.Decimal // in SELLING units
 	PriceN  int64
 	PriceD  int64
+
+	// Seller, LastLedger and LastOperation name the operation whose result last
+	// wrote this entry. They are provenance for a reader asking Horizon about
+	// the offer and take no part in the book.
+	Seller        string
+	LastLedger    uint32
+	LastOperation int64
+}
+
+// RestingOffer is one offer on the reconstructed book, as a caller sees it.
+//
+// Side is "ask" when the offer sells the base and "bid" when it sells the
+// quote. PriceN, PriceD and Amount are the offer's OWN, in its selling asset,
+// exactly as the operation result stated them, and are not converted to the
+// book's orientation: the point of the row is to be compared with Horizon's
+// record of the same offer, which is written that way.
+type RestingOffer struct {
+	ID            int64
+	Side          string
+	Seller        string
+	PriceN        int64
+	PriceD        int64
+	Amount        decimal.Decimal
+	LastLedger    uint32
+	LastOperation int64
+}
+
+// restingOffers lists the pair's offers in state, sorted by ID.
+func restingOffers(state map[int64]*restingOffer, base, quote domain.Asset) []RestingOffer {
+	baseRef, quoteRef := refOf(base), refOf(quote)
+	var out []RestingOffer
+	for _, o := range state {
+		var side string
+		switch {
+		case sameAsset(o.Selling, baseRef) && sameAsset(o.Buying, quoteRef):
+			side = "ask"
+		case sameAsset(o.Selling, quoteRef) && sameAsset(o.Buying, baseRef):
+			side = "bid"
+		default:
+			continue
+		}
+		if o.Amount.LessThanOrEqual(decimal.Zero) {
+			continue
+		}
+		out = append(out, RestingOffer{
+			ID: o.ID, Side: side, Seller: o.Seller, PriceN: o.PriceN, PriceD: o.PriceD,
+			Amount: o.Amount, LastLedger: o.LastLedger, LastOperation: o.LastOperation,
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
 }
 
 // replayOffers applies operations and trades in TOID order and returns what is
@@ -869,12 +932,15 @@ func apply(state map[int64]*restingOffer, op offerOperation) {
 	// An UPDATE can move an offer's price, so the whole entry is replaced rather
 	// than patched. The ledger's entry is the state; nothing is carried over.
 	state[r.OfferID] = &restingOffer{
-		ID:      r.OfferID,
-		Selling: r.Selling,
-		Buying:  r.Buying,
-		Amount:  decimal.NewFromInt(r.Amount).Mul(stroop),
-		PriceN:  int64(r.PriceN),
-		PriceD:  int64(r.PriceD),
+		ID:            r.OfferID,
+		Selling:       r.Selling,
+		Buying:        r.Buying,
+		Amount:        decimal.NewFromInt(r.Amount).Mul(stroop),
+		PriceN:        int64(r.PriceN),
+		PriceD:        int64(r.PriceD),
+		Seller:        op.Account,
+		LastLedger:    op.Ledger,
+		LastOperation: op.TOID,
 	}
 }
 

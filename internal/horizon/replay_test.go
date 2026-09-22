@@ -396,3 +396,36 @@ func TestOffersAtOnePriceBecomeOneLevel(t *testing.T) {
 		t.Error("levels are not cheapest first after aggregation")
 	}
 }
+
+// TestRestingOffersNameEachOfferAndWhoWroteIt is the per-offer view -dump-offers
+// prints. The fixture's two real creates go in; each comes out as its own row with
+// the offer ID the ledger assigned, the side it sits on, the account that submitted
+// it and the operation that last wrote it, because report section 5.4 needs to take
+// one offer to Horizon by ID and the level view has already summed them away.
+func TestRestingOffersNameEachOfferAndWhoWroteIt(t *testing.T) {
+	ops := theTwoCreates(t)
+	ops[0].Account = "GASKOWNERXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+	ops[1].Account = "GBIDOWNERXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+	state := replayOffers(ops, nil, 61340262, nil)
+	// An offer on another pair must not appear in this pair's list.
+	state[99] = &restingOffer{ID: 99, Selling: refOf(testUSDC), Buying: refOf(testUSDC), Amount: decimal.New(1, 0), PriceN: 1, PriceD: 1}
+
+	got := restingOffers(state, testUSTRY, testUSDC)
+	if len(got) != 2 {
+		t.Fatalf("want the two fixture offers, got %d: %+v", len(got), got)
+	}
+	if got[0].ID >= got[1].ID {
+		t.Errorf("rows are not sorted by offer ID: %d then %d", got[0].ID, got[1].ID)
+	}
+	sides := map[string]RestingOffer{}
+	for _, o := range got {
+		sides[o.Side] = o
+	}
+	ask, bid := sides["ask"], sides["bid"]
+	if ask.PriceN != 266843207 || ask.PriceD != 2500000 || ask.Seller != ops[0].Account || ask.LastOperation != askCreateTOID {
+		t.Errorf("ask row = %+v; want price 266843207/2500000, seller %s, operation %d", ask, ops[0].Account, askCreateTOID)
+	}
+	if bid.Seller != ops[1].Account || bid.LastOperation != bidCreateTOID || bid.LastLedger != TOIDLedger(bidCreateTOID) {
+		t.Errorf("bid row = %+v; want seller %s, operation %d", bid, ops[1].Account, bidCreateTOID)
+	}
+}
