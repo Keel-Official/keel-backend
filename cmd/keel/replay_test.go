@@ -49,7 +49,7 @@ func replayForPersistence() horizon.ReplayResult {
 
 func TestPersistReplayPreservesProvenanceAndComputesTheExistingFixture(t *testing.T) {
 	s := &replayStoreProbe{inserted: true}
-	id, inserted, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0)
+	id, inserted, err := persistReplay(context.Background(), s, replayForPersistence(), nil, false, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestPersistReplayRefusesDetectedGapsBeforeWriting(t *testing.T) {
 			r := replayForPersistence()
 			tc.change(&r)
 			s := &replayStoreProbe{}
-			if _, _, err := persistReplay(context.Background(), s, r, false, 0); err == nil {
+			if _, _, err := persistReplay(context.Background(), s, r, nil, false, 0); err == nil {
 				t.Fatal("accepted a result with a known provenance or reconstruction gap")
 			}
 			if s.writes != 0 {
@@ -102,7 +102,7 @@ func TestPersistReplayRefusesDetectedGapsBeforeWriting(t *testing.T) {
 
 func TestPersistReplayRequiresAnAlreadyDeclaredPair(t *testing.T) {
 	s := &replayStoreProbe{err: store.ErrNotFound}
-	if _, _, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0); !errors.Is(err, store.ErrNotFound) {
+	if _, _, err := persistReplay(context.Background(), s, replayForPersistence(), nil, false, 0); !errors.Is(err, store.ErrNotFound) {
 		t.Fatalf("error = %v", err)
 	}
 	if s.writes != 0 {
@@ -112,7 +112,7 @@ func TestPersistReplayRequiresAnAlreadyDeclaredPair(t *testing.T) {
 
 func TestPersistReplayReportsAnExistingRowWithoutClaimingAnInsert(t *testing.T) {
 	s := &replayStoreProbe{inserted: false}
-	_, inserted, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0)
+	_, inserted, err := persistReplay(context.Background(), s, replayForPersistence(), nil, false, 0)
 	if err != nil || inserted {
 		t.Fatalf("duplicate = %v, %v", inserted, err)
 	}
@@ -220,7 +220,7 @@ func TestPersistReplayStillRefusesCrossedAndInflatedUnderAcceptIncomplete(t *tes
 			r := replayForPersistence()
 			tc.change(&r)
 			s := &replayStoreProbe{}
-			_, _, err := persistReplay(context.Background(), s, r, true, 0)
+			_, _, err := persistReplay(context.Background(), s, r, nil, true, 0)
 			if err == nil {
 				t.Fatal("-accept-incomplete must not override this refusal")
 			}
@@ -246,7 +246,7 @@ func TestPersistReplayRecordsEveryGapItWasAskedToAccept(t *testing.T) {
 	r.Accounts = make([]horizon.AccountWalk, 65)
 
 	s := &replayStoreProbe{inserted: true}
-	if _, _, err := persistReplay(context.Background(), s, r, true, 61300000); err != nil {
+	if _, _, err := persistReplay(context.Background(), s, r, nil, true, 61300000); err != nil {
 		t.Fatal(err)
 	}
 	rec := s.risk.Reconstruction
@@ -271,7 +271,7 @@ func TestPersistReplayRecordsEveryGapItWasAskedToAccept(t *testing.T) {
 // and a row that lost the distinction is indistinguishable from a live read.
 func TestPersistReplayMarksACleanWalkAsAWalkRatherThanAsALiveRead(t *testing.T) {
 	s := &replayStoreProbe{inserted: true}
-	if _, _, err := persistReplay(context.Background(), s, replayForPersistence(), false, 0); err != nil {
+	if _, _, err := persistReplay(context.Background(), s, replayForPersistence(), nil, false, 0); err != nil {
 		t.Fatal(err)
 	}
 	if s.risk.Reconstruction == nil {
@@ -292,7 +292,7 @@ func TestPersistReplayRefusesAFloorCountWithoutItsFloorLedger(t *testing.T) {
 	r := replayForPersistence()
 	r.StoppedAtFloor = 4
 	s := &replayStoreProbe{}
-	if _, _, err := persistReplay(context.Background(), s, r, true, 0); err == nil || s.writes != 0 {
+	if _, _, err := persistReplay(context.Background(), s, r, nil, true, 0); err == nil || s.writes != 0 {
 		t.Fatalf("stored an unreadable floor: err=%v writes=%d", err, s.writes)
 	}
 }

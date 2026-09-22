@@ -64,6 +64,12 @@ func runReplay(args []string) error {
 	persist := fs.Bool("persist", false, "store computed offers-implied metrics; requires -pool-snapshots, a declared pair and no detected reconstruction gaps")
 	acceptIncomplete := fs.Bool("accept-incomplete", false,
 		"store a reconstruction whose walk detected gaps, with every gap recorded in the row. DEC-022. A crossed or inflated book is still refused")
+	tradeMetrics := fs.Bool("trade-metrics", false,
+		"compute the trade-derived metrics at the target from the trades this walk already read: last genuine trade, excluded share, and the genuine volume in the oracle window. See cmd/keel/historicaltrades.go")
+	poolsFromEffects := fs.Bool("pools-from-effects", false,
+		"reconstruct pool reserves at the target from each pool's own effects instead of reading a -pool-snapshots file. See internal/horizon/poolhistory.go")
+	poolEffectPages := fs.Int("pool-effect-pages", 5,
+		"requests allowed per pool when reading back to its last effect at or before the target")
 	poolSnapshots := fs.String("pool-snapshots", "", "JSON snapshot array with audited pool coverage at this pair and ledger, required for -persist; null Pools means unknown and is refused")
 	dsn := fs.String("dsn", envOr(envDSN, store.DefaultDSN), "Postgres DSN for -persist only, or set KEEL_DSN")
 	out := fs.String("out", "", "write the reconstructed snapshot to this file as JSON. Optional")
@@ -114,14 +120,28 @@ Keep the source evidence with that file. Supplying it does not certify the book.
 	if *poolSnapshots != "" && !*persist {
 		return errors.New("replay: -pool-snapshots requires -persist")
 	}
+	if *poolsFromEffects && *poolSnapshots != "" {
+		return errors.New("replay: -pools-from-effects and -pool-snapshots are two answers to one question; pass one")
+	}
 	var poolEvidence []domain.Snapshot
 	if *persist {
-		if *poolSnapshots == "" {
-			return errors.New("replay: -persist requires -pool-snapshots; unobserved pools must not be stored as absent")
+		// EITHER ROUTE SUPPLIES POOL COVERAGE, AND NEITHER IS A DEFAULT. A stored
+		// row must never report an unobserved pool as absent, so the operator says
+		// where the reserves come from: a hand-audited evidence file, or the pools'
+		// own effects at the target. The second refuses to answer when its walk did
+		// not reach a pool, which leaves Pools nil and makes this same check fail
+		// later, at persist time.
+		if *poolSnapshots == "" && !*poolsFromEffects {
+			return errors.New("replay: -persist requires -pool-snapshots or -pools-from-effects; unobserved pools must not be stored as absent")
 		}
-		poolEvidence, err = readReplayPoolSnapshots(*poolSnapshots)
-		if err != nil {
-			return err
+		if *poolSnapshots == "" {
+			poolEvidence = nil
+		}
+		if *poolSnapshots != "" {
+			poolEvidence, err = readReplayPoolSnapshots(*poolSnapshots)
+			if err != nil {
+				return err
+			}
 		}
 		for _, p := range pairs {
 			if _, err := replayPoolSnapshot(poolEvidence, p.Base, p.Quote, uint32(*ledger)); err != nil {
@@ -196,35 +216,83 @@ Keep the source evidence with that file. Supplying it does not certify the book.
 		if *dumpOffers {
 			reportResting(os.Stdout, res.Resting)
 		}
-		if *persist {
-			// The ledger resource supplies the actual close time. A wall-clock time
-			// or a ledger-to-time estimate would corrupt historical downsampling.
+		if *poolsFromEffects {
+			pools, walk, err := client.PoolReservesAt(ctx, p.Base, p.Quote, uint32(*ledger), *poolEffectPages)
+			if err != nil {
+				return fmt.Errorf("replay %s: pools at ledger %d: %w", p, *ledger, err)
+			}
+			reportPoolsAt(os.Stdout, pools, walk)
+			// A pool the walk could not reach is not a pool that was absent, and a
+			// book that quietly drops one reports less AMM liquidity than the ledger
+			// held. Leaving Pools nil is what makes -persist refuse.
+			if walk.Complete() {
+				res.Snapshot.Pools = make([]domain.PoolReserves, 0, len(pools))
+				for _, at := range pools {
+					res.Snapshot.Pools = append(res.Snapshot.Pools, at.Pool)
+				}
+			}
+		}
+		// The ledger resource supplies the actual close time. A wall-clock time or a
+		// ledger-to-time estimate would corrupt historical downsampling, and the
+		// trade metrics anchor their windows on it.
+		if (*persist || *tradeMetrics) && res.Snapshot.LedgerClosedAt.IsZero() {
 			res.Snapshot.LedgerClosedAt, err = client.ReplayLedgerCloseTime(ctx, res.Snapshot.LedgerSeq)
 			if err != nil {
 				return fmt.Errorf("replay: %w", err)
 			}
-			pool, err := replayPoolSnapshot(poolEvidence, p.Base, p.Quote, res.Snapshot.LedgerSeq)
-			if err != nil {
-				return err
+		}
+
+		var sup *domain.SupportingMetrics
+		if *tradeMetrics {
+			var notes []string
+			sup, notes = historicalSupporting(res.Trades, p.Base, res.Snapshot.LedgerClosedAt,
+				domain.DefaultParams().OracleWindow, domain.DefaultGenuineRules())
+			fmt.Fprintf(os.Stdout, "  trade metrics at the target: %s\n",
+				map[bool]string{true: "computed", false: "UNEVALUATED"}[sup != nil])
+			for _, n := range notes {
+				fmt.Fprintf(os.Stdout, "    %s\n", n)
 			}
-			if !pool.LedgerClosedAt.Equal(res.Snapshot.LedgerClosedAt) {
-				return fmt.Errorf("replay: pool evidence close time differs from Horizon at ledger %d", res.Snapshot.LedgerSeq)
+			if sup != nil && sup.LastGenuineTrade != nil {
+				fmt.Fprintf(os.Stdout, "    last genuine trade at %s, ledger %d\n",
+					sup.LastGenuineTrade.At.UTC().Format(time.RFC3339), sup.LastGenuineTrade.LedgerSeq)
 			}
-			res.Snapshot.Pools = pool.Pools
-			id, inserted, err := persistReplay(ctx, db, res, *acceptIncomplete, uint32(*since))
+		}
+
+		if *persist {
+			// The evidence file is checked against Horizon's own close time. The
+			// effects route needs no such check: its reserves are read AT the
+			// target rather than declared for it, so there is no second reading
+			// to disagree with.
+			if poolEvidence != nil {
+				pool, err := replayPoolSnapshot(poolEvidence, p.Base, p.Quote, res.Snapshot.LedgerSeq)
+				if err != nil {
+					return err
+				}
+				if !pool.LedgerClosedAt.Equal(res.Snapshot.LedgerClosedAt) {
+					return fmt.Errorf("replay: pool evidence close time differs from Horizon at ledger %d", res.Snapshot.LedgerSeq)
+				}
+				res.Snapshot.Pools = pool.Pools
+			}
+			id, inserted, err := persistReplay(ctx, db, res, sup, *acceptIncomplete, uint32(*since))
 			if err != nil {
 				return fmt.Errorf("replay %s: %w", p, err)
 			}
-			fmt.Fprintf(os.Stdout, "  metrics row %d: inserted=%t, ledger=%d, methodology=%s, source=offers-implied, pool evidence=%s (%d pools)\n", id, inserted, res.Snapshot.LedgerSeq, domain.MethodologyVersion, *poolSnapshots, len(pool.Pools))
+			poolSource := *poolSnapshots
+			if poolSource == "" {
+				poolSource = "pool effects at the target"
+			}
+			fmt.Fprintf(os.Stdout, "  metrics row %d: inserted=%t, ledger=%d, methodology=%s, source=offers-implied, pool coverage=%s (%d pools)\n",
+				id, inserted, res.Snapshot.LedgerSeq, domain.MethodologyVersion, poolSource, len(res.Snapshot.Pools))
 			if !inserted {
 				fmt.Fprintln(os.Stdout, "  existing row retained unchanged; a different reconstruction requires investigation, not an overwrite")
 			}
 		}
 		if *compute {
-			if *persist {
-				reportRiskUnder(os.Stdout, res.Snapshot, "risk with supplied pool evidence")
-			} else {
-				reportRisk(os.Stdout, res.Snapshot)
+			switch {
+			case res.Snapshot.Pools != nil:
+				reportRiskUnder(os.Stdout, res.Snapshot, sup, "risk with the pool coverage supplied for this ledger")
+			default:
+				reportRisk(os.Stdout, res.Snapshot, sup)
 			}
 		}
 		snapshots = append(snapshots, res.Snapshot)
@@ -255,7 +323,7 @@ type replayMetricsStore interface {
 // completeness checks detect known gaps; they do not certify the reconstruction.
 // Unknown pool coverage is refused: the API cannot label a stored result as
 // order-book-only, and interpreting an unobserved pool as absent changes flags.
-func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.ReplayResult, acceptIncomplete bool, floorLedger uint32) (int64, bool, error) {
+func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.ReplayResult, sup *domain.SupportingMetrics, acceptIncomplete bool, floorLedger uint32) (int64, bool, error) {
 	// THE GATE IS ASYMMETRIC SINCE DEC-022 AND THE HALVES ARE NOT NEGOTIABLE
 	// AGAINST EACH OTHER. A crossed book PROVES an offer is missing, and an
 	// inflated one is the single gap that makes the book look DEEPER than it was.
@@ -307,7 +375,9 @@ func persistReplay(ctx context.Context, db replayMetricsStore, res horizon.Repla
 		FloorLedger:    floorLedger,
 		AccountsWalked: len(res.Accounts),
 	}
-	risk, err := domain.ComputeAssetRiskFrom(res.Snapshot, domain.DefaultParams(), nil, rec)
+	// sup is nil unless -trade-metrics ran, which is the behavior every stored
+	// row had before it existed: six flags unevaluated and no oracle window.
+	risk, err := domain.ComputeAssetRiskFrom(res.Snapshot, domain.DefaultParams(), sup, rec)
 	if err != nil {
 		return 0, false, fmt.Errorf("compute replay risk: %w", err)
 	}
@@ -489,8 +559,8 @@ func flagIf(b bool, s string) string {
 // shared marginal price. A depth figure from a snapshot with no pool is the SDEX
 // half of the answer, and presenting it as the combination is exactly the error
 // DEC-006 section 4 is about.
-func reportRisk(w *os.File, s domain.Snapshot) {
-	reportRiskUnder(w, s, "over the reconstructed book, ORDER BOOK ONLY, no pool")
+func reportRisk(w *os.File, s domain.Snapshot, sup *domain.SupportingMetrics) {
+	reportRiskUnder(w, s, sup, "over the reconstructed book, ORDER BOOK ONLY, no pool")
 }
 
 // reportRiskUnder is reportRisk with the heading supplied by the caller.
@@ -503,8 +573,8 @@ func reportRisk(w *os.File, s domain.Snapshot) {
 // have claimed a pool was excluded from figures that include it. A wrong label on
 // a right number is worse than a wrong number, because nothing downstream
 // disagrees with it.
-func reportRiskUnder(w *os.File, s domain.Snapshot, heading string) {
-	r, err := domain.ComputeAssetRisk(s, domain.DefaultParams())
+func reportRiskUnder(w *os.File, s domain.Snapshot, sup *domain.SupportingMetrics, heading string) {
+	r, err := domain.ComputeAssetRiskWith(s, domain.DefaultParams(), sup)
 	if err != nil {
 		fmt.Fprintf(w, "  compute: %v\n", err)
 		return
@@ -538,6 +608,10 @@ func reportRiskUnder(w *os.File, s domain.Snapshot, heading string) {
 	}
 	fmt.Fprintf(w, "    maxReachablePrice %s  costToMaxReachablePrice %s\n",
 		show(r.MaxReachablePrice), show(r.CostToMaxReachablePrice))
+	if o := r.OracleResistance; o != nil {
+		fmt.Fprintf(w, "    oracle  window %ds  genuine volume %s  cost %s  reachable %t  ratio %s  total %s\n",
+			o.WindowSeconds, o.GenuineVolume, o.ManipulationCost, o.Reachable, show(o.Ratio), show(o.TotalAttackCost))
+	}
 	fmt.Fprintf(w, "    band %s (%s), flags %v\n", r.Band, r.BandConfidence, r.Flags)
 	fmt.Fprintf(w, "    unevaluated %v\n", r.UnevaluatedFlags)
 	for _, warn := range r.Warnings {
@@ -580,4 +654,24 @@ func shortAccount(a string) string {
 		return a[:8]
 	}
 	return a
+}
+
+// reportPoolsAt prints the reconstructed pools and the provenance of each, which
+// is one effect a reader can open on Horizon.
+//
+// A pool that was absent at the target and one the walk could not reach are
+// printed apart, because only the first is a measurement.
+func reportPoolsAt(w io.Writer, pools []horizon.PoolAt, walk horizon.PoolHistoryWalk) {
+	fmt.Fprintf(w, "  pools at the target: %d of %d listed, %d request(s)\n", walk.Resolved, walk.Listed, walk.Pages)
+	for _, at := range pools {
+		fmt.Fprintf(w, "    %s  base %s  quote %s  fee %d bp  from effect %s at %s (ledger %d)\n",
+			at.Pool.PoolID[:8], at.Pool.ReserveBase, at.Pool.ReserveQuote, at.Pool.FeeBP,
+			at.EffectID, at.EffectAt.UTC().Format(time.RFC3339), at.EffectLedger)
+	}
+	for _, id := range walk.Absent {
+		fmt.Fprintf(w, "    %s  ABSENT at this ledger: no effect at or before it, or the last one removed the pool\n", id[:8])
+	}
+	for _, id := range walk.Unreached {
+		fmt.Fprintf(w, "    %s  NOT REACHED within the page bound; pool coverage is unknown and -persist will refuse\n", id[:8])
+	}
 }

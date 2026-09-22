@@ -64,12 +64,12 @@ func TestReplayPersistenceThroughPostgresAndHistoricalAPI(t *testing.T) {
 	if _, err := db.UpsertAsset(ctx, r.Snapshot.Base, r.Snapshot.Quote, "Track B integration fixture, not historical evidence"); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := persistReplay(ctx, db, r, false, 0); err != nil {
+	if _, _, err := persistReplay(ctx, db, r, nil, false, 0); err != nil {
 		t.Fatal(err)
 	}
 	// A duplicate may never replace an already stored value.
 	r.Snapshot.Book.Asks[0].Price = domain.Price{N: 108, D: 1}
-	if _, inserted, err := persistReplay(ctx, db, r, false, 0); err != nil || inserted {
+	if _, inserted, err := persistReplay(ctx, db, r, nil, false, 0); err != nil || inserted {
 		t.Fatalf("duplicate: inserted=%t error=%v", inserted, err)
 	}
 	server, err := api.New(api.Config{Reader: db, Params: domain.DefaultParams(), HistoricalAvailable: true})
@@ -124,7 +124,7 @@ func TestReplayPersistenceThroughPostgresAndHistoricalAPI(t *testing.T) {
 	gapped.Truncated = 3
 	gapped.StoppedAtFloor = 42
 	gapped.Accounts = make([]horizon.AccountWalk, 65)
-	if _, _, err := persistReplay(ctx, db, gapped, true, 61300000); err != nil {
+	if _, _, err := persistReplay(ctx, db, gapped, nil, true, 61300000); err != nil {
 		t.Fatal(err)
 	}
 	w = httptest.NewRecorder()
