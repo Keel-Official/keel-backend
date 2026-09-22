@@ -106,6 +106,27 @@ func (f *fakeReader) MetricsHistory(_ context.Context, assetID int, from, to uin
 	return out, nil
 }
 
+// MetricsHistoryLatest is the windowless read: the newest rows for one source,
+// ascending, whatever ledger they sit at. The fake honours the limit from the
+// NEWEST end, which is the property the real query's DESC ... LIMIT gives and the
+// reason the two are different statements.
+func (f *fakeReader) MetricsHistoryLatest(_ context.Context, assetID int, _ string, source domain.DataSource, limit int) ([]store.Metric, error) {
+	f.gotSource = source
+	if f.err != nil {
+		return nil, f.err
+	}
+	var out []store.Metric
+	for _, m := range f.history[assetID] {
+		if m.Risk.DataSource == source {
+			out = append(out, m)
+		}
+	}
+	if limit > 0 && len(out) > limit {
+		out = out[len(out)-limit:]
+	}
+	return out, nil
+}
+
 func (f *fakeReader) LatestSummaries(_ context.Context, filter store.SummaryFilter) ([]store.Metric, int, error) {
 	if f.err != nil {
 		return nil, 0, f.err
@@ -1524,5 +1545,81 @@ func TestHealthSaysUnknownWhenNoBuildStampWasGiven(t *testing.T) {
 	decodeBody(t, rec, &raw)
 	if _, ok := raw["buildRevision"]; !ok {
 		t.Error("the buildRevision key is absent from the health body; it is never omitted")
+	}
+}
+
+// A RECONSTRUCTION IS OUT OF EVERY WINDOW A DASHBOARD WOULD ASK FOR, and that is
+// the case this pair of tests exists for. The stored offers-implied rows sit in
+// February 2026 and the tip is 3.2 million ledgers later, so the 90 day cap makes
+// them unreachable with from and to. Omitting both asks a different question.
+func TestHistoryWithoutAWindowServesTheStoredRowsWhereverTheyAre(t *testing.T) {
+	base := time.Date(2026, 2, 22, 0, 1, 24, 0, time.UTC)
+	var rows []store.Metric
+	for i, ledger := range []uint32{61340172, 61340262, 61340263} {
+		m := riskFixture()
+		m.Risk.LedgerSeq = ledger
+		m.Risk.LedgerClosedAt = base.Add(time.Duration(i) * time.Minute)
+		m.Risk.DataSource = domain.DataSourceOffersImplied
+		m.Risk.MidPrice = dp(strconv.Itoa(i + 1))
+		rows = append(rows, m)
+	}
+	f := &fakeReader{
+		pairs:   map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		history: map[int][]store.Metric{7: rows},
+	}
+	srv := newTestServer(t, f)
+
+	// The window a dashboard would send for the last seven days, months later.
+	rec := get(t, srv, BasePath+"/asset/"+ustryID+"/history?from=64420000&to=64541000&source=offers-implied&resolution=hour")
+	var windowed historyJSON
+	decodeBody(t, rec, &windowed)
+	if rec.Code != http.StatusOK || len(windowed.Points) != 0 {
+		t.Fatalf("a live window reached the February rows: %d point(s), status %d", len(windowed.Points), rec.Code)
+	}
+
+	// The same source, no window.
+	rec = get(t, srv, BasePath+"/asset/"+ustryID+"/history?source=offers-implied&resolution=hour")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body %s", rec.Code, rec.Body.String())
+	}
+	var body historyJSON
+	decodeBody(t, rec, &body)
+	// Every stored row, not one per hour: all three close inside the same hour and
+	// they differ from LOW to CRITICAL, so a bucket would hide two of them.
+	if len(body.Points) != 3 {
+		t.Fatalf("points = %d, want the three stored rows", len(body.Points))
+	}
+	if len(body.Gaps) != 0 {
+		t.Errorf("gaps = %d; without a window there are no buckets to be empty", len(body.Gaps))
+	}
+	if body.DataSource != string(domain.DataSourceOffersImplied) {
+		t.Errorf("dataSource = %q", body.DataSource)
+	}
+	// from and to report what came back, because nothing was asked for. A zero
+	// there would read as "from the first ledger of the network".
+	if body.From != 61340172 || body.To != 61340263 {
+		t.Errorf("from/to = %d/%d, want the range of the rows returned", body.From, body.To)
+	}
+}
+
+func TestHistoryRefusesOneBoundWithoutTheOther(t *testing.T) {
+	f := &fakeReader{pairs: map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}}}
+	srv := newTestServer(t, f)
+	for _, q := range []string{"?from=61340000", "?to=61340263"} {
+		rec := get(t, srv, BasePath+"/asset/"+ustryID+"/history"+q)
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("%s: status = %d, want 400; one bound is neither question", q, rec.Code)
+		}
+	}
+}
+
+func TestHistoryLimitIsBounded(t *testing.T) {
+	f := &fakeReader{pairs: map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}}}
+	srv := newTestServer(t, f)
+	for _, q := range []string{"?limit=0", "?limit=-1", "?limit=5001", "?limit=abc"} {
+		rec := get(t, srv, BasePath+"/asset/"+ustryID+"/history"+q)
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("%s: status = %d, want 400", q, rec.Code)
+		}
 	}
 }
