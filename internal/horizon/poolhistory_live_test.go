@@ -15,7 +15,7 @@ import (
 // bound and nothing about whether Horizon's effects carry the state this method
 // reads out of them. DEC-013 established the February reserves by hand, by the
 // same walk, and docs/evidences/...-pool-evidence-2026-02-22.json is the audited
-// artefact. Reproducing those exact figures from code is the claim.
+// artifact. Reproducing those exact figures from code is the claim.
 //
 //	KEEL_HORIZON_LIVE=1 go test ./internal/horizon -run LivePoolReservesAt -v
 func TestLivePoolReservesAtReproducesTheAuditedFebruaryReserves(t *testing.T) {
@@ -32,7 +32,7 @@ func TestLivePoolReservesAtReproducesTheAuditedFebruaryReserves(t *testing.T) {
 		quote  = "16.3389179" // DEC-013 section 1, USDC
 	)
 
-	// All three ledgers DEC-023 authorises. The evidence sidecar records why one
+	// All three ledgers DEC-023 authorizes. The evidence sidecar records why one
 	// set of reserves covers all three: the pool's last effect before them is
 	// 2026-02-10T16:59:35Z and the next is 2026-02-22T22:08:33Z.
 	for _, ledger := range []uint32{61340172, 61340262, 61340263} {
