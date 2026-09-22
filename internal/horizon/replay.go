@@ -280,6 +280,17 @@ type ReplayResult struct {
 	// has. It is sorted.
 	MissingOfferIDs []int64
 
+	// Trades is every trade the walk read, ascending, the whole window and not
+	// only the part at or before the target.
+	//
+	// WHY THE CALLER GETS THEM. The fold already needs them, to consume offers,
+	// and a caller that wants the trade-derived metrics AT the target would
+	// otherwise walk the same window a second time for the same records. The
+	// window is the caller's own TradesFromLedger to the target plus the
+	// lookahead, so what it covers is stated by the query rather than by this
+	// field, and domain.ClassifyTrades is what decides anything about them.
+	Trades []domain.Trade
+
 	// Resting is every offer on this pair still resting at the target, one row
 	// per offer rather than one per price level, sorted by offer ID.
 	//
@@ -406,6 +417,7 @@ func (c *Client) ReconstructBook(ctx context.Context, base, quote domain.Asset, 
 	out.TradeWindowFrom = q.TradesFromLedger
 	out.MissingOfferIDs = missingOffers(in.ops, in.trades)
 	out.Resting = restingOffers(state, base, quote)
+	out.Trades = in.trades
 	out.CrossedBid, out.CrossedAsk, out.Crossed = out.Snapshot.Book.Crossed()
 	return out, nil
 }
