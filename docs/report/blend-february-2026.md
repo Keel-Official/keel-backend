@@ -22,6 +22,8 @@ the pair (code, issuer), never the ticker.
 
 ## 1. What this report claims, and what it does not
 
+**The answer, in one sentence:** measured once a day, USTRY/USDC read `LOW` on every sample of February 2026; measured at the exploit's own ledger, the same methodology reads `CRITICAL`, because the book's only maker withdrew its ladder for 79 seconds at the same minute every day and the exploit landed inside that window. Section 6 holds the evidence and 6.5 says what it means.
+
 **It claims** that the state of the USTRY/USDC order book in February 2026 can be
 rebuilt from public Stellar data, that Keel's published methodology applied to that
 state produces a risk band on each day of the month, and that the resulting series
@@ -431,33 +433,17 @@ from the operation stream, without passing through any threshold this project ch
 explain the empty book: four trades totalling 0.3090959 USTRY occurred between the daily
 sample and the control ledger. The maker cancelled and re-posted, as it did every day.
 
-### 6.5 The sentence that is not Claude's
+### 6.5 What the facts mean
 
-> **AL WRITES WHAT FOLLOWS.** The facts above are complete and none of them is a claim
-> about meaning. Three candidate readings are available and they are materially different
-> for the client, so the choice is recorded rather than assumed:
->
-> 1. **"Keel would have warned N days early" is NOT available.** The daily series never
->    leaves `LOW`. Any sentence of this shape would have to be built on a cadence this
->    report did not run.
->
-> 2. **"The asset was never safe" is NOT available either**, and that is the reading the
->    earlier draft of this section expected to find. The book carried over 200,000 USDC of
->    executable buy-side depth on every daily row of the month.
->
-> 3. **What the evidence supports is a statement about SAMPLING**, and how strongly is the
->    judgement at issue: the asset was measurably safe at every daily sample and measurably
->    critical inside a 79-second window that opened at the same minute every day. Whether
->    that reads as a finding about this asset, about daily monitoring as a product, or
->    about the attacker's timing, is the sentence to write here.
->
-> **The 1-in-324 figure in 6.4 is arithmetic and not an accusation.** A one-in-324
-> coincidence happens to somebody. No document in this repository claims the attacker knew
-> the schedule, and this report must not become the first one to, unless Al decides the
-> evidence carries it and says so in Al's own words.
->
-> Section 7, on hindsight bias, applies to this section more than to any other: this
-> analysis knew the date of the attack before it looked at the cadence.
+**Keel would not have warned on a daily cadence, and would have read CRITICAL at the ledger the exploit executed in.** Both halves come from the same engine and the same thresholds, written down before the series was computed.
+
+On all 28 daily samples the USTRY/USDC book carried between 212,760 and 229,364 USDC of executable buy-side depth and read `LOW`. At ledger 61340262, six seconds before the manipulation trade, the same methodology reads `CRITICAL` with four flags at once, and it reads `LOW` again on the next daily sample.
+
+The finding is therefore about **sampling, not about the asset's average condition**. The market was deep almost all of the time and empty for 79 seconds a day, at the same minute every day, when its only maker withdrew and re-posted. A monitor that samples once a day brackets that window without touching it. A monitor that reads at the ledger a lending protocol prices collateral would have seen it.
+
+This report does not claim that the attacker knew the maker's schedule. The 1-in-324 figure in 6.4 is the probability that a moment chosen without reference to the schedule falls inside a window. It is stated as arithmetic, and section 7 on hindsight applies to this paragraph more than to any other.
+
+**What it implies for the product**, stated as a design consequence and not as a claim about the incident: depth that disappears on a schedule is invisible to periodic sampling, so a liquidity risk parameter for collateral has to be read at, or close to, the ledger the collateral is valued at.
 
 ## 7. Hindsight bias, named
 
