@@ -107,7 +107,7 @@ func (f *fakeReader) MetricsHistory(_ context.Context, assetID int, from, to uin
 }
 
 // MetricsHistoryLatest is the windowless read: the newest rows for one source,
-// ascending, whatever ledger they sit at. The fake honours the limit from the
+// ascending, whatever ledger they sit at. The fake honors the limit from the
 // NEWEST end, which is the property the real query's DESC ... LIMIT gives and the
 // reason the two are different statements.
 func (f *fakeReader) MetricsHistoryLatest(_ context.Context, assetID int, _ string, source domain.DataSource, limit int) ([]store.Metric, error) {
