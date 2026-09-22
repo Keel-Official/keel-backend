@@ -642,6 +642,15 @@ re-running it.
 service gives: a cron is a manual step on every new box and forgetting it fails
 silently.
 
+**The daily pass is pinned to 00:05 UTC, not to when the container started**, since
+22 September 2026. A reading is anchored at 00:00Z of the day its pass ran and
+`scan` refuses one older than 36 hours from that anchor. Started at 17:00Z, a
+start-relative cadence left every pair's trade figures null from 12:00Z to 17:00Z
+every day, which `verify-sow.sh` reported as "trade-derived metrics absent in
+production". The first pass still runs at start. `-align-utc` sets the offset and a
+negative value restores the old cadence. `cmd/keel/trades.go`, `nextTradesPass`, is
+the account.
+
 **What one pass costs, and it is priced rather than estimated.** DEC-019 was
 accepted on 18 September 2026 as option B at a threshold of 20,000 trades in 30
 days. 39 of the 60 counted pairs are under it and get the whole 30 day window

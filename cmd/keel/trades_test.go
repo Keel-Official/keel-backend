@@ -142,3 +142,58 @@ func TestTradeTargetsSelectsEveryPairSharingABaseAsset(t *testing.T) {
 		t.Error("an unknown base asset must be an error rather than an empty pass")
 	}
 }
+
+func TestNextTradesPassPinsTheDailyCadenceAfterMidnight(t *testing.T) {
+	at := func(s string) time.Time {
+		v, err := time.Parse(time.RFC3339, s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+	for _, tc := range []struct {
+		name     string
+		now      string
+		interval time.Duration
+		align    time.Duration
+		want     string
+	}{
+		// The deploy of 21 September 2026 started the service at 17:00Z. Pinned,
+		// the next pass is 00:05Z, not 17:00Z the next day.
+		{"after a late start", "2026-09-21T17:25:00Z", 24 * time.Hour, 5 * time.Minute, "2026-09-22T00:05:00Z"},
+		// A pass that finished just after the slot waits for tomorrow's.
+		{"just past the slot", "2026-09-22T00:31:00Z", 24 * time.Hour, 5 * time.Minute, "2026-09-23T00:05:00Z"},
+		// Before today's slot, today's slot.
+		{"before the slot", "2026-09-22T00:01:00Z", 24 * time.Hour, 5 * time.Minute, "2026-09-22T00:05:00Z"},
+		// Any other cadence is untouched.
+		{"hourly stays relative", "2026-09-22T10:10:00Z", time.Hour, 5 * time.Minute, "2026-09-22T11:10:00Z"},
+		// And a negative offset opts out.
+		{"opted out", "2026-09-21T17:25:00Z", 24 * time.Hour, -1, "2026-09-22T17:25:00Z"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := nextTradesPass(at(tc.now), tc.interval, tc.align)
+			if !got.Equal(at(tc.want)) {
+				t.Errorf("next = %s, want %s", got.Format(time.RFC3339), tc.want)
+			}
+		})
+	}
+}
+
+// The property the alignment exists for: whenever the process starts, no reading
+// outlives scan's 36 hour bound before its replacement lands, allowing a pass an
+// hour to finish.
+func TestAPinnedPassNeverLetsAReadingAgePastTheScanBound(t *testing.T) {
+	const bound = 36 * time.Hour
+	day := time.Date(2026, 9, 21, 0, 0, 0, 0, time.UTC)
+	for h := 0; h < 24; h++ {
+		start := day.Add(time.Duration(h) * time.Hour)
+		anchor := day // the first pass, at start, is anchored at that day's midnight
+		finished := start.Add(time.Hour)
+		next := nextTradesPass(finished, 24*time.Hour, 5*time.Minute)
+		replaced := next.Add(time.Hour)
+		if age := replaced.Sub(anchor); age > bound {
+			t.Errorf("started %s: the reading anchored %s is %s old when replaced, past %s",
+				start.Format("15:04"), anchor.Format("Jan 2"), age, bound)
+		}
+	}
+}
