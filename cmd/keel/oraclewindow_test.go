@@ -65,7 +65,7 @@ func TestOracleWindowMeasuresAtTheScannedLedgerAndCachesTheReference(t *testing.
 		window: []domain.Trade{
 			owTrade(anchor.Add(-9*time.Minute), 1057, "0.30"),  // genuine, inside the window
 			owTrade(anchor, 106737, "5.35"),                    // the outlier, against 1.057
-			owTrade(anchor.Add(-20*time.Minute), 1057, "0.50"), // outside W, inside the neighbourhood
+			owTrade(anchor.Add(-20*time.Minute), 1057, "0.50"), // outside W, inside the neighborhood
 		},
 		windowWalk: horizon.RecentTradesWalk{Complete: true, Pages: 1},
 	}

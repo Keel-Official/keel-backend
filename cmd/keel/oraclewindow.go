@@ -23,7 +23,7 @@ import (
 // refuse that pairing; this file is what gives it a volume it can accept.
 //
 // WHAT A ROUND COSTS. One /trades read per pair back to W plus the condition 4
-// neighbourhood, which is one request for a quiet pair. Once per pair per UTC day,
+// neighborhood, which is one request for a quiet pair. Once per pair per UTC day,
 // a walk of the previous complete day for its order-book median, which pages
 // through today's trades first because /trades only reads newest first. Both are
 // bounded in pages, and a read that hits its bound yields an unevaluated window
