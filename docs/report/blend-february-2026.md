@@ -1,12 +1,13 @@
 # Could Keel have warned about the Blend incident of February 2026?
 
-**Status: DRAFT. Every section now holds its measurement, and one sentence is still
-missing.** Sections 5 and 6 are the ones that answer the title and both were filled on
-14 September 2026 from the run named in section 9. What is still open is section 6.5, the
-statement of what those numbers MEAN, which is not written by the hand that produced them.
-Section 10 lists that and the four other open items, with an owner against each.
+**Status: FINAL, 22 September 2026.** Every section holds its measurement, and section 6.5
+says what the measurements mean. Two things are deliberately left open and neither changes
+the answer: the hand-computed fixture omits two dust asks that section 5.4 now identifies,
+and pool reserves at a past ledger are stated as a gap rather than rebuilt. Section 10 says
+how each of the seven items closed and who owns what remains.
 
-**Version:** draft, 5 September 2026, sections 5 and 6 filled 14 September 2026
+**Version:** 1.0, finalised 22 September 2026. Drafted 5 September, sections 5 and 6
+filled 14 September, section 6.5 and the answer in section 1 written 22 September
 **Methodology version:** `1.0.8-draft`, the version the engine stamps on every
 result quoted here. The methodology documents are at `1.1.0-draft`, except
 `01-data-sources.md` and `11-limitations.md` which moved to `1.2.0-draft` on
@@ -311,7 +312,7 @@ The golden fixture gives the book at ledger 61340263 worked by hand before any o
 existed. The repaired run reproduces its `best_bid`, `best_ask`, `P0`, `spreadPct`, the
 zero depth ladder, all four flags and the `CRITICAL` band exactly.
 
-**It does not reproduce four quantities, and one offer produces all four:**
+**It does not reproduce four quantities, and one price level produces all four:**
 
 | Quantity at ledger 61340263 | Fixture, by hand | This run |
 |---|---|---|
@@ -320,19 +321,34 @@ zero depth ladder, all four flags and the `CRITICAL` band exactly.
 | `Reachable` at δ = 1, 10, 100 | false | true |
 | Asks on the book | 1 | 2 |
 
-The second ask is a dust offer at the sentinel price 2147483647. It is visible to this run
+The second ask level sits at the sentinel price 2147483647. It is visible to this run
 because the operation floor reaches back to ledger 60987032, and invisible to the shallower
 control run of 5 September 2026. With such an ask resting, every manipulation target is
 satisfied by something priced at or above it, so `Reachable` is true at every rung and the
 maximum reachable price becomes the sentinel.
 
-**This report does not resolve which side is right and adjusts neither.** Either the
-sentinel ask is a second offer that left the book without emitting an event, which is the
-class DEC-021 exists for, or the hand computation did not include an offer created long
-before the two it was built from. The consequence for a reader is narrow and specific: the
-`Cost(δ=0.5)` and `Reachable` columns are sound on the daily rows and must not be quoted
-for the two control rows until this is settled. Section 3 of this report reads the incident
-ledger from the fixture, not from this run, and is unaffected.
+**Resolved on 22 September 2026: the run is right about the book, and the fixture omits two
+offers.** `keel replay -dump-offers` at ledger 61340263, with this run's own parameters,
+names the level as two dust asks of 0.0000001 USTRY each, offers `1823051768` and
+`1823841098`, both posted by `GBPFB6XNLDMXQKOFJAH6IRTOMTEUU4ZWFHNRMYWZNXCZEDNE6UU66WSG` in
+early February. No operation touched either between its last write and ledger 61340263, and
+the seller updated both six to seven hours after the exploit, so both were resting when it
+executed. Neither is a silent removal, and nothing is added to `configs/known-removals.json`.
+The evidence is `docs/evidences/2026-09-22-sentinel-asks-at-61340263/`.
+
+**What that does and does not change.** It changes exactly the four quantities in the table
+above, and for those the run's values describe the book that existed. It does not change
+`best_bid`, `best_ask`, `P0`, `spreadPct`, the depth ladder, the four flags or the band,
+because 0.0000002 USTRY at `2^31 − 1` lies far outside every rung. Section 3 of this report
+reads the incident ledger from the fixture and is unaffected. The fixture itself is
+correctable only by hand, because `testdata/fixtures/` is not written by the code it
+judges, and that correction is Al's.
+
+**One question it raises and does not answer.** Under `05-manipulation-cost.md` as written,
+two ten-millionths of a USTRY at a price nobody could pay make every target `Reachable` and
+set `maxReachablePrice` to that price. The rule is applied correctly. Whether resting dust
+should count toward reachability, as trades below 0.01 USDC already do not count as genuine
+in `07` section 1, is a definition choice and it is Al's.
 
 ### 5.5 What the repair changed, measured
 
@@ -578,17 +594,17 @@ git log -1 --format=%cI -- docs/report/blend-february-2026.md
 The threshold values are older than this report. A reader who finds otherwise has
 found a defect and should say so.
 
-## 10. What is outstanding on this draft
+## 10. The items this draft carried, and how each closed
 
 | Item | Owner | State |
 |---|---|---|
 | Section 5, the day-by-day table | Claude | **DONE, 14 September 2026.** Generated from the repaired run named in section 9 |
 | Section 6, the facts | Claude | **DONE, 14 September 2026.** Sections 6.1 to 6.4 |
-| Section 6.5, what the facts MEAN | **Al** | open. The zone map gives every claim about meaning to Al, and 6.5 names the three candidate readings and why two of them are unavailable |
-| The headline sentence of section 1 | **Al** | open, same reason, and it follows from 6.5 |
-| The sentinel ask at ledger 61340263 | **Al**, then Claude | open. Section 5.4: four fixture quantities disagree with the repaired run because of one dust offer, and whether that offer is a second silent removal or a gap in the hand computation is a decision, not a measurement |
-| Whether an AMM reserve series can be added | **Al**, then Claude | open. Pool reserves at a past ledger are not reconstructed today, and whether that gap is closed or stated is a decision |
-| Publication | **Al** | open. D3's fifth criterion is "The backtest report published openly" |
+| Section 6.5, what the facts MEAN | **Al** | **DONE, 22 September 2026.** The reading is about sampling: `LOW` on every daily sample, `CRITICAL` at the exploit's ledger |
+| The headline sentence of section 1 | **Al** | **DONE, 22 September 2026.** Follows from 6.5 |
+| The sentinel ask at ledger 61340263 | **Al**, then Claude | **RESOLVED, 22 September 2026.** Two resting dust asks the fixture omits, identified by offer ID in section 5.4 and in `docs/evidences/2026-09-22-sentinel-asks-at-61340263/`. **Still Al's:** the hand correction of `testdata/fixtures/ustry_pre_exploit.md`, and whether resting dust should count toward reachability |
+| Whether an AMM reserve series can be added | **Al**, then Claude | **STATED, NOT BUILT.** Pool reserves at a past ledger are not reconstructed. `keel replay -persist` takes them from a hand-supplied evidence file and cross-checks its close time, and every reconstructed row the API serves carries a warning that says so. Building the series is reopened only if a reader needs pool depth at a past ledger rather than the order book |
+| Publication | **Al** | **DONE.** Public in this repository, linked from `keels.app/backtest`, and the version of record is the commit that carries this table |
 
 ## 11. Version history
 
@@ -598,3 +614,4 @@ found a defect and should say so.
 | 8 September 2026 | The February series ran and sections 5 and 6 stay empty, with the reason recorded in place of the blank. `docs/evidences/2026-09-08-february-book-series.md` is the reading: the fixture's ask amounts reproduce exactly at both control ledgers, and the book is crossed from 23 February onward |
 | 12 September 2026 | The phantom ask resolved to offer `1822775941` and the crossing bid to offer `1824767559`, so the defect is named rather than suspected. Three corrections to the 8 September reading: `best_ask` is wrong from 9 February and not from the 23rd, the deeper-walk fix priced there cannot work, and the fixture-versus-code question is settled in the fixture's favour by the single fill in ledger 61340263. Removal dated to six minutes on 8 February. A crossed-book detector landed in `internal/domain`. Sections 5 and 6 stay empty, and section 10 is unchanged on who owns them |
 | 14 September 2026 | **Sections 5 and 6 filled.** Three things landed first. The discontinuity of 22 February was resolved from the operation stream: the book's market maker deleted its whole ladder at ledger 61340261 and re-posted 79 seconds later, so the fold lost nothing. That withdrawal was then shown to be routine, 116 windows in February and one at 00:10 UTC on all 28 days. And the phantom ask of 9 to 28 February was removed under DEC-021, a repair that is off by default, declared in every artefact, and validated against the hand-computed fixture on four criteria written down before the run finished. Section 5 is generated from that run. Section 6 carries the facts and marks 6.5, the meaning, as Al's. Section 5.4 records four fixture quantities the run does not reproduce and attributes them to one dust offer rather than to the repair |
+| 22 September 2026 | **Finalised, version 1.0.** Section 6.5 and the one-sentence answer in section 1 written by Al. Section 5.4 resolved: the level at `2147483647` is two resting dust asks, offers `1823051768` and `1823841098`, found by the new `keel replay -dump-offers` and checked against Horizon, so the fixture omits them rather than the run inventing them. Section 10 records how each item closed. Nothing in sections 2 to 9 was re-measured |
