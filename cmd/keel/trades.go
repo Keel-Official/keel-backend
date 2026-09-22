@@ -126,6 +126,8 @@ func runTrades(args []string) error {
 	only := fs.String("pair", "", "walk one pair only, as BASECODE:ISSUER. Empty means every pair in the set")
 	interval := fs.Duration("interval", 0,
 		"repeat the pass on this cadence instead of exiting. 0 runs once. 24h is what a deployment wants")
+	alignUTC := fs.Duration("align-utc", 5*time.Minute,
+		"with -interval 24h, run each later pass at this offset after 00:00 UTC instead of 24h after the process started. Negative keeps the start-relative cadence")
 
 	fs.Usage = func() {
 		fmt.Fprint(os.Stderr, `keel trades - cache the trade half of the supporting metrics
@@ -204,19 +206,56 @@ construction, which is the direction a staleness flag may err in.
 	}
 
 	logger.Printf("interval %s, Ctrl-C to stop", *interval)
-	ticker := time.NewTicker(*interval)
-	defer ticker.Stop()
 	for {
 		if err := tradesPass(ctx, s, client, targets, cfg, logger); err != nil {
 			return err
 		}
+		next := nextTradesPass(time.Now().UTC(), *interval, *alignUTC)
+		logger.Printf("next pass at %s", next.Format(time.RFC3339))
+		timer := time.NewTimer(time.Until(next))
 		select {
 		case <-ctx.Done():
+			timer.Stop()
 			logger.Print("stopped")
 			return nil
-		case <-ticker.C:
+		case <-timer.C:
 		}
 	}
+}
+
+// nextTradesPass is when the pass after one that finished at now should start.
+//
+// WHY A DAILY PASS IS PINNED TO THE CLOCK AND NOT TO THE PROCESS. A reading is
+// anchored at 00:00Z of the day its pass ran, and `keel scan` refuses one older
+// than -max-trade-age, 36 hours, measured from that anchor. A pass that runs 24
+// hours after the process STARTED lands wherever the last deploy happened to put
+// it: started at 17:00Z, the reading anchored at midnight ages past 36 hours at
+// 12:00Z the next day and the replacement arrives at 17:00Z, so every pair read
+// its trade figures as null for five hours a day. That is what `verify-sow.sh`
+// reported on 22 September 2026 as "trade-derived metrics absent in production".
+// Pinned to a few minutes after midnight, a reading is replaced about 24 hours
+// after its anchor, well inside the bound, whenever the process was started.
+//
+// THE THREE SENTENCES. The decision: align only the 24-hour cadence, at a small
+// offset after 00:00Z so the day being walked has closed on every Horizon node.
+// The alternative rejected: raising -max-trade-age to 48 hours, which removes the
+// gap by admitting a reading whose window ended nearly three days ago, the exact
+// staleness scan.go's comment on that flag refuses. Why: the bound is right and
+// the schedule was wrong, so the schedule is what moves.
+//
+// Any other interval, or a negative offset, keeps the start-relative cadence it
+// always had. The first pass still runs at start, so a fresh deploy fills the
+// cache without waiting for midnight.
+func nextTradesPass(now time.Time, interval, alignUTC time.Duration) time.Time {
+	now = now.UTC()
+	if interval != 24*time.Hour || alignUTC < 0 {
+		return now.Add(interval)
+	}
+	next := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).Add(alignUTC)
+	for !next.After(now) {
+		next = next.Add(24 * time.Hour)
+	}
+	return next
 }
 
 // tradePassConfig is what DEC-019 left as numbers rather than mechanism.
