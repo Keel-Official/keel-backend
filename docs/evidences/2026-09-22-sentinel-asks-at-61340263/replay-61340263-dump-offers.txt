@@ -1,0 +1,83 @@
+  1 known removal(s) from configs/known-removals.json
+USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC/USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN at ledger 61340263
+  dataSource offers-implied, 14 bid level(s), 2 ask level(s)
+    ask 0  price 106.7372828 (266843207/2500000)  amount 1.1684309
+    ask 1  price 2147483647 (2147483647/1)  amount 0.0000002
+    bid 0  price 1.057 (1057/1000)  amount 0.0001
+    bid 1  price 1.0568273012139405 (1275506613/1206920574)  amount 0.0000000946228394034990393264
+    bid 2  price 1.0563601980287515 (144213840/136519570)  amount 0.0000000946646798948006654562
+    bid 3  price 1.0559526613063394 (2068430741/1958829043)  amount 0.000000189402429984480684142
+    bid 4  price 1.0558867123235583 (1482111051/1403664838)  amount 0.0000000947071298775438386499
+    bid 5  price 1.0558839465761269 (745488883/706032974)  amount 0.0000025570992046570867509502
+    bid 6  price 1.0558307858805064 (902062990/854363220)  amount 0.0000000947121464322574635281
+    bid 7  price 1.0556740075382455 (405860524/384456301)  amount 0.0000000947262121506549870812
+    bid 8  price 1.0555809171491575 (782759057/741543395)  amount 0.0000000947345659393628708917
+    bid 9  price 1.0554879657154767 (747359290/708069930)  amount 0.0000000947429087286785449606
+    bid 10  price 1.0554638274495003 (2041969045/1934665113)  amount 0.0000001894901509635764336477
+    bid 11  price 1.055395032043611 (641830187/608142134)  amount 0.000000094751251392917111267
+    bid 12  price 0.0189 (189/10000)  amount 264.5502645502645502645502645503
+    bid 13  price 0.0000000004656613 (1/2147483647)  amount 429.4967294
+  read 5332 trade(s), walked 202 account(s) (195 from trades, 7 only from the live offer book)
+  3859 offer operation(s) applied, 1639 Horizon request(s)
+  completeness: 31 account walk(s) truncated, 153 stopped at the ledger floor, 6 failed, 0 result(s) unsizable, 24 offer(s) named by trades but never seen
+    walk failed for GAAXZMQL after 9 page(s): horizon: operations for GAAXZMQL64IF7AHAEZA2MFQ4HG3LYOUGZQNCUZUIWNJPLSQLRAHN2AHP page 10: after 5 attempts: horizon: https://horizon.stellar.org/accounts/GAAXZMQL64IF7AHAEZA2MFQ4HG3LYOUGZQNCUZUIWNJPLSQLRAHN2AHP/operations?cursor=262815736107495425&join=transactions&limit=200&order=desc returned 503: {
+  "type": "https://stellar.org/horizon-errors/service_unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "The request cannot be serviced at this time."
+}
+    walk failed for GAINDVHG after 0 page(s): horizon: operations for GAINDVHGHGSIH6AO4C2DBLOWSPGL6CVPBBNKVXIOFZANAWFZPTVOHAUS page 1: after 5 attempts: horizon: https://horizon.stellar.org/accounts/GAINDVHGHGSIH6AO4C2DBLOWSPGL6CVPBBNKVXIOFZANAWFZPTVOHAUS/operations?cursor=263454427808006144&join=transactions&limit=200&order=desc returned 503: {
+  "type": "https://stellar.org/horizon-errors/service_unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "The request cannot be serviced at this time."
+}
+    walk failed for GBEJMHIM after 24 page(s): horizon: operations for GBEJMHIMASJBIGGV5UKACNIZTQN3ZCILKZBH6W5PFI5TPCFPT5ASN4CW page 25: after 5 attempts: horizon: https://horizon.stellar.org/accounts/GBEJMHIMASJBIGGV5UKACNIZTQN3ZCILKZBH6W5PFI5TPCFPT5ASN4CW/operations?cursor=261953207889272833&join=transactions&limit=200&order=desc returned 503: {
+  "type": "https://stellar.org/horizon-errors/service_unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "The request cannot be serviced at this time."
+}
+    walk failed for GBXASTWB after 16 page(s): horizon: operations for GBXASTWB24TIOS7U235VE2DTA2PA3NO2ZZYCMKMUCXB3H5RGSNSMEDNY page 17: after 5 attempts: horizon: https://horizon.stellar.org/accounts/GBXASTWB24TIOS7U235VE2DTA2PA3NO2ZZYCMKMUCXB3H5RGSNSMEDNY/operations?cursor=262465679093313537&join=transactions&limit=200&order=desc returned 503: {
+  "type": "https://stellar.org/horizon-errors/service_unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "The request cannot be serviced at this time."
+}
+    walk failed for GBXQUJBE after 38 page(s): horizon: operations for GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP page 39: after 5 attempts: horizon: https://horizon.stellar.org/accounts/GBXQUJBEDX5TYLJ6D5BGJZFLYF5GZVGXLWA2ZORS5OIA7H6B5O3MHMTP/operations?cursor=262290680649482241&join=transactions&limit=200&order=desc returned 503: {
+  "type": "https://stellar.org/horizon-errors/service_unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "The request cannot be serviced at this time."
+}
+    walk failed for GCEETSI6 after 41 page(s): horizon: operations for GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP page 42: after 5 attempts: horizon: https://horizon.stellar.org/accounts/GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP/operations?cursor=263217100800303105&join=transactions&limit=200&order=desc returned 503: {
+  "type": "https://stellar.org/horizon-errors/service_unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "The request cannot be serviced at this time."
+}
+  windows: offers applied back to ledger 60988098, trades read from ledger 60987032
+    missing offer ids (first 10): [1824791851 1824791852 1824791853 1824791854 1824791855 1824791856 1824792693 1824792809 1824799524 1824825953]
+  KNOWN REMOVALS APPLIED: [1822775941]. This book was repaired by hand-proven readings, not by the fold alone
+  THIS BOOK IS INCOMPLETE. A missing offer reads as thin depth, so do not quote a depth figure from it
+  resting offers at the target: 19
+  side offer_id     seller     price_r n/d              amount           last_ledger last_operation
+  bid  1820926454   GBPFB6XN   708069930/747359290      0.0000001        61016931   262065723148787713
+  bid  1821199478   GBPFB6XN   608142134/641830187      0.0000001        61001216   261998227737157633
+  bid  1821252368   GCXJ4V7U   10000/189                5.0000000        61003900   262009755428798465
+  bid  1821303865   GABFRFPY   1934665113/2041969045    0.0000002        61008520   262029598178058241
+  bid  1821578891   GBPFB6XN   741543395/782759057      0.0000001        61036095   262148031901638657
+  bid  1821723243   GBPFB6XN   384456301/405860524      0.0000001        61045471   262188301515157505
+  bid  1821969314   GBPFB6XN   854363220/902062990      0.0000001        61068030   262285191681847297
+  bid  1822086676   GBPFB6XN   1403664838/1482111051    0.0000001        61079594   262334858683555841
+  bid  1822117193   GBPFB6XN   1958829043/2068430741    0.0000001        61087443   262368569881710593
+  bid  1822256066   GBPFB6XN   1958829043/2068430741    0.0000001        61095968   262405184478547969
+  bid  1822644712   GBPFB6XN   706032974/745488883      0.0000027        61120987   262512640265375745
+  bid  1822964566   GBPFB6XN   136519570/144213840      0.0000001        61160388   262681866271449089
+  bid  1823025211   GBPFB6XN   2147483647/1             0.0000001        61156591   262665558280519681
+  ask  1823051768   GBPFB6XN   2147483647/1             0.0000001        61158581   262674105265487873
+  ask  1823841098   GBPFB6XN   2147483647/1             0.0000001        61238659   263018037656375297
+  bid  1823900067   GBPFB6XN   1206920574/1275506613    0.0000001        61244024   263041080156213249
+  bid  1823936136   GBPFB6XN   2147483647/1             0.0000001        61246996   263053844799635457
+  ask  1824788980   GCNF5GNR   266843207/2500000        1.1684309        61339940   263453036239003649
+  bid  1824789082   GCNF5GNR   1000/1057                0.0001057        61339947   263453066303434753
