@@ -105,7 +105,7 @@ func TestReportRepresentativeCalculations(t *testing.T) {
 				r.MissingOfferIDs = []int64{1822775941}
 			}
 			db := &replayStoreProbe{}
-			if _, _, err := persistReplay(context.Background(), db, r, false, 0); err == nil || db.writes != 0 {
+			if _, _, err := persistReplay(context.Background(), db, r, nil, false, 0); err == nil || db.writes != 0 {
 				t.Fatalf("unsupported input accepted: unknownPool=%t error=%v writes=%d", unknownPool, err, db.writes)
 			}
 		}

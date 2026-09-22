@@ -221,7 +221,25 @@ info:
   # midnight, and pairing it with a manipulation cost measured at another instant
   # would put two moments up to a day apart into one reading, so the engine refuses
   # the pairing and says so in `warnings`. No field, type or enum moved.
-  version: 1.7.1
+  #
+  # 1.8.0, 23 September 2026. TWO OPTIONAL PARAMETERS WHERE ONE WAS REQUIRED,
+  # WHICH IS A MINOR AND NOT A PATCH. `from` and `to` on GET
+  # /asset/{id}/history may now both be omitted, and a new `limit` bounds the
+  # rows one response carries. Nothing that sends a window behaves differently,
+  # and no field, type or enum moved, so every consumer validating against 1.7.1
+  # keeps working; what is new is a request that was previously refused.
+  #
+  # WHY IT EXISTS. A stored reconstruction is unreachable through a window. The
+  # three offers-implied rows the replay stored sit in February 2026, the tip is
+  # about 3.2 million ledgers later, and one request is capped at 90 days, so the
+  # dashboard's source selector answered empty for that source no matter which
+  # window a reader picked. Without a window the endpoint answers the question
+  # that reaches them, "which readings do you hold", and reports the range that
+  # came back in `from` and `to`.
+  #
+  # ONE BOUND ALONE IS STILL 400. It is neither question, and guessing the other
+  # end would be the API deciding what a consumer meant.
+  version: 1.8.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -452,7 +470,20 @@ paths:
       summary: A time series of metrics over a ledger range
       description: |
         Used by the dashboard for trend curves and by the Blend case study page.
-        The maximum range is 90 days per request.
+
+        TWO QUESTIONS, AND THE PARAMETERS SAY WHICH ONE IS ASKED. With `from` and
+        `to` this answers "what happened between these two ledgers", capped at 90
+        days per request, and the points are downsampled into `resolution`
+        buckets. With BOTH omitted it answers "which readings do you hold for
+        this source", returns them all without bucketing, and reports the range
+        that came back in `from` and `to`. One bound without the other is 400
+        INVALID_RANGE, because it is neither question.
+
+        THE SECOND FORM IS THE ONLY WAY TO REACH A RECONSTRUCTION. Stored
+        `offers-implied` rows sit where the replay ran, which today is February
+        2026, about 3.2 million ledgers behind the tip. No window inside the 90
+        day cap contains them, so every windowed request for that source comes
+        back empty and says nothing about whether anything is stored.
 
         ONE SERIES IS ONE DATA SOURCE. A result is keyed by asset, ledger,
         methodology version and data source, so a single ledger can hold several
@@ -468,8 +499,9 @@ paths:
         - $ref: '#/components/parameters/Quote'
         - name: from
           in: query
-          required: true
-          description: The starting ledger sequence, inclusive
+          description: |
+            The starting ledger sequence, inclusive. Required WITH `to`, or omit
+            both for the most recent stored readings of this source.
           schema:
             type: integer
             format: int64
@@ -477,16 +509,33 @@ paths:
           example: 60890000
         - name: to
           in: query
-          required: true
-          description: The ending ledger sequence, inclusive
+          description: |
+            The ending ledger sequence, inclusive. Required WITH `from`, or omit
+            both for the most recent stored readings of this source.
           schema:
             type: integer
             format: int64
             minimum: 1
           example: 60950000
+        - name: limit
+          in: query
+          description: |
+            The most rows one response may carry. Without a window this bounds
+            how far back the stored readings are taken from, newest first, and
+            they are still returned oldest first.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+            default: 2000
         - name: resolution
           in: query
-          description: The aggregation interval between data points
+          description: |
+            The aggregation interval between data points. Applied only to a
+            windowed request: without a window there is no range to divide into
+            buckets, and bucketing anyway would collapse the three stored
+            February reconstructions, which close inside one hour and read from
+            LOW to CRITICAL, into a single point.
           schema:
             type: string
             enum: [hour, day]

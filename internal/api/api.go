@@ -54,6 +54,7 @@ type Reader interface {
 	LatestMetrics(ctx context.Context, assetID int, methodologyVersion string) (store.Metric, error)
 	MetricsAtLedger(ctx context.Context, assetID int, ledgerSeq uint32, methodologyVersion string, source domain.DataSource) (store.Metric, error)
 	MetricsHistory(ctx context.Context, assetID int, fromLedger, toLedger uint32, methodologyVersion string, source domain.DataSource, limit int) ([]store.Metric, error)
+	MetricsHistoryLatest(ctx context.Context, assetID int, methodologyVersion string, source domain.DataSource, limit int) ([]store.Metric, error)
 	LatestSummaries(ctx context.Context, f store.SummaryFilter) ([]store.Metric, int, error)
 	LastRun(ctx context.Context, kind store.RunKind) (store.Run, error)
 }
@@ -441,6 +442,14 @@ func (s *Server) handleDepth(w http.ResponseWriter, r *http.Request) {
 // the contract states and the number its own error example carries.
 const maxHistoryLedgers = 1555200
 
+// defaultHistoryLimit and maxHistoryLimit bound one series. The default is large
+// enough for a 90 day window at daily resolution and for every reconstruction
+// stored today, and the maximum is what the store already enforced silently.
+const (
+	defaultHistoryLimit = 2000
+	maxHistoryLimit     = 5000
+)
+
 func (s *Server) handleHistory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -451,29 +460,50 @@ func (s *Server) handleHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	q := r.URL.Query()
-	from, err := strconv.ParseUint(q.Get("from"), 10, 32)
-	if err != nil || from == 0 {
-		s.writeError(w, http.StatusBadRequest, codeInvalidRange,
-			"from is required and must be a positive ledger sequence.", nil)
-		return
+
+	// BOTH BOUNDS OR NEITHER, AND NEITHER IS A DIFFERENT QUESTION. With a window,
+	// this answers "what happened between these two ledgers", which is what a live
+	// chart asks. Without one it answers "where are the readings you hold", which
+	// is the only question that reaches a RECONSTRUCTION: the stored offers-implied
+	// rows sit in February 2026, about 3.2 million ledgers behind the tip, so no
+	// window inside the 90 day cap below can contain them and every dashboard
+	// request for that source came back empty. One bound alone is neither question
+	// and is refused rather than guessed at.
+	windowed := q.Has("from") || q.Has("to")
+	var from, to uint64
+	if windowed {
+		var err error
+		from, err = strconv.ParseUint(q.Get("from"), 10, 32)
+		if err != nil || from == 0 {
+			s.writeError(w, http.StatusBadRequest, codeInvalidRange,
+				"from is required and must be a positive ledger sequence. Omit from AND to for the most recent stored readings.", nil)
+			return
+		}
+		to, err = strconv.ParseUint(q.Get("to"), 10, 32)
+		if err != nil || to == 0 {
+			s.writeError(w, http.StatusBadRequest, codeInvalidRange,
+				"to is required and must be a positive ledger sequence. Omit from AND to for the most recent stored readings.", nil)
+			return
+		}
+		if to < from {
+			s.writeError(w, http.StatusBadRequest, codeInvalidRange,
+				"to must not be below from.", nil)
+			return
+		}
+		if to-from > maxHistoryLedgers {
+			s.writeError(w, http.StatusBadRequest, codeInvalidRange,
+				"The maximum range is 90 days per request.", map[string]any{
+					"requestedLedgers": to - from,
+					"maxLedgers":       maxHistoryLedgers,
+				})
+			return
+		}
 	}
-	to, err := strconv.ParseUint(q.Get("to"), 10, 32)
-	if err != nil || to == 0 {
+
+	limit, err := parseBoundedInt(q.Get("limit"), defaultHistoryLimit, 1, maxHistoryLimit)
+	if err != nil {
 		s.writeError(w, http.StatusBadRequest, codeInvalidRange,
-			"to is required and must be a positive ledger sequence.", nil)
-		return
-	}
-	if to < from {
-		s.writeError(w, http.StatusBadRequest, codeInvalidRange,
-			"to must not be below from.", nil)
-		return
-	}
-	if to-from > maxHistoryLedgers {
-		s.writeError(w, http.StatusBadRequest, codeInvalidRange,
-			"The maximum range is 90 days per request.", map[string]any{
-				"requestedLedgers": to - from,
-				"maxLedgers":       maxHistoryLedgers,
-			})
+			"limit must be a positive integer.", map[string]any{"max": maxHistoryLimit})
 		return
 	}
 
@@ -504,13 +534,40 @@ func (s *Server) handleHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := s.cfg.Reader.MetricsHistory(ctx, pair.ID, uint32(from), uint32(to), "", source, 0)
+	var rows []store.Metric
+	if windowed {
+		rows, err = s.cfg.Reader.MetricsHistory(ctx, pair.ID, uint32(from), uint32(to), "", source, limit)
+	} else {
+		rows, err = s.cfg.Reader.MetricsHistoryLatest(ctx, pair.ID, "", source, limit)
+	}
 	if err != nil {
 		s.fail(w, "history", err)
 		return
 	}
 
-	points, gaps := downsample(rows, resolution)
+	// WITHOUT A WINDOW THERE IS NOTHING TO DOWNSAMPLE INTO. A bucket is a slice of
+	// a range the caller named, and this caller named none: it asked which
+	// readings are held. Bucketing them anyway would collapse the three stored
+	// February reconstructions into ONE point, because 61340172, 61340262 and
+	// 61340263 all close inside the same hour, and a chart would then show one
+	// dot for three results that differ from LOW to CRITICAL. Every row is
+	// returned, and `resolution` is accepted and ignored on this path.
+	var points []historyPointJSON
+	gaps := []historyGapJSON{}
+	if windowed {
+		points, gaps = downsample(rows, resolution)
+	} else {
+		points = make([]historyPointJSON, 0, len(rows))
+		for _, m := range rows {
+			points = append(points, historyPoint(m))
+		}
+		// from and to report what came back, because nothing was asked for. A
+		// consumer reads the range off the response either way, and a zero here
+		// would read as "from the first ledger of the network".
+		if len(rows) > 0 {
+			from, to = uint64(rows[0].Risk.LedgerSeq), uint64(rows[len(rows)-1].Risk.LedgerSeq)
+		}
+	}
 	out := historyJSON{
 		Asset:              asset(pair.Base),
 		Quote:              asset(pair.Quote),

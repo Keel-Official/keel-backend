@@ -288,6 +288,64 @@ func (s *Store) MetricsHistory(ctx context.Context, assetID int, fromLedger, toL
 	return out, rows.Err()
 }
 
+// MetricsHistoryLatest returns the newest stored readings for one source,
+// ascending, without a ledger window.
+//
+// WHY A WINDOW IS NOT ALWAYS THE RIGHT QUESTION. MetricsHistory answers "what
+// happened between these two ledgers", which is what a live chart asks. A
+// reconstruction is not there: the three rows the replay stored sit in February
+// 2026, about 3.2 million ledgers behind the tip, and the API caps one request at
+// 90 days, so no window a dashboard would ask for can reach them. The reader's
+// question for those rows is "where are they", and this answers it.
+//
+// THE ORDER IS THE WHOLE IMPLEMENTATION AND IT IS NOT THE SAME QUERY. Selecting
+// ascending with a LIMIT returns the OLDEST n rows, which for a source that has
+// been stored for months is the wrong end of the series. This reads descending and
+// reverses, so the rows are the newest n and the caller still receives them oldest
+// first, which is what every consumer of MetricsHistory already expects.
+func (s *Store) MetricsHistoryLatest(ctx context.Context, assetID int, methodologyVersion string, source domain.DataSource, limit int) ([]Metric, error) {
+	if methodologyVersion == "" {
+		methodologyVersion = domain.MethodologyVersion
+	}
+	if source == "" {
+		source = domain.DataSourceHorizon
+	}
+	if !source.Valid() {
+		return nil, fmt.Errorf("store: data source %q is not one of the four", source)
+	}
+	if limit <= 0 || limit > 5000 {
+		limit = 5000
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT `+metricColumns+`
+		  FROM metrics m JOIN assets a ON a.id = m.asset_id
+		 WHERE m.asset_id = $1 AND m.methodology_version = $2
+		   AND m.data_source = $3
+		 ORDER BY m.ledger_seq DESC
+		 LIMIT $4`,
+		assetID, methodologyVersion, string(source), limit)
+	if err != nil {
+		return nil, fmt.Errorf("store: metrics history latest asset %d: %w", assetID, err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var out []Metric
+	for rows.Next() {
+		m, err := scanMetric(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
+	}
+	return out, nil
+}
+
 // scanner is what *sql.Row and *sql.Rows have in common, so one scan function
 // serves both the single-row and the many-row reads.
 type scanner interface{ Scan(dest ...any) error }

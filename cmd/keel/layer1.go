@@ -100,7 +100,7 @@ internal/conformance/fixture.go and in the CLAUDE.md zone map.
 	} else {
 		heading += ", and Horizon returned no pool for this pair"
 	}
-	reportRiskUnder(os.Stdout, snap, heading)
+	reportRiskUnder(os.Stdout, snap, nil, heading)
 	fmt.Print(`
 Compare every line above against your file. Where they disagree, report the
 disagreement rather than resolving it by editing either side.
