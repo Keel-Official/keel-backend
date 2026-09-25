@@ -952,7 +952,8 @@ removed, which is decision 2 in `internal/store/store.go`.
 exactly twenty-seven ledgers. Section 3.9 must already have run: this adds rows to a path
 that is already on, and needs no flag change.
 
-**Cost.** About 45 minutes and about 374 Horizon requests per ledger, so roughly 20 hours
+**Cost.** About 45 minutes and about 1,000 Horizon requests per ledger, measured on
+the 25 September rehearsal in DEC-024 section 6, so roughly 20 hours
 for the series. **One ledger at a time**, never in parallel, and inside `tmux` or
 `screen`: an SSH drop kills a `docker compose run` and wastes the walk. The loop below
 keeps going past a failed ledger and writes one log per ledger, so a night's run can be
