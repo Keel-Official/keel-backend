@@ -946,6 +946,62 @@ removed, which is decision 2 in `internal/store/store.go`.
 
 ---
 
+### 3.10 The February daily series, twenty-seven more replays
+
+**Authority:** `docs/decisions/DEC-024-february-daily-series-by-replay.md`, which names
+exactly twenty-seven ledgers. Section 3.9 must already have run: this adds rows to a path
+that is already on, and needs no flag change.
+
+**Cost.** About 45 minutes and about 374 Horizon requests per ledger, so roughly 20 hours
+for the series. **One ledger at a time**, never in parallel, and inside `tmux` or
+`screen`: an SSH drop kills a `docker compose run` and wastes the walk. The loop below
+keeps going past a failed ledger and writes one log per ledger, so a night's run can be
+read in the morning.
+
+```bash
+cd "$KEEL_DIR"
+mkdir -p /tmp/replay-feb
+for LEDGER in 61027032 61041997 61056831 61071606 61086706 61101452 61116508 \
+              61132067 61147341 61161968 61176868 61191677 61206579 61221451 \
+              61236743 61250942 61265749 61280403 61295329 61310263 61325141 \
+              61355036 61369919 61385497 61400035 61415216 61429800; do
+  FLOOR=$((LEDGER - 40000))
+  echo "=== $LEDGER started $(date -u +%FT%TZ)"
+  docker compose -f docker-compose.prod.yml run --rm \
+    -v "$PWD/configs:/configs:ro" \
+    -v "$PWD/scripts:/scripts:ro" \
+    keel-serve replay \
+      -pairs /scripts/record-pairs.example.json \
+      -ledger "$LEDGER" \
+      -trades-from-ledger "$FLOOR" -since-ledger "$FLOOR" -lookahead 5000 \
+      -max-pages-per-account 60 -max-pages-per-offering-account 400 \
+      -known-removals /configs/known-removals.json \
+      -pools-from-effects -trade-metrics \
+      -compute -persist -accept-incomplete -quiet \
+    > "/tmp/replay-feb/$LEDGER.log" 2>&1
+  echo "=== $LEDGER exit $? $(date -u +%FT%TZ)"
+done 2>&1 | tee /tmp/replay-feb/run.log
+```
+
+No `-pool-snapshots` and no evidence mount: `-pools-from-effects` reconstructs each
+pool's reserves at the target, and the two flags refuse to be passed together.
+
+**Read every log, and do not skip one because it exited 0**, for the reason section 3.9
+gives: a reconstruction that lost offers reads as a THINNER book. What must NOT appear is
+a refusal naming `crossed` or `inflated`. If one does, that ledger is a finding: leave it
+unstored, bring the log back to the repository, and do not re-run it with fewer flags.
+
+**Verification.** Thirty points where there were three:
+
+```bash
+A=USTRY:GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC
+curl -s "https://api.keels.app/v1/asset/$A/history?source=offers-implied" | jq '.points | length'
+curl -s -o /dev/null -w '%{http_code}\n' "https://api.keels.app/v1/asset/$A/depth?ledger=61147341"
+```
+
+The first answers `30`, less one for every ledger a log shows was refused. The second
+answers `200`.
+
 ## 4. Verification, and what a correct FIRST response looks like
 
 Run this from a laptop, not over SSH: from the box, `localhost` can answer in

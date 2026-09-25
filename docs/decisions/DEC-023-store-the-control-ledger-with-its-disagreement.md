@@ -285,3 +285,9 @@ Horizon.
    what a number means, so it is Al's under the zone map, and this record does not make
    it.** Until it is made, the report and this decision disagree in writing, which is
    better than one of them being changed quietly.
+
+## 8. Amendment history
+
+| Date | Amendment |
+| --- | --- |
+| 25 September 2026 | Section added. Section 6's "this record authorises one ledger, not a February series" now has the separate decision it asked for: DEC-024 authorises the other twenty-seven daily samples of February 2026. Nothing above is edited, and the three rows this record stored are not rewritten |
