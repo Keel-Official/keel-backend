@@ -1,13 +1,26 @@
 # Keel methodology: index and status
 
-**Methodology version in force:** `1.1.0-draft`
-**In sync with:** `internal/domain.MethodologyVersion` at `1.0.8-draft`, and the two
-DIVERGE as of 5 September 2026. The documents moved and the constant did not, on purpose:
-the constant is the label stamped on stored output, and 1.1.0's section 2 rule, the worst
-band across evaluated pairs, is not implemented yet. Stamping `1.1.0-draft` on single-pair
-output today and on multi-pair output later would put two different computations under one
-version string, which is the one thing NFR-9 forbids. DEC-015 section 5 records the
-divergence, dates it, and hands the choice of how to close it to Al.
+**Methodology version in force:** `1.2.0-draft`
+**Engine version:** `internal/domain.MethodologyVersion` at `1.0.8-draft`.
+
+**TWO CLOCKS, AND THE DIFFERENCE IS THE RULE, NOT A DRIFT.** Decided 25 September 2026
+and recorded in DEC-014 section 10, which reverses section 1 of that record for the code
+constant only.
+
+- **The document version** is one number for every file in this folder. It moves when a
+  definition in any of them is written or changed, and every file header moves with it.
+  That half of DEC-014 section 1 still stands.
+- **The engine version** is the label stamped on every stored output, and non-negotiable
+  rule 1 requires it to name the computation that produced the row, not the newest
+  document. It moves only when the code's behaviour changes. `docs/api/keel-openapi.yaml`
+  follows the engine version, never the document version.
+
+Why they differ today: 1.1.0's section 2 rule, the worst band across evaluated pairs, is
+not implemented, so stamping `1.1.0-draft` or later on single-pair output would put two
+different computations under one version string, which is the one thing NFR-9 forbids.
+DEC-015 section 5 dates that divergence. Raising the engine version is not a
+bookkeeping step: the API selects stored rows by it, so every stored row and every
+holder and trade cache keyed by it drops out of the API until it is recomputed.
 
 This file is a map. It carries no definitions of its own, so that it cannot become a
 second home for one, with the single exception of the consolidated version history in
@@ -27,7 +40,7 @@ One subject per file. The file that owns a subject wins wherever two files touch
 | `03-reference-price.md` | `P0`, the price source ladder, price divergence, `spreadPct` | complete |
 | `04-depth.md` | SDEX depth, AMM depth, and the rule that combines them | complete |
 | `05-manipulation-cost.md` | `MC`, `Reachable`, the two venue forms, `MaxReachablePrice` | complete |
-| `06-oracle-resilience.md` | the VWAP window term, arbitrage asymmetry | partial, the window length is an assumption |
+| `06-oracle-resilience.md` | the VWAP window term, arbitrage asymmetry | complete, with one stated assumption: the window length, whose effect on the incident is measured in section 1.1 |
 | `07-supporting-metrics.md` | genuine trades, holder concentration, volume to supply | worksheet, no definitions recorded yet |
 | `08-collateral.md` | `C_max` and its two terms | complete for 1.0.x |
 | `09-flags-and-bands.md` | every flag, every band, every threshold value | complete |
@@ -121,6 +134,7 @@ when its content moved.
 | 1.0.7-draft | `07` section 1 specimen C narrowed after directional verification |
 | 1.0.8-draft | DEC-011 accepted, `MaxLedgerSpan` = 24 ledgers, and `07` section 2 reports the pull's `snapshot_ledger`. **Then, 5 September 2026, this became the version in force for the whole set.** Al ratified unifying the split: `07` had run ahead to 1.0.8-draft while the other ten files, `internal/domain.MethodologyVersion` and the contract's examples all still read 1.0.3-draft. Ten files claiming two versions guarantees a reader cites the wrong one. **No definition changed in any file whose header moved**, and that is what makes it a bookkeeping sync rather than a methodology change: rows 1.0.4 to 1.0.8 above are all `07`, which is why they were never consolidated here until now. Rows already stored at `1.0.3-draft` keep their label and stay reproducible, so NFR-9 is untouched. DEC-014 records it |
 | 1.1.0-draft | **Al resolved Q7**, 5 September 2026: the quote asset is global and it is USDC, issuer `GA5ZSEJY…`, so `ManipulationCheapAbsolute` and `ThinDepth5PctAbsolute` are USDC figures. Recorded in `02-pair-selection.md` section 1, which also records the six other decisions that file was holding open, and the consequence that Keel now assumes the USDC peg holds. `09-flags-and-bands.md` section 6 named Q7 as the condition for version 1.1, so this is a minor bump and not a patch: a definition changed. **`02` and `09` are the only two files whose content moved**; the other ten carry a header sync under the one-version rule. Rows already stored at `1.0.3-draft` or `1.0.8-draft` keep their label and stay reproducible, so NFR-9 is untouched by the bump itself. `internal/domain.MethodologyVersion` deliberately stays at `1.0.8-draft`; see the header of this file and DEC-015 section 5. DEC-015 records the decision |
+| 1.2.0-draft | **DEC-021**, 14 September 2026: `01` gained section 1.4, the offers-implied reconstruction with hand-proven removals, and `11` gained limitation 8. Those two headers were raised to `1.2.0`, without the `-draft` suffix and without a recorded decision to drop it, while the other eleven files stayed at `1.1.0-draft`. **25 September 2026**: the set was brought back to one version, `1.2.0-draft`, under DEC-014 section 10; the suffix stays because thresholds are chosen rather than calibrated. The same day `06` moved from partial to complete, with one stated assumption, by adding the measured window sensitivity in its section 1.1; no definition changed. **The engine version stays `1.0.8-draft`**, and from this row on that is the stated rule rather than a divergence: see the header of this file |
 
-Every file in this folder must be raised together. A result produced under one version
-cannot be compared with a result produced under another.
+Every file in this folder must be raised together. A result produced under one engine
+version cannot be compared with a result produced under another.

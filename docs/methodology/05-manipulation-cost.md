@@ -1,6 +1,6 @@
 # Keel: Manipulation Cost
 
-**Methodology version:** 1.1.0-draft
+**Methodology version:** 1.2.0-draft
 **Status:** complete. Split into two venue forms in 1.0.3.
 
 This is the number the case study turns on. An attacker does not pay for the trade
@@ -99,3 +99,4 @@ are meaningful only for pure order book markets.
 | 1.0.3-draft | Split out of `keel-methodology-core.md` under the road 1 decision. Content unchanged except where noted in the section itself |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
 | 1.1.0-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** Al resolved Q7 in `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so every absolute threshold is a USDC figure. Under the one-version rule of DEC-014 the whole set moves with the one file whose content changed. README section 4 and DEC-015 carry the reasoning |
+| 1.2.0-draft | Header synced to the version in force, 25 September 2026. **No content change in this file.** `1.2.0-draft` is the version DEC-021 opened in `01` and `11` on 14 September 2026; this row closes the drift DEC-014 section 9 measured, when the set carried three versions. Under DEC-014 section 10 the document set carries one version and `internal/domain.MethodologyVersion` is versioned separately, as the label of the computation that produced a stored row. README section 4 carries the reasoning |

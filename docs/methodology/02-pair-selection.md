@@ -1,6 +1,6 @@
 # Keel: Quote Asset and Pair Selection
 
-**Methodology version:** 1.1.0-draft
+**Methodology version:** 1.2.0-draft
 **Status:** DECIDED. Section 5 defines criteria; the list itself is produced by a
 selection run and recorded in `docs/evidences/`.
 **Settles:** open question Q7, and PRD open question Q6.
@@ -390,3 +390,4 @@ The oracle read USTRY/USDC. This is not a free choice.
 | 1.0.3-draft | Worksheet created. No decisions recorded yet |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
 | 1.1.0-draft | All seven decisions recorded. Global USDC quote, candidate set of two with the worst band across pairs, USTRY/USDC backtest pair with an XLM control, path payments as a stated limitation with its bias direction and its one reversal, and stratified selection criteria for the demonstration set. Q7 resolved, which is what `09-flags-and-bands.md` section 6 named as the condition for 1.1. The minor version applies to the whole methodology set under the one-version rule, so `09` section 6 and the PRD are amended in the same pass |
+| 1.2.0-draft | Header synced to the version in force, 25 September 2026. **No content change in this file.** `1.2.0-draft` is the version DEC-021 opened in `01` and `11` on 14 September 2026; this row closes the drift DEC-014 section 9 measured, when the set carried three versions. Under DEC-014 section 10 the document set carries one version and `internal/domain.MethodologyVersion` is versioned separately, as the label of the computation that produced a stored row. README section 4 carries the reasoning |
