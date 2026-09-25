@@ -97,6 +97,10 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 	if err != nil {
 		return 0, false, err
 	}
+	notes, err := encodeSupportingNotes(risk.Supporting.Notes)
+	if err != nil {
+		return 0, false, err
+	}
 
 	err = s.db.QueryRowContext(ctx, `
 		INSERT INTO metrics (
@@ -111,7 +115,7 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 			holder_top1_pct, holder_top10_pct, holder_hhi,
 			volume_to_supply, last_genuine_trade, trades_excluded_pct,
 			flags, unevaluated_flags, band, band_confidence, warnings,
-			holder_snapshot_ledger, reconstruction
+			holder_snapshot_ledger, reconstruction, supporting_notes
 		) VALUES (
 			$1, $2, $3, $4,
 			$5, $6,
@@ -124,7 +128,7 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 			$21::numeric, $22::numeric, $23::numeric,
 			$24::jsonb, $25::jsonb, $26::numeric,
 			$27::text[], $28::text[], $29, $30, $31::text[],
-			$32::bigint, $33::jsonb
+			$32::bigint, $33::jsonb, $34::jsonb
 		)
 		ON CONFLICT (asset_id, ledger_seq, methodology_version, data_source) DO NOTHING
 		RETURNING id`,
@@ -140,7 +144,7 @@ func (s *Store) SaveMetrics(ctx context.Context, assetID int, computedAt time.Ti
 		volume, trade, numeric(risk.Supporting.TradesExcludedPct),
 		flagStrings(risk.Flags), flagStrings(risk.UnevaluatedFlags),
 		string(risk.Band), string(risk.BandConfidence), stringsOrEmpty(risk.Warnings),
-		nullLedger(risk.Supporting.HolderSnapshotLedger), reconstruction,
+		nullLedger(risk.Supporting.HolderSnapshotLedger), reconstruction, notes,
 	).Scan(&id)
 
 	// DO NOTHING returns no row, which arrives here as ErrNoRows. That is the
@@ -173,7 +177,7 @@ const metricColumns = `
 	m.holder_snapshot_ledger,
 	to_jsonb(m.flags), to_jsonb(m.unevaluated_flags), m.band, m.band_confidence,
 	to_jsonb(m.warnings),
-	m.reconstruction`
+	m.reconstruction, m.supporting_notes`
 
 // The three text[] columns are read as JSONB and not as arrays. Writing a
 // []string into a text[] parameter works through database/sql, but scanning one
@@ -370,6 +374,7 @@ func scanMetric(sc scanner) (Metric, error) {
 		flagsBody, unevaluatedBody            []byte
 		warningsBody                          []byte
 		reconstructionBody                    []byte
+		notesBody                             []byte
 		band, bandConfidence                  string
 	)
 
@@ -387,7 +392,7 @@ func scanMetric(sc scanner) (Metric, error) {
 		&volumeBody, &tradeBody, &excludedPct,
 		&holderLedger,
 		&flagsBody, &unevaluatedBody, &band, &bandConfidence, &warningsBody,
-		&reconstructionBody,
+		&reconstructionBody, &notesBody,
 	); err != nil {
 		return Metric{}, err
 	}
@@ -489,6 +494,11 @@ func scanMetric(sc scanner) (Metric, error) {
 	}
 	if tradeBody != nil {
 		if m.Risk.Supporting.LastGenuineTrade, err = decodeLastGenuineTrade(tradeBody); err != nil {
+			return Metric{}, err
+		}
+	}
+	if notesBody != nil {
+		if m.Risk.Supporting.Notes, err = decodeSupportingNotes(notesBody); err != nil {
 			return Metric{}, err
 		}
 	}

@@ -121,6 +121,7 @@
     "at": "2026-05-16T08:33:02Z"
   },
   "tradesExcludedPct": "64.2000000",
+  "supportingNotes": null,
   "flags": [
     "MANIPULATION_CHEAP",
     "MANIPULATION_RATIO_LOW",

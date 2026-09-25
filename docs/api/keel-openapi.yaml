@@ -239,7 +239,23 @@ info:
   #
   # ONE BOUND ALONE IS STILL 400. It is neither question, and guessing the other
   # end would be the API deciding what a consumer meant.
-  version: 1.8.0
+  #
+  # 1.9.0, 25 September 2026. ONE ADDITIVE FIELD, WHICH IS WHY IT IS A MINOR AND
+  # NOT A PATCH. `AssetRisk.supportingNotes` says why each null supporting figure
+  # is null. No existing field changed value or type, so every consumer validating
+  # against 1.8.0 keeps working.
+  #
+  # WHY IT EXISTS. On 25 September 2026 the live API carried holder concentration
+  # for 35 of 61 assets, volume-to-supply for 26 and a last genuine trade for 30,
+  # and the dashboard showed every other one as the same dash. The engine knew
+  # which of four causes applied to each and wrote it only to the scan log, so a
+  # reader could not tell a truncated holder set from a thirty day search that
+  # found nothing, and only the second is a measurement.
+  #
+  # THE FIELD FILLS FROM THE NEXT SCAN. Rows stored before migration 0011 have no
+  # reasons and send null, which is the same null a row with nothing to explain
+  # sends; the figures beside it say which.
+  version: 1.9.0
   description: |
     A read-only API for the liquidity risk metrics of Stellar assets.
 
@@ -959,6 +975,36 @@ components:
 
             Null when `reachable` is false, for the same reason `ratio` is.
 
+    SupportingNotes:
+      type: object
+      description: |
+        One phrase per supporting figure saying why it is null. A key is null
+        when its figure is present or no reason was recorded, so a consumer reads
+        a note only beside a null figure. The phrases are prose for a reader and
+        not an enum: do not branch on their text.
+
+        They keep apart the absences a bare null collapses. A trustline set too
+        large for the holder pull, a pair above the trade threshold, a walk that
+        spent its page bound, and a search that covered thirty whole days and
+        found no genuine trade are four different answers, and only the last is
+        a measurement.
+      required: [holders, tradesExcludedPct, volumeToSupply, lastGenuineTrade]
+      properties:
+        holders:
+          type: [string, 'null']
+          description: Why holderTop1Pct, holderTop10Pct and holderHhi are null. They come from one trustline pull and are absent together.
+        tradesExcludedPct:
+          type: [string, 'null']
+        volumeToSupply:
+          type: [string, 'null']
+          description: Why volumeToSupply is null, or, when it is present, why its d30 window is.
+        lastGenuineTrade:
+          type: [string, 'null']
+          description: |
+            Why lastGenuineTrade is null. A note that begins "not checked" means
+            the search stopped before it could answer, and is not evidence that
+            the asset has no genuine trade.
+
     VolumeToSupply:
       type: object
       required: [d1, d7, d30]
@@ -1287,6 +1333,14 @@ components:
           description: |
             The percentage of 30 day volume excluded by the genuine trade rules. A
             high value indicates suspected wash trading.
+        supportingNotes:
+          oneOf: [$ref: '#/components/schemas/SupportingNotes', type: 'null']
+          description: |
+            Why each absent supporting figure above is absent. Added in 1.9.0.
+
+            Null when there is nothing to explain: every supporting figure is
+            present, or the row was stored before the engine recorded reasons, or
+            the row is a reconstruction, whose reasons travel in `warnings`.
         flags:
           type: array
           description: The flags that are `triggered`.
@@ -1826,6 +1880,7 @@ components:
           ledgerSeq: 61234559
           at: '2026-08-19T04:11:47Z'
         tradesExcludedPct: '2.1000000'
+        supportingNotes: null
         flags: []
         unevaluatedFlags: []
         band: LOW
@@ -1932,6 +1987,7 @@ components:
           ledgerSeq: 61102331
           at: '2026-08-11T22:04:19Z'
         tradesExcludedPct: '18.4000000'
+        supportingNotes: null
         flags:
           - THIN_DEPTH_5PCT
           - HOLDER_CONCENTRATION_EXTREME
@@ -2005,6 +2061,11 @@ components:
           d30: '0.0000000'
         lastGenuineTrade: null
         tradesExcludedPct: null
+        supportingNotes:
+          holders: null
+          tradesExcludedPct: no trade in the 30 day window, so there is no volume to exclude from
+          volumeToSupply: null
+          lastGenuineTrade: no genuine trade in the 30 whole day(s) searched
         flags:
           - NO_EXECUTABLE_PRICE
           - ZERO_DEPTH_2PCT
@@ -2129,6 +2190,7 @@ components:
           ledgerSeq: 60874120
           at: '2026-05-16T08:33:02Z'
         tradesExcludedPct: '64.2000000'
+        supportingNotes: null
         flags:
           - MANIPULATION_CHEAP
           - MANIPULATION_RATIO_LOW
@@ -2293,6 +2355,7 @@ components:
         volumeToSupply: null
         lastGenuineTrade: null
         tradesExcludedPct: null
+        supportingNotes: null
         flags:
           - ZERO_DEPTH_2PCT
           - MANIPULATION_CHEAP

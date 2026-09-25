@@ -60,6 +60,12 @@
   },
   "lastGenuineTrade": null,
   "tradesExcludedPct": null,
+  "supportingNotes": {
+    "holders": null,
+    "tradesExcludedPct": "no trade in the 30 day window, so there is no volume to exclude from",
+    "volumeToSupply": null,
+    "lastGenuineTrade": "no genuine trade in the 30 whole day(s) searched"
+  },
   "flags": [
     "NO_EXECUTABLE_PRICE",
     "ZERO_DEPTH_2PCT",

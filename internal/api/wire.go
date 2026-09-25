@@ -163,6 +163,11 @@ type assetRiskJSON struct {
 	LastGenuineTrade  *lastGenuineTradeJSON `json:"lastGenuineTrade"`
 	TradesExcludedPct *string               `json:"tradesExcludedPct"`
 
+	// Null when nothing is explained: every supporting figure is present, or the
+	// row was stored before the engine recorded reasons. Each key inside is null
+	// exactly when its figure is present or no reason was recorded.
+	SupportingNotes *supportingNotesJSON `json:"supportingNotes"`
+
 	Flags            []domain.Flag `json:"flags"`
 	UnevaluatedFlags []domain.Flag `json:"unevaluatedFlags"`
 	Band             string        `json:"band"`
@@ -284,7 +289,33 @@ func riskResponse(m store.Metric) assetRiskJSON {
 	if t := sup.LastGenuineTrade; t != nil {
 		out.LastGenuineTrade = &lastGenuineTradeJSON{LedgerSeq: t.LedgerSeq, At: t.At.UTC()}
 	}
+	if n := sup.Notes; !n.IsZero() {
+		out.SupportingNotes = &supportingNotesJSON{
+			Holders:           optional(n.Holders),
+			TradesExcludedPct: optional(n.TradesExcludedPct),
+			VolumeToSupply:    optional(n.VolumeToSupply),
+			LastGenuineTrade:  optional(n.LastGenuineTrade),
+		}
+	}
 	return out
+}
+
+// supportingNotesJSON is why each absent supporting figure is absent. Holders
+// covers all three holder figures, which come from one pull and are absent
+// together.
+type supportingNotesJSON struct {
+	Holders           *string `json:"holders"`
+	TradesExcludedPct *string `json:"tradesExcludedPct"`
+	VolumeToSupply    *string `json:"volumeToSupply"`
+	LastGenuineTrade  *string `json:"lastGenuineTrade"`
+}
+
+// optional sends an empty note as null, so a consumer tests one thing.
+func optional(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 func manipulationList(points []domain.ManipulationPoint) []manipulationJSON {

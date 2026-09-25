@@ -1033,3 +1033,44 @@ func assertStringsEqual(t *testing.T, name string, got, want []string) {
 
 // ledgerPtr is the pointer form a ledger sequence needs on an optional field.
 func ledgerPtr(n uint32) *uint32 { return &n }
+
+// The reasons beside absent supporting figures survive the round trip, and a row
+// with nothing to explain comes back with nothing, not with four empty keys.
+func TestSupportingNotesRoundTrip(t *testing.T) {
+	s, ctx := testStore(t)
+	assetID := seedAsset(ctx, t, s)
+
+	risk := fullRisk()
+	risk.Supporting.HolderTop1Pct, risk.Supporting.HolderTop10Pct, risk.Supporting.HolderHHI = nil, nil, nil
+	risk.Supporting.HolderSnapshotLedger = nil
+	risk.Supporting.LastGenuineTrade = nil
+	risk.Supporting.Notes = domain.SupportingNotes{
+		Holders:          "the trustline set is larger than the holder pull reads",
+		LastGenuineTrade: `not checked: the walk spent its 400 page(s), "quoted"`,
+	}
+	if _, _, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), risk); err != nil {
+		t.Fatalf("SaveMetrics: %v", err)
+	}
+	got, err := s.LatestMetrics(ctx, assetID, "")
+	if err != nil {
+		t.Fatalf("LatestMetrics: %v", err)
+	}
+	if got.Risk.Supporting.Notes != risk.Supporting.Notes {
+		t.Errorf("notes = %+v, want %+v", got.Risk.Supporting.Notes, risk.Supporting.Notes)
+	}
+
+	plain := fullRisk()
+	plain.LedgerSeq++
+	if _, _, err := s.SaveMetrics(ctx, assetID, time.Now().UTC(), plain); err != nil {
+		t.Fatalf("SaveMetrics: %v", err)
+	}
+	var stored []byte
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT supporting_notes FROM metrics WHERE asset_id = $1 AND ledger_seq = $2`,
+		assetID, int64(plain.LedgerSeq)).Scan(&stored); err != nil {
+		t.Fatalf("reading the column: %v", err)
+	}
+	if stored != nil {
+		t.Errorf("a row with nothing to explain stored %s, want NULL", stored)
+	}
+}

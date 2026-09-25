@@ -276,6 +276,10 @@ func scanOnce(ctx context.Context, s *store.Store, client *horizon.Client, rows 
 			oracleGaps[oracleWhy]++
 		}
 
+		// Every absent supporting figure leaves this loop with a reason beside it,
+		// so the dashboard can tell a truncated holder set from an unchecked walk.
+		sup = withNotes(sup, why, tradeWhy)
+
 		risk, didPanic, err := computeRisk(obs.Snapshot, params, sup)
 		if err != nil {
 			failed++
@@ -439,17 +443,17 @@ func supportingFor(
 	// XLM has no trustlines at all, so there is no holder reading to want. It is
 	// a permanent property of the asset and not a gap in the data.
 	if base.IsNative() {
-		return nil, "native asset has no trustlines"
+		return nil, "XLM is the native asset and has no trustlines, so there is no holder set to measure"
 	}
 
 	reading, err := s.LatestHolderReading(ctx, base, domain.MethodologyVersion)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
-		return nil, "no holder reading yet, run `keel holders`"
+		return nil, "no holder reading has been taken for this asset yet"
 	case err != nil:
 		// Reported, not fatal. A database hiccup reading a cache must not cost
 		// the depth half of the round, which is the deliverable.
-		return nil, "holder reading unreadable: " + err.Error()
+		return nil, holderUnreadable + ": " + err.Error()
 	}
 
 	return supportingFromReading(reading, now, maxAge)
@@ -476,7 +480,7 @@ func supportingFromReading(
 	// disables the bound for whoever prefers the other alternative that record
 	// weighs, which is to let a stale reading through and label it.
 	if age := reading.Age(now); maxAge > 0 && age > maxAge {
-		return nil, fmt.Sprintf("holder reading older than %s", maxAge)
+		return nil, fmt.Sprintf("the newest holder reading is older than %s, so it was not used", maxAge)
 	}
 
 	// A truncated pull is stored WITH its flag and WITHOUT figures, so this is
@@ -484,10 +488,10 @@ func supportingFromReading(
 	// where it started, and Top1Pct is checked as well as the flag because a
 	// complete pull whose population was empty after exclusions also has none.
 	if reading.Truncated {
-		return nil, "holder set was truncated, so concentration is unevaluated"
+		return nil, "the trustline set is larger than the holder pull reads, so it was truncated, and concentration over part of a set is not reported"
 	}
 	if reading.Top1Pct == nil {
-		return nil, "holder reading carries no concentration figures"
+		return nil, "no holder remains after exclusions, so concentration is undefined"
 	}
 
 	ledger := reading.SnapshotLedger
@@ -539,11 +543,11 @@ func attachTradeHalf(
 	reading, err := s.LatestTradeReading(ctx, a.ID, domain.MethodologyVersion)
 	switch {
 	case errors.Is(err, store.ErrNotFound):
-		return sup, "no trade reading yet, run `keel trades`"
+		return sup, "no trade reading has been taken for this pair yet"
 	case err != nil:
 		// Reported, not fatal, for the reason supportingFor gives: a database
 		// hiccup reading a cache must not cost the depth half of the round.
-		return sup, "trade reading unreadable: " + err.Error()
+		return sup, tradeUnreadable + ": " + err.Error()
 	}
 
 	// The age is measured from the ANCHOR and not from when the pull ran, which
@@ -551,7 +555,7 @@ func attachTradeHalf(
 	// argument. Two pulls twenty minutes apart either side of midnight describe
 	// windows a day apart.
 	if age := reading.Age(now); maxAge > 0 && age > maxAge {
-		return sup, fmt.Sprintf("trade reading anchored more than %s ago", maxAge)
+		return sup, fmt.Sprintf("the newest trade reading is anchored more than %s ago, so it was not used", maxAge)
 	}
 
 	if sup == nil {
@@ -598,7 +602,115 @@ func attachTradeHalf(
 		ratio, _ := domain.VolumeToSupply(*w.src, supply, supplyKnown, reading.Covered())
 		*w.dst = ratio
 	}
+
+	sup.Notes.TradesExcludedPct, sup.Notes.VolumeToSupply, sup.Notes.LastGenuineTrade =
+		tradeNotes(reading, supply, supplyKnown)
 	return sup, ""
+}
+
+// The two reasons whose operator form carries a database error. The note a
+// reader sees is the prefix alone: a driver message says nothing about the asset
+// and does not belong in a public response.
+const (
+	holderUnreadable = "the holder reading could not be read this round"
+	tradeUnreadable  = "the trade reading could not be read this round"
+)
+
+// tradeNotes says why each trade-derived figure is absent, from the reading that
+// failed to supply it. A figure that is present gets an empty note.
+//
+// It restates nothing the walk did not already decide. The volume reason is the
+// one `keel trades` stored when it chose the scope, and the last-trade reason is
+// read off the two stop flags and the day count the row carries, which is the
+// distinction DEC-019 section 8.4 item 2 refuses to merge: a search that covered
+// its window and found nothing is a measurement, and one that ran out of pages
+// is not.
+func tradeNotes(reading store.TradeReading, supply decimal.Decimal, supplyKnown bool) (excluded, volume, last string) {
+	switch {
+	case !reading.Covered():
+		excluded = "not classified over the 30 day window: " + reading.VolumeUnevaluatedReason
+		volume = excluded
+	default:
+		if reading.TradesExcludedPct == nil {
+			excluded = "no trade in the 30 day window, so there is no volume to exclude from"
+		}
+		// The D30 figure is what the dashboard shows, and all three windows share
+		// the denominator, so its cause is the cause for all of them.
+		if reading.GenuineBaseD30 != nil {
+			switch _, cause := domain.VolumeToSupply(*reading.GenuineBaseD30, supply, supplyKnown, true); cause {
+			case domain.VolumeToSupplyNoDenominator:
+				volume = "circulating supply is unknown, because holder concentration was not measured for this asset"
+			case domain.VolumeToSupplyZeroDenominator:
+				volume = "circulating supply is zero after exclusions, so the ratio is undefined"
+			}
+		}
+	}
+
+	if reading.LastGenuine == nil {
+		switch {
+		case reading.Exhausted:
+			last = "the pair's whole trade history was read and it holds no genuine trade"
+		case reading.BoundReached:
+			last = fmt.Sprintf("no genuine trade in the %d whole day(s) searched", reading.DaysWalked)
+		case reading.DaysWalked == 0:
+			last = fmt.Sprintf("not checked: the walk spent its %d page(s) inside the current day and never reached a whole day",
+				reading.Pages)
+		default:
+			last = fmt.Sprintf("not checked: the walk spent its %d page(s) after %d whole day(s) without meeting a genuine trade",
+				reading.Pages, reading.DaysWalked)
+		}
+	}
+	return excluded, volume, last
+}
+
+// withNotes makes sure every absent supporting figure carries a reason, using the
+// round's own gap reasons for whatever the two caches did not explain, and makes
+// sure no present figure carries one.
+//
+// IT MAY CREATE sup, which oracleWindowReader.attach already does for the same
+// reason: an asset with neither cache still has something to say about why. A
+// SupportingMetrics with nil figures evaluates every flag exactly as a nil one
+// does, because each flag rule guards on the figure it reads.
+func withNotes(sup *domain.SupportingMetrics, holderWhy, tradeWhy string) *domain.SupportingMetrics {
+	if sup == nil {
+		sup = &domain.SupportingMetrics{}
+	}
+	holderWhy = publicReason(holderWhy, holderUnreadable)
+	tradeWhy = publicReason(tradeWhy, tradeUnreadable)
+
+	n := &sup.Notes
+	n.Holders = noteFor(sup.HolderTop1Pct == nil, n.Holders, holderWhy)
+	n.TradesExcludedPct = noteFor(sup.TradesExcludedPct == nil, n.TradesExcludedPct, tradeWhy)
+	n.LastGenuineTrade = noteFor(sup.LastGenuineTrade == nil, n.LastGenuineTrade, tradeWhy)
+	// The ratio needs both halves, so either one's absence explains it; the trade
+	// half is named first because without it there is no numerator to divide.
+	volumeWhy := tradeWhy
+	if volumeWhy == "" && holderWhy != "" {
+		volumeWhy = "circulating supply is unknown: " + holderWhy
+	}
+	n.VolumeToSupply = noteFor(sup.VolumeToSupplyD30 == nil, n.VolumeToSupply, volumeWhy)
+	return sup
+}
+
+// noteFor keeps a specific note over a general one, and clears both when the
+// figure is present.
+func noteFor(absent bool, specific, general string) string {
+	switch {
+	case !absent:
+		return ""
+	case specific != "":
+		return specific
+	default:
+		return general
+	}
+}
+
+// publicReason drops the database error an unreadable-cache reason carries.
+func publicReason(why, unreadable string) string {
+	if strings.HasPrefix(why, unreadable) {
+		return unreadable
+	}
+	return why
 }
 
 // sortedKeys is non-negotiable rule 2 applied to a counter. Go randomizes map

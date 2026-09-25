@@ -106,6 +106,7 @@
   "volumeToSupply": null,
   "lastGenuineTrade": null,
   "tradesExcludedPct": null,
+  "supportingNotes": null,
   "flags": [
     "ZERO_DEPTH_2PCT",
     "MANIPULATION_CHEAP",
