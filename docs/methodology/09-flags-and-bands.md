@@ -1,6 +1,6 @@
 # Keel: Risk Flags and Bands
 
-**Methodology version:** 1.1.0-draft
+**Methodology version:** 1.2.0-draft
 **Supersedes:** PRD sections 5.1 and 5.2, which now simply point here
 **Implemented in:** `internal/domain/flags.go`
 
@@ -347,3 +347,4 @@ fired, so the incomplete data does not change the conclusion in this case.
 | 1.0.3-draft | `PRICE_SOURCE_CONFLICT` added after verification found an honest pool priced 50x away from the book mid. `MANIPULATION_CHEAP` and `MANIPULATION_RATIO_LOW` evaluated on the `orderbookOnly` variant            |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
 | 1.1.0-draft | Section 6's "An unresolved limitation of units" replaced by the decision that settles it: the absolute thresholds are USDC figures, per `02-pair-selection.md` section 1, and the consequence is stated with them. This file is what named Q7 as the condition for version 1.1, so this row is that condition being met rather than a bookkeeping sync. DEC-015 records it |
+| 1.2.0-draft | Header synced to the version in force, 25 September 2026. **No content change in this file.** `1.2.0-draft` is the version DEC-021 opened in `01` and `11` on 14 September 2026; this row closes the drift DEC-014 section 9 measured, when the set carried three versions. Under DEC-014 section 10 the document set carries one version and `internal/domain.MethodologyVersion` is versioned separately, as the label of the computation that produced a stored row. README section 4 carries the reasoning |

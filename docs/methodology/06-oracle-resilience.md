@@ -1,7 +1,9 @@
 # Keel: Oracle Resilience and Arbitrage Asymmetry
 
-**Methodology version:** 1.1.0-draft
-**Status:** partial. The VWAP window length is an assumption and is item 6 of the handoff.
+**Methodology version:** 1.2.0-draft
+**Status:** complete, with one stated assumption. The VWAP window `W` is 15 minutes by
+assumption and is not a confirmed Reflector parameter. Section 1.1 measures how much the
+incident result depends on it.
 
 Moving the marginal price is not the same as moving what an oracle reports. This file
 covers the gap: the volume an averaging oracle forces an attacker to outweigh, and the
@@ -26,6 +28,54 @@ both terms were zero or near zero at the same time.
 `W` is a parameter. The 15-minute default follows Script3's statement that no other trade
 occurred within 15 minutes before the manipulation. That figure is **not confirmed** as
 Reflector's actual window and is marked as an assumption.
+
+**At a live ledger the day has not ended.** Condition 5 of `07-supporting-metrics.md`
+section 1 judges a trade against the day's order-book median, and for a window that ends
+inside an unfinished UTC day no such median exists yet. The window's trades are then
+compared against the order-book median of the most recent complete UTC day. That can only
+exclude more volume than the same-day median would, never less, so it errs towards an
+attack looking cheaper, which is the direction this methodology is allowed to err in. On
+the incident it reproduces section 1.1's 0.3268461 USDC at 15 minutes exactly.
+
+### 1.1 Sensitivity to `W`, measured
+
+`W` cannot be confirmed from the chain, so its effect is bounded instead, on the one
+specimen this file has. Anchor: `2026-02-22T00:10:21Z`, the close of ledger 61340263, in
+which the manipulation executed. Trades: the February USTRY/USDC trade record in
+`docs/evidences/`, classified by the genuine rule of `07` section 1 unchanged, and summed
+over the half-open window `t(L) − W < t ≤ t(L)` that `07` section 4 fixes.
+`MC_orderbookOnly(δ_critical)` at δ = 0.5 is 0 with `Reachable` true, both in the
+hand-computed fixture at 61340262 and in the stored reconstruction at that ledger. So
+`MR` equals `V_genuine(W)` on every row and the ratio is 0 wherever it is defined.
+
+| Window `W` | Recorded trades | Genuine | `V_genuine(W)` = `MR`, USDC | Ratio | Manipulative trade ÷ `V_genuine` |
+|---|---|---|---|---|---|
+| 1 min | 1 | 0 | 0.0000000 | null, measured zero | undefined |
+| 5 min | 2 | 1 | 0.0289069 | 0 | 185.0x |
+| 10 min | 5 | 4 | 0.3268461 | 0 | 16.4x |
+| **15 min**, assumed | 5 | 4 | **0.3268461** | 0 | **16.4x** |
+| 30 min | 5 | 4 | 0.3268461 | 0 | 16.4x |
+| 1 h | 8 | 7 | 0.4250511 | 0 | 12.6x |
+| 2 h | 12 | 9 | 0.4924003 | 0 | 10.9x |
+| 4 h | 30 | 17 | 1.2413999 | 0 | 4.3x |
+| 12 h | 70 | 45 | 9.1183156 | 0 | 0.59x |
+| 24 h | 97 | 68 | 182.3695095 | 0 | 0.03x |
+
+The manipulative trade is the single price outlier of 5.3475699 USDC excluded by
+condition 5. Every other excluded trade is dust, from 2 hours outward. The 15, 30 and 60
+minute rows reproduce the table in `07` section 4. The 1 minute row is a measured zero
+rather than unevaluated: the record covers the window and holds only the manipulative
+trade.
+
+Between 10 and 30 minutes the result is identical, because no trade closed in that
+interval. Out to 4 hours the manipulative trade still outweighs all genuine volume in the
+window. Only a window of 12 hours or more would have diluted it. The assumption is
+therefore a bounded risk for this incident rather than an open one: the conclusion of
+this section holds for any window up to 4 hours, and a confirmed Reflector window outside
+that range reopens it.
+
+This bounds one incident. It is not a calibration, and on a more actively traded asset
+the same table could look entirely different.
 
 ### Two quantities, and why both are reported
 
@@ -90,3 +140,4 @@ is the attack surface.
 | 1.0.3-draft | Split out of `keel-methodology-core.md` under the road 1 decision. Content unchanged except where noted in the section itself |
 | 1.0.8-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** `07` had run to 1.0.8-draft alone; Al ratified one version for the whole set so that a reader cannot cite two. README section 4 and DEC-014 carry the reasoning |
 | 1.1.0-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** Al resolved Q7 in `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so every absolute threshold is a USDC figure. Under the one-version rule of DEC-014 the whole set moves with the one file whose content changed. README section 4 and DEC-015 carry the reasoning |
+| 1.2.0-draft | 25 September 2026. **Status moved from partial to complete, with one stated assumption.** Section 1.1 added: the sensitivity of the incident result to `W`, measured from 1 minute to 24 hours with the genuine rule of `07` section 1 unchanged, and regenerated on 25 September 2026 from the February trade record with identical figures. Section 1 gained the live-ledger reading of condition 5, the most recent complete UTC day median, which the engine already applies. **No definition changed.** Header synced to the version in force under DEC-014 section 10 |

@@ -69,16 +69,24 @@ head_ "Deliverable 1: Liquidity Depth Engine"
 
 # "The methodology will be documented and reproducible." Reproducibility is NFR-9
 # and is tested in Go; what is checked here is the weaker, and separately broken,
-# claim that the set states ONE version. DEC-014 decided that and the set has
-# drifted off it twice.
+# claim that the set states ONE version. DEC-014 decided that and the set drifted
+# off it twice. Since DEC-014 section 10 (25 September 2026) the documents and the
+# engine are two clocks: the documents must agree with EACH OTHER and with the
+# README's "in force" line, and the README must name the engine version the code
+# really carries. Requiring the two to be equal would ask for Road A, which drops
+# every stored row out of the API.
 versions=$(grep -h -m1 '^\*\*Methodology version:\*\*' docs/methodology/*.md 2>/dev/null \
   | sed 's/.*:\*\* *//' | sort -u | tr '\n' ' ')
 nver=$(printf '%s' "$versions" | wc -w | tr -d ' ')
 codever=$(grep -o '"[0-9.]*-draft"' internal/domain/types.go | head -1 | tr -d '"')
-if [ "$nver" = "1" ] && [ "$versions" = "$codever " ]; then
-  ok "methodology states one version and the code agrees ($codever)"
+inforce=$(grep -m1 '^\*\*Methodology version in force:\*\*' docs/methodology/README.md 2>/dev/null \
+  | grep -o '`[^`]*`' | head -1 | tr -d '`')
+engine=$(grep -m1 '^\*\*Engine version:\*\*' docs/methodology/README.md 2>/dev/null \
+  | grep -o '`[0-9][^`]*`' | head -1 | tr -d '`')
+if [ "$nver" = "1" ] && [ "$versions" = "$inforce " ] && [ "$engine" = "$codever" ]; then
+  ok "methodology states one version ($inforce), README names it and the engine version the code carries ($codever)"
 else
-  no "methodology version split: documents say [ $versions], code says $codever (DEC-014 decided ONE)"
+  no "methodology version split: documents say [ $versions], README in force '$inforce', README engine '$engine', code $codever (DEC-014 section 10)"
 fi
 
 if grep -q '^\*\*Status:\*\* partial' docs/methodology/06-oracle-resilience.md 2>/dev/null; then

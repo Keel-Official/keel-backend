@@ -1,6 +1,6 @@
 # Keel: Supporting Metrics
 
-**Methodology version:** 1.1.0-draft
+**Methodology version:** 1.2.0-draft
 **Status:** Sections 1–5 defined and run over the USTRY history. The first holder pull (31 August 2026) has been recorded, so holder concentration (section 2) and the volume-to-supply ratio (section 3) are now measured, not pending. The pull's non-atomic snapshot is resolved by DEC-011 (accepted): it carries `snapshot_ledger = 64211133` and a `mixed` label. Ready for review.
 
 The SOW promises holder concentration, volume-to-supply ratio, and time since the last
@@ -350,3 +350,4 @@ Each metric must state which condition makes it unevaluated.
 | 1.0.7-draft | Section 1 specimen C narrowed after directional verification (`base_is_seller`): the one-sided flow is scoped to the USTRY/USDC pair and the "not two-sided market making" inference is withdrawn, because routing accounts trade the opposite USTRY leg on a pair this file does not record (see DEC-012). Added February's split (5 sellers vs 189 buyers) alongside August's (4 vs 336); clarified that `GABFRFPYM2`'s 45,133 no-buy sells are August-only (55,197 sell-side appearances across both months) |
 | 1.0.8-draft | DEC-011 accepted (`MaxLedgerSpan` = 24 ledgers). Section 2 now reports the 31 August pull's `snapshot_ledger` (min `latest_ledger` = 64211133) and its `mixed` label: one row (`GCSO6DAFG52J…`, 0.0000001 USTRY) changed mid-pull, immaterial at four decimals, so all figures stand. References to DEC-011 (§2, §3) and DEC-012 (§1) now resolve to published records |
 | 1.1.0-draft | Header synced to the version in force, 5 September 2026. **No content change in this file.** Al resolved Q7 in `02-pair-selection.md` section 1: the quote asset is global and it is USDC, so every absolute threshold is a USDC figure. Under the one-version rule of DEC-014 the whole set moves with the one file whose content changed. README section 4 and DEC-015 carry the reasoning |
+| 1.2.0-draft | Header synced to the version in force, 25 September 2026. **No content change in this file.** `1.2.0-draft` is the version DEC-021 opened in `01` and `11` on 14 September 2026; this row closes the drift DEC-014 section 9 measured, when the set carried three versions. Under DEC-014 section 10 the document set carries one version and `internal/domain.MethodologyVersion` is versioned separately, as the label of the computation that produced a stored row. README section 4 carries the reasoning |

@@ -116,6 +116,7 @@ below the section it concerns, and no earlier sentence is edited or deleted.
 | 5 September 2026 | Record created. Al's decision in section 1, taken as item 3 of that day's ratification sheet. Section 7 opens the golden fixture question, which is RED and not resolved here |
 
 | 19 September 2026 | Section 9 added. The set has drifted off the decision in section 1 and now carries THREE versions, two of them without the `-draft` suffix. Drafted by Claude; it measures and proposes and decides nothing |
+| 25 September 2026 | Section 10 added. **Road B taken** and `1.2.0-draft` chosen, which REVERSES section 1 for the code constant only. Decided by Al in a working session; drafted and applied by Claude. Section 1 is left as written, as the zone rule requires |
 
 ---
 
@@ -179,3 +180,45 @@ All of the bookkeeping and none of the choosing: the header edits under Al's
 direction, the version-history rows, `make api-mocks-check`, and the line in
 `docs/methodology/README.md` section 4. What stays Al's is which number, whether
 `1.2.0` keeps its dropped suffix, and, on Road B, the reversal of section 1.
+
+---
+
+## 10. Road B, decided 25 September 2026, and what it reverses
+
+**The decision, taken by Al, not by this drafting.** Road B of section
+9.1, with the document set at `1.2.0-draft`.
+
+**What it reverses, stated as a reversal.** Section 1 said one number is read by every
+methodology header AND by `internal/domain.MethodologyVersion`. The second half no longer
+holds. From 25 September 2026:
+
+| Clock | Value | Moves when | Who follows it |
+|---|---|---|---|
+| Document version | `1.2.0-draft` | a definition in any methodology file is written or changed; every header moves together | the thirteen files in `docs/methodology/` |
+| Engine version | `1.0.8-draft` | the behaviour of the code that computes a stored row changes | stored rows, `GET /v1/health`, every API output, and the examples in `docs/api/keel-openapi.yaml` |
+
+The first half of section 1, one number for the whole document set, still stands, and
+the set satisfies it again: all thirteen headers read `1.2.0-draft`.
+
+**Why the suffix stays.** `1.2.0` without `-draft` would say the definitions are
+settled. The thresholds in `09-flags-and-bands.md` are chosen rather than calibrated, and
+`01` and `11` recorded no decision to drop the suffix, so their headers were corrected
+back to `1.2.0-draft` with a version-history row each.
+
+**Why not Road A, measured rather than asserted.** The API reads
+`metrics WHERE methodology_version = <constant>`, and the holder and trade caches are
+keyed by the same constant. Raising it would drop every stored row, the whole
+`/history` series and the three `?ledger=` reconstructions, out of the API until each
+was recomputed, and every asset would read null until `keel holders` and `keel trades`
+refilled. It would also stamp single-pair output with a version whose section 2 rule,
+the worst band across pairs, is not implemented, which is the NFR-9 problem DEC-015
+section 5 records.
+
+**What keeps it from drifting a fourth time.** `docs/methodology/README.md` states both
+clocks in its header, and `scripts/verify-sow.sh` now checks three things instead of
+one: the thirteen headers state one version, the README names that version as the one
+in force, and the README names the engine version the code actually carries.
+
+**What this does not touch.** No definition, formula, threshold or contract schema. The
+golden fixture's `1.0.2-draft` header, section 7, is still open and still RED.
+

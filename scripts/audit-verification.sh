@@ -874,10 +874,11 @@ fi
 # documentation convention that nobody has written down. It is surfaced because Al may
 # want to decide it, not because this script has.
 #
-# `partial` IS DELIBERATELY NOT FLAGGED. 06-oracle-resilience.md is partial because the
-# VWAP window length is an open question against a third party, which is handoff item 6
-# and is honest rather than unfinished. A check that failed on it would be demanding a
-# certainty the document is right not to claim.
+# `partial` IS DELIBERATELY NOT FLAGGED. 06-oracle-resilience.md read partial until 25
+# September 2026 because the VWAP window length is an open question against a third
+# party, handoff item 6. It now reads complete with one stated assumption, after its
+# section 1.1 measured the window's effect. The rule stands for the next file: a check
+# that failed on partial would demand a certainty a document may be right not to claim.
 status_line(){ sed -n '4p' "$1" 2>/dev/null; }
 status_text(){
   local l; l=$(status_line "$1")
@@ -905,7 +906,7 @@ for mf in docs/methodology/*.md; do
       printf "        INFO  %-34s %s\n" "$(basename "$mf")" "$mtext" ;;
   esac
 done
-echo "       partial is not a failure: 06-oracle-resilience.md is open against Reflector, handoff item 6"
+echo "       partial is not a failure; 06-oracle-resilience.md states the Reflector window as its one assumption, handoff item 6"
 
 # ---- P2-18: Layer 2 of the validation protocol has no fixtures ----
 #
