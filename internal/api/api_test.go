@@ -390,6 +390,42 @@ func TestDepthReturnsTheContractShape(t *testing.T) {
 	}
 }
 
+// A reason travels beside each absent supporting figure, a key with no reason is
+// null rather than an empty string, and a row with nothing to explain sends null
+// for the whole object.
+func TestSupportingNotesNameTheReasonAndSendNullForTheRest(t *testing.T) {
+	m := riskFixture()
+	m.Risk.Supporting.Notes = domain.SupportingNotes{
+		Holders:        "the trustline set is larger than the holder pull reads",
+		VolumeToSupply: "circulating supply is unknown",
+	}
+	f := &fakeReader{
+		pairs:  map[string][]store.Asset{"USTRY|" + testUSTRY.Issuer: {ustryPair(7)}},
+		latest: map[int]store.Metric{7: m},
+	}
+	var body map[string]any
+	decodeBody(t, get(t, newTestServer(t, f), BasePath+"/asset/"+ustryID+"/depth"), &body)
+
+	notes, ok := body["supportingNotes"].(map[string]any)
+	if !ok {
+		t.Fatalf("supportingNotes = %#v, want an object", body["supportingNotes"])
+	}
+	if notes["holders"] != "the trustline set is larger than the holder pull reads" {
+		t.Errorf("holders = %#v", notes["holders"])
+	}
+	for _, key := range []string{"tradesExcludedPct", "lastGenuineTrade"} {
+		if v, present := notes[key]; !present || v != nil {
+			t.Errorf("%s = %#v (present %t), want present and null", key, v, present)
+		}
+	}
+
+	f.latest[7] = riskFixture()
+	decodeBody(t, get(t, newTestServer(t, f), BasePath+"/asset/"+ustryID+"/depth"), &body)
+	if v, present := body["supportingNotes"]; !present || v != nil {
+		t.Errorf("supportingNotes = %#v (present %t), want present and null", v, present)
+	}
+}
+
 // Rule 5 of the brief, and point 3 of the contract's own preamble.
 func TestAnAssetWithNoPriceIs200AndNotAnError(t *testing.T) {
 	m := riskFixture()

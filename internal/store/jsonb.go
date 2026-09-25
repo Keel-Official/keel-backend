@@ -320,6 +320,41 @@ func decodeReconstruction(body []byte) (*domain.Reconstruction, error) {
 	}, nil
 }
 
+// ---------------------------------------------------------------- supporting notes
+
+// supportingNotesJSON is why each absent supporting figure is absent, one phrase
+// per figure. Empty keys are omitted, so a row that explains only its holder half
+// stores one key rather than four with three blanks.
+type supportingNotesJSON struct {
+	Holders           string `json:"holders,omitempty"`
+	TradesExcludedPct string `json:"tradesExcludedPct,omitempty"`
+	VolumeToSupply    string `json:"volumeToSupply,omitempty"`
+	LastGenuineTrade  string `json:"lastGenuineTrade,omitempty"`
+}
+
+// encodeSupportingNotes stores NULL when there is nothing to explain, so the
+// column reads NULL both on a row whose figures are all present and on a row
+// written before the column existed. Neither has a reason to give, and the
+// figures beside it say which of the two it is.
+func encodeSupportingNotes(n domain.SupportingNotes) (any, error) {
+	if n.IsZero() {
+		return nil, nil
+	}
+	body, err := json.Marshal(supportingNotesJSON(n))
+	if err != nil {
+		return nil, err
+	}
+	return string(body), nil
+}
+
+func decodeSupportingNotes(body []byte) (domain.SupportingNotes, error) {
+	var in supportingNotesJSON
+	if err := json.Unmarshal(body, &in); err != nil {
+		return domain.SupportingNotes{}, fmt.Errorf("store: supporting notes: %w", err)
+	}
+	return domain.SupportingNotes(in), nil
+}
+
 // ---------------------------------------------------------------- helpers
 
 func decimalString(d *decimal.Decimal) *string {

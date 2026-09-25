@@ -619,7 +619,47 @@ type SupportingMetrics struct {
 	// HolderSnapshotLedger above, and DEC-018 point 4 is where exposing this
 	// class of provenance is decided.
 	GenuineSearchWindow *time.Duration
+
+	// Notes says, for each figure above that is nil, WHY it is nil. An empty note
+	// beside a nil figure means nobody said.
+	//
+	// WHY IT EXISTS: A NIL FIGURE WAS FOUR DIFFERENT ANSWERS ON THE DASHBOARD. On
+	// 25 September 2026 the live API carried holder concentration for 35 of 61
+	// assets and volume-to-supply for 26, and a reader saw the same dash whether
+	// the trustline set was truncated, the pair sat above the DEC-019 threshold,
+	// the walk spent its page bound, or thirty whole days held no genuine trade.
+	// The scan already knew which, and wrote it to a log line nobody reads.
+	//
+	// Three sentences, as this file requires. The decision: carry the reason on
+	// this struct, one phrase per figure, so it travels with the figures through
+	// ComputeAssetRiskWith and into the stored row the same way
+	// HolderSnapshotLedger does. The alternative rejected: appending the reasons
+	// to AssetRisk.Warnings, which needs no new field and was the first thing
+	// tried, and was thrown away because a warning names no figure, so the
+	// dashboard would have had to pattern-match prose to decide which row a
+	// sentence belongs to. Why: a reason is a fact about one absent number and
+	// belongs next to it, exactly as the anchor belongs next to the oracle
+	// volume.
+	//
+	// NOTHING IN THIS PACKAGE READS IT. It decides no flag and moves no figure;
+	// the flag rules read the figures and the search window only, so a note can
+	// never turn an unevaluated flag into an evaluated one.
+	Notes SupportingNotes
 }
+
+// SupportingNotes is one reader-facing phrase per supporting figure, set only
+// when that figure is nil. The three holder figures share one note because they
+// come from one trustline pull and are absent together.
+type SupportingNotes struct {
+	Holders           string
+	TradesExcludedPct string
+	VolumeToSupply    string
+	LastGenuineTrade  string
+}
+
+// IsZero reports whether no note is set, which is how the store tells "nothing
+// to explain" from a row that carries an explanation.
+func (n SupportingNotes) IsZero() bool { return n == SupportingNotes{} }
 
 // OracleResistance answers one question: is moving the price to a critical level
 // cheaper than the genuine trading volume that actually occurred inside the
