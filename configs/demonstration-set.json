@@ -1,5 +1,5 @@
 {
-  "note": "PROVISIONAL DEMONSTRATION SET, 60 pairs, generated 26 August 2026. IT PROPOSES AND DOES NOT SELECT. Superseded by docs/methodology/02-pair-selection.md section 5 the moment that section is written. HOW THE UNIVERSE WAS REACHED: every constant-product liquidity pool on Horizon holding USDC was enumerated, 879 of them, and the 60 with the largest USDC reserve were kept. That is a COMPLETE enumeration of one venue and not a sample of it. WHAT IT MISSES, stated because it is not small: an asset with a USDC order book but NO USDC pool cannot be reached this way. Horizon offers no way to enumerate the counterparties of an asset: /trades, /trade_aggregations and /order_book all refuse a request naming only one side, and a full /assets sweep returned 26600 records without leaving the letter A. Closing that gap needs a ticker list from outside Horizon, which is a decision for 02 section 5 and not for this file. THE FOUR BUCKETS ARE MEASURED, THEIR BOUNDARIES ARE NOT METHODOLOGY: deep is a two-sided book under 1 percent spread with at least 10000 USDC pooled, moderate is a two-sided book under 10 percent, thin is one side only or a wider spread, dormant is no order book at all on either side. Those cutoffs were chosen to make the four groups in 10-validation.md section 3 visible, not derived from anything. ASSET TYPE IS READ FROM HORIZON AND NEVER INFERRED FROM CODE LENGTH: yUSDC is five characters and credit_alphanum12. TWO CODES APPEAR TWICE WITH DIFFERENT ISSUERS, EURC and GOLD, and they are different assets. REPRODUCE IT WITH: horizon /liquidity_pools?reserves=USDC:GA5ZSEJY... paginated, then scripts/candidate-survey.sh over the result. ONE PAIR WAS ADDED ON 12 SEPTEMBER 2026 AND IT IS NOT PART OF THE SURVEY ABOVE: USTRY/USDC, the 61st entry, whose note says so in its own words. It is here because 02-pair-selection.md section 5 criterion C5 includes it BY NAME, so adding it executes a criterion that was already committed rather than deciding anything. THIS IS STILL NOT THE REBUILD. Section 5 says the set is rebuilt from C1 to C7 by a selection run whose output is recorded in a new evidence document, and no such run has happened, so this file stays PROVISIONAL and the C3 code-path cells and the C4 quartiles remain unverified. What the addition fixes is narrower and was visible in production: GET /v1/asset/USTRY:GCRYUGD5.../depth answered ASSET_NOT_MONITORED, so the API could not serve the one asset the backtest report, DEC-001 and the golden fixture are all about.",
+  "note": "PROVISIONAL DEMONSTRATION SET, 60 pairs, generated 26 August 2026. IT PROPOSES AND DOES NOT SELECT. Superseded by docs/methodology/02-pair-selection.md section 5 the moment that section is written. HOW THE UNIVERSE WAS REACHED: every constant-product liquidity pool on Horizon holding USDC was enumerated, 879 of them, and the 60 with the largest USDC reserve were kept. That is a COMPLETE enumeration of one venue and not a sample of it. WHAT IT MISSES, stated because it is not small: an asset with a USDC order book but NO USDC pool cannot be reached this way. Horizon offers no way to enumerate the counterparties of an asset: /trades, /trade_aggregations and /order_book all refuse a request naming only one side, and a full /assets sweep returned 26600 records without leaving the letter A. Closing that gap needs a ticker list from outside Horizon, which is a decision for 02 section 5 and not for this file. THE FOUR BUCKETS ARE MEASURED, THEIR BOUNDARIES ARE NOT METHODOLOGY: deep is a two-sided book under 1 percent spread with at least 10000 USDC pooled, moderate is a two-sided book under 10 percent, thin is one side only or a wider spread, dormant is no order book at all on either side. Those cutoffs were chosen to make the four groups in 10-validation.md section 3 visible, not derived from anything. ASSET TYPE IS READ FROM HORIZON AND NEVER INFERRED FROM CODE LENGTH: yUSDC is five characters and credit_alphanum12. TWO CODES APPEAR TWICE WITH DIFFERENT ISSUERS, EURC and GOLD, and they are different assets. REPRODUCE IT WITH: horizon /liquidity_pools?reserves=USDC:GA5ZSEJY... paginated, then scripts/candidate-survey.sh over the result. ONE PAIR WAS ADDED ON 12 SEPTEMBER 2026 AND IT IS NOT PART OF THE SURVEY ABOVE: USTRY/USDC, the 61st entry, whose note says so in its own words. It is here because 02-pair-selection.md section 5 criterion C5 includes it BY NAME, so adding it executes a criterion that was already committed rather than deciding anything. THIS IS STILL NOT THE REBUILD. Section 5 says the set is rebuilt from C1 to C7 by a selection run whose output is recorded in a new evidence document, and no such run has happened, so this file stays PROVISIONAL and the C3 code-path cells and the C4 quartiles remain unverified. What the addition fixes is narrower and was visible in production: GET /v1/asset/USTRY:GCRYUGD5.../depth answered ASSET_NOT_MONITORED, so the API could not serve the one asset the backtest report, DEC-001 and the golden fixture are all about. 24 PAIRS WERE ADDED ON 25 SEPTEMBER 2026, taking the set to 85, under option A of that day: every USDC constant-product pool that held at least 100 USDC on 25 September 2026 and was not already here. The same enumeration found 890 USDC pools in total and only 83 at or above 100 USDC, so this covers every pool of that size; the 200 next-largest pools hold between 192 and 4 USDC and were deliberately NOT added, because they would fill the set with dust markets. HU and USTRY now sit below 100 USDC and stay in the set: HU from the 26 August survey, USTRY under C5. Each added pair's note carries its own 25 September measurement from the four candidate-survey.sh questions, and the asset type of every one was read from Horizon /assets, never inferred. The composition is 13 dormant, 8 thin and 3 moderate, which is what the long tail of Stellar USDC pools actually looks like. THIS IS STILL NOT THE C1 TO C7 REBUILD: assets with a USDC order book and no USDC pool remain unreachable by this enumeration.",
   "pairs": [
     {
       "base": {
@@ -793,6 +793,318 @@
         "type": "credit_alphanum4"
       },
       "note": "NOT FROM THE 26 AUGUST SURVEY. Added 12 September 2026 under 02-pair-selection.md section 5 criterion C5, which includes this asset BY NAME as the subject of the backtest and the golden fixture. Its identity is fixed by DEC-001 and matches testdata/fixtures/ustry_pre_exploit.md. The type is credit_alphanum12 and is read from Horizon, never inferred from the five characters: asking for it as credit_alphanum4 returns an empty book with no error. C2 eligibility measured on Horizon 12 September 2026: order book 5 bids and 5 asks, best bid 1.0738405 and best ask 1.0743775, and a constant-product USDC pool 27480d0483c8320b holding 16.5873768 USDC against 15.4478108 USTRY at 30 bp. Both limbs of C2 are satisfied, so it does not enter as a no-executable-price case."
+    },
+    {
+      "base": {
+        "code": "LGSr",
+        "issuer": "GANE2MZDRECTZL3KXPO2SEQNOMPV3TXD6U6T2KQDOJKAWPWCKTF2LGST",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 509.3891497, book 0 bids and 0 asks, spread n/a percent, 1526 trades in 30 days, authorized trustlines 8. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "XRF",
+        "issuer": "GCHI6I3X62ND5XUMWINNNKXS2HPYZWKFQBZZYBSMHJ4MIP2XJXSZTXRF",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 222.8210959, book 11 bids and 23 asks, spread 136.55 percent, 9127 trades in 30 days, authorized trustlines 1635. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "LTC",
+        "issuer": "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 203.4949959, book 30 bids and 14 asks, spread 162.96 percent, 4029 trades in 30 days, authorized trustlines 5944. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "SBB",
+        "issuer": "GCJJT5KK5AHQOZ2P33AO2G36KJVTHSACOR3I7U4UISKDC6TMZ2BIRFSD",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 190.5336485, book 0 bids and 0 asks, spread n/a percent, 6104 trades in 30 days, authorized trustlines 63. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "SWTHRT",
+        "issuer": "GAFLLIM32XXHOVKRDTMI7SKLR6XHRDOSJXMA3ZBBF3X7L4JTCEXQUDDZ",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 187.8770193, book 0 bids and 0 asks, spread n/a percent, 2183 trades in 30 days, authorized trustlines 25. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "Fucupcakes",
+        "issuer": "GAYLMXU2ACEUZCHCFZM4OAIUJCJTU6QZBWUTVRGOB5JHLWKNVGNP2P6B",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 170.9385235, book 1 bids and 0 asks, spread n/a percent, 3514 trades in 30 days, authorized trustlines 78. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "AIXDOGEX",
+        "issuer": "GDQ3MN2EOI46K5CM5I3IONKRMPC2KVEAI5ZIWZ4F4RUJC4IJNHPBJUJL",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 169.6545422, book 0 bids and 0 asks, spread n/a percent, 2148 trades in 30 days, authorized trustlines 42. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "1",
+        "issuer": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 163.0863627, book 0 bids and 0 asks, spread n/a percent, 41858 trades in 30 days, authorized trustlines 13. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "EURMTL",
+        "issuer": "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 158.6590356, book 10 bids and 7 asks, spread 3.44 percent, 15463 trades in 30 days, authorized trustlines 4682. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "1x",
+        "issuer": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 157.5560833, book 0 bids and 0 asks, spread n/a percent, 520092 trades in 30 days, authorized trustlines 7. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "USDx",
+        "issuer": "GAVH5ZWACAY2PHPUG4FL3LHHJIYIHOFPSIUGM2KHK25CJWXHAV6QKDMN",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 153.2787496, book 4 bids and 5 asks, spread 1.98 percent, 2909 trades in 30 days, authorized trustlines 572. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "LFI",
+        "issuer": "GDX4QYQYGNMZXFTYLFZWUJSP32ASCBVQVOIRV55IVMDZKTRSYGZ3TWNJ",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 152.5503910, book 0 bids and 5 asks, spread n/a percent, 2749 trades in 30 days, authorized trustlines 157. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "PYBC",
+        "issuer": "GBVB43NLVIP2USHXSKI7QQCZKZU2Z6U6A5PAHMIW7LLNVMQJTOX2BZI5",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 142.3207441, book 1 bids and 19 asks, spread 128.53 percent, 3767 trades in 30 days, authorized trustlines 3358. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "4T",
+        "issuer": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 142.0388222, book 0 bids and 0 asks, spread n/a percent, 0 trades in 30 days, authorized trustlines 3. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "RUV",
+        "issuer": "GBJGR7HDC4QPCZ6SA5VBH73V7L5SSZ5GAS6US23PFSGV4SQXJLYGERYX",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 131.7501833, book 0 bids and 0 asks, spread n/a percent, 2114 trades in 30 days, authorized trustlines 92. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "TREAD",
+        "issuer": "GANMKTF7SVYEHZ4CTLRKT2MG2OUJNDEA3JGZGTUTHQZOZSWJHHUF6VLM",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 130.2930046, book 0 bids and 0 asks, spread n/a percent, 12003 trades in 30 days, authorized trustlines 436. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "xRUNES",
+        "issuer": "GCLQS7XDYZN4KPW5STJVVLHSSYH5DYBQXDCMZG5PCWBGTX2EAUI54ZCS",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 130.1631406, book 8 bids and 0 asks, spread n/a percent, 4552 trades in 30 days, authorized trustlines 87. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "Cleanshave",
+        "issuer": "GCTZJCIPAJQ5OTNL5MJGA6ETMG7A3GOKYYZUO6JJPWUZCJSSUYNVAISG",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket moderate. USDC pooled 119.7081374, book 10 bids and 7 asks, spread 3.92 percent, 3367 trades in 30 days, authorized trustlines 29. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "LGSb",
+        "issuer": "GANE2MZDRECTZL3KXPO2SEQNOMPV3TXD6U6T2KQDOJKAWPWCKTF2LGST",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 119.2665143, book 0 bids and 0 asks, spread n/a percent, 6638 trades in 30 days, authorized trustlines 8. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "Ral",
+        "issuer": "GDIPUPLA4BOINFWB4TQURSOUCGSUYTCB7BC6XBXH7ZRY454R2GN2UTHV",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 106.9772589, book 0 bids and 6 asks, spread n/a percent, 2078 trades in 30 days, authorized trustlines 120. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "GYEN",
+        "issuer": "GDF6VOEGRWLOZ64PQQGKD2IYWA22RLT37GJKS2EJXZHT2VLAGWLC5TOB",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket thin. USDC pooled 106.6862650, book 16 bids and 11 asks, spread 11.78 percent, 9463 trades in 30 days, authorized trustlines 2304. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "LGSw",
+        "issuer": "GANE2MZDRECTZL3KXPO2SEQNOMPV3TXD6U6T2KQDOJKAWPWCKTF2LGST",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 104.0747255, book 0 bids and 0 asks, spread n/a percent, 1534 trades in 30 days, authorized trustlines 6. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "Indocoin",
+        "issuer": "GDJZKTSK7S5C5ATFX5JCPXW4IBF55XHWMWLDHA5XK6WJEW6NL2RPFTSS",
+        "type": "credit_alphanum12"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 102.5608487, book 0 bids and 0 asks, spread n/a percent, 3222 trades in 30 days, authorized trustlines 373. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
+    },
+    {
+      "base": {
+        "code": "LGSu",
+        "issuer": "GANE2MZDRECTZL3KXPO2SEQNOMPV3TXD6U6T2KQDOJKAWPWCKTF2LGST",
+        "type": "credit_alphanum4"
+      },
+      "quote": {
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "type": "credit_alphanum4"
+      },
+      "note": "bucket dormant. USDC pooled 101.1550254, book 0 bids and 0 asks, spread n/a percent, 6184 trades in 30 days, authorized trustlines 12. Measured on Horizon 25 September 2026. ADDED 25 September 2026 under option A: every USDC constant-product pool holding at least 100 USDC on that date and not already in this set."
     }
   ]
 }
