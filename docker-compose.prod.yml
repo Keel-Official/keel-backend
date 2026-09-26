@@ -248,7 +248,9 @@ services:
       KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
       KEEL_DB_CONN_MAX_IDLE_TIME: ${KEEL_DB_CONN_MAX_IDLE_TIME:-}
       KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
-    command: ["scan", "-interval", "15m"]
+    # -max-trade-age 48h since 26 September 2026, paired with keel-trades'
+    # 17 hour full-window pass. See the comment above that service's command.
+    command: ["scan", "-interval", "15m", "-max-trade-age", "48h"]
     # `data` ONLY, and it still reaches Horizon: a user-defined bridge is not
     # `internal`, so outbound works. What it does not have is a published port, so
     # nothing off this box can address it.
@@ -387,7 +389,25 @@ services:
       KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
       KEEL_DB_CONN_MAX_IDLE_TIME: ${KEEL_DB_CONN_MAX_IDLE_TIME:-}
       KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
-    command: ["trades", "-interval", "24h"]
+    # THE WHOLE 30 DAY WINDOW FOR EVERY PAIR BUT XLM, since 26 September 2026.
+    # -threshold 700000 admits 84 of the 85 pairs to the full window; only XLM,
+    # at about 1.93 million trades, keeps the cheap half, and its volume-to-supply
+    # has no denominator anyway because the native asset has no trustlines. The
+    # pass is about 20,400 pages, about 17 hours at -budget 1200, and the walk
+    # waits for the budget rather than failing (Config.WaitOnBudget).
+    #
+    # -max-pages 4000 bounds ONE pair, and has to clear the largest full-window
+    # pair, HU/USDC at about 3,332 pages.
+    #
+    # MEMORY STAYS WHERE IT WAS because the full window is now classified one
+    # UTC day at a time (cmd/keel/tradewindow.go), so at most three days are held
+    # at once instead of thirty. Without that change this threshold would OOM
+    # HU, TGM and yXLM under the 256M limit below.
+    #
+    # A 17 HOUR PASS IS WHY keel-scan NOW READS -max-trade-age 48h. At 36 hours a
+    # reading anchored at 00:00 expires at 12:00 the next day, and every pair the
+    # pass reaches after noon would read null for the rest of the afternoon.
+    command: ["trades", "-interval", "24h", "-threshold", "700000", "-max-pages", "4000", "-budget", "1200"]
     networks:
       - data
     restart: unless-stopped
