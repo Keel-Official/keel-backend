@@ -158,7 +158,7 @@ trustline set answers the question not at all.
 		len(targets), domain.MethodologyVersion, pageCapLabel(*maxPages))
 
 	if *interval <= 0 {
-		return holdersPass(ctx, s, client, targets, logger)
+		return holdersPass(ctx, s, client, targets, *maxPages, logger)
 	}
 
 	// THE SAME SHAPE AS `scan`, AND FOR THE SAME REASON. A deployment needs this
@@ -174,7 +174,7 @@ trustline set answers the question not at all.
 	ticker := time.NewTicker(*interval)
 	defer ticker.Stop()
 	for {
-		if err := holdersPass(ctx, s, client, targets, logger); err != nil {
+		if err := holdersPass(ctx, s, client, targets, *maxPages, logger); err != nil {
 			return err
 		}
 		select {
@@ -196,6 +196,7 @@ func holdersPass(
 	s *store.Store,
 	client *horizon.Client,
 	targets []domain.Asset,
+	maxPages int,
 	logger *log.Logger,
 ) error {
 	runID, err := s.StartRun(ctx, store.RunHolders, time.Now().UTC())
@@ -219,7 +220,7 @@ func holdersPass(
 		// being throttled, and those two call for different fixes.
 		assetStarted := time.Now()
 
-		obs, err := client.GetHolders(ctx, a)
+		obs, err := pullWithinBudget(ctx, s, client, a, maxPages, logger)
 		if err != nil {
 			// The native asset is the one case that cannot ever succeed. See
 			// decision 2 in this file's header.
@@ -421,6 +422,77 @@ func snapshotFrom(first, last uint32) (snapshot uint32, span int) {
 	}
 	return lo, int(hi - lo)
 }
+
+// pullWithinBudget pulls one asset's holders, waiting for the request budget
+// first instead of failing on it.
+//
+// WHY IT WAITS WHEN THE CLIENT DOES NOT. Decision 4 in internal/horizon keeps Get
+// refusing when the window is spent, and that is right for a scan round. A holder
+// pass at -max-pages 1200 is not a round: it needs about 6,000 requests against
+// a budget of 1,200 an hour, and on 26 September 2026 its first run spent the
+// window on eight assets and failed the other 77 in the same second. A daily pass
+// that reaches eight assets lets every other reading age past scan's 48 hour
+// bound, which empties the holder figures it was meant to fill.
+//
+// It waits BEFORE the pull, for as many requests as the asset's last reading
+// says it needs, so a large asset is not started into a nearly spent window and
+// thrown away halfway. The estimate can be low, since holder sets grow, so a pull
+// that still runs out waits for the whole window and is retried once. A second
+// refusal is reported as a failure like any other.
+func pullWithinBudget(
+	ctx context.Context,
+	s *store.Store,
+	client *horizon.Client,
+	a domain.Asset,
+	maxPages int,
+	logger *log.Logger,
+) (horizon.HolderObservation, error) {
+	// The native asset spends no request and can never succeed, so it must not
+	// wait for a budget it will not use.
+	if a.IsNative() {
+		return client.GetHolders(ctx, a)
+	}
+	need := holderRequestsNeeded(ctx, s, a, maxPages)
+	if err := waitLogged(ctx, client, a, need, logger); err != nil {
+		return horizon.HolderObservation{}, err
+	}
+	obs, err := client.GetHolders(ctx, a)
+	if !errors.Is(err, horizon.ErrRateBudget) {
+		return obs, err
+	}
+	if err := waitLogged(ctx, client, a, client.Budget(), logger); err != nil {
+		return horizon.HolderObservation{}, err
+	}
+	return client.GetHolders(ctx, a)
+}
+
+func waitLogged(ctx context.Context, client *horizon.Client, a domain.Asset, need int, logger *log.Logger) error {
+	if d := client.BudgetWait(need); d > 0 {
+		logger.Printf("wait  %s: %d request(s) needed, budget frees them in %s", a, need, d.Round(time.Second))
+	}
+	return client.WaitForBudget(ctx, need)
+}
+
+// holderRequestsNeeded estimates one pull's cost from the asset's last reading:
+// one summary request plus one per page of 200 holders, bounded by the page cap.
+// With no reading to go on it assumes the whole cap, which is the safe side.
+func holderRequestsNeeded(ctx context.Context, s *store.Store, a domain.Asset, maxPages int) int {
+	if maxPages <= 0 {
+		maxPages = defaultHolderPageCap
+	}
+	pages := maxPages
+	if prior, err := s.LatestHolderReading(ctx, a, domain.MethodologyVersion); err == nil {
+		pages = prior.HolderCountReported/200 + 1
+	}
+	if pages > maxPages {
+		pages = maxPages
+	}
+	return pages + 1
+}
+
+// defaultHolderPageCap mirrors internal/horizon's default for -max-pages 0. It is
+// used only to size a wait, so a drift between the two costs time, never data.
+const defaultHolderPageCap = 25
 
 func pageCapLabel(n int) string {
 	if n <= 0 {

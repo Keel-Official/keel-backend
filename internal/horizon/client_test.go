@@ -389,6 +389,68 @@ func TestRateBudgetRefusesRatherThanWaits(t *testing.T) {
 	}
 }
 
+// BudgetWait says how long until a stated number of requests is free, and the
+// answer moves with the clock, so a batch caller can wait for exactly as much of
+// the window as its next unit of work needs.
+func TestBudgetWaitCountsFromTheOldestRequestThatMustLeave(t *testing.T) {
+	f := newFakeHorizon(t)
+	now := time.Date(2026, 9, 26, 7, 0, 0, 0, time.UTC)
+	c, _ := f.client(func(cfg *Config) {
+		cfg.Budget = 3
+		cfg.BudgetWindow = time.Hour
+		cfg.Now = func() time.Time { return now }
+	})
+
+	if d := c.BudgetWait(3); d != 0 {
+		t.Fatalf("empty window: wait %s, want 0", d)
+	}
+	// Three requests at 07:00, 07:10 and 07:20 fill the budget.
+	for _, at := range []time.Duration{0, 10 * time.Minute, 20 * time.Minute} {
+		now = time.Date(2026, 9, 26, 7, 0, 0, 0, time.UTC).Add(at)
+		if err := c.spend(); err != nil {
+			t.Fatalf("spend at %s: %v", now, err)
+		}
+	}
+	now = time.Date(2026, 9, 26, 7, 30, 0, 0, time.UTC)
+
+	// One slot frees when the 07:00 request leaves the window at 08:00.
+	if d := c.BudgetWait(1); d != 30*time.Minute+time.Second {
+		t.Errorf("need 1: wait %s, want 30m1s", d)
+	}
+	// Two slots need the 07:10 request gone too.
+	if d := c.BudgetWait(2); d != 40*time.Minute+time.Second {
+		t.Errorf("need 2: wait %s, want 40m1s", d)
+	}
+	// More than the budget is the whole budget, never an impossible wait.
+	if d := c.BudgetWait(10); d != 50*time.Minute+time.Second {
+		t.Errorf("need 10 of a budget of 3: wait %s, want 50m1s", d)
+	}
+
+	now = time.Date(2026, 9, 26, 8, 30, 0, 0, time.UTC)
+	if d := c.BudgetWait(3); d != 0 {
+		t.Errorf("after the window has passed: wait %s, want 0", d)
+	}
+}
+
+// WaitForBudget returns at once when the requests are free and returns the
+// context's error when canceled, so a pass can always be stopped.
+func TestWaitForBudgetReturnsAtOnceOrOnCancel(t *testing.T) {
+	f := newFakeHorizon(t)
+	c, _ := f.client(func(cfg *Config) { cfg.Budget = 1 })
+
+	if err := c.WaitForBudget(context.Background(), 1); err != nil {
+		t.Fatalf("free budget: %v", err)
+	}
+	if err := c.spend(); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := c.WaitForBudget(ctx, 1); !errors.Is(err, context.Canceled) {
+		t.Errorf("spent budget, canceled context: %v, want context.Canceled", err)
+	}
+}
+
 func TestCacheServesTheSameBytesAndSkipsTheNetwork(t *testing.T) {
 	f := newFakeHorizon(t)
 	c, _ := f.client(func(cfg *Config) { cfg.CacheTTL = time.Minute })
