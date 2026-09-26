@@ -299,7 +299,22 @@ services:
       KEEL_DB_CONN_MAX_LIFETIME: ${KEEL_DB_CONN_MAX_LIFETIME:-}
       KEEL_DB_CONN_MAX_IDLE_TIME: ${KEEL_DB_CONN_MAX_IDLE_TIME:-}
       KEEL_DB_PING_TIMEOUT: ${KEEL_DB_PING_TIMEOUT:-}
-    command: ["holders", "-interval", "24h"]
+    # -max-pages 1200 READS EVERY HOLDER OF EVERY ASSET IN THE SET, since
+    # 26 September 2026. At the package default of 25 pages, 26 of the 85 assets
+    # were stored TRUNCATED and served no concentration at all; the largest set,
+    # AQUA at about 192,000 holders, needs 961 pages, and 1200 leaves room for it
+    # to grow. A pass is therefore hours rather than minutes: one /accounts page
+    # of a widely held asset measured 17.5 MB and 20.5 seconds. Memory is still
+    # bounded by one page plus the decoded holders, see the limit below.
+    #
+    # -budget 1200 leaves the IP room for keel-scan and keel-trades. Public
+    # Horizon allows about 3,600 requests an hour per IP, and the three services
+    # share it.
+    #
+    # A PASS MAY NOW OUTLAST THE 24h INTERVAL. The loop in cmd/keel/holders.go
+    # starts the next pass as soon as a late one finishes, and each asset is
+    # re-read about once a day, inside scan's 48 hour -max-holder-age.
+    command: ["holders", "-interval", "24h", "-max-pages", "1200", "-budget", "1200"]
     networks:
       - data
     restart: unless-stopped

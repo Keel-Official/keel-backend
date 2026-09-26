@@ -35,6 +35,14 @@
 //     until a slot frees, which hides an exhausted budget as latency and can
 //     park a recording round for the better part of an hour.
 //
+//     A CALLER MAY CHOOSE TO WAIT, AND HAS TO SAY SO. WaitForBudget, added on
+//     26 September 2026, blocks until a stated number of requests is free. It
+//     exists for batch passes whose total exceeds one window: the holder pass
+//     at -max-pages 1200 needs about 6,000 requests, and on its first run it
+//     spent the 1,200 budget on eight assets and failed the other 77 in the
+//     same second. Get is unchanged, so `scan` still fails fast; only a caller
+//     that calls WaitForBudget before its work waits, and it waits in the open.
+//
 //  5. THE CACHE STORES BYTES, NOT STRUCTS, AND IS OFF BY DEFAULT. A cached
 //     response is therefore byte-identical to a fresh one and cannot change
 //     what gets recorded. The recorder wants every round fresh; `scan` over
@@ -347,6 +355,48 @@ func (c *Client) Requests() int {
 	defer c.mu.Unlock()
 	c.pruneBudget(c.cfg.Now())
 	return len(c.spent)
+}
+
+// Budget is the number of requests allowed per budget window.
+func (c *Client) Budget() int { return c.cfg.Budget }
+
+// BudgetWait reports how long until at least need requests are free in the
+// window, zero when they already are. need above the budget is treated as the
+// whole budget, because no wait can free more than that.
+func (c *Client) BudgetWait(need int) time.Duration {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	now := c.cfg.Now()
+	c.pruneBudget(now)
+	if need > c.cfg.Budget {
+		need = c.cfg.Budget
+	}
+	// spent is in time order, oldest first. Freeing need slots means the
+	// oldest `excess` entries have to leave the window.
+	excess := len(c.spent) - (c.cfg.Budget - need)
+	if excess <= 0 {
+		return 0
+	}
+	return c.spent[excess-1].Add(c.cfg.BudgetWindow).Sub(now) + time.Second
+}
+
+// WaitForBudget blocks until at least need requests are free in the window, or
+// until ctx is done. See decision 4: Get never waits, and this is the one place
+// a caller opts in to waiting.
+func (c *Client) WaitForBudget(ctx context.Context, need int) error {
+	for {
+		d := c.BudgetWait(need)
+		if d <= 0 {
+			return nil
+		}
+		timer := time.NewTimer(d)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
+		case <-timer.C:
+		}
+	}
 }
 
 func (c *Client) pruneBudget(now time.Time) {
