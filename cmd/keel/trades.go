@@ -191,6 +191,10 @@ construction, which is the direction a staleness flag may err in.
 	client := horizon.NewClient(horizon.Config{
 		BaseURL: *baseURL,
 		Budget:  *budget,
+		// A full-window walk of a busy pair is larger than one budget window,
+		// so this pass waits for the budget rather than failing the walk. The
+		// cost is time, and every pair still finishes inside its day.
+		WaitOnBudget: true,
 		// No cache. A second walk that is identical because a body was reused
 		// says nothing about the trade stream, which is the recorder's argument
 		// and applies unchanged here.
@@ -401,14 +405,20 @@ func pullTrades(
 	// that "no genuine day for weeks" is a real state and not a hypothetical: its
 	// trades are pool fills with no contemporaneous book, so condition 4 declines
 	// to judge them and thirty days pass without one.
-	var days [][]domain.Trade
+	//
+	// THE FULL HALF KEEPS AT MOST THREE DAYS TOO, since 26 September 2026. It
+	// used to hold the whole window and classify it in one call, which the
+	// threshold kept small; fullWindow in tradewindow.go classifies each day as
+	// its older neighbor arrives, so the threshold can rise without the memory
+	// rising with it.
 	var genuineDay []domain.Trade
 	stoppedOnGenuine := false
+	fw := newFullWindow(a.Base, rules, anchor, params.OracleWindow)
 	walk, err := client.WalkTradeDays(ctx, a.Base, a.Quote,
 		horizon.TradeDayQuery{Anchor: anchor, MaxDays: cfg.MaxDays, MaxPages: cfg.MaxPages},
 		func(d horizon.TradeDay) (bool, error) {
 			if full {
-				days = append(days, d.Trades)
+				fw.add(d)
 				return true, nil
 			}
 			cs := domain.ClassifyTrades(d.Trades, a.Base, rules)
@@ -436,16 +446,16 @@ func pullTrades(
 		BoundReached:       walk.BoundReached,
 	}
 
-	// The full half classifies the whole window at once, which is what the volume
-	// sums need and what gives condition 5 every day's own median. The cheap half
+	// The full half has classified every day as the walk went. The cheap half
 	// classifies only the day it stopped on, which is the day the answer is in and
 	// is already complete: the walk never emits a partial one.
-	subject := genuineDay
 	if full {
-		subject = flattenDaysAscending(days)
+		fw.finish()
+		r.LastGenuine = fw.last
+	} else {
+		cs := domain.ClassifyTrades(genuineDay, a.Base, rules)
+		r.LastGenuine = domain.LastGenuineTrade(cs, anchor)
 	}
-	cs := domain.ClassifyTrades(subject, a.Base, rules)
-	r.LastGenuine = domain.LastGenuineTrade(cs, anchor)
 
 	// COVERAGE IS NOT THE SAME QUESTION AS THE THRESHOLD. A pair under the
 	// threshold whose walk was cut short by the bound has no complete window
@@ -455,13 +465,11 @@ func pullTrades(
 	switch {
 	case full && covered:
 		r.Scope = store.ScopeFullWindow
-		r.TradesExcludedPct = domain.SummariseGenuine(cs).ExcludedPct()
-		d1, _, _ := domain.GenuineVolumeInWindow(cs, anchor, 24*time.Hour)
-		d7, _, _ := domain.GenuineVolumeInWindow(cs, anchor, 7*24*time.Hour)
-		d30, _, _ := domain.GenuineVolumeInWindow(cs, anchor, 30*24*time.Hour)
+		r.TradesExcludedPct = fw.excludedPct()
+		d1, d7, d30 := fw.baseD1, fw.baseD7, fw.baseD30
 		r.GenuineBaseD1, r.GenuineBaseD7, r.GenuineBaseD30 = &d1, &d7, &d30
 
-		_, quote, recorded := domain.GenuineVolumeInWindow(cs, anchor, params.OracleWindow)
+		quote, recorded := fw.oracleQuote, fw.oracleRecorded
 		r.GenuineQuoteOracleWindow, r.OracleWindowRecorded = &quote, &recorded
 
 		return r, fmt.Sprintf("full window, %d trades in 30 days at the 26 August count", count), nil
