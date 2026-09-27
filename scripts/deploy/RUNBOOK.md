@@ -696,6 +696,18 @@ curl -s https://api.keels.app/v1/asset/<CODE>:<ISSUER>/depth \
   | grep -iE 'lastGenuineTrade|volumeToSupply|bandConfidence'
 ```
 
+**AMENDED 26 September 2026: the whole window for every pair but XLM.** The
+compose file now runs `keel-trades` with `-threshold 700000 -max-pages 4000
+-budget 1200` and `keel-scan` with `-max-trade-age 48h`. 84 of the 85 pairs get
+the full 30 day window, about 20,400 pages and about 17 hours a pass. Two changes
+make that safe: the full window is classified one UTC day at a time
+(`cmd/keel/tradewindow.go`), so memory no longer grows with the threshold, and the
+trade client waits for its budget instead of failing a walk that is larger than
+one window (`horizon.Config.WaitOnBudget`). The 36 hour bound above became 48
+because a 17 hour pass reaches some pairs after noon, when a 36 hour bound would
+already have expired their previous reading. The paragraphs above describe the
+cadence as it was on 22 September and are kept as the history.
+
 ### 3.7 First boot
 
 ```bash

@@ -451,6 +451,35 @@ func TestWaitForBudgetReturnsAtOnceOrOnCancel(t *testing.T) {
 	}
 }
 
+// WaitOnBudget turns the refusal into a wait for a client that asked for it,
+// and only for that client.
+func TestWaitOnBudgetWaitsInsteadOfRefusing(t *testing.T) {
+	f := newFakeHorizon(t)
+	window := 150 * time.Millisecond
+	c, _ := f.client(func(cfg *Config) {
+		cfg.Budget = 3
+		cfg.BudgetWindow = window
+		cfg.Now = time.Now
+		cfg.WaitOnBudget = true
+	})
+
+	start := time.Now()
+	for i := 0; i < 3; i++ {
+		if _, err := c.GetSnapshot(context.Background(), testUSTRY, testUSDC); err != nil {
+			t.Fatalf("snapshot %d: %v; a waiting client must not refuse", i, err)
+		}
+	}
+	if elapsed := time.Since(start); elapsed < window {
+		t.Errorf("three snapshots over a budget of 3 took %s, want at least one window of %s", elapsed, window)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := c.GetSnapshot(ctx, testUSTRY, testUSDC); err == nil {
+		t.Error("a canceled context still got a snapshot through a spent budget")
+	}
+}
+
 func TestCacheServesTheSameBytesAndSkipsTheNetwork(t *testing.T) {
 	f := newFakeHorizon(t)
 	c, _ := f.client(func(cfg *Config) { cfg.CacheTTL = time.Minute })

@@ -42,6 +42,8 @@
 //     spent the 1,200 budget on eight assets and failed the other 77 in the
 //     same second. Get is unchanged, so `scan` still fails fast; only a caller
 //     that calls WaitForBudget before its work waits, and it waits in the open.
+//     Config.WaitOnBudget is the same choice made for a whole client, for a
+//     walk that is itself larger than one window.
 //
 //  5. THE CACHE STORES BYTES, NOT STRUCTS, AND IS OFF BY DEFAULT. A cached
 //     response is therefore byte-identical to a fresh one and cannot change
@@ -212,6 +214,14 @@ type Config struct {
 	// the default leaves headroom for whatever else shares the IP.
 	Budget       int
 	BudgetWindow time.Duration
+
+	// WaitOnBudget makes every request wait for a free slot instead of
+	// returning ErrRateBudget. Off by default, which is decision 4. A batch
+	// command whose one unit of work is larger than a window turns it on: the
+	// trade walk of HU/USDC is about 3,300 pages against a budget of 1,200 an
+	// hour, so no wait before the walk can make it fit, and refusing mid-walk
+	// throws the whole walk away.
+	WaitOnBudget bool
 
 	// CacheTTL zero disables the cache entirely, which is what the recorder
 	// wants.
@@ -587,6 +597,11 @@ func (c *Client) get(ctx context.Context, path string, q url.Values, requireLate
 	for attempt := 0; attempt <= c.cfg.MaxRetries; attempt++ {
 		if attempt > 0 {
 			c.cfg.Sleep(c.backoff(attempt, lastErr))
+		}
+		if c.cfg.WaitOnBudget {
+			if err := c.WaitForBudget(ctx, 1); err != nil {
+				return nil, 0, err
+			}
 		}
 		if err := c.spend(); err != nil {
 			return nil, 0, err
