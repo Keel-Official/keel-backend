@@ -1,6 +1,8 @@
 # Keel: Overview and Notation
 
 **Methodology version:** 1.2.0-draft
+**Engine version:** `1.0.8-draft`, the label every API response and stored row carries.
+The two differ on purpose; `README.md` in this folder and DEC-014 section 10 say why.
 **Status:** complete. Definitions locked, thresholds not calibrated.
 
 This document states the question Keel answers and the notation every other file in

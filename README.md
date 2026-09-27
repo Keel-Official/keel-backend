@@ -10,6 +10,20 @@ This file is how to RUN it. What is built and what is not, the layout, the
 recording workflow and the one CI job that is red on purpose are in the git
 history of this file, in `CLAUDE.md`, and in `docs/`.
 
+## Two version numbers, on purpose
+
+| | Value | Where you see it | Moves when |
+|---|---|---|---|
+| Engine version | `1.0.8-draft` | every API response, `GET /v1/health`, every stored row, the dashboard | the code that computes a result changes |
+| Document version | `1.2.0-draft` | the header of every file in `docs/methodology/` | a definition in those documents is written or changed |
+
+They differ because of one rule. Methodology 1.1.0 says an asset takes the worst band
+across every quote pair evaluated, and the engine does not implement it yet. Every asset
+Keel monitors is measured against USDC alone, so that rule changes no figure the API
+serves. Stamping `1.2.0-draft` on results computed without it would put two different
+computations under one label, which is why the engine keeps its own number. DEC-014
+section 10 is the decision and `docs/methodology/README.md` states both in its header.
+
 ---
 
 # 1. Running it locally
