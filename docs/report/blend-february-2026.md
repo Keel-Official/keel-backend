@@ -6,14 +6,17 @@ the answer: the hand-computed fixture omits two dust asks that section 5.4 now i
 and pool reserves at a past ledger are stated as a gap rather than rebuilt. Section 10 says
 how each of the seven items closed and who owns what remains.
 
-**Version:** 1.0, finalised 22 September 2026. Drafted 5 September, sections 5 and 6
+**Version:** 1.0.1, 27 September 2026: the methodology version sentence below corrected, nothing re-measured. 1.0 was finalised 22 September 2026. Drafted 5 September, sections 5 and 6
 filled 14 September, section 6.5 and the answer in section 1 written 22 September
-**Methodology version:** `1.0.8-draft`, the version the engine stamps on every
-result quoted here. The methodology documents are at `1.1.0-draft`, except
-`01-data-sources.md` and `11-limitations.md` which moved to `1.2.0-draft` on
-14 September 2026 under DEC-021, and they describe a multi-pair rule the engine does not
-implement yet; DEC-014 and DEC-015 are where that gap is recorded. Nothing in this report depends on it: USTRY is measured
-against USDC and USDC is the unit the thresholds are in.
+**Methodology version:** `1.0.8-draft`, the engine version stamped on every result
+quoted here and on every API response. The methodology documents are at `1.2.0-draft`.
+**The two numbers differ on purpose**, under DEC-014 section 10 (25 September 2026): the
+document version moves when a definition is written, and the engine version moves only
+when the code's behaviour changes. The one definition the engine does not implement is
+the 1.1.0 rule that an asset takes the worst band across every quote pair evaluated
+(DEC-015 section 5). USTRY, like every asset Keel monitors, is measured against USDC
+alone, so that rule changes no figure in this report. `docs/methodology/README.md`
+states both versions in its header.
 **Asset:** `USTRY`, issuer `GCRYUGD5NVARGXT56XEZI5CIFCQETYHAPQQTHO2O3IQZTHDH4LATMYWC`,
 against `USDC`, issuer `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`.
 The identity is fixed by `docs/decisions/DEC-001-ustry-identity.md` and an asset is
@@ -615,3 +618,4 @@ found a defect and should say so.
 | 12 September 2026 | The phantom ask resolved to offer `1822775941` and the crossing bid to offer `1824767559`, so the defect is named rather than suspected. Three corrections to the 8 September reading: `best_ask` is wrong from 9 February and not from the 23rd, the deeper-walk fix priced there cannot work, and the fixture-versus-code question is settled in the fixture's favour by the single fill in ledger 61340263. Removal dated to six minutes on 8 February. A crossed-book detector landed in `internal/domain`. Sections 5 and 6 stay empty, and section 10 is unchanged on who owns them |
 | 14 September 2026 | **Sections 5 and 6 filled.** Three things landed first. The discontinuity of 22 February was resolved from the operation stream: the book's market maker deleted its whole ladder at ledger 61340261 and re-posted 79 seconds later, so the fold lost nothing. That withdrawal was then shown to be routine, 116 windows in February and one at 00:10 UTC on all 28 days. And the phantom ask of 9 to 28 February was removed under DEC-021, a repair that is off by default, declared in every artefact, and validated against the hand-computed fixture on four criteria written down before the run finished. Section 5 is generated from that run. Section 6 carries the facts and marks 6.5, the meaning, as Al's. Section 5.4 records four fixture quantities the run does not reproduce and attributes them to one dust offer rather than to the repair |
 | 22 September 2026 | **Finalised, version 1.0.** Section 6.5 and the one-sentence answer in section 1 written by Al. Section 5.4 resolved: the level at `2147483647` is two resting dust asks, offers `1823051768` and `1823841098`, found by the new `keel replay -dump-offers` and checked against Horizon, so the fixture omits them rather than the run inventing them. Section 10 records how each item closed. Nothing in sections 2 to 9 was re-measured |
+| 27 September 2026 | **Version 1.0.1.** The header's methodology sentence named the documents at `1.1.0-draft` with two files at `1.2.0-draft`, which stopped being true on 25 September when DEC-014 section 10 brought the set to one version. It now names both clocks and the one unimplemented rule, and says why that rule moves no figure here. Nothing in sections 1 to 10 changed |
