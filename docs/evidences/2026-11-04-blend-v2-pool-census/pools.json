@@ -1,0 +1,554 @@
+{
+  "factory": "CDSYOAVXFY7SM5S64IZPPPYB4GVGGLMQVFREPSQQEZVIWXX5R23G4QSU",
+  "rpc": "https://mainnet.sorobanrpc.com",
+  "read_at_utc": "2026-11-04T09:28:55.713Z",
+  "deploy_events": 12,
+  "pools": [
+    {
+      "pool": "CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD",
+      "deployed_utc": "2025-04-14T17:46:46.000Z",
+      "deploy_event": "243161613573300225-0000",
+      "status": 3,
+      "status_label": "on-ice",
+      "reserves": 3,
+      "reserves_with_supply": 3,
+      "read_at_ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "deployed_utc": "2025-04-15T18:42:52.000Z",
+      "deploy_event": "243228121142718465-0000",
+      "status": 6,
+      "status_label": "setup",
+      "reserves": 7,
+      "reserves_with_supply": 0,
+      "read_at_ledger": 65299691
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "deployed_utc": "2025-04-17T14:35:16.000Z",
+      "deploy_event": "243345408108666881-0000",
+      "status": 3,
+      "status_label": "on-ice",
+      "reserves": 8,
+      "reserves_with_supply": 8,
+      "read_at_ledger": 65299693
+    },
+    {
+      "pool": "CB4OFHAY2TAEYUVPOJS36S657C6NYMSIFUNCCA5AHYT46Y5XUID3O2ED",
+      "deployed_utc": "2025-05-01T15:04:09.000Z",
+      "deploy_event": "244259128041078785-0000",
+      "status": 6,
+      "status_label": "setup",
+      "reserves": 4,
+      "reserves_with_supply": 0,
+      "read_at_ledger": 65299694
+    },
+    {
+      "pool": "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC",
+      "deployed_utc": "2025-05-01T21:54:53.000Z",
+      "deploy_event": "244277824034189313-0000",
+      "status": 4,
+      "status_label": "admin frozen",
+      "reserves": 4,
+      "reserves_with_supply": 4,
+      "read_at_ledger": 65299694
+    },
+    {
+      "pool": "CBYOBT7ZCCLQCBUYYIABZLSEGDPEUWXCUXQTZYOG3YBDR7U357D5ZIRF",
+      "deployed_utc": "2025-07-14T03:19:10.000Z",
+      "deploy_event": "249074598130757633-0000",
+      "status": 5,
+      "status_label": "frozen",
+      "reserves": 4,
+      "reserves_with_supply": 4,
+      "read_at_ledger": 65299695
+    },
+    {
+      "pool": "CALRF5I2OCJCU577R6MZBCY5IIXNMAAG6PNMN7GUKEYIXBJCJN2FJRVI",
+      "deployed_utc": "2025-11-21T18:51:29.000Z",
+      "deploy_event": "257502560914317313-0000",
+      "status": 6,
+      "status_label": "setup",
+      "reserves": 5,
+      "reserves_with_supply": 0,
+      "read_at_ledger": 65299695
+    },
+    {
+      "pool": "CADR6Q2UOCDJAGXMAB2E6SRT35STLZ2IGLZUCXJQG7TC2LNKCU5RTQVY",
+      "deployed_utc": "2025-11-24T21:29:43.000Z",
+      "deploy_event": "257704282643460097-0000",
+      "status": 6,
+      "status_label": "setup",
+      "reserves": 5,
+      "reserves_with_supply": 0,
+      "read_at_ledger": 65299696
+    },
+    {
+      "pool": "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI",
+      "deployed_utc": "2025-11-24T21:33:09.000Z",
+      "deploy_event": "257704437261918209-0000",
+      "status": 4,
+      "status_label": "admin frozen",
+      "reserves": 5,
+      "reserves_with_supply": 5,
+      "read_at_ledger": 65299697
+    },
+    {
+      "pool": "CDZVHCO7LDUJZSME3PJPJXAKT7F6W5IXSOXTJ2QEK3Y2X2CDUREBUMUY",
+      "deployed_utc": "2026-06-10T13:16:16.000Z",
+      "deploy_event": "270441965937471489-0000",
+      "status": 2,
+      "status_label": "admin on-ice",
+      "reserves": 1,
+      "reserves_with_supply": 1,
+      "read_at_ledger": 65299697
+    },
+    {
+      "pool": "CC4HHXPKR3FIXUQEC53MAK2IVWD6APAEBBXP5XCIW5FISN6PQOAC6UXG",
+      "deployed_utc": "2026-07-28T14:16:34.000Z",
+      "deploy_event": "273540441243648001-0000",
+      "status": 3,
+      "status_label": "on-ice",
+      "reserves": 4,
+      "reserves_with_supply": 3,
+      "read_at_ledger": 65299697
+    },
+    {
+      "pool": "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236",
+      "deployed_utc": "2026-08-26T22:09:09.000Z",
+      "deploy_event": "275475452859813889-0000",
+      "status": 6,
+      "status_label": "setup",
+      "reserves": 3,
+      "reserves_with_supply": 0,
+      "read_at_ledger": 65299698
+    }
+  ],
+  "reserves": [
+    {
+      "pool": "CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "699318822.2186956",
+      "borrowed": "781980.2188642",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "51096672.1288576",
+      "borrowed": "39396492.8375108",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CAJJZSGMMM3PD7N33TAPHGBUGTB43OC73HVIK2L2G6BNGGGYOSSYBXBD",
+      "asset": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+      "symbol": "EURC",
+      "supplied": "114317.8713583",
+      "borrowed": "53334.3841597",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+      "symbol": "EURC",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+      "symbol": "AQUA",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE",
+      "symbol": "USDGLO",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CBNR7PYFY775UG7W37B4OJG2OBBUKLFW6VIBHFDKKLR2HECPRMRZMDK3",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299691
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "653630.7069539",
+      "borrowed": "50273.3008330",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "42269.0106446",
+      "borrowed": "34123.2830468",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+      "symbol": "EURC",
+      "supplied": "1137.8388560",
+      "borrowed": "678.6394746",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+      "symbol": "AQUA",
+      "supplied": "1703317.5972890",
+      "borrowed": "11601.0767420",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE",
+      "symbol": "USDGLO",
+      "supplied": "669.9655708",
+      "borrowed": "0.0094411",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "36.6800095",
+      "borrowed": "0.2770564",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "31716.8389289",
+      "borrowed": "496.6163061",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CCCCIQSDILITHMM7PBSLVDT5MISSY7R26MNZXCX4H7J5JQ5FPIYOGYFS",
+      "asset": "CCCRWH6Q3FNP3I2I57BDLM5AFAT7O6OF6GKQOC6SSJNDAVRZ57SPHGU2",
+      "symbol": "PYUSD",
+      "supplied": "949.5535967",
+      "borrowed": "937.1984600",
+      "ledger": 65299693
+    },
+    {
+      "pool": "CB4OFHAY2TAEYUVPOJS36S657C6NYMSIFUNCCA5AHYT46Y5XUID3O2ED",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CB4OFHAY2TAEYUVPOJS36S657C6NYMSIFUNCCA5AHYT46Y5XUID3O2ED",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CB4OFHAY2TAEYUVPOJS36S657C6NYMSIFUNCCA5AHYT46Y5XUID3O2ED",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CB4OFHAY2TAEYUVPOJS36S657C6NYMSIFUNCCA5AHYT46Y5XUID3O2ED",
+      "asset": "CBKGPWGKSKZF52CFHMTRR23TBWTPMRDIYZ4O2P5VS65BMHYH4DXMCJZC",
+      "symbol": "?",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "4231.3144997",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "35.2388289",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "610.8424579",
+      "borrowed": "0.0000000",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CAE7QVOMBLZ53CDRGK3UNRRHG5EZ5NQA7HHTFASEMYBWHG6MDFZTYHXC",
+      "asset": "CBZPEXQLJCGUYTAQRQ4FGCXUV5O4TZER5WSOMCGNDNIIO4EJ4FU5GQNZ",
+      "symbol": "oUSD",
+      "supplied": "189999.9063317",
+      "borrowed": "409.8128975",
+      "ledger": 65299694
+    },
+    {
+      "pool": "CBYOBT7ZCCLQCBUYYIABZLSEGDPEUWXCUXQTZYOG3YBDR7U357D5ZIRF",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "2725.0241235",
+      "borrowed": "0.0000000",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CBYOBT7ZCCLQCBUYYIABZLSEGDPEUWXCUXQTZYOG3YBDR7U357D5ZIRF",
+      "asset": "CDIKURWHYS4FFTR5KOQK6MBFZA2K3E26WGBQI6PXBYWZ4XIOPJHDFJKP",
+      "symbol": "USDx",
+      "supplied": "448.5321397",
+      "borrowed": "1896.3317512",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CBYOBT7ZCCLQCBUYYIABZLSEGDPEUWXCUXQTZYOG3YBDR7U357D5ZIRF",
+      "asset": "CBN3NCJSMOQTC6SPEYK3A44NU4VS3IPKTARJLI3Y77OH27EWBY36TP7U",
+      "symbol": "EURx",
+      "supplied": "25.4108124",
+      "borrowed": "0.0024687",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CBYOBT7ZCCLQCBUYYIABZLSEGDPEUWXCUXQTZYOG3YBDR7U357D5ZIRF",
+      "asset": "CBCO65UOWXY2GR66GOCMCN6IU3Y45TXCPBY3FLUNL4AOUMOCKVIVV6JC",
+      "symbol": "GBPx",
+      "supplied": "42.4938920",
+      "borrowed": "0.6603598",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CALRF5I2OCJCU577R6MZBCY5IIXNMAAG6PNMN7GUKEYIXBJCJN2FJRVI",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CALRF5I2OCJCU577R6MZBCY5IIXNMAAG6PNMN7GUKEYIXBJCJN2FJRVI",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CALRF5I2OCJCU577R6MZBCY5IIXNMAAG6PNMN7GUKEYIXBJCJN2FJRVI",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CALRF5I2OCJCU577R6MZBCY5IIXNMAAG6PNMN7GUKEYIXBJCJN2FJRVI",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CALRF5I2OCJCU577R6MZBCY5IIXNMAAG6PNMN7GUKEYIXBJCJN2FJRVI",
+      "asset": "CD6M4R2322BYCY2LNWM74PEBQAQ63SA3DUJLI3L4225U4ZVCLMSCBCIS",
+      "symbol": "TESOURO",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299695
+    },
+    {
+      "pool": "CADR6Q2UOCDJAGXMAB2E6SRT35STLZ2IGLZUCXJQG7TC2LNKCU5RTQVY",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299696
+    },
+    {
+      "pool": "CADR6Q2UOCDJAGXMAB2E6SRT35STLZ2IGLZUCXJQG7TC2LNKCU5RTQVY",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299696
+    },
+    {
+      "pool": "CADR6Q2UOCDJAGXMAB2E6SRT35STLZ2IGLZUCXJQG7TC2LNKCU5RTQVY",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299696
+    },
+    {
+      "pool": "CADR6Q2UOCDJAGXMAB2E6SRT35STLZ2IGLZUCXJQG7TC2LNKCU5RTQVY",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299696
+    },
+    {
+      "pool": "CADR6Q2UOCDJAGXMAB2E6SRT35STLZ2IGLZUCXJQG7TC2LNKCU5RTQVY",
+      "asset": "CD6M4R2322BYCY2LNWM74PEBQAQ63SA3DUJLI3L4225U4ZVCLMSCBCIS",
+      "symbol": "TESOURO",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299696
+    },
+    {
+      "pool": "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "8134.7202798",
+      "borrowed": "3333.5308781",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "5474.7485177",
+      "borrowed": "822.9443645",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI",
+      "asset": "CAL6ER2TI6CTRAY6BFXWNWA7WTYXUXTQCHUBCIBU5O6KM3HJFG6Z6VXV",
+      "symbol": "CETES",
+      "supplied": "108798.3608540",
+      "borrowed": "23.5200554",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI",
+      "asset": "CBLV4ATSIWU67CFSQU2NVRKINQIKUZ2ODSZBUJTJ43VJVRSBTZYOPNUR",
+      "symbol": "USTRY",
+      "supplied": "619.1791056",
+      "borrowed": "3.1020164",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CDMAVJPFXPADND3YRL4BSM3AKZWCTFMX27GLLXCML3PD62HEQS5FPVAI",
+      "asset": "CD6M4R2322BYCY2LNWM74PEBQAQ63SA3DUJLI3L4225U4ZVCLMSCBCIS",
+      "symbol": "TESOURO",
+      "supplied": "3157.3338445",
+      "borrowed": "0.0000000",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CDZVHCO7LDUJZSME3PJPJXAKT7F6W5IXSOXTJ2QEK3Y2X2CDUREBUMUY",
+      "asset": "CCXU7Z4FUOG4PV7GMXI5IF4YIN52I3XKDIJCKFYWBELBPJTUG7OSU2Y7",
+      "symbol": "wPT-steakUSDC(USDC)-2026/11/02",
+      "supplied": "10.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CC4HHXPKR3FIXUQEC53MAK2IVWD6APAEBBXP5XCIW5FISN6PQOAC6UXG",
+      "asset": "CBIJBDNZNF4X35BJ4FFZWCDBSCKOP5NB4PLG4SNENRMLAPYG4P5FM6VN",
+      "symbol": "SolvBTC",
+      "supplied": "0.00196668",
+      "borrowed": "0.00000000",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CC4HHXPKR3FIXUQEC53MAK2IVWD6APAEBBXP5XCIW5FISN6PQOAC6UXG",
+      "asset": "CAUP7NFABXE5TJRL3FKTPMWRLC7IAXYDCTHQRFSCLR5TMGKHOOQO772J",
+      "symbol": "xSolvBTC",
+      "supplied": "0.00010000",
+      "borrowed": "0.00000000",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CC4HHXPKR3FIXUQEC53MAK2IVWD6APAEBBXP5XCIW5FISN6PQOAC6UXG",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "12.2441507",
+      "borrowed": "12.1607417",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CC4HHXPKR3FIXUQEC53MAK2IVWD6APAEBBXP5XCIW5FISN6PQOAC6UXG",
+      "asset": "CCCRWH6Q3FNP3I2I57BDLM5AFAT7O6OF6GKQOC6SSJNDAVRZ57SPHGU2",
+      "symbol": "PYUSD",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299697
+    },
+    {
+      "pool": "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236",
+      "asset": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+      "symbol": "native",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299698
+    },
+    {
+      "pool": "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236",
+      "asset": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "symbol": "USDC",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299698
+    },
+    {
+      "pool": "CAIYBZSBI6XXI3W7EDXDRWLUBK3RCAPHTK4DNX74DZGWE53KYWBHE236",
+      "asset": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+      "symbol": "EURC",
+      "supplied": "0.0000000",
+      "borrowed": "0.0000000",
+      "ledger": 65299698
+    }
+  ]
+}

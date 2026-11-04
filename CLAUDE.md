@@ -175,6 +175,15 @@ the thing it reads is the thing you would edit to satisfy it. Adding a row witho
 thinking about the row satisfies it completely. This repository has been defeated
 by that pattern five times, so it is written down here rather than discovered again.
 
+`docs/funding/` — funding documents for follow-on awards (SOW 2 onward,
+traction reports, customer development plans). Claude drafts; Al reviews,
+edits, and signs. Every acceptance criterion that depends on a
+methodology decision must cite the RED decision it rests on; Claude never
+defines that decision inside a funding document.
+
+`docs/context` — SOW 1 and its execution plan (approved; read only).
+New funding documents live in `docs/funding/`.
+
 ## Answer style
 
 - Do not use em dashes.
